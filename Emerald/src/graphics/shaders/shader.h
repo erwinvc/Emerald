@@ -7,13 +7,7 @@ class Shader {
 	String m_vertex;
 	String m_fragment;
 
-public:
-	Shader() {}
-	Shader(String name, String vertex, String fragment) : m_name(name), m_vertex(vertex), m_fragment(fragment) {
-		m_shaderID = Load();
-	}
-
-	~Shader() { glDeleteShader(m_shaderID); }
+	map<String_t, GLuint> m_uniforms;
 
 	GLuint LoadShader(String path, GLuint type) {
 		GLuint shader = glCreateShader(type);
@@ -41,7 +35,6 @@ public:
 		LOG_PRINT("[Shader] Compiled %s %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
 		return shader;
 	}
-
 	GLuint Load() {
 		GLuint program = glCreateProgram();
 		GLuint vertex = LoadShader(m_vertex, GL_VERTEX_SHADER);
@@ -62,12 +55,35 @@ public:
 
 		return program;
 	}
+public:
+	Shader() {}
+	Shader(String name, String vertex, String fragment) : m_name(name), m_vertex(vertex), m_fragment(fragment) {
+		m_shaderID = Load();
+	}
+	virtual ~Shader() { glDeleteShader(m_shaderID); }
 
-	void Start() {
+	void Set(String_t location, int value) { glUniform1i(m_uniforms[location], value); }
+	void Set(String_t location, float value) { glUniform1f(m_uniforms[location], value); }
+	void Set(String_t location, float x, float y) { glUniform2f(m_uniforms[location], x, y); }
+	void Set(String_t location, Color color) { glUniform4f(m_uniforms[location], color.R, color.G, color.B, color.A); }
+	void Set(String_t location, Matrix4 matrix) { glUniformMatrix4fv(m_uniforms[location], 1, GL_FALSE, matrix.elements); }
+	void Set(String_t location, Vector4 vector) { glUniform4f(m_uniforms[location], vector.x, vector.y, vector.z, vector.w); }
+	void Set(String_t location, Vector3 vector) { glUniform3f(m_uniforms[location], vector.x, vector.y, vector.z); }
+	void Set(String_t location, Vector2 vector) { glUniform2f(m_uniforms[location], vector.x, vector.y); }
+	void Set(String_t location, boolean value) { Set(location, value ? 1.0f : 0.0f); }
+
+	virtual void Start() {
 		glUseProgram(m_shaderID);
 	}
 
-	void Stop() {
+	virtual void Stop() {
 		glUseProgram(0);
+	}
+
+protected:
+	void AddUniform(String_t uniform) {
+		int uniformLocation = glGetUniformLocation(m_shaderID, uniform);
+		if (uniformLocation == 0xffffffff) LOG("Failed to find uniform~1 %s~x in the ~1%s ~xshader", uniform, m_name);
+		m_uniforms.emplace(uniform, uniformLocation);
 	}
 };

@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <algorithm>
 #include <thread>
+#include <math.h>
+#include <cstdlib>
 
 // Datastructures
 #include <map>
@@ -28,11 +30,21 @@
 
 using namespace std;
 
+#include "math/vector2.h"
+#include "math/vector3.h"
+#include "math/vector4.h"
+#include "math/matrix4.h"
+#include "math/mathFunctions.h"
 #include "util/logger.h"
 #include "util/color.h"
 #include "util/types.h"
 #include "util/utils.h"
 
+#include "graphics/buffers/buffer.h"
+#include "graphics/buffers/indexBuffer.h"
+#include "graphics/buffers/VertexArray.h"
+
 #include "graphics/window.h"
 #include "graphics/shaders/shader.h"
+#include "graphics/shaders/basicShader.h"
 #include "application.h"

@@ -1,4 +1,5 @@
 //#pragma once
+#define LOG( fmt, ...)					Logger::Message(ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
 #define LOG_PRINT( fmt, ...)			Logger::Message(ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
 #define LOG_DEBUG( fmt, ...)			Logger::Message(ConsoleColor::GRAY,		" [Debg]",		fmt, ##__VA_ARGS__ )
 #define LOG_WARN( fmt, ...)				Logger::Message(ConsoleColor::DARKYELLOW,	" [Warn]",		fmt, ##__VA_ARGS__ )
