@@ -220,14 +220,14 @@ Matrix4 Matrix4::Orthographic(float left, float right, float bottom, float top, 
 	return result;
 }
 
-Matrix4 Matrix4::Perspective(float fov, float aspectRatio, float nearr, float farr) {
+Matrix4 Matrix4::Perspective(float fov, float aspectRatio, float nearPlane, float farPlane) {
 	Matrix4 result(1.0f);
 
 	float q = 1.0f / Math::tan(Math::toRadians(0.5f * fov));
 	float a = q / aspectRatio;
 
-	float b = (nearr + farr) / (nearr - farr);
-	float c = (2.0f * nearr * farr) / (nearr - farr);
+	float b = (nearPlane + farPlane) / (nearPlane - farPlane);
+	float c = (2.0f * nearPlane * farPlane) / (nearPlane - farPlane);
 
 	result.elements[0 + 0 * 4] = a;
 	result.elements[1 + 1 * 4] = q;

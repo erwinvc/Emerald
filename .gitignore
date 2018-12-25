@@ -10,3 +10,5 @@ bin-int/
 *.vcxproj
 
 !premake5.exe
+Emerald/imgui.ini
+Emerald/res/

@@ -28,6 +28,8 @@ project "Emerald"
 
 	includedirs
 	{
+		"%{prj.name}/vendor/AssImp/include",
+		"%{prj.name}/vendor/AssImp/build/include",
 		"%{prj.name}/vendor/GLFW/include",
 		"%{prj.name}/vendor/GLEW/include",
 		"%{prj.name}/vendor/imgui",
@@ -38,6 +40,7 @@ project "Emerald"
 	libdirs  
 	{ 
 		"$(SolutionDir)%{prj.name}/vendor/GLFW/lib-vc2015",
+		"$(SolutionDir)%{prj.name}/vendor/AssImp",
 		"$(SolutionDir)%{prj.name}/vendor/GLEW/lib/Release/x64"
 	}
 
@@ -45,14 +48,16 @@ project "Emerald"
 	{
 		"glfw3",
 		"glew32s",
-		"opengl32"
+		"opengl32",
+		"IrrXML",
+		"zlib.lib",
+		"zlibstatic",
+		"assimp-vc140-mt"
 	}
-		
-	buildoptions "/MD"
 	
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "off"
 		systemversion "10.0.17134.0"
 
 		defines

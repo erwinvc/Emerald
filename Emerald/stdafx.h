@@ -27,6 +27,8 @@
 
 // ImGui
 #include <imgui.h>
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 using namespace std;
 
@@ -44,7 +46,13 @@ using namespace std;
 #include "graphics/buffers/indexBuffer.h"
 #include "graphics/buffers/VertexArray.h"
 
+#include "graphics/texture.h"
 #include "graphics/window.h"
 #include "graphics/shaders/shader.h"
 #include "graphics/shaders/basicShader.h"
+
+#include "graphics/camera/camera.h"
+#include "graphics/mesh.h"
+#include "entity/entity.h"
+
 #include "application.h"

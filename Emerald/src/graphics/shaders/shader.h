@@ -66,7 +66,7 @@ public:
 	void Set(String_t location, float value) { glUniform1f(m_uniforms[location], value); }
 	void Set(String_t location, float x, float y) { glUniform2f(m_uniforms[location], x, y); }
 	void Set(String_t location, Color color) { glUniform4f(m_uniforms[location], color.R, color.G, color.B, color.A); }
-	void Set(String_t location, Matrix4 matrix) { glUniformMatrix4fv(m_uniforms[location], 1, GL_FALSE, matrix.elements); }
+	void Set(String_t location, Matrix4 matrix) { glUniformMatrix4fv(m_uniforms[location], 1, GL_TRUE, matrix.elements); }
 	void Set(String_t location, Vector4 vector) { glUniform4f(m_uniforms[location], vector.x, vector.y, vector.z, vector.w); }
 	void Set(String_t location, Vector3 vector) { glUniform3f(m_uniforms[location], vector.x, vector.y, vector.z); }
 	void Set(String_t location, Vector2 vector) { glUniform2f(m_uniforms[location], vector.x, vector.y); }

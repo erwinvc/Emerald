@@ -5,6 +5,7 @@ private:
 	GLuint m_componentCount;
 public:
 	Buffer(GLfloat* data, GLsizei count, GLuint componentCount);
+	~Buffer();
 	inline GLuint GetComponentCount() { return m_componentCount; }
 
 	void Bind();

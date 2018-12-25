@@ -7,7 +7,7 @@ public:
 	float B;
 	float A;
 
-	Color() {}
+	Color() : R(0), G(0), B(0), A(0) {}
 
 	void clamp() {
 		if (R < 0) R = 0;

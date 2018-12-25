@@ -45,4 +45,6 @@ public:
 	{
 		glfwSwapInterval(toggle);
 	}
+
+	GLFWwindow* GetWindow() {return m_window; }
 };

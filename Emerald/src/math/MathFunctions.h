@@ -5,6 +5,12 @@ constexpr size_t NUMOF(T(&)[N]) { return N; }
 
 namespace Math {
 
+	static const float PI = 3.1415927F;
+	static const float HALF_PI = 1.5707964F;
+	static const float THIRD_PI = 1.0471976F;
+	static const float QUARTER_PI = 0.7853982F;
+
+
 	inline float toRadians(float degrees) {
 		return (float)(degrees * (3.14 / 180.0f));
 	}
