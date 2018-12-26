@@ -15,5 +15,10 @@ public:
 		AddUniform("intensity");
 		AddUniform("direction");
         AddUniform("tex");
+        AddUniform("texNormal");
+        AddUniform("specularIntensity");
+        AddUniform("specularPower");
+	
+        
 	}
 };

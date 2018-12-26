@@ -268,19 +268,27 @@ void Application::Run() {
 
     {
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile("steyerdorf.obj", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+        const aiScene* scene = importer.ReadFile("res/dragon.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
         aiNode* rnode = scene->mRootNode;
         for (int k = 0; k < rnode->mNumChildren; k++) {
             aiNode* node = rnode->mChildren[k];
             for (uint i = 0; i < node->mNumMeshes; i++) {
                 aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+
+                vector<GLfloat> texcoords;
+                for (int i = 0; i < mesh[0].mNumVertices; i++) {
+                    texcoords.push_back(mesh[0].mTextureCoords[0][i].x);
+                    texcoords.push_back(mesh[0].mTextureCoords[0][i].y);
+                }
+
                 //Model
                 VertexArray* vaoModel = new VertexArray();
                 vaoModel->AddBuffer(new Buffer((float*)mesh->mVertices, mesh->mNumVertices * 3, 3), 0, false);
-                vaoModel->AddBuffer(new Buffer((float*)mesh->mTextureCoords[0], mesh->mNumVertices * 2, 2), 1, false);
+                vaoModel->AddBuffer(new Buffer(&texcoords[0], texcoords.size(), 2), 1, false);
                 vaoModel->AddBuffer(new Buffer((float*)mesh->mNormals, mesh->mNumVertices * 3, 3), 2, false);
+                vaoModel->AddBuffer(new Buffer((float*)mesh->mTangents, mesh->mNumVertices * 3, 3), 3, false);
 
-                LOG("%s", mesh->mName.C_Str());
+                LOG("%s %s",mesh->HasTangentsAndBitangents() ? "yes" : "no", mesh->mName.C_Str());
 
                 vector<uint> shorts;
                 for (uint i = 0; i < mesh->mNumFaces; i++) {
@@ -312,10 +320,17 @@ void Application::Run() {
     BasicShader* shader = new BasicShader();
     shader->Start();
 
-    Texture tex("white.png");
-    Texture tex2("image.png");
+    Texture tex("res/white.png");
+    Texture tex2("res/image.png");
+    Texture tex3("res/rock.jpg");
+    Texture texNormal("res/normal.png");
+    Texture rockNormal("res/normalNew.jpg");
+
     tex.Bind(0);
     tex2.Bind(1);
+    tex3.Bind(2);
+    texNormal.Bind(3);
+    rockNormal.Bind(4);
 
     Matrix4 projection = Matrix4::Perspective(65.0f, 16.0f / 9.0f, 0.1f, 1000.0f);
     shader->Set("projectionMatrix", projection);
@@ -329,7 +344,6 @@ void Application::Run() {
 
     shader->Set("eyePos", cameraa.GetColumn(3));
     shader->Set("intensity", 0.3f);
-    shader->Set("direction", Vector3(Math::HALF_PI));
     shader->Set("lightColor", Color(0.6f, 0.5f, 0.5f, 1));
     ImGui::CreateContext();
     //ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -341,18 +355,22 @@ void Application::Run() {
     ImGui_ImplOpenGL3_Init("#version 130");
 
     float scale = 1;
-    float x = 0;
-    float y = 0;
-    float z = 0;
+    float x = 1.1f;
+    float y = -3.7f;
+    float z = -6.0f;
     float sepx = 0;
     float sepy = 0;
     float sepz = 0;
     float rotx = 0;
-    float roty = 0;
+    float roty = 90;
     float rotz = 0;
     int off = 0;
     int texture = 0;
+    int normal = 3;
     Color color;
+    Vector3 position = Vector3(Math::HALF_PI);
+    float specIntensity = 1;
+    float specPower = 1;
     while (!m_window->ShouldClose()) {
         //Sleep(1);
         glEnable(GL_DEPTH_TEST);
@@ -371,7 +389,12 @@ void Application::Run() {
         entity.m_rotation.y = sinus * 90;
         entity.m_rotation.z = sinus * 360;
 
+        shader->Set("direction", position);
+        shader->Set("specularIntensity", specIntensity);
+        shader->Set("specularPower", specPower);
+
         shader->Set("tex", texture);
+        shader->Set("texNormal", normal);
         shader->Set("color", color);
         const float s = 0.00006f;
         float f = -(entities.size() * s / 2);
@@ -411,11 +434,16 @@ void Application::Run() {
         ImGui::DragFloat("RotY", &roty, 0.1f);
         ImGui::DragFloat("RotZ", &rotz, 0.1f);
 
+        ImGui::DragFloat3("Position", (float*)&position, 0.01f);
+
         ImGui::DragFloat("SepX", &sepx, 1);
         ImGui::DragFloat("SepY", &sepy, 1);
         ImGui::DragFloat("SepZ", &sepz, 1);
         ImGui::SliderInt("Offset", &off, 0, entities.size() - 1);
         ImGui::SliderInt("Texture", &texture, 0, 2);
+        ImGui::SliderInt("Normal", &normal, 3, 4);
+        ImGui::SliderFloat("specIntensity", &specIntensity, 0, 1);
+        ImGui::SliderFloat("specPower", &specPower, 0, 1);
         ImGui::ColorPicker4("Color", (float*)&color);
         ImGui::End();
 
