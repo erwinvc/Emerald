@@ -8,6 +8,8 @@ public:
 	float A;
 
 	Color() : R(0), G(0), B(0), A(0) {}
+    Color(float val) : R(val), G(val), B(val), A(val) {}
+    Color(float r, float g, float b, float a = 1.0f) : R(r), G(g), B(b), A(a) {}
 
 	void clamp() {
 		if (R < 0) R = 0;
@@ -19,10 +21,6 @@ public:
 		if (G > 1.0f) G = 1.0f;
 		if (B > 1.0f) B = 1.0f;
 		if (A > 1.0f) A = 1.0f;
-	}
-
-	Color(float r, float g, float b, float a = 1.0f)
-		: R(r), G(g), B(b), A(a) {
 	}
 
 	float getCombined() { return R + G + B; }

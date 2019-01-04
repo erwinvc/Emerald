@@ -18,6 +18,8 @@ uniform vec3 direction;
 uniform sampler2D tex;
 uniform sampler2D texNormal;
 
+uniform float ambientIntensity;
+
 vec4 CalcLight(vec3 color, float intensity, vec3 direction, vec3 normal, vec3 worldPos, float specularIntensity, float specularPower, vec3 eyePos)
 {
     float diffuseFactor = clamp(dot(normal, -direction), 0.0, 1.0);
@@ -42,10 +44,14 @@ vec4 CalcLight(vec3 color, float intensity, vec3 direction, vec3 normal, vec3 wo
 }
 
 void main() {
-	vec3 normalMapValue = normalize(tbnMatrix * (255/128 * texture(texNormal, pass_textureCoords).xyz - 1.0));
+	vec3 normal = texture(texNormal, pass_textureCoords).xyz;
+	normal = normalize(normal * 255/128 - 1.0);
+	normal = normalize(tbnMatrix * normal);
+
     vec4 textureColor = texture(tex, pass_textureCoords);
     
 	if(textureColor.a < 0.5) discard;
     textureColor = mix(textureColor, vec4(color.xyz, 1.0), color.a);
-	out_Color = textureColor * CalcLight(lightColor.rgb, intensity, direction, normalMapValue, pass_worldPosition.xyz, specularIntensity, specularPower, eyePos);
+	vec4 ambient = textureColor * ambientIntensity;
+	out_Color = textureColor * CalcLight(lightColor.rgb, intensity, direction, normal, pass_worldPosition.xyz, specularIntensity, specularPower, eyePos) + ambient;
 }

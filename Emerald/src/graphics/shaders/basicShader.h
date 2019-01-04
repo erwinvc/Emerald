@@ -9,6 +9,9 @@ public:
 		AddUniform("projectionMatrix");
 		AddUniform("viewMatrix");
 
+        AddUniform("ambientColor");
+        AddUniform("ambientIntensity");
+
 		AddUniform("eyePos");
         AddUniform("color");
         AddUniform("lightColor");
@@ -16,9 +19,11 @@ public:
 		AddUniform("direction");
         AddUniform("tex");
         AddUniform("texNormal");
+        AddUniform("texHeight");
+        AddUniform("heightOffset");
+
         AddUniform("specularIntensity");
         AddUniform("specularPower");
-	
         
 	}
 };

@@ -6,6 +6,7 @@ private:
 	IndexBuffer* m_ibo;
 
 public:
+    Mesh() : m_vao(nullptr), m_ibo(nullptr) {}
 	Mesh(VertexArray* vao, IndexBuffer* ibo) : m_vao(vao), m_ibo(ibo) {}
 
 	void Draw() {

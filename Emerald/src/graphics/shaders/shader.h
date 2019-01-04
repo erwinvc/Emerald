@@ -11,9 +11,9 @@ class Shader {
 
 	GLuint LoadShader(String path, GLuint type) {
 		GLuint shader = glCreateShader(type);
-		String source = ReadFile(path);
+		String source = Utils::ReadFile(path);
 		if (source.empty()) {
-			LOG_ERROR("[Shader] Failed to load %s shader %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
+			LOG_ERROR("[~bShaders~x] Failed to load %s shader %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
 			return -1;
 		}
 		String_t sourceCC = source.c_str();
@@ -28,11 +28,11 @@ class Shader {
 			vector<char> error(length);
 			glGetShaderInfoLog(shader, length, &length, &error[0]);
 			LOG_ERROR("%s", &error[0]);
-			LOG_ERROR("[Shader] Failed to compile %s shader %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
+			LOG_ERROR("[~bShaders~x] Failed to compile %s shader %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
 			glDeleteShader(shader);
 			return -1;
 		}
-		LOG_PRINT("[Shader] Compiled %s %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
+		LOG_PRINT("[~bShaders~x] Compiled ~1%s~x %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
 		return shader;
 	}
 	GLuint Load() {
@@ -83,7 +83,7 @@ public:
 protected:
 	void AddUniform(String_t uniform) {
 		int uniformLocation = glGetUniformLocation(m_shaderID, uniform);
-		if (uniformLocation == 0xffffffff) LOG("Failed to find uniform~1 %s~x in the ~1%s ~xshader", uniform, m_name);
+		if (uniformLocation == 0xffffffff) LOG("[~bShaders~x] Failed to find uniform~1 %s~x in the ~1%s ~xshader", uniform, m_name);
 		m_uniforms.emplace(uniform, uniformLocation);
 	}
 };

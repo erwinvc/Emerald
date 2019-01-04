@@ -11,7 +11,7 @@ static void ErrorCallback(int error, const char* description) {
     LOG_ERROR("[GLFW] %s", description);
 }
 
-Application::Application() {
+Application::Application() : m_running(true) {
     glfwSetErrorCallback(ErrorCallback);
     if (!glfwInit()) {
         LOG_ERROR("[GLFW] GLFW failed to initialize");
@@ -28,7 +28,7 @@ Application::Application() {
     glfwWindowHint(GLFW_SAMPLES, 8);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
-    m_window = new Window("Test", 1920, 1080);
+    m_window = new Window("Test", 1920, 1080, [this](Event& e) { OnEvent(e); });
 
     m_window->MakeContextCurrent();
     m_window->Show();
@@ -38,102 +38,48 @@ Application::Application() {
         LOG_ERROR("GLEW failed to initialize");
         return;
     }
+}
 
+void Application::OnEvent(Event& e) {
+    e.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(); });
+    e.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { glViewport(0, 0, e.GetWidth(), e.GetHeight()); return true; });
+}
+
+bool Application::OnWindowClose() {
+    m_running = false;
+    return true;
 }
 
 Application::~Application() {
+
 }
 
-//void Application::Run() {
-//
-//	GLuint vbo, vao;
-//	glGenVertexArrays(1, &vao);
-//	glBindVertexArray(vao);
-//
-//	GLfloat vertices[] = {
-//		0, 0, 0,
-//		0, 3, 0,
-//		8, 3, 0,
-//		8, 0, 0
-//	};
-//
-//	GLfloat colors[144 * 4 * 100];
-//	for (int i = 0; i < 144 * 100; i++) {
-//		colors[i * 4] = Math::randomf(0.0, 1.0);
-//		colors[i * 4 + 1] = Math::randomf(0.0, 1.0);
-//		colors[i * 4 + 2] = Math::randomf(0.0, 1.0);
-//		colors[i * 4 + 3] = 1.0f;
-//	}
-//
-//	int offset = 0;
-//	GLfloat offsetsX[144 * 100];
-//	GLfloat offsetsY[144 * 100];
-//	for (int y = 0; y < 16 * 10; y++) {
-//		for (int x = 0; x < 9 * 10; x++) {
-//			offsetsX[offset] = (float)y / 10;
-//			offsetsY[offset++] = (float)x / 10;
-//		}
-//	}
-//
-//	glGenBuffers(1, &vbo);
-//	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-//	glEnableVertexAttribArray(0);
-//
-//	GLuint offsetsBufferID;
-//	glGenBuffers(1, &offsetsBufferID);
-//	glBindBuffer(GL_ARRAY_BUFFER, offsetsBufferID);
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(offsetsX), offsetsX, GL_STATIC_DRAW);
-//	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(GLfloat), 0);
-//	glEnableVertexAttribArray(1);
-//	glVertexAttribDivisor(1, 1);
-//
-//	GLuint offsets2BufferID;
-//	glGenBuffers(1, &offsets2BufferID);
-//	glBindBuffer(GL_ARRAY_BUFFER, offsets2BufferID);
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(offsetsY), offsetsY, GL_STATIC_DRAW);
-//	glEnableVertexAttribArray(2);
-//	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(GLfloat), 0);
-//	glVertexAttribDivisor(2, 1);
-//
-//	GLuint colorsBufferID;
-//	glGenBuffers(1, &colorsBufferID);
-//	glBindBuffer(GL_ARRAY_BUFFER, colorsBufferID);
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-//	glEnableVertexAttribArray(3);
-//	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, 0);
-//	glVertexAttribDivisor(3, 1);
-//
-//	GLushort indices[] = { 0, 1, 2, 2, 3, 0 };
-//	GLuint indexArrayBufferID;
-//	glGenBuffers(1, &indexArrayBufferID);
-//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexArrayBufferID);
-//	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-//	float numIndices = 6;
-//
-//	BasicShader shader;
-//	shader.Start();
-//	shader.Set("color", Color(0.0f, 0.3f, 0.3f, 1.0f));
-//	Matrix4 projection = Matrix4::Orthographic(0.0f, 16.0f, 0.0f, 9.0f, -1.0f, 1.0f);
-//	shader.Set("projection", projection);
-//
-//	while (!m_window->ShouldClose()) {
-//		glClear(GL_COLOR_BUFFER_BIT);
-//
-//		//glDrawArrays(GL_TRIANGLES, 0, 6);
-//		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0, 144 * 100);
-//
-//		m_window->SwapBuffers();
-//		m_window->PollEvents();
-//	}
-//}
-
-void Application::Cleanup() {
-    delete m_window;
-}
-
+float scale = 1;
+float x = 1.1f;
+float y = -3.7f;
+float z = -6.0f;
+float rotx = 0;
+float roty = 90;
+float rotz = 0;
+int texture = 0;
+int normal = 4;
+int height = 0;
+Color color;
+Color background;
+Color directional(0.6f, 0.5f, 0.5f, 1);
+Vector3 position = Vector3(Math::HALF_PI);
+float specIntensity = 1;
+float specPower = 1;
+float var = 1;
+float sinus = 0;
+float sinus2 = 0;
+FreeCam camera;
+BasicShader* shader;
+Entity entity;
 vector<Entity> entities;
+Renderer* renderer;
+float ambientIntensity = 0.1f;
+
 void Application::Run() {
 
     GLfloat vertices[] = {
@@ -145,9 +91,9 @@ void Application::Run() {
 
     GLfloat colors[144 * 4 * 100];
     for (int i = 0; i < 144 * 100; i++) {
-        colors[i * 4] = Math::randomf(0.0, 1.0);
-        colors[i * 4 + 1] = Math::randomf(0.0, 1.0);
-        colors[i * 4 + 2] = Math::randomf(0.0, 1.0);
+        colors[i * 4] = Math::RandomF(0.0, 1.0);
+        colors[i * 4 + 1] = Math::RandomF(0.0, 1.0);
+        colors[i * 4 + 2] = Math::RandomF(0.0, 1.0);
         colors[i * 4 + 3] = 1.0f;
     }
 
@@ -159,7 +105,7 @@ void Application::Run() {
         for (int x = 0; x < 9 * 10; x++) {
             offsetsX[offset] = ((float)(y - (16 * 10 / 2)) / 10);
             offsetsY[offset] = ((float)(x - (9 * 10 / 2)) / 10);
-            offsetsZ[offset++] = Math::randomf(-50, 50);
+            offsetsZ[offset++] = Math::RandomF(-50, 50);
         }
     }
 
@@ -173,48 +119,6 @@ void Application::Run() {
     vao.AddBuffer(new Buffer(offsetsZ, NUMOF(offsetsZ), 1), 3, true);
     vao.AddBuffer(new Buffer(colors, NUMOF(colors), 4), 4, true);
     IndexBuffer ibo(indices, 6);
-
-    //for (uint i = 0; i < scene->mRootNode->mNumVertices; i++) {
-    //	MeshVertex vertex;
-    //
-    //	vertex.x = mesh->mVertices[i].x;
-    //	vertex.y = mesh->mVertices[i].y;
-    //	vertex.z = mesh->mVertices[i].z;
-    //
-    //	vertex.normal = Vector3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-    //
-    //
-    //
-    //	if (mesh->mTextureCoords[0]) {
-    //		vertex.texcoord.x = (float)mesh->mTextureCoords[0][i].x;
-    //		vertex.texcoord.y = (float)mesh->mTextureCoords[0][i].y;
-    //	}
-    //
-    //	vertices.push_back(vertex);
-    //}
-    //
-    //for (uint i = 0; i < mesh->mNumFaces; i++) {
-    //	aiFace face = mesh->mFaces[i];
-    //
-    //	for (uint j = 0; j < face.mNumIndices; j++)
-    //		indices.push_back(face.mIndices[j]);
-    //}
-
-
-    //std::vector<tinyobj::material_t> materials;
-    //tinyobj::attrib_t attrib;
-    //std::vector<tinyobj::shape_t> shapes;
-    //std::string warn;
-    //std::string err;
-    //LOG("%s", tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "Adv4Greenhouse.obj", "", true) ? "Yes" : "No");
-
-
-    //OBJ_LOADER
-    //objl::Loader loader;
-    //LOG("%s", loader.LoadFile("dragon.obj") ? "Yes" : "No");
-
-    //LOG("Vertices: %d", loader.LoadedVertices.size());
-    //LOG("Name: %s", loader.LoadedMeshes[0].MeshName.c_str());
 
     GLfloat cubeVertices[] = {
                 -0.5f,0.5f,-0.5f,
@@ -263,20 +167,40 @@ void Application::Run() {
                 23,21,22
     };
 
+    Assimp::Importer importer;
+    const aiScene* ascene = importer.ReadFile("res/cursor.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
+    aiNode* arnode = ascene->mRootNode;
+    aiNode* anode = arnode->mChildren[0];
+    aiMesh* amesh = ascene->mMeshes[anode->mMeshes[0]];
 
-    //vao2->AddBuffer(new Buffer(colors, NUMOF(colors), 4), 1, false);
+    vector<uint> shorts;
+    for (uint i = 0; i < amesh->mNumFaces; i++) {
+        aiFace face = amesh->mFaces[i];
+        for (uint j = 0; j < face.mNumIndices; j++)
+            shorts.push_back(face.mIndices[j]);
+    }
+
+    vector<GLfloat> texcoords;
+    for (uint i = 0; i < amesh[0].mNumVertices; i++) {
+        texcoords.push_back(amesh[0].mTextureCoords[0][i].x);
+        texcoords.push_back(amesh[0].mTextureCoords[0][i].y);
+    }
+
+    uint num = amesh->mNumVertices;
+    int num2 = (int)shorts.size();
+    renderer = new Renderer(num, num2, (float*)amesh->mVertices, (float*)amesh->mNormals, texcoords.data(), (float*)amesh->mTangents, shorts.data());
 
     {
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile("res/dragon.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
+        const aiScene* scene = importer.ReadFile("res/Adv4Greenhouse.obj", aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
         aiNode* rnode = scene->mRootNode;
-        for (int k = 0; k < rnode->mNumChildren; k++) {
+        for (uint k = 0; k < rnode->mNumChildren; k++) {
             aiNode* node = rnode->mChildren[k];
             for (uint i = 0; i < node->mNumMeshes; i++) {
                 aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
                 vector<GLfloat> texcoords;
-                for (int i = 0; i < mesh[0].mNumVertices; i++) {
+                for (uint i = 0; i < mesh[0].mNumVertices; i++) {
                     texcoords.push_back(mesh[0].mTextureCoords[0][i].x);
                     texcoords.push_back(mesh[0].mTextureCoords[0][i].y);
                 }
@@ -284,11 +208,11 @@ void Application::Run() {
                 //Model
                 VertexArray* vaoModel = new VertexArray();
                 vaoModel->AddBuffer(new Buffer((float*)mesh->mVertices, mesh->mNumVertices * 3, 3), 0, false);
-                vaoModel->AddBuffer(new Buffer(&texcoords[0], texcoords.size(), 2), 1, false);
+                vaoModel->AddBuffer(new Buffer(texcoords.data(), texcoords.size(), 2), 1, false);
                 vaoModel->AddBuffer(new Buffer((float*)mesh->mNormals, mesh->mNumVertices * 3, 3), 2, false);
                 vaoModel->AddBuffer(new Buffer((float*)mesh->mTangents, mesh->mNumVertices * 3, 3), 3, false);
 
-                LOG("%s %s",mesh->HasTangentsAndBitangents() ? "yes" : "no", mesh->mName.C_Str());
+                LOG("%s %s", mesh->HasTangentsAndBitangents() ? "yes" : "no", mesh->mName.C_Str());
 
                 vector<uint> shorts;
                 for (uint i = 0; i < mesh->mNumFaces; i++) {
@@ -297,7 +221,7 @@ void Application::Run() {
                     for (uint j = 0; j < face.mNumIndices; j++)
                         shorts.push_back(face.mIndices[j]);
                 }
-                IndexBuffer* iboModel = new IndexBuffer((&shorts[0]), shorts.size());
+                IndexBuffer* iboModel = new IndexBuffer(shorts.data(), shorts.size());
 
                 Mesh meshh(vaoModel, iboModel);
                 Entity ent(meshh);
@@ -305,7 +229,6 @@ void Application::Run() {
             }
         }
         importer.FreeScene();
-        //aiReleaseImport(scene);
     }
 
     //Cube
@@ -314,39 +237,39 @@ void Application::Run() {
     IndexBuffer* ibo2 = new IndexBuffer(cubeIndices, NUMOF(cubeIndices));
 
     Mesh mesh(vao2, ibo2);
-    Entity entity(mesh);
+    entity = Entity(mesh);
 
-    //Camera camera;
-    BasicShader* shader = new BasicShader();
+    shader = new BasicShader();
     shader->Start();
 
     Texture tex("res/white.png");
     Texture tex2("res/image.png");
     Texture tex3("res/rock.jpg");
+    Texture obsidian("res/obsidian.png");
     Texture texNormal("res/normal.png");
     Texture rockNormal("res/normalNew.jpg");
+    Texture obsidianNormal("res/obsidianNormal.png");
+    Texture testNormal("res/testNormal.png");
+    Texture heightMap("res/heightMap.png");
+
 
     tex.Bind(0);
     tex2.Bind(1);
     tex3.Bind(2);
-    texNormal.Bind(3);
-    rockNormal.Bind(4);
+    obsidian.Bind(3);
+    texNormal.Bind(4);
+    rockNormal.Bind(5);
+    obsidianNormal.Bind(6);
+    testNormal.Bind(7);
+    heightMap.Bind(8);
 
     Matrix4 projection = Matrix4::Perspective(65.0f, 16.0f / 9.0f, 0.1f, 1000.0f);
     shader->Set("projectionMatrix", projection);
 
 
-    Matrix4 cameraa = Matrix4::LookAt(Vector3(0, 0, 0.1f), Vector3(0, 0, 0), Vector3(0, 1, 0));
-    shader->Set("viewMatrix", cameraa);
 
-    float sinus = 0;
-    float sinus2 = 0;
-
-    shader->Set("eyePos", cameraa.GetColumn(3));
     shader->Set("intensity", 0.3f);
-    shader->Set("lightColor", Color(0.6f, 0.5f, 0.5f, 1));
     ImGui::CreateContext();
-    //ImGuiIO& io = ImGui::GetIO(); (void)io;
 
     // Setup style
     ImGui::StyleColorsDark();
@@ -354,104 +277,166 @@ void Application::Run() {
     ImGui_ImplGlfw_InitForOpenGL(m_window->GetWindow(), true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
-    float scale = 1;
-    float x = 1.1f;
-    float y = -3.7f;
-    float z = -6.0f;
-    float sepx = 0;
-    float sepy = 0;
-    float sepz = 0;
-    float rotx = 0;
-    float roty = 90;
-    float rotz = 0;
-    int off = 0;
-    int texture = 0;
-    int normal = 3;
-    Color color;
-    Vector3 position = Vector3(Math::HALF_PI);
-    float specIntensity = 1;
-    float specPower = 1;
-    while (!m_window->ShouldClose()) {
-        //Sleep(1);
-        glEnable(GL_DEPTH_TEST);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        shader->Start();
-        sinus += 0.001f;
-        sinus2 += 0.003f;
-        float FOV = ((Math::sin(sinus) + 1) / 2) * 150 + 20;
-        //entity.m_position.x = Math::sin(sinus);
-        entity.m_rotation.x = sinus * 20;
-        entity.m_rotation.y = Math::sin(sinus) * 20;
-        //shader.Set("viewMatrix", camera.GetViewMatrix());
-        //Matrix4 projection = Matrix4::Perspective(FOV, 16.0f / 9.0f, 0.1f, 1000.0f);
-        //shader->Set("projectionMatrix", projection);
-        entity.m_rotation.x = sinus * 180;
-        entity.m_rotation.y = sinus * 90;
-        entity.m_rotation.z = sinus * 360;
+    GetKeyboard()->Initialize(m_window);
+    GetMouse()->Initialize(m_window);
 
-        shader->Set("direction", position);
-        shader->Set("specularIntensity", specIntensity);
-        shader->Set("specularPower", specPower);
+    glEnable(GL_DEPTH_TEST);
 
-        shader->Set("tex", texture);
-        shader->Set("texNormal", normal);
-        shader->Set("color", color);
-        const float s = 0.00006f;
-        float f = -(entities.size() * s / 2);
-        for (auto& e : entities) {
-            e.m_position.x = x + sepx * f;
-            e.m_position.y = y + sepy * f;
-            e.m_position.z = z + sepz * f;
-            e.m_rotation.x = rotx;
-            e.m_rotation.y = roty;
-            e.m_rotation.z = rotz;
-            e.m_scale = scale;
-            //e.m_position.x += Math::cos(sinus2) * f;
-            //e.m_position.y += Math::sin(sinus2) * f;
-            f += s;
-            //e.m_position.z = -2;
-            //e.m_rotation = entity.m_rotation;
-            e.Draw(*shader);
+    vector<float> times;
+
+    /*Main loop*/
+    m_timer = new Timer();
+    m_timeStep = new TimeStep(m_timer->Get());
+    long timer = m_timer->Get();
+    float updateTimer = m_timer->Get();
+    float updateTick = 1000.0f / 60.0f;
+    double delta = 0;
+    int frames = 0, updates = 0;
+    while (m_running) {
+        m_window->Clear();
+        float now = m_timer->Get();
+        if (now - updateTimer > updateTick) {
+            m_timeStep->Update(now);
+            Update(*m_timeStep);
+            updates++;
+            updateTimer += updateTick;
+            times.push_back(m_timeStep->GetMills());
+            if (times.size() > 25) times.erase(times.begin());
         }
-
-        //entities[off].Draw(*shader);
-        //model.m_position.z = -2;
-        //model.m_rotation = entity.m_rotation;
-
-        //entity.Draw(*shader);
-        //model.Draw(*shader);
-        shader->Stop();
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        ImGui::Begin("Hello, world!");
-        ImGui::DragFloat("Scale", &scale, 0.001f);
-        ImGui::DragFloat("X", &x, 0.1f);
-        ImGui::DragFloat("Y", &y, 0.1f);
-        ImGui::DragFloat("Z", &z, 0.1f);
-        ImGui::DragFloat("RotX", &rotx, 0.1f);
-        ImGui::DragFloat("RotY", &roty, 0.1f);
-        ImGui::DragFloat("RotZ", &rotz, 0.1f);
-
-        ImGui::DragFloat3("Position", (float*)&position, 0.01f);
-
-        ImGui::DragFloat("SepX", &sepx, 1);
-        ImGui::DragFloat("SepY", &sepy, 1);
-        ImGui::DragFloat("SepZ", &sepz, 1);
-        ImGui::SliderInt("Offset", &off, 0, entities.size() - 1);
-        ImGui::SliderInt("Texture", &texture, 0, 2);
-        ImGui::SliderInt("Normal", &normal, 3, 4);
-        ImGui::SliderFloat("specIntensity", &specIntensity, 0, 1);
-        ImGui::SliderFloat("specPower", &specPower, 0, 1);
-        ImGui::ColorPicker4("Color", (float*)&color);
-        ImGui::End();
-
-        ImGui::Render();
-
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        m_window->SwapBuffers();
-        m_window->PollEvents();
+        delta += (now - updateTimer) / updateTick;
+        //Update(delta);
+        //while (delta >= 1.0) {
+        //    FixedUpdate();
+        //    updates++;
+        //    delta--;
+        //}
+        Render();
+        frames++;
+        if (glfwGetTime() - timer > 1.0) {
+            float temp = 0;
+            for (float a : times) {
+                temp += a;
+            }
+            temp /= times.size();
+            m_window->SetTitle(va("Emerald | UPS: %d FPS: %d", updates, frames));
+            timer++;
+            updates = frames = 0;
+        }
     }
+}
+void Application::FixedUpdate() {
+}
+
+void Application::Update(const TimeStep& time) {
+    GetMouse()->Update();
+    camera.Update(time);
+    sinus += 0.001f * time.GetMills();
+    sinus2 += 0.003f * time.GetMills();
+}
+
+void Application::Render() {
+    m_window->ClearColor(background);
+
+    shader->Start();
+    shader->Set("viewMatrix", camera.GetViewMatrix());
+    shader->Set("eyePos", camera.m_position);
+
+    shader->Set("ambientIntensity", ambientIntensity);
+
+    float FOV = ((Math::sin(sinus) + 1) / 2) * 150 + 20;
+    //entity.m_position.x = Math::sin(sinus);
+    entity.m_rotation.x = sinus * 20;
+    entity.m_rotation.y = Math::sin(sinus) * 20;
+    //shader.Set("viewMatrix", camera.GetViewMatrix());
+    //Matrix4 projection = Matrix4::Perspective(FOV, 16.0f / 9.0f, 0.1f, 1000.0f);
+    //shader->Set("projectionMatrix", projection);
+    entity.m_rotation.x = sinus * 180;
+    entity.m_rotation.y = sinus * 90;
+    entity.m_rotation.z = sinus * 360;
+
+    shader->Set("lightColor", directional);
+    shader->Set("direction", position);
+    shader->Set("specularIntensity", specIntensity);
+    shader->Set("specularPower", specPower);
+
+    shader->Set("tex", texture);
+    shader->Set("texNormal", normal);
+    shader->Set("texHeight", height);
+    shader->Set("color", color);
+
+    renderer->Begin();
+    Matrix4 transform = Matrix4::Identity();
+    transform *= Matrix4::Translate(Vector3(x, y, z));
+    transform *= Matrix4::Rotate(rotx, Vector3::XAxis());
+    transform *= Matrix4::Rotate(roty, Vector3::YAxis());
+    transform *= Matrix4::Rotate(rotz, Vector3::ZAxis());
+    transform *= Matrix4::Scale(scale);
+
+    //Matrix4 projection = Matrix4::Perspective(65.0f, 1.778f, 0.01f, 1000.0f);
+    //Matrix4 model = Matrix4::Translate(m_position) * Matrix4::Rotate(m_rotation.x, Vector3(1, 0, 0)) * Matrix4::Rotate(m_rotation.y, Vector3(0, 1, 0)) * Matrix4::Rotate(m_rotation.z, Vector3(0, 0, 1)) * Matrix4::Scale(Vector3(m_scale));
+    //Matrix4 mvp = projection * model;
+
+    shader->Set("transformationMatrix", transform);
+
+    //for(int i = 0; i < entities.size(); i++)
+    //{
+    //    entities[i].m_mesh.Draw();
+    //}
+    //entities[0].m_mesh.Draw();
+
+    if (KeyDown(' '))LOG("tet");
+    for (int x = 0; x < 100; x++) {
+        for (int y = 0; y < 100; y++) {
+            float temp = (50 / Math::abs(x - 50) + 50 / Math::abs(y - 50)) / 8;
+            renderer->Submit(Vector3(x, Math::sin(x + y * 50 + sinus) * var * (temp < 3 ? temp : 3), y));
+        }
+    }
+    //renderer->End();
+
+    for (int i = 0; i < 2; i++) {
+        renderer->Draw();
+    }
+
+    shader->Stop();
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    ImGui::Begin("Hello, world!");
+    ImGui::DragFloat("Scale", &scale, 0.001f);
+    ImGui::DragFloat("X", &x, 0.1f);
+    ImGui::DragFloat("Y", &y, 0.1f);
+    ImGui::DragFloat("Z", &z, 0.1f);
+    ImGui::DragFloat("RotX", &rotx, 0.1f);
+    ImGui::DragFloat("RotY", &roty, 0.1f);
+    ImGui::DragFloat("RotZ", &rotz, 0.1f);
+
+    ImGui::DragFloat3("Position", (float*)&position, 0.01f);
+
+    ImGui::SliderInt("Texture", &texture, 0, 3);
+    ImGui::SliderInt("Normal", &normal, 4, 8);
+    ImGui::SliderInt("Height", &height, 0, 8);
+    ImGui::SliderFloat("Var", &var, 0, 10);
+    ImGui::SliderFloat("specIntensity", &specIntensity, 0, 1);
+    ImGui::SliderFloat("specPower", &specPower, 0, 1);
+    ImGui::SliderFloat("Ambient", &ambientIntensity, 0, 1);
+
+    ImGui::ColorEdit4("Color", (float*)&color);
+    ImGui::ColorEdit4("Directional", (float*)&directional);
+    ImGui::ColorEdit4("Background", (float*)&background);
+    ImGui::End();
+
+    ImGui::Render();
+
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    m_window->SwapBuffers();
+    m_window->PollEvents();
+}
+
+void Application::Cleanup() {
+    delete m_window;
+    delete renderer;
+    delete m_timer;
+    delete m_timeStep;
 }

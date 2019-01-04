@@ -8,6 +8,7 @@ public:
 	Vector3 m_rotation;
 	float m_scale;
 
+    Entity() {}
 	Entity(Mesh& mesh) : m_mesh(mesh)
 	{
 		m_position = Vector3(0, 0, -1);

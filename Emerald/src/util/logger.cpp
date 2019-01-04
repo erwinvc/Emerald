@@ -10,7 +10,7 @@ DWORD WINAPI HandleConsoleInput(LPVOID hModule) {
 	String input;
 	while (true) {
 		getline(cin, input);
-		LOG_PRINT("%s", input.c_str());
+		LOG_PRINT("~R%s", input.c_str());
 	}
 	return 0;
 }
@@ -31,9 +31,7 @@ void Logger::Initialize() {
 	m_allocated = true;
 	m_firstEntry = true;
 
-	LOG_PRINT("[Logger] ~rConsole ~Rallocated");
-	LOG_PRINT("[Logger] ~yConsole ~Yallocated");
-	LOG_DEBUG("~1[~RThisIsATest~1]~00~11~22~33~RR~rr~YY~yy~GG~gg~MM~mm~CC~cc~BB~bb");
+	LOG_PRINT("[~gLogging~x] Console allocated");
 
 	CreateThread(0, 0, HandleConsoleInput, 0, 0, 0);
 }
@@ -171,6 +169,8 @@ void Logger::Message(int color, const char* type, const char* fmt, ...) {
 	char buffer2[512] = { 0 };
 	sprintf_s(buffer2, "%s%s %s\n", time, type, final.c_str());
 	LogToFile(buffer2);
+
+    SetTextColor(ConsoleColor::WHITE);
 }
 
 void Logger::LogToFile(const char * buff) {
@@ -190,6 +190,6 @@ void Logger::LogToFile(const char * buff) {
 
 void Logger::Cleanup() {
 	if (!m_allocated) return;
-	LOG_PRINT("[Logger] Deallocating console");
+	LOG_PRINT("[~gLogging] Deallocating console");
 	PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
 }
