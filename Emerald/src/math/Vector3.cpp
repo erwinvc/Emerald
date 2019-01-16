@@ -56,6 +56,11 @@ Vector3 Vector3::ZAxis() {
 	return Vector3(0.0f, 0.0f, 1.0f);
 }
 
+Vector3 Vector3::Rotate(float angle, Vector3& axis) {
+    Vector3 k = axis.Normalize();
+    return *this * Math::cos(angle) + k.Cross(y)* Math::sin(angle) + (k * k.Dot(y)) * (1.0f - Math::cos(angle));
+}
+
 Vector3& Vector3::Add(const Vector3& other) {
 	x += other.x;
 	y += other.y;

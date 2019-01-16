@@ -4,13 +4,16 @@ in vec2 pass_textureCoords;
 in vec4 pass_worldPosition;
 in mat3 tbnMatrix;
 
+in vec3 toCameraVector;
+in vec3 toLightVector[4];
+
 out vec4 out_Color;
 
 uniform mat4 viewMatrix;
 uniform vec3 eyePos;
 
 uniform vec4 color;
-uniform vec4 lightColor;
+uniform vec4 lightColor[4];
 uniform float intensity;
 uniform float specularIntensity;
 uniform float specularPower;
@@ -53,5 +56,29 @@ void main() {
 	if(textureColor.a < 0.5) discard;
     textureColor = mix(textureColor, vec4(color.xyz, 1.0), color.a);
 	vec4 ambient = textureColor * ambientIntensity;
-	out_Color = textureColor * CalcLight(lightColor.rgb, intensity, direction, normal, pass_worldPosition.xyz, specularIntensity, specularPower, eyePos) + ambient;
+	out_Color = textureColor * 1 + ambient; //CalcLight(lightColor.rgb, intensity, direction, normal, pass_worldPosition.xyz, specularIntensity, specularPower, eyePos) + ambient;
+
+
+	vec3 unitVectorToCamera = normalize(toCameraVector);
+
+    vec3 totalDiffuse = vec3(0.0);
+    vec3 totalSpecular = vec3(0.0);
+
+    for(int i = 0; i < 4; i++){
+        float distance = length(toLightVector[i]);
+        float attFactor = 1 + (0.01f * distance) + (0.002f * distance * distance);
+        vec3 unityLightVector = normalize(toLightVector[i]);
+        float nDotl = dot(normal, unityLightVector);
+        float brightness = max(nDotl, 0.0);
+        vec3 lightDirection = -unityLightVector;
+        vec3 reflectedLightDirection = reflect(lightDirection, normal);
+        float specularFactor = dot(reflectedLightDirection, unitVectorToCamera);
+        specularFactor = max(specularFactor, 0.0);
+        float dampedFactor = pow(specularFactor, specularPower);
+        totalDiffuse += (brightness * vec3(1, 1, 1))/attFactor;
+        totalSpecular += (dampedFactor * lightColor[i].rgb * specularIntensity)/attFactor;
+    }
+
+    totalDiffuse = max(totalDiffuse, 0.1);
+	out_Color = vec4(totalDiffuse, 1) * textureColor + vec4(totalSpecular, 0);
 }

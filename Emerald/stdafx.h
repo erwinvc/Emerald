@@ -34,6 +34,7 @@
 using namespace std;
 
 #pragma warning (disable: 4267) /*size_t conversions*/
+
 #include "math/vector2.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
@@ -57,14 +58,17 @@ using namespace std;
 #include "graphics/window.h"
 #include "graphics/shaders/shader.h"
 #include "graphics/shaders/basicShader.h"
+#include "graphics/shaders/phongShader.h"
 #include "graphics/renderer.h"
 
 #include "input/keyboard.h"
 #include "input/mouse.h"
 
+#include "cam.h"
 #include "graphics/camera/camera.h"
 #include "graphics/camera/freeCam.h"
 #include "graphics/mesh.h"
 #include "entity/entity.h"
 
+#include "deferred.h"
 #include "application.h"

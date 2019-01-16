@@ -27,6 +27,8 @@ struct Vector3 {
     static Vector3 YAxis();
     static Vector3 ZAxis();
 
+    Vector3 Rotate(float angle, Vector3& axis);
+
     Vector3& Add(const Vector3& other);
     Vector3& Subtract(const Vector3& other);
     Vector3& Multiply(const Vector3& other);
