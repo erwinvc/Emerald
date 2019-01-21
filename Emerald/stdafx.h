@@ -47,6 +47,7 @@ using namespace std;
 #include "util/types.h"
 #include "util/utils.h"
 
+
 #include "events/event.h"
 #include "events/applicationEvent.h"
 
@@ -57,18 +58,21 @@ using namespace std;
 #include "graphics/texture.h"
 #include "graphics/window.h"
 #include "graphics/shaders/shader.h"
-#include "graphics/shaders/basicShader.h"
 #include "graphics/shaders/phongShader.h"
 #include "graphics/renderer.h"
 
 #include "input/keyboard.h"
 #include "input/mouse.h"
 
-#include "cam.h"
 #include "graphics/camera/camera.h"
 #include "graphics/camera/freeCam.h"
+#include "graphics/material.h"
 #include "graphics/mesh.h"
+#include "graphics/model.h"
 #include "entity/entity.h"
+
+#include "assets/materialManager.h"
+#include "assets/textureManager.h"
 
 #include "deferred.h"
 #include "application.h"

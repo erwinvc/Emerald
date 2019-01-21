@@ -49,5 +49,14 @@ void main() {
 // finally ztest and attenuation.
   color *= ztest * attenuation;
 
-  outColor = vec4(color, 1.0); // done!
+  outColor = vec4(color, 1.0);
+
+  //const float gamma = 2.2;
+  //
+  //// Exposure tone mapping
+  //vec3 mapped = vec3(1.0) - exp(-color * /*exp*/1.0);
+  //// Gamma correction 
+  //mapped = pow(mapped, vec3(1.0 / gamma));
+  //
+  //outColor = vec4(mapped, 1.0);
 }

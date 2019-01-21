@@ -8,6 +8,7 @@ uniform sampler2D uNormalTex;
 uniform sampler2D uPositionTex;
 
 uniform vec3 uCameraPos;
+uniform vec3 directional;
 
 void main()
 {
@@ -15,7 +16,7 @@ void main()
   vec3 n = normalize(texture(uNormalTex, fsUv).xyz);
   vec3 pos = texture(uPositionTex, fsUv).xyz;
 
-  vec3 l = normalize(vec3(-0.7, 0.3, 0.1));
+  vec3 l = normalize(directional);
   vec3 v = normalize(uCameraPos - pos);
   vec3 h = normalize(l + v);
 

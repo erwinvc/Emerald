@@ -1,12 +1,5 @@
 #include "stdafx.h"
 
-
-#include "assimp/cimport.h"
-#include "assimp/scene.h"
-#include "assimp/postprocess.h"
-#include "assimp/material.h"
-#include <assimp/Importer.hpp>
-
 static void ErrorCallback(int error, const char* description) {
     LOG_ERROR("[GLFW] %s", description);
 }
@@ -38,6 +31,9 @@ Application::Application() : m_running(true) {
         LOG_ERROR("GLEW failed to initialize");
         return;
     }
+
+    GetTextureManager()->Initialize();
+    GetMaterialManager()->Initialize();
 }
 
 void Application::OnEvent(Event& e) {
@@ -75,14 +71,14 @@ float var = 1;
 float sinus = 0;
 float sinus2 = 0;
 FreeCam camera;
-BasicShader* shader;
+Shader* shader;
 Entity entity;
 vector<Entity> entities;
 Renderer* renderer;
 Vector3 attenuation(1, 0.01f, 0.002f);
 float ambientIntensity = 0.1f;
 
-PhongShader* phong;
+//PhongShader* phong;
 
 Deferred* deferred;
 
@@ -248,7 +244,7 @@ void Application::Run() {
     //Mesh mesh(vao2, ibo2);
     //entity = Entity(mesh);
 
-    //shader = new BasicShader();
+    //shader = new Shader("Basic", "src/graphics/shaders/basic.vert", "src/graphics/shaders/basic.frag");
     //shader->Start();
     //
     //Texture tex("res/white.png");
@@ -276,8 +272,8 @@ void Application::Run() {
     //shader->Set("projectionMatrix", projection);
     //
     //shader->Set("intensity", 0.3f);
-    //
-    ////PHONG
+
+    //PHONG
     //phong = new PhongShader();
     //phong->Start();
     //
@@ -299,8 +295,6 @@ void Application::Run() {
 
     glEnable(GL_DEPTH_TEST);
 
-    vector<float> times;
-
     /*Main loop*/
     m_timer = new Timer();
     m_timeStep = new TimeStep(m_timer->Get());
@@ -317,8 +311,6 @@ void Application::Run() {
             Update(*m_timeStep);
             updates++;
             updateTimer += updateTick;
-            times.push_back(m_timeStep->GetMills());
-            if (times.size() > 25) times.erase(times.begin());
         }
         delta += (now - updateTimer) / updateTick;
         //Update(delta);
@@ -330,11 +322,6 @@ void Application::Run() {
         Render();
         frames++;
         if (glfwGetTime() - timer > 1.0) {
-            float temp = 0;
-            for (float a : times) {
-                temp += a;
-            }
-            temp /= times.size();
             m_window->SetTitle(va("Emerald | UPS: %d FPS: %d", updates, frames));
             timer++;
             updates = frames = 0;
@@ -351,14 +338,14 @@ void Application::Update(const TimeStep& time) {
     sinus2 += 0.003f * time.GetMills();
 }
 
-void RenderTest() {
-    
-}
-
 void Application::Render() {
     m_window->ClearColor(background);
     deferred->Render();
+
+    m_window->SwapBuffers();
+    m_window->PollEvents();
     //RenderTest();
+
     //shader->Start();
     //shader->Set("viewMatrix", camera.GetViewMatrix());
     //shader->Set("eyePos", camera.m_position);
@@ -378,7 +365,7 @@ void Application::Render() {
     //
     //for (int i = 0; i < 4; i++) {
     //    shader->Set(va("%s%d%s", "lightPosition[", i, "]").c_str(), Vector3(i * 20, i * 20, 2));
-    //    shader->Set(va("%s%d%s", "lightColor[", i, "]").c_str(), Color(i*0.25f, 1-i*0.25f, 1, 1));
+    //    shader->Set(va("%s%d%s", "lightColor[", i, "]").c_str(), Color(i*0.25f, 1 - i * 0.25f, 1, 1));
     //    //shader->Set(va("%s%d%s", "attenuation[", i, "]").c_str(), );
     //}
     //
@@ -459,8 +446,6 @@ void Application::Render() {
     //
     //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    m_window->SwapBuffers();
-    m_window->PollEvents();
 }
 
 void Application::Cleanup() {

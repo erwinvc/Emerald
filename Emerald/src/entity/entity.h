@@ -17,7 +17,7 @@ public:
 	}
 	virtual ~Entity() {}
 
-	void Draw(BasicShader& shader)
+	void Draw(Shader& shader)
 	{
 
 		Matrix4 transform = Matrix4::Identity();

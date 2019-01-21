@@ -7,9 +7,10 @@ private:
 
 public:
     Texture(const String& path);
+    Texture(uint textureID, uint width, uint height) : m_textureID(textureID), m_width(width), m_height(height) {};
     ~Texture();
     void Bind(uint slot = 0);
-    void Unbind();
+    void Unbind(uint slot = 0);
 
 
     inline const uint GetWidth() const { return m_width; }

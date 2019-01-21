@@ -28,8 +28,10 @@ Texture::Texture(const String& path) : m_textureID(0), m_width(0), m_height(0), 
     m_width = width;
     m_height = height;
 
-    if (data)stbi_image_free(data);
-    LOG("[~yTexture~x] Loaded ~1%s", path.c_str());
+    if (data) {
+        stbi_image_free(data);
+        LOG("[~yTexture~x] Loaded ~1%s", path.c_str());
+    } else LOG("[~yTexture~x] Failed to load ~1%s", path.c_str());
 }
 
 Texture::~Texture() {
@@ -41,6 +43,6 @@ void Texture::Bind(uint slot) {
     glBindTexture(GL_TEXTURE_2D, m_textureID);
 }
 
-void Texture::Unbind() {
-    glBindTexture(GL_TEXTURE_2D, 0);
+void Texture::Unbind(uint slot) {
+    glBindTexture(GL_TEXTURE_2D, slot);
 }

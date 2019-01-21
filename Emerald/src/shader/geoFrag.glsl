@@ -2,21 +2,31 @@
 in vec3 fsPos;
 in vec3 fsNormal;
 in vec2 fsUv;
+in mat3 tbnMatrix;
 
 uniform sampler2D uDiffTex;
+uniform sampler2D uBumpTex;
+uniform int hasBump;
 
 out vec4 geoData[3];
 
-void main()
-{
-// seems like the textures in Sponza are flipped. So flip then.
-  vec4 diff = texture(uDiffTex, vec2(1.0, -1.0)*fsUv).rgba;
-  if (diff.a < 0.2) {
-    discard;
-  }
+void main(){
+	vec4 diff = texture(uDiffTex, vec2(1, -1) * fsUv).rgba;
+	if (diff.a < 0.2) {
+		discard;
+	}
 
-// output geometry.
-  geoData[0] = vec4(diff.rgb, 1);
-  geoData[1] = vec4(fsNormal, 1);
-  geoData[2] = vec4(fsPos, 1);
+
+	vec3 normal;
+	if(hasBump == 1){
+		normal = texture(uBumpTex, vec2(1, -1) * fsUv).rgb;
+		normal = normalize(normal * 255/128 - 1.0);
+		normal = normalize(tbnMatrix * normal);
+	} else {
+		normal = fsNormal;
+	}
+
+	geoData[0] = vec4(diff.rgb, 1);
+	geoData[1] = vec4(normal, 1);
+	geoData[2] = vec4(fsPos, 1);
 }
