@@ -19,8 +19,8 @@ void main(){
 
 	vec3 normal;
 	if(hasBump == 1){
-		normal = texture(uBumpTex, vec2(1, -1) * fsUv).rgb;
-		normal = normalize(normal * 255/128 - 1.0);
+		normal = normalize(texture(uBumpTex, vec2(1, -1) * fsUv).rgb);
+		normal = normalize((2*normal)-1);
 		normal = normalize(tbnMatrix * normal);
 	} else {
 		normal = fsNormal;

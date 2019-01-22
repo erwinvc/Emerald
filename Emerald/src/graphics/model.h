@@ -37,6 +37,7 @@ private:
         vaoModel->AddBuffer(new Buffer((float*)mesh->mNormals, mesh->mNumVertices * 3, 3), 1, false);
         vaoModel->AddBuffer(new Buffer((float*)texcoords.data(), texcoords.size(), 2), 2, false);
         vaoModel->AddBuffer(new Buffer((float*)mesh->mTangents, mesh->mNumVertices * 3, 3), 3, false);
+        vaoModel->AddBuffer(new Buffer((float*)mesh->mBitangents, mesh->mNumVertices * 3, 3), 4, false);
 
         //IBO
         vector<GLuint> indices;
@@ -82,6 +83,8 @@ public:
         //}
     }
 
+    vector<Mesh*> GetMeshes() { return m_meshes; }
+
     void LoadModel(const String& path);
 
     void Draw(Shader* shader) {
@@ -89,5 +92,17 @@ public:
             mesh->GetMaterial()->Bind(shader);
             mesh->Draw();
         }
+    }
+
+    void Draw2(Shader* shader) {
+        //for (auto& mesh : m_meshes) {
+        //    mesh->GetMaterial()->Bind(shader);
+        //    mesh->Draw();
+        //}
+        m_meshes[2]->GetMaterial()->Bind(shader);
+        m_meshes[2]->Draw();
+        m_meshes[0]->GetMaterial()->Bind(shader);
+        m_meshes[0]->Draw();
+
     }
 };

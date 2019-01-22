@@ -18,20 +18,25 @@ private:
     Vector2 m_scroll;
 
     struct Button {
-        DWORD m_time;
-        DWORD m_doubleClickTime;
-        DWORD m_doubleClicked;
+        bool m_glIsUpNow;
         bool m_isUpNow;
+        bool m_wasUp;
         bool m_justDown;
-        Button() : m_time(0), m_doubleClickTime(0), m_doubleClicked(0), m_isUpNow(true), m_justDown(false) {}
+        bool m_justUp;
+        Button() : m_glIsUpNow(true), m_isUpNow(true), m_wasUp(true), m_justDown(false), m_justUp(false) {}
     } m_buttonStates[5];
-
-    Window* m_window;
 
 public:
     int m_lastButton;
 
     void Update() {
+        for (int i = 0; i < 5; i++) {
+            m_buttonStates[i].m_wasUp = m_buttonStates[i].m_isUpNow;
+            m_buttonStates[i].m_isUpNow = m_buttonStates[i].m_glIsUpNow;
+            m_buttonStates[i].m_justDown = m_buttonStates[i].m_wasUp && !m_buttonStates[i].m_isUpNow;
+            m_buttonStates[i].m_justUp = !m_buttonStates[i].m_wasUp && m_buttonStates[i].m_isUpNow;
+        }
+
         m_prevPosition = m_usePosition;
         m_usePosition = m_position;
         m_delta = m_prevPosition - m_usePosition;
@@ -41,15 +46,20 @@ public:
     inline Vector2& GetDelta() { return m_delta; }
 
     void Initialize(Window* window);
-    void EnableButton(int button, bool down);
-    bool ButtonDown(DWORD button);
-    void ResetButtonState(DWORD button);
-    bool ButtonJustUp(DWORD button);
-    bool ButtonJustDown(DWORD button);
-    bool ButtonDoubleClicked(DWORD button);
+    bool ButtonDown(DWORD button) { return !ImGui::GetIO().WantCaptureMouse && !m_buttonStates[button].m_isUpNow; }
+    bool ButtonJustUp(DWORD button) { return !ImGui::GetIO().WantCaptureMouse && m_buttonStates[button].m_justUp; }
+    bool ButtonJustDown(DWORD button) { return !ImGui::GetIO().WantCaptureMouse && m_buttonStates[button].m_justDown; }
+    //bool ButtonDoubleClicked(DWORD button);
 
-    bool Mouse::MouseWithin(float x, float y, float width, float height);
-    bool Mouse::MouseWithinCentered(float x, float y, float width, float height);
+    bool Mouse::MouseWithin(float x, float y, float width, float height) {
+        return Math::Within(m_usePosition.x, x, x + width) && Math::Within(m_usePosition.y, y, y + height);
+    }
+
+    bool Mouse::MouseWithinCentered(float x, float y, float width, float height) {
+        return Math::Within(m_usePosition.x, x - width / 2, x + width / 2) && Math::Within(m_usePosition.y, y - height / 2, y + height / 2);
+    }
+
+    void HandleButton(int button, int action, int mods);
 };
 
 Mouse* GetMouse();
@@ -64,6 +74,6 @@ inline bool ButtonJustUp(DWORD button) {
 inline bool ButtonJustDown(DWORD button) {
     return GetMouse()->ButtonJustDown(button);
 }
-inline bool ButtonDoubleClicked(DWORD button) {
-    return GetMouse()->ButtonDoubleClicked(button);
-}
+//inline bool ButtonDoubleClicked(DWORD button) {
+//    return GetMouse()->ButtonDoubleClicked(button);
+//}

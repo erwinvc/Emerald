@@ -5,9 +5,8 @@ Application* app;
 int main() {
     srand((UINT)time(NULL));
     Logger::Initialize();
-    app = new Application();
+    app = GetApplication();
     app->Run();
     app->Cleanup();
-    delete app;
     Logger::Cleanup();
 }

@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+Application* Application::g_instance = 0;
+
 static void ErrorCallback(int error, const char* description) {
     LOG_ERROR("[GLFW] %s", description);
 }
@@ -44,10 +46,6 @@ void Application::OnEvent(Event& e) {
 bool Application::OnWindowClose() {
     m_running = false;
     return true;
-}
-
-Application::~Application() {
-
 }
 
 float scale = 1;
@@ -282,16 +280,9 @@ void Application::Run() {
     //
     //phong->Set("projectionMatrix", projection);
 
-    ImGui::CreateContext();
-
-    // Setup style
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForOpenGL(m_window->GetWindow(), true);
-    ImGui_ImplOpenGL3_Init("#version 130");
-
     GetKeyboard()->Initialize(m_window);
     GetMouse()->Initialize(m_window);
+    GetImGuiManager()->Initialize(m_window);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -336,11 +327,16 @@ void Application::Update(const TimeStep& time) {
     camera.Update(time);
     sinus += 0.001f * time.GetMills();
     sinus2 += 0.003f * time.GetMills();
+    deferred->Update();
 }
 
 void Application::Render() {
+
     m_window->ClearColor(background);
+    GetImGuiManager()->Begin();
+
     deferred->Render();
+    GetImGuiManager()->End();
 
     m_window->SwapBuffers();
     m_window->PollEvents();
@@ -445,7 +441,6 @@ void Application::Render() {
     //ImGui::Render();
     //
     //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
 }
 
 void Application::Cleanup() {
@@ -453,4 +448,5 @@ void Application::Cleanup() {
     delete renderer;
     delete m_timer;
     delete m_timeStep;
+    delete g_instance;
 }

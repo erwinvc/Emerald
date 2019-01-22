@@ -28,5 +28,5 @@ void main()
 // ambient.
   0.2 * albedo.xyz;
 
-  outColor = vec4(color, 1.0);
+  outColor = vec4(0, 0, 0, 1.0);
 }

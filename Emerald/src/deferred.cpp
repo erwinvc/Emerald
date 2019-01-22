@@ -12,30 +12,31 @@ Shader* outputGeoShader;
 Shader* directionalLightShader;
 Shader* pointLightShader;
 
-GLuint spherePositionVbo;
-GLuint sphereIndexVbo;
-GLuint sphereIndexCount;
-
 Vector3 directional(-0.7, 0.3, 0.1);
 int fbWidth, fbHeight;
 FreeCam* cam;
 
-inline void CheckOpenGLError(const char* stmt, const char* fname, int line) {
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR) {
-        LOG("OpenGL error %08x, at %s:%i - for %s.", err, fname, line, stmt);
-        //exit(1);
-    }
-}
+struct Light {
+    float sinval1;
+    float sinval2;
+    float sinval3;
+    float sinincrement1;
+    float sinincrement2;
+    float sinincrement3;
+    Vector3 m_pos;
+    Color m_col;
+    float m_radius;
+};
 
-#define GL_C(stmt) do {					\
-	stmt;						\
-	CheckOpenGLError(#stmt, __FILE__, __LINE__);	\
-    } while (0)
+Light* currentLight;
+vector<Light> lights;
+
+#define GL_C(stmt) stmt;
 
 
 Model model;
-
+Model model2;
+Mesh* sphere;
 void CreateSphere() {
     int stacks = 20;
     int slices = 20;
@@ -78,16 +79,11 @@ void CreateSphere() {
         indices.push_back(GLuint(i + 1));
     }
 
-    // upload geometry to GPU.
-    glGenBuffers(1, &spherePositionVbo);
-    glBindBuffer(GL_ARRAY_BUFFER, spherePositionVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*positions.size(), positions.data(), GL_STATIC_DRAW);
+    VertexArray* sphereVAO = new VertexArray();
+    sphereVAO->AddBuffer(new Buffer(positions.data(), positions.size(), 3), 0, false);
 
-    glGenBuffers(1, &sphereIndexVbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereIndexVbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*indices.size(), indices.data(), GL_STATIC_DRAW);
-
-    sphereIndexCount = indices.size();
+    IndexBuffer* sphereIBO = new IndexBuffer(indices.data(), indices.size());
+    sphere = new Mesh(sphereVAO, sphereIBO);
 }
 
 // configure a shader for usage in deferred rendering.
@@ -108,18 +104,52 @@ void SetupDeferredShader(Shader* shader) {
     shader->Set("uCameraPos", cam->m_position);
 }
 
-void RenderPointLight(float radius, const Vector3& position, const Vector3& color) {
+void RenderPointLight(float radius, const Vector3& position, const Color& color) {
     pointLightShader->Set("uLightRadius", radius);
     pointLightShader->Set("uLightPosition", position);
-    pointLightShader->Set("uLightColor", color);
-    glDrawElements(GL_TRIANGLES, sphereIndexCount, GL_UNSIGNED_INT, 0);
+    pointLightShader->Set("uLightColor", color.R, color.G, color.B);
+    sphere->Draw();
+    //glDrawElements(GL_TRIANGLES, sphereIndexCount, GL_UNSIGNED_INT, 0);
 }
 
 void LoadModel(void) {
-    model.LoadModel("cathedral/sibenik.obj");
+    model.LoadModel("sponza/sponza.obj");
+    //model2.LoadModel("fern/2.obj");
+    //Texture* tex = new Texture("fern/normal.png");
+    //Texture* tex2 = new Texture("fern/fern.png");
+    //model2.GetMeshes().at(0)->GetMaterial()->SetAlbedo(tex2);
+    //model2.GetMeshes().at(0)->GetMaterial()->SetNormal(tex);
+}
+
+void NewLight() {
+    Light light;
+    light.m_col = Color::Random();
+    light.m_pos = Vector3();
+    light.m_radius = 5;
+    lights.push_back(light);
+    currentLight = &lights.back();
 }
 
 void Deferred::Initialize(Window* window, FreeCam& camera) {
+    int val = 8;
+    for (int x = -val; x < val; x++) {
+        for (int y = -val; y < val; y++) {
+            for (int z = -val; z < val; z++) {
+                Light light;
+                light.sinval1 = 0;
+                light.sinval2 = 0;
+                light.sinval3 = 0;
+                light.sinincrement1 = Math::RandomF(0, 0.1f);
+                light.sinincrement2 = Math::RandomF(0, 0.1f);
+                light.sinincrement3 = Math::RandomF(0, 0.1f);
+                light.m_pos = Vector3(x * 200, y * 200, z * 200);
+                light.m_col = Color::Random();
+                light.m_radius = 200;
+                lights.push_back(light);
+            }
+        }
+
+    }
     cam = &camera;
     m_window = window;
     glGenVertexArrays(1, &vao);
@@ -131,7 +161,7 @@ void Deferred::Initialize(Window* window, FreeCam& camera) {
     pointLightShader = new Shader("Pointlight", "src/shader/pointlightVert.glsl", "src/shader/pointlightFrag.glsl");
 
     //GBUFFER
-         // create the gbuffer. first create fbo:
+    // create the gbuffer. first create fbo:
     GL_C(glGenFramebuffers(1, &fbo));
     GL_C(glBindFramebuffer(GL_FRAMEBUFFER, fbo));
 
@@ -190,9 +220,28 @@ void Deferred::Initialize(Window* window, FreeCam& camera) {
 
     LoadModel(); // load the obj model.
     CreateSphere(); // create the light sphere geometry.
+    NewLight();
+}
+
+bool lightEnabled = true;
+void Deferred::Update() {
+    if (lightEnabled && ButtonJustDown(VK_MOUSE_LEFT)) {
+        NewLight();
+    }
+
+    if (lightEnabled) Utils::setPositionInFrontOfCam(currentLight->m_pos, *cam, 0.22f);
 }
 
 void Deferred::Render() {
+    for(Light& l : lights)
+    {
+        l.sinval1 += l.sinincrement1;
+        l.sinval2 += l.sinincrement2;
+        l.sinval3 += l.sinincrement3;
+        l.m_pos.x += Math::sin(l.sinval1);
+        l.m_pos.y += Math::sin(l.sinval2);
+        l.m_pos.z += Math::sin(l.sinval3);
+    }
     // setup matrices.
     Matrix4 projectionMatrix = Matrix4::Perspective(70, (float)(1920) / 1080, 0.1f, 3000.0f);
     //Matrix4 viewMatrix = camera.GetViewMatrix();
@@ -224,6 +273,7 @@ void Deferred::Render() {
     outputGeoShader->Set("uBumpTex", 1);
 
     model.Draw(outputGeoShader);
+    //model.Draw(outputGeoShader);
     // now we render all the meshes, one after one.
     //for (Meshh* mesh : meshes) {
     //    //
@@ -295,257 +345,17 @@ void Deferred::Render() {
     pointLightShader->Set("viewMatrix", cam->GetViewMatrix());
     // We render every point light as a light sphere. And this light sphere is added onto the framebuffer
     // with additive alpha blending.
-    GL_C(glEnableVertexAttribArray(0));
-    GL_C(glBindBuffer(GL_ARRAY_BUFFER, spherePositionVbo));
-    GL_C(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
-    GL_C(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereIndexVbo));
 
+    for (auto & light : lights) {
+        RenderPointLight(light.m_radius, light.m_pos, light.m_col);
+    }
 
-    //
-    // Now it's time to render a TON of point lights.
-    //
-
-    //const int PS = 14;
-    //Vector3 palette[PS] = {
-    //    Vector3(1.0f, 0.0f, 0.0f),
-    //    Vector3(0.0f, 1.0f, 0.0f),
-    //    Vector3(0.0f, 0.0f, 1.0f),
-    //    Vector3(1.0f, 1.0f, 0.0f),
-    //    Vector3(1.0f, 0.0f, 1.0f),
-    //    Vector3(0.0f, 1.0f, 1.0f),
-    //    Vector3(1.0f, 1.0f, 1.0f),
-    //    Vector3(0.9f, 0.5f, +.3f),
-    //    Vector3(0.5f, 0.5f, 0.5f),
-    //    Vector3(0.3f, 0.6f, 0.9f),
-    //    Vector3(0.4f, 0.8f, 0.4f),
-    //    Vector3(0.3f, 0.3f, 1.0f),
-    //    Vector3(1.0f, 0.5f, 0.8f),
-    //    Vector3(0.5f, 0.9f, 0.2f),
-    //};
-    //const float PI = 3.14;
-    //
-    //int N;
-    //float RX;
-    //float RZ;
-    //
-    //float v;
-    //float n;
-    //float d;
-    //float k;
-    //
-    //N = 20;
-    //RX = 1000.0f;
-    //RZ = 800.0f;
-    //
-    //v = 0.6f;
-    //n = 7;
-    //d = 4;
-    //k = n / d;
-    //// place the point lights on a rose curve:
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.2f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(k * theta * v) * cos(theta * v),
-    //        90,
-    //        RZ * cos(k * theta * v) * sin(theta * v)
-    //    );
-    //    RenderPointLight(270.0f, p, palette[(i + 2) % PS]);
-    //}
-    //
-    //N = 20;
-    //RX = 900.0f;
-    //RZ = 400.0f;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(theta),
-    //        490,
-    //        RZ * sin(theta)
-    //    );
-    //    RenderPointLight(270.0f, p, palette[(i + 3) % PS]);
-    //}
-    //
-    //N = 20;
-    //RX = 900.0f;
-    //RZ = 300.0f;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(theta),
-    //        250,
-    //        RZ * sin(theta)
-    //    );
-    //    RenderPointLight(270.0f, p, palette[(i + 7) % PS]);
-    //}
-    //
-    //
-    //
-    //N = 20;
-    //RX = 1000.0f;
-    //RZ = 700.0f;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(theta),
-    //        170,
-    //        RZ * sin(theta)
-    //    );
-    //    RenderPointLight(350.0f, p, palette[(i + 0) % PS]);
-    //}
-    //
-    //
-    //N = 10;
-    //RX = 1000.0f;
-    //RZ = 700.0f;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(theta),
-    //        290,
-    //        RZ * sin(theta)
-    //    );
-    //    RenderPointLight(350.0f, p, palette[(i + 7) % PS]);
-    //}
-    //
-    //
-    //N = 20;
-    //RX = 900.0f;
-    //RZ = 400.0f;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(theta),
-    //        690,
-    //        RZ * sin(theta)
-    //    );
-    //    RenderPointLight(270.0f, p, palette[(i + 9) % PS]);
-    //}
-    //
-    //
-    //N = 30;
-    //RX = 1300.0f;
-    //RZ = 170.0f;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(theta),
-    //        250,
-    //        RZ * sin(theta)
-    //    );
-    //    RenderPointLight(270.0f, p, palette[(i + 7) % PS]);
-    //}
-    //
-    //N = 20;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        1250,
-    //        600 * cos(theta),
-    //        300 * sin(theta)
-    //    );
-    //    RenderPointLight(350, p, palette[(i + 7) % PS]);
-    //}
-    //
-    //
-    //N = 20;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        -1200,
-    //        300 + 300 * cos(theta),
-    //        300 * sin(theta)
-    //    );
-    //    RenderPointLight(350, p, palette[(i + 7) % PS]);
-    //}
-    //
-    //N = 20;
-    //RX = 800.0f;
-    //RZ = 140.0f;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(theta) - 200,
-    //        390,
-    //        RZ * sin(theta)
-    //    );
-    //    RenderPointLight(350.0f, p, palette[(i + 10) % PS]);
-    //}
-    //
-    //N = 20;
-    //RX = 800.0f;
-    //RZ = 140.0f;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(theta) - 150,
-    //        890,
-    //        RZ * sin(theta)
-    //    );
-    //    RenderPointLight(350.0f, p, palette[(i + 8) % PS]);
-    //}
-    //
-    //N = 20;
-    //RX = 800.0f;
-    //RZ = 140.0f;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(theta),
-    //        1300,
-    //        RZ * sin(theta)
-    //    );
-    //    RenderPointLight(350.0f, p, palette[(i + 2) % PS]);
-    //}
-    //
-    //N = 20;
-    //RX = 900.0f;
-    //RZ = 400.0f;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        RX * cos(theta),
-    //        1300 + 100, //200.0f*sin(1*0.3),
-    //        RZ * sin(theta)
-    //    );
-    //    RenderPointLight(400.0f, p, palette[(i + 4) % PS]);
-    //}
-    //
-    //
-    //N = 20;
-    //for (int i = 0; i < N; i++) {
-    //    float theta = 2.0f * (i / (float)N) * 2 * PI;
-    //    theta += 1 * 0.1f;
-    //    Vector3 p = Vector3(
-    //        //   -1400 + 100 * cos(1 * 0.2),
-    //        -1421,
-    //        340 + 300 * cos(theta),
-    //        300 * sin(theta)
-    //    );
-    //    RenderPointLight(320, p, palette[(i + 7) % PS]);
-    //}
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
     ImGui::Begin("Hello, world!");
     ImGui::DragFloat3("Directional", (float*)&directional, 0.01f);
+    ImGui::DragFloat("Radius", (float*)&currentLight->m_radius, 0.5f);
+    ImGui::DragFloat3("Pos", (float*)&currentLight->m_pos, 0.01f);
+    ImGui::ColorEdit4("Color", (float*)&currentLight->m_col);
+    ImGui::Checkbox("Enabled", &lightEnabled);
+
     ImGui::End();
-
-    ImGui::Render();
-
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
 }

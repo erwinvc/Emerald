@@ -2,7 +2,7 @@
 
 void Model::LoadModel(const String& path) {
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_ConvertToLeftHanded);
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_SortByPType | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_RemoveRedundantMaterials | aiProcess_FixInfacingNormals |  aiProcess_JoinIdenticalVertices | aiProcess_ConvertToLeftHanded);
 
     ASSERT(scene && scene->mFlags != AI_SCENE_FLAGS_INCOMPLETE && scene->mRootNode, "Model failed to load");
 
