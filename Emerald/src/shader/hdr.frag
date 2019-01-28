@@ -121,10 +121,15 @@ vec3 GTAToneMapping(vec3 color)
 	return color;
 }
 
+vec3 vignette(vec3 color, vec3 color2, float a, float b) {
+    float len = length(textureCoords - 0.5);
+    float sstep = smoothstep(a, b, len);
+	return mix(color, color2, sstep);
+}
 
 void main()
 {
-  vec3 color = texture(hdrBuffer, textureCoords).rgb;
-
-  out_color = vec4(GTAToneMapping(color), 1.0);
+	vec3 color = texture(hdrBuffer, textureCoords).rgb;
+	vec3 toneMapped = GTAToneMapping(color);
+	out_color = vec4(vignette(toneMapped, vec3(0), 0.3, 0.8), 1);
 }
