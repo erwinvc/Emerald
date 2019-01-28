@@ -1,21 +1,15 @@
 #include "stdafx.h"
 
-GLuint colorTexture;
-GLuint depthRenderbuffer;
-GLuint normalTexture;
-GLuint positionTexture;
+GBuffer* gBuffer;
 
-GLuint fbo;
-GLuint vao;
-
+Shader* hdrShader;
 Shader* outputGeoShader;
 Shader* directionalLightShader;
 Shader* pointLightShader;
 
 Vector3 directional(-0.7, 0.3, 0.1);
-int fbWidth, fbHeight;
 FreeCam* cam;
-
+FrameBuffer* hdr;
 struct Light {
     float sinval1;
     float sinval2;
@@ -30,10 +24,11 @@ struct Light {
 
 Light* currentLight;
 vector<Light> lights;
-
+Texture* header;
 #define GL_C(stmt) stmt;
 
-
+UIShader* uiShader;
+Mesh* quad;
 Model model;
 Model model2;
 Mesh* sphere;
@@ -86,21 +81,25 @@ void CreateSphere() {
     sphere = new Mesh(sphereVAO, sphereIBO);
 }
 
-// configure a shader for usage in deferred rendering.
+void CreateQuad()
+{
+        GLfloat vertices[] = { -1, -1, 0,
+                               -1,  1, 0,
+                                1,  1, 0,
+                                1, -1, 0 };
+        uint indices[] = { 0, 1, 2, 0, 2, 3 };
+
+        VertexArray* m_vao = new VertexArray();
+        m_vao->AddBuffer(new Buffer(vertices, NUMOF(vertices), 3), 0, false);
+
+        quad = new Mesh(m_vao, new IndexBuffer(indices, NUMOF(indices)));
+}
+
 void SetupDeferredShader(Shader* shader) {
-    // bind gbuffer textures.
+    gBuffer->BindTextures();
     shader->Set("uColorTex", 0);
-    GL_C(glActiveTexture(GL_TEXTURE0 + 0));
-    GL_C(glBindTexture(GL_TEXTURE_2D, colorTexture));
-
     shader->Set("uNormalTex", 1);
-    GL_C(glActiveTexture(GL_TEXTURE0 + 1));
-    GL_C(glBindTexture(GL_TEXTURE_2D, normalTexture));
-
     shader->Set("uPositionTex", 2);
-    GL_C(glActiveTexture(GL_TEXTURE0 + 2));
-    GL_C(glBindTexture(GL_TEXTURE_2D, positionTexture));
-
     shader->Set("uCameraPos", cam->m_position);
 }
 
@@ -112,15 +111,6 @@ void RenderPointLight(float radius, const Vector3& position, const Color& color)
     //glDrawElements(GL_TRIANGLES, sphereIndexCount, GL_UNSIGNED_INT, 0);
 }
 
-void LoadModel(void) {
-    model.LoadModel("sponza/sponza.obj");
-    //model2.LoadModel("fern/2.obj");
-    //Texture* tex = new Texture("fern/normal.png");
-    //Texture* tex2 = new Texture("fern/fern.png");
-    //model2.GetMeshes().at(0)->GetMaterial()->SetAlbedo(tex2);
-    //model2.GetMeshes().at(0)->GetMaterial()->SetNormal(tex);
-}
-
 void NewLight() {
     Light light;
     light.m_col = Color::Random();
@@ -129,6 +119,12 @@ void NewLight() {
     lights.push_back(light);
     currentLight = &lights.back();
 }
+
+Vector2 pos(0, 0);
+Vector2 sizee(1, 1);
+Vector2 origin(0, 0);
+float rot = 0;
+bool x, y;
 
 void Deferred::Initialize(Window* window, FreeCam& camera) {
     int val = 8;
@@ -152,75 +148,32 @@ void Deferred::Initialize(Window* window, FreeCam& camera) {
     }
     cam = &camera;
     m_window = window;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glfwGetFramebufferSize(window->GetWindow(), &fbWidth, &fbHeight);
 
+    hdrShader = new Shader("HDR", "src/shader/hdr.vert", "src/shader/hdr.frag");
     outputGeoShader = new Shader("Geo", "src/shader/geoVert.glsl", "src/shader/geoFrag.glsl");
     directionalLightShader = new Shader("Directional", "src/shader/directionalVert.glsl", "src/shader/directionalFrag.glsl");
     pointLightShader = new Shader("Pointlight", "src/shader/pointlightVert.glsl", "src/shader/pointlightFrag.glsl");
 
-    //GBUFFER
-    // create the gbuffer. first create fbo:
-    GL_C(glGenFramebuffers(1, &fbo));
-    GL_C(glBindFramebuffer(GL_FRAMEBUFFER, fbo));
+    gBuffer = new GBuffer(1920, 1080);
+    gBuffer->Initialize();
 
-    // RGBA8 color texture-p
-    GL_C(glGenTextures(1, &colorTexture));
-    GL_C(glBindTexture(GL_TEXTURE_2D, colorTexture));
-    GL_C(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, fbWidth, fbHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
-    GL_C(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    GL_C(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    GL_C(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-        GL_TEXTURE_2D, colorTexture, 0));
-    GL_C(glBindTexture(GL_TEXTURE_2D, 0));
+    model.LoadModel("sponza/sponza.obj");
+    //model2.LoadModel("fern/2.obj");
+    //Texture* tex = new Texture("fern/normal.png");
+    //Texture* tex2 = new Texture("fern/fern.png");
+    //model2.GetMeshes().at(0)->GetMaterial()->SetAlbedo(tex2);
+    //model2.GetMeshes().at(0)->GetMaterial()->SetNormal(tex);
 
-    //  RGBA16F normal texture.
-    GL_C(glGenTextures(1, &normalTexture));
-    GL_C(glBindTexture(GL_TEXTURE_2D, normalTexture));
-    GL_C(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, fbWidth, fbHeight, 0, GL_RGBA, GL_FLOAT, NULL));
-    GL_C(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    GL_C(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    GL_C(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
-        GL_TEXTURE_2D, normalTexture, 0));
-    GL_C(glBindTexture(GL_TEXTURE_2D, 0));
+    uiShader = new UIShader();
+    uiShader->Initialize();
 
-    //  RGBA16F position texture.
-    GL_C(glGenTextures(1, &positionTexture));
-    GL_C(glBindTexture(GL_TEXTURE_2D, positionTexture));
-    GL_C(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, fbWidth, fbHeight, 0, GL_RGBA, GL_FLOAT, NULL));
-    GL_C(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    GL_C(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    GL_C(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2,
-        GL_TEXTURE_2D, positionTexture, 0));
-    GL_C(glBindTexture(GL_TEXTURE_2D, 0));
-
-    // we need a z-buffer for the gbuffer. but we don't need to read from it.
-    // so instead create a renderbuffer.
-    GL_C(glGenRenderbuffers(1, &depthRenderbuffer));
-    GL_C(glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer));
-    GL_C(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, fbWidth, fbHeight));
-    GL_C(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-    GL_C(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer));
-
-    // specify that we can render to all three attachments.
-    // this is very important! It won't work otherwise.
-    GLenum tgts[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    GL_C(glDrawBuffers(3, tgts));
-
-    // make sure nothing went wrong:
-    GLenum status;
-    GL_C(status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        printf("Framebuffer not complete. Status: %d", status);
-        exit(1);
-    }
-    GL_C(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-    // gbuffer done!
-
-    LoadModel(); // load the obj model.
-    CreateSphere(); // create the light sphere geometry.
+    header = new Texture("header.png");
+    sizee.x = (float)header->GetWidth() / GetApplication()->GetWindow()->GetWidth();
+    sizee.y = (float)header->GetHeight() / GetApplication()->GetWindow()->GetHeight();
+    CreateSphere();
+    CreateQuad();
     NewLight();
+    hdr = new FrameBuffer(1920, 1080);
 }
 
 bool lightEnabled = true;
@@ -232,9 +185,9 @@ void Deferred::Update() {
     if (lightEnabled) Utils::setPositionInFrontOfCam(currentLight->m_pos, *cam, 0.22f);
 }
 
+
 void Deferred::Render() {
-    for(Light& l : lights)
-    {
+    for (Light& l : lights) {
         l.sinval1 += l.sinincrement1;
         l.sinval2 += l.sinincrement2;
         l.sinval3 += l.sinincrement3;
@@ -242,10 +195,8 @@ void Deferred::Render() {
         l.m_pos.y += Math::sin(l.sinval2);
         l.m_pos.z += Math::sin(l.sinval3);
     }
-    // setup matrices.
+
     Matrix4 projectionMatrix = Matrix4::Perspective(70, (float)(1920) / 1080, 0.1f, 3000.0f);
-    //Matrix4 viewMatrix = camera.GetViewMatrix();
-    //Matrix4 VP = viewMatrix;
 
     // setup GL state.
     GL_C(glEnable(GL_DEPTH_TEST));
@@ -255,63 +206,31 @@ void Deferred::Render() {
     GL_C(glEnable(GL_CULL_FACE));
     GL_C(glFrontFace(GL_CCW));
 
-    //
-    // In the first pass, we just write to the gbuffer.
-    //
-    GL_C(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)); // bind g buffer for writing.
-
-    GL_C(glViewport(0, 0, fbWidth, fbHeight));
+    gBuffer->Bind();
+    GL_C(glViewport(0, 0, 1920, 1080));
     GL_C(glClearColor(0.0f, 0.0f, 0.3f, 1.0f));
     GL_C(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
     outputGeoShader->Start();
     outputGeoShader->Set("projectionMatrix", projectionMatrix);
     outputGeoShader->Set("viewMatrix", cam->GetViewMatrix());
-    //GL_C(glUniformMatrix4fv(glGetUniformLocation(outputGeoShader, "transformationMatrix"), 1, GL_FALSE, (GLfloat *)VP.elements));
 
     outputGeoShader->Set("uDiffTex", 0);
     outputGeoShader->Set("uBumpTex", 1);
 
     model.Draw(outputGeoShader);
-    //model.Draw(outputGeoShader);
-    // now we render all the meshes, one after one.
-    //for (Meshh* mesh : meshes) {
-    //    //
-    //    // setup vertex attribs.
-    //    //
-    //    GL_C(glEnableVertexAttribArray(0));
-    //    GL_C(glBindBuffer(GL_ARRAY_BUFFER, mesh->positionVbo));
-    //    GL_C(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
-    //
-    //    GL_C(glEnableVertexAttribArray(1));
-    //    GL_C(glBindBuffer(GL_ARRAY_BUFFER, mesh->normalVbo));
-    //    GL_C(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
-    //
-    //    GL_C(glEnableVertexAttribArray(2));
-    //    GL_C(glBindBuffer(GL_ARRAY_BUFFER, mesh->uvVbo));
-    //    GL_C(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0));
-    //
-    //    // enable texture.
-    //
-    //    Material mat = materials[mesh->matId];
-    //    if (mat.diffuseTexFile != "") {
-    //        GL_C(glBindTexture(GL_TEXTURE_2D, mat.diffuseTex));
-    //        GL_C(glActiveTexture(GL_TEXTURE0));
-    //        outputGeoShader->Set("uDiffTex", 0);
-    //    }
-    //
-    //    glDrawArrays(GL_TRIANGLES, 0, mesh->positions.size());
-    //}
 
-    GL_C(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)); // stop writing to gbuffer.
+    gBuffer->Unbind();
 
     //
     // Now comes the Deferred shading!
     //
-    GL_C(glViewport(0, 0, fbWidth, fbHeight));
+    GL_C(glViewport(0, 0, GetApplication()->GetWindow()->GetWidth(), GetApplication()->GetWindow()->GetHeight()));
     GL_C(glClearColor(0.0f, 0.0f, 0.3f, 1.0f));
     GL_C(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
+    hdr->Bind();
+    hdr->Clear();
     //
     // first, we render a single directional light, with a fullscreen pass.
     //
@@ -339,6 +258,9 @@ void Deferred::Render() {
     // we solve this problem.
     GL_C(glFrontFace(GL_CW));
 
+    delete pointLightShader;
+    pointLightShader = new Shader("Pointlight", "src/shader/pointlightVert.glsl", "src/shader/pointlightFrag.glsl");
+
     pointLightShader->Start();
     SetupDeferredShader(pointLightShader);
     pointLightShader->Set("projectionMatrix", projectionMatrix);
@@ -350,7 +272,30 @@ void Deferred::Render() {
         RenderPointLight(light.m_radius, light.m_pos, light.m_col);
     }
 
+    hdr->Unbind();
+
+    GL_C(glDisable(GL_BLEND));
+
+    delete hdrShader;
+    hdrShader = new Shader("HDR", "src/shader/hdr.vert", "src/shader/hdr.frag");
+
+    hdrShader->Start();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, hdr->GetTexture()->GetHandle());
+    quad->Draw();
+
+    //uiShader->RenderTexture(hdr->GetTexture()->GetHandle(), origin, rot, Vector2(0, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), x, y);
+    //uiShader->RenderTexture(gBuffer->m_colorTexture, origin, 0, Vector2(0.25f, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), x, y);
+    //uiShader->RenderTexture(gBuffer->m_normalTexture, origin, 0, Vector2(0.5f, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), x, y);
+    //uiShader->RenderTexture(gBuffer->m_positionTexture, origin, 0, Vector2(0.75f, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), x, y);
+
     ImGui::Begin("Hello, world!");
+    ImGui::Checkbox("x", &x);
+    ImGui::Checkbox("y", &y);
+    ImGui::DragFloat("Rot", (float*)&rot, 0.01f);
+    ImGui::DragFloat2("Pos", (float*)&pos, 0.01f);
+    ImGui::DragFloat2("Origin", (float*)&origin, 0.01f, 0, 1);
+    ImGui::DragFloat2("Size", (float*)&sizee, 0.01f);
     ImGui::DragFloat3("Directional", (float*)&directional, 0.01f);
     ImGui::DragFloat("Radius", (float*)&currentLight->m_radius, 0.5f);
     ImGui::DragFloat3("Pos", (float*)&currentLight->m_pos, 0.01f);

@@ -44,19 +44,10 @@ void main() {
 // diffuse
   uLightColor * albedo.xyz * max(0.0, dot(n.xyz, l)) +
 // specular
-  uLightColor * 0.4 * pow(max(0.0, dot(h, n)), 12.0); 
+  uLightColor * 0.2 * pow(max(0.0, dot(h, n)), 12.0); 
 
 // finally ztest and attenuation.
   color *= ztest * attenuation;
 
   outColor = vec4(color, 1.0);
-
-  //const float gamma = 2.2;
-  //
-  //// Exposure tone mapping
-  //vec3 mapped = vec3(1.0) - exp(-color * /*exp*/1.0);
-  //// Gamma correction 
-  //mapped = pow(mapped, vec3(1.0 / gamma));
-  //
-  //outColor = vec4(mapped, 1.0);
 }

@@ -47,6 +47,7 @@ using namespace std;
 #include "util/timer.h"
 #include "util/types.h"
 #include "util/utils.h"
+#include "util/glError.h"
 
 
 #include "events/event.h"
@@ -55,11 +56,16 @@ using namespace std;
 #include "graphics/buffers/buffer.h"
 #include "graphics/buffers/indexBuffer.h"
 #include "graphics/buffers/VertexArray.h"
+#include "graphics/buffers/frameBuffer.h"
+#include "graphics/buffers/gBuffer.h"
 
-#include "graphics/texture.h"
+#include "graphics/texture/textureParameters.h"
+#include "graphics/texture/texture.h"
+#include "graphics/texture/textureUtils.h"
 #include "graphics/window.h"
 #include "graphics/shaders/shader.h"
 #include "graphics/shaders/phongShader.h"
+#include "graphics/shaders/UIShader.h"
 #include "graphics/renderer.h"
 
 #include "input/keyboard.h"

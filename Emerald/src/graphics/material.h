@@ -14,6 +14,9 @@ public:
     void SetAlbedo(Texture* albedo) { m_albedo = albedo; }
     void SetNormal(Texture* normal) { m_hasNormal = true; m_normal = normal; }
 
+    Texture* GetAlbedo() { return m_albedo; }
+    Texture* GetNormal() { return m_normal; }
+
     void Bind(Shader* shader, uint slot = 0) {
         shader->Set("hasBump", m_hasNormal);
         m_albedo->Bind(slot);
