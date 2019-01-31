@@ -13,12 +13,15 @@
 #include <thread>
 #include <math.h>
 #include <cstdlib>
-#include <queue>
+#include <atomic>
+#include <mutex>
+
 
 // Datastructures
 #include <map>
 #include <set>
 #include <stack>
+#include <queue>
 #include <vector>
 #include <unordered_map>
 
@@ -41,14 +44,15 @@ using namespace std;
 #include "math/vector4.h"
 #include "math/matrix4.h"
 #include "math/mathFunctions.h"
+
+#include "util/types.h"
+#include "util/thread/threadManager.h"
 #include "util/logger.h"
 #include "util/color.h"
 #include "util/timestep.h"
 #include "util/timer.h"
-#include "util/types.h"
 #include "util/utils.h"
 #include "util/glError.h"
-
 
 #include "events/event.h"
 #include "events/applicationEvent.h"

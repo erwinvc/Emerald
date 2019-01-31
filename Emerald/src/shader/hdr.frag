@@ -31,7 +31,7 @@ uniform sampler2D hdrBuffer;
 //    }
 //}  
 
-float gamma = 1;
+float gamma = 1.0;
 
 vec3 linearToneMapping(vec3 color)
 {
@@ -117,7 +117,7 @@ vec3 GTAToneMapping(vec3 color)
 	color = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
 	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
 	color /= white;
-	color = pow(color, vec3(1. / gamma));
+	color = pow(color, vec3(1.0f / gamma));
 	return color;
 }
 

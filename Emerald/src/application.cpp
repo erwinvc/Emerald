@@ -286,6 +286,8 @@ void Application::Run() {
 
     glEnable(GL_DEPTH_TEST);
 
+    m_window->SetVSync(false);
+
     /*Main loop*/
     m_timer = new Timer();
     m_timeStep = new TimeStep(m_timer->Get());
@@ -444,6 +446,7 @@ void Application::Render() {
 }
 
 void Application::Cleanup() {
+    GetThreadManager()->Cleanup();
     delete m_window;
     delete renderer;
     delete m_timer;

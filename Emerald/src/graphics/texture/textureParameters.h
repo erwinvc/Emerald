@@ -9,6 +9,7 @@ enum TextureWrap {
 };
 
 enum TextureFilter {
+    LINEARMIPMAP,
     LINEAR,
     NEAREST
 };
@@ -36,9 +37,9 @@ private:
     TextureType m_type;
 public:
 
-    TextureParameters(TextureFormat format = RGBA, TextureFilter filter = LINEAR, TextureWrap wrap = REPEAT, TextureType type = T_UNSIGNED_BYTE)
+    TextureParameters(TextureFormat format = RGBA, TextureFilter filter = LINEARMIPMAP, TextureWrap wrap = REPEAT, TextureType type = T_UNSIGNED_BYTE)
         : m_format(format), m_filter(filter), m_wrap(wrap), m_type(type) {
-    } ;
+    };
 
     //TextureParameters(TextureFilter filter = LINEAR, TextureWrap wrap = CLAMP, TextureType type = T_UNSIGNED_BYTE)
     //    : m_format(RGBA), m_filter(filter), m_wrap(wrap), m_type(type) {
@@ -57,8 +58,14 @@ public:
     inline int GetType() { return m_type; }
     inline int GetFilter(int type) {
         switch (type) {
-        case GL_TEXTURE_MIN_FILTER: return m_filter == LINEAR ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST; break;
-        case GL_TEXTURE_MAG_FILTER: return m_filter == LINEAR ? GL_LINEAR : GL_NEAREST; break;
+        case GL_TEXTURE_MIN_FILTER: {
+            switch (m_filter) {
+            case LINEARMIPMAP: return GL_LINEAR_MIPMAP_LINEAR;
+            case LINEAR: return GL_LINEAR;
+            case GL_NEAREST: return GL_NEAREST;
+            }
+        }break;
+        case GL_TEXTURE_MAG_FILTER: return (m_filter == LINEAR || m_filter == LINEARMIPMAP) ? GL_LINEAR : GL_NEAREST; break;
         }
         return GL_LINEAR;
     }

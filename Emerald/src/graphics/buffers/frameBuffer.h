@@ -9,8 +9,8 @@ private:
     uint m_width, m_height;
     Color m_color;
     Texture* m_texture;
-
     void Initialize();
+
 public:
     FrameBuffer(uint width, uint height) : m_fbo(0), m_dbo(0), m_width(width), m_height(height), m_color(Color(1, 0, 0)), m_texture(nullptr) { Initialize(); }
     ~FrameBuffer() { GL(glDeleteFramebuffers(1, &m_fbo)); }

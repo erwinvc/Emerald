@@ -7,7 +7,8 @@ void FrameBuffer::Initialize() {
     m_texture = new Texture(m_width, m_height, TextureParameters(RGBA16, LINEAR, REPEAT, T_FLOAT));
 
     GL(glBindRenderbuffer(GL_RENDERBUFFER, m_dbo));
-    GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, m_width, m_height));
+    GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, m_width, m_height));
+    GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
     GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
     GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->GetHandle(), 0));
