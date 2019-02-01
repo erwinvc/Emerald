@@ -48,6 +48,13 @@ namespace Utils {
         return subject;
     }
 
+    static void DoTimedFunction(int* timer, int timeMS, function<void()> function) {
+        if (*timer < glfwGetTime()) {
+            *timer = glfwGetTime() + timeMS;
+            function();
+        }
+    }
+
     //Math?
     void setPositionInFrontOfCam(Vector3& dest, const Camera& cam, float distance);
 }

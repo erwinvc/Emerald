@@ -6,4 +6,5 @@ public:
     void Initialize(Window* window, FreeCam& camera);
     void Render();
     void Update();
+    void Resize(uint width, uint height);
 };

@@ -11,6 +11,7 @@ class Model {
 private:
     vector<Mesh*> m_meshes;
     vector<Material*> m_materials;
+    map<String, Texture*> m_textures;
     String m_dir;
 
     void ProcessNode(aiNode* node, const aiScene* scene) {
@@ -62,13 +63,25 @@ private:
                 aiString path;
                 mat->GetTexture(aiTextureType_AMBIENT, 0, &path);
                 String fullPath = m_dir + "\\" + path.C_Str();
-                m_materials[i]->SetAlbedo(new Texture(fullPath));
+                if (m_textures[fullPath]) {
+                    m_materials[i]->SetAlbedo(m_textures[fullPath]);
+                } else {
+                    Texture* texture = new Texture(fullPath);
+                    m_materials[i]->SetAlbedo(texture);
+                    m_textures.emplace(fullPath, texture);
+                }
             }
             if (mat->GetTextureCount(aiTextureType_HEIGHT) > 0) {
                 aiString path;
                 mat->GetTexture(aiTextureType_HEIGHT, 0, &path);
                 String fullPath = m_dir + "\\" + path.C_Str();
-                m_materials[i]->SetNormal(new Texture(fullPath));
+                if (m_textures[fullPath]) {
+                    m_materials[i]->SetNormal(m_textures[fullPath]);
+                } else {
+                    Texture* texture = new Texture(fullPath);
+                    m_materials[i]->SetNormal(texture);
+                    m_textures.emplace(fullPath, texture);
+                }
             }
         }
     }

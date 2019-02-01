@@ -27,7 +27,7 @@ Matrix4 UIShader::CreateMatrix(Vector2& origin, float rot, Vector2& position, Ve
 }
 
 void UIShader::RenderTexture(uint texture, Vector2& origin, float rot, Vector2& position, Vector2& size, Vector2& texSize, bool flipX, bool flipY) {
-    m_shader->Start();
+    m_shader->Bind();
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);

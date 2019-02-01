@@ -25,7 +25,6 @@ struct Light {
 Light* currentLight;
 vector<Light> lights;
 Texture* header;
-#define GL_C(stmt) stmt;
 
 UIShader* uiShader;
 Mesh* quad;
@@ -81,18 +80,17 @@ void CreateSphere() {
     sphere = new Mesh(sphereVAO, sphereIBO);
 }
 
-void CreateQuad()
-{
-        GLfloat vertices[] = { -1, -1, 0,
-                               -1,  1, 0,
-                                1,  1, 0,
-                                1, -1, 0 };
-        uint indices[] = { 0, 1, 2, 0, 2, 3 };
+void CreateQuad() {
+    GLfloat vertices[] = { -1, -1, 0,
+                           -1,  1, 0,
+                            1,  1, 0,
+                            1, -1, 0 };
+    uint indices[] = { 0, 1, 2, 0, 2, 3 };
 
-        VertexArray* m_vao = new VertexArray();
-        m_vao->AddBuffer(new Buffer(vertices, NUMOF(vertices), 3), 0, false);
+    VertexArray* m_vao = new VertexArray();
+    m_vao->AddBuffer(new Buffer(vertices, NUMOF(vertices), 3), 0, false);
 
-        quad = new Mesh(m_vao, new IndexBuffer(indices, NUMOF(indices)));
+    quad = new Mesh(m_vao, new IndexBuffer(indices, NUMOF(indices)));
 }
 
 void SetupDeferredShader(Shader* shader) {
@@ -126,6 +124,17 @@ Vector2 origin(0, 0);
 float rot = 0;
 bool x, y;
 
+void Deferred::Resize(uint width, uint height) {
+    if (gBuffer) {
+        delete gBuffer;
+        gBuffer = new GBuffer(width, height);
+    }
+    if (hdr) {
+        delete hdr;
+        hdr = new FrameBuffer(width, height);
+    }
+}
+
 void Deferred::Initialize(Window* window, FreeCam& camera) {
     int val = 8;
     for (int x = -val; x < val; x++) {
@@ -155,7 +164,7 @@ void Deferred::Initialize(Window* window, FreeCam& camera) {
     pointLightShader = new Shader("Pointlight", "src/shader/pointlightVert.glsl", "src/shader/pointlightFrag.glsl");
 
     gBuffer = new GBuffer(1920, 1080);
-    gBuffer->Initialize();
+    gBuffer->SetClearColor(Color(0.0f, 0.0f, 0.3f, 1.0f));
 
     model.LoadModel("sponza/sponza.obj");
     //model2.LoadModel("fern/2.obj");
@@ -199,19 +208,17 @@ void Deferred::Render() {
     Matrix4 projectionMatrix = Matrix4::Perspective(70, (float)(1920) / 1080, 0.1f, 3000.0f);
 
     // setup GL state.
-    GL_C(glEnable(GL_DEPTH_TEST));
-    GL_C(glDepthMask(true));
-    GL_C(glDisable(GL_BLEND));
-    GL_C(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
-    GL_C(glEnable(GL_CULL_FACE));
-    GL_C(glFrontFace(GL_CCW));
+    GL(glEnable(GL_DEPTH_TEST));
+    GL(glDepthMask(true));
+    GL(glDisable(GL_BLEND));
+    GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
+    GL(glEnable(GL_CULL_FACE));
+    GL(glFrontFace(GL_CCW));
 
     gBuffer->Bind();
-    GL_C(glViewport(0, 0, 1920, 1080));
-    GL_C(glClearColor(0.0f, 0.0f, 0.3f, 1.0f));
-    GL_C(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    gBuffer->Clear();
 
-    outputGeoShader->Start();
+    outputGeoShader->Bind();
     outputGeoShader->Set("projectionMatrix", projectionMatrix);
     outputGeoShader->Set("viewMatrix", cam->GetViewMatrix());
 
@@ -225,43 +232,42 @@ void Deferred::Render() {
     //
     // Now comes the Deferred shading!
     //
-    GL_C(glViewport(0, 0, GetApplication()->GetWindow()->GetWidth(), GetApplication()->GetWindow()->GetHeight()));
-    GL_C(glClearColor(0.0f, 0.0f, 0.3f, 1.0f));
-    GL_C(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    GL(glViewport(0, 0, GetApplication()->GetWindow()->GetWidth(), GetApplication()->GetWindow()->GetHeight()));
+    GL(glClearColor(0.0f, 0.0f, 0.3f, 1.0f));
+    GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
     hdr->Bind();
     hdr->Clear();
     //
     // first, we render a single directional light, with a fullscreen pass.
     //
-    directionalLightShader->Start();
+    directionalLightShader->Bind();
     SetupDeferredShader(directionalLightShader);
     directionalLightShader->Set("directional", directional);
     // we use attribute-less rendering to render a full-screen triangle.
     // so the triangle vertices are basically stored in the vertex shader.
     // see the vertex shader for more details.
-    GL_C(glDrawArrays(GL_TRIANGLES, 0, 3));
+    GL(glDrawArrays(GL_TRIANGLES, 0, 3));
 
     //
     // Next, we render all the point light soures.
     // We will be doing our own depth testing in frag shader, so disable depth testing.
     // Enable alpha blending. So that the rendered point lights are added to the framebuffer.
     //
-    GL_C(glDisable(GL_DEPTH_TEST));
-    GL_C(glEnable(GL_BLEND));
-    GL_C(glBlendFunc(GL_ONE, GL_ONE));
+    GL(glDisable(GL_DEPTH_TEST));
+    GL(glEnable(GL_BLEND));
+    GL(glBlendFunc(GL_ONE, GL_ONE));
 
     // We render only the inner faces of the light sphere.
     // In other words, we render the back-faces and not the front-faces of the sphere.
     // If we render the front-faces, the lighting of the light sphere disappears if
     // we are inside the sphere, which is weird. But by rendering the back-faces instead,
     // we solve this problem.
-    GL_C(glFrontFace(GL_CW));
+    GL(glFrontFace(GL_CW));
 
-    delete pointLightShader;
-    pointLightShader = new Shader("Pointlight", "src/shader/pointlightVert.glsl", "src/shader/pointlightFrag.glsl");
+    pointLightShader->Reload();
 
-    pointLightShader->Start();
+    pointLightShader->Bind();
     SetupDeferredShader(pointLightShader);
     pointLightShader->Set("projectionMatrix", projectionMatrix);
     pointLightShader->Set("viewMatrix", cam->GetViewMatrix());
@@ -274,12 +280,11 @@ void Deferred::Render() {
 
     hdr->Unbind();
 
-    GL_C(glDisable(GL_BLEND));
+    GL(glDisable(GL_BLEND));
 
-    delete hdrShader;
-    hdrShader = new Shader("HDR", "src/shader/hdr.vert", "src/shader/hdr.frag");
+    hdrShader->Reload();
 
-    hdrShader->Start();
+    hdrShader->Bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, hdr->GetTexture()->GetHandle());
     quad->Draw();

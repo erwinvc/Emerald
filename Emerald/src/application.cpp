@@ -6,6 +6,9 @@ static void ErrorCallback(int error, const char* description) {
     LOG_ERROR("[GLFW] %s", description);
 }
 
+Deferred* deferred;
+
+
 Application::Application() : m_running(true) {
     glfwSetErrorCallback(ErrorCallback);
     if (!glfwInit()) {
@@ -40,7 +43,12 @@ Application::Application() : m_running(true) {
 
 void Application::OnEvent(Event& e) {
     e.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(); });
-    e.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { glViewport(0, 0, e.GetWidth(), e.GetHeight()); return true; });
+    e.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e)
+    {
+        glViewport(0, 0, e.GetWidth(), e.GetHeight());
+        if(deferred)deferred->Resize(e.GetWidth(), e.GetHeight());
+        return true;
+    });
 }
 
 bool Application::OnWindowClose() {
@@ -78,7 +86,6 @@ float ambientIntensity = 0.1f;
 
 //PhongShader* phong;
 
-Deferred* deferred;
 
 void Application::Run() {
 

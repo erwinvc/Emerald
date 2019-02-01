@@ -13,7 +13,10 @@ private:
 
 public:
     FrameBuffer(uint width, uint height) : m_fbo(0), m_dbo(0), m_width(width), m_height(height), m_color(Color(1, 0, 0)), m_texture(nullptr) { Initialize(); }
-    ~FrameBuffer() { GL(glDeleteFramebuffers(1, &m_fbo)); }
+    ~FrameBuffer() {
+        GL(glDeleteFramebuffers(1, &m_fbo));
+        delete m_texture;
+    }
 
     void Bind() {
         GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
@@ -30,5 +33,5 @@ public:
     inline uint GetWidth() { return m_width; }
     inline uint GetHeight() { return m_height; }
     inline Texture* GetTexture() { return m_texture; }
-    inline void SetColor(Color& color) { m_color = color; }
+    inline void SetClearColor(Color& color) { m_color = color; }
 };

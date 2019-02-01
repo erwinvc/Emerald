@@ -8,9 +8,9 @@ void GBuffer::Initialize() {
     m_normalTexture = new Texture(m_width, m_height, TextureParameters(RGBA16, LINEAR, REPEAT, T_FLOAT));
     m_positionTexture = new Texture(m_width, m_height, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT));
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->GetHandle(), 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_normalTexture->GetHandle(), 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_positionTexture->GetHandle(), 0);
+    GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->GetHandle(), 0));
+    GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_normalTexture->GetHandle(), 0));
+    GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_positionTexture->GetHandle(), 0));
 
     GLenum drawBuffers[3] = {
         GL_COLOR_ATTACHMENT0,
@@ -18,10 +18,9 @@ void GBuffer::Initialize() {
         GL_COLOR_ATTACHMENT2
     };
 
-    glDrawBuffers(3, drawBuffers);
+    GL(glDrawBuffers(3, drawBuffers));
 
-    GLenum status;
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    GL(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
     if (status != GL_FRAMEBUFFER_COMPLETE) LOG_ERROR("[Buffers] initializing GBuffer failed %d", status);
 
     m_fbo->Unbind();

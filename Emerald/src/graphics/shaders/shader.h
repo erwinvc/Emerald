@@ -35,6 +35,7 @@ class Shader {
         LOG_PRINT("[~bShaders~x] Compiled ~1%s~x %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
         return shader;
     }
+
     GLuint Load() {
         GL(uint program = glCreateProgram());
         uint vertex = LoadShader(m_vertex, GL_VERTEX_SHADER);
@@ -74,11 +75,19 @@ public:
     void Set(const String_t location, const Vector2& vector) { GL(glUniform2f(m_uniforms[location], vector.x, vector.y)); }
     void Set(const String_t location, const boolean value) { Set(location, value ? 1.0f : 0.0f); }
 
-    virtual void Start() {
+    void Reload() {
+        uint program = Load();
+        if (program != -1) {
+            GL(glDeleteProgram(m_shaderID));
+            m_shaderID = program;
+        }
+    }
+
+    inline void Bind() {
         GL(glUseProgram(m_shaderID));
     }
 
-    virtual void Stop() {
+    inline void Unbind() {
         GL(glUseProgram(0));
     }
 

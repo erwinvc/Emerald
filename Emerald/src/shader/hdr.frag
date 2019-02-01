@@ -127,9 +127,19 @@ vec3 vignette(vec3 color, vec3 color2, float a, float b) {
 	return mix(color, color2, sstep);
 }
 
+vec3 tonemap_aces(vec3 color) {
+	float a = 2.51f;
+	float b = 0.03f;
+	float c = 2.43f;
+	float d = 0.59f;
+	float e = 0.14f;
+	return color = clamp((color * (a * color + b)) / (color * (c * color + d) + e), vec3(0.0), vec3(1.0));
+}
+
 void main()
 {
 	vec3 color = texture(hdrBuffer, textureCoords).rgb;
-	vec3 toneMapped = GTAToneMapping(color);
+	vec3 toneMapped = tonemap_aces(color);
 	out_color = vec4(vignette(toneMapped, vec3(0), 0.3, 0.8), 1);
+	//out_color = (out_color * (1.0 + (out_color / (0.5f/*change this*/)))) / (1.0 + out_color);
 }

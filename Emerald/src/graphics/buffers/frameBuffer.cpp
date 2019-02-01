@@ -13,5 +13,4 @@ void FrameBuffer::Initialize() {
     GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
     GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->GetHandle(), 0));
     GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_dbo));
-    GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
