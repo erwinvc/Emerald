@@ -2,8 +2,8 @@
 
 class Mesh {
 private:
-	VertexArray* m_vao;
-	IndexBuffer* m_ibo;
+    VertexArray* m_vao;
+    IndexBuffer* m_ibo;
     Material* m_material;
 
 public:
@@ -11,13 +11,20 @@ public:
     Mesh(VertexArray* vao, IndexBuffer* ibo, Material* mat) : m_vao(vao), m_ibo(ibo), m_material(mat) {}
     Mesh(VertexArray* vao, IndexBuffer* ibo);
 
-    Material* GetMaterial() { return m_material;}
-    void SetMaterial(Material* mat) {m_material = mat; }
+    Material* GetMaterial() { return m_material; }
+    void SetMaterial(Material* mat) { m_material = mat; }
 
-	void Draw() {
-		m_vao->Bind();
-		m_ibo->Bind();
+    void DrawInstanced(int amount) {
+        m_vao->Bind();
+        m_ibo->Bind();
 
-		m_ibo->Draw();
-	}
+        m_ibo->DrawInstanced(amount);
+    }
+
+    void Draw() {
+        m_vao->Bind();
+        m_ibo->Bind();
+
+        m_ibo->Draw();
+    }
 };

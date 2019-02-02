@@ -34,4 +34,8 @@ public:
     static Color& Random() {
         return Color(Math::RandomF(0, 1), Math::RandomF(0, 1), Math::RandomF(0, 1), 1);
     }
+
+    static Color& RandomPrimary() {
+        return Color(Math::RandomI(0, 1), Math::RandomI(0, 1), Math::RandomI(0, 1), 1);
+    }
 };

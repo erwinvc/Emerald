@@ -16,7 +16,7 @@ queue<Logger::QueuedMessage> Logger::m_queue;
 void HandleInput() {
     static String input;
     getline(cin, input);
-    LOG_PRINT("~R%s", input.c_str());
+    LOG("~R%s", input.c_str());
 }
 
 /*Retrieve QueuedMessages from the queue (async)*/
@@ -52,7 +52,7 @@ void Logger::Initialize() {
     GetThreadManager()->RegisterThread("Console input", HandleInput);
     GetThreadManager()->RegisterThread("Console output", HandleQueue);
 
-    LOG_PRINT("[~gLogging~x] Console allocated");
+    LOG("[~gLogging~x] Console allocated");
 }
 
 /*Set the text color of the next print to console*/
@@ -136,6 +136,16 @@ void Logger::Message(int color, const char* type, const char* fmt, ...) {
     AddToQueue(color, buffer, type, time(nullptr));
 }
 
+void Logger::MessageDirect(int color, const char* type, const char* fmt, ...) {
+    char buffer[512] = { 0 };
+    va_list va_alist;
+
+    va_start(va_alist, fmt);
+    vsprintf_s(buffer, fmt, va_alist);
+    va_end(va_alist);
+    ProcessMessage(QueuedMessage(color, buffer, type, time(nullptr)));
+}
+
 /*Print the message to a logging file*/
 void Logger::LogToFile(const char * buff) {
     // #Dirty add proper path
@@ -154,6 +164,6 @@ void Logger::LogToFile(const char * buff) {
 
 void Logger::Cleanup() {
     if (!m_allocated) return;
-    LOG_PRINT("[~gLogging] Deallocating console");
+    LOG("[~gLogging] Deallocating console");
     PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
 }

@@ -92,5 +92,11 @@ namespace Math {
         return min + rand() % ((max + 1) - min);
     }
 
+    inline float Lerp(float toEase, float easeFrom, float percent) {
+        return (toEase + percent * (easeFrom - toEase));
+    }
 
+    inline float Ease(float value, float easeTo, float multiplier) {
+        return value + (value < easeTo ? abs(value - easeTo) / multiplier : -abs(value - easeTo) / multiplier);
+    }
 }

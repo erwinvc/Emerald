@@ -21,7 +21,7 @@ Thread* ThreadManager::RegisterThread(String name, void(*func)()) {
     unique_lock<mutex> lock(m_lock);
     m_threads.push_back(c_thread);
 
-    LOG_DEBUG("[Threads] %s registered", name);
+    LOG("[Threads] %s registered", name);
     return c_thread;
 }
 
@@ -32,7 +32,7 @@ void ThreadManager::Cleanup()
     }
     m_conditionVariable.notify_all();
 
-    LOG_DEBUG("[Threads] Thread pool terminated");
+    LOG("[Threads] Thread pool terminated");
 }
 
 ThreadManager* GetThreadManager() { return &g_threadManager; }

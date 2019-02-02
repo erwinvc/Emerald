@@ -57,20 +57,25 @@ using namespace std;
 #include "events/event.h"
 #include "events/applicationEvent.h"
 
+#include "graphics/buffers/bufferLayout.h"
 #include "graphics/buffers/buffer.h"
 #include "graphics/buffers/indexBuffer.h"
-#include "graphics/buffers/VertexArray.h"
+#include "graphics/buffers/vertexArray.h"
+#include "graphics/buffers/layoutVertexArray.h"
 #include "graphics/buffers/frameBuffer.h"
 #include "graphics/buffers/gBuffer.h"
 
-#include "graphics/texture/textureParameters.h"
-#include "graphics/texture/texture.h"
-#include "graphics/texture/textureUtils.h"
+#include "graphics/textures/textureParameters.h"
+#include "graphics/textures/texture.h"
+#include "graphics/textures/textureUtils.h"
 #include "graphics/window.h"
 #include "graphics/shaders/shader.h"
 #include "graphics/shaders/phongShader.h"
 #include "graphics/shaders/UIShader.h"
 #include "graphics/renderer.h"
+
+#include "graphics/lighting/pointlight.h"
+#include "graphics/lighting/pointlightRenderer.h"
 
 #include "input/keyboard.h"
 #include "input/mouse.h"
@@ -86,4 +91,5 @@ using namespace std;
 #include "assets/textureManager.h"
 
 #include "deferred.h"
+#include "graphics/RenderingPipeline.h"
 #include "application.h"

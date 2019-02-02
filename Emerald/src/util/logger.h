@@ -1,10 +1,10 @@
 //#pragma once
 #define LOG( fmt, ...)					Logger::Message(ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
-#define LOG_PRINT( fmt, ...)			Logger::Message(ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
-#define LOG_DEBUG( fmt, ...)			Logger::Message(ConsoleColor::GRAY,		" [Debg]",		fmt, ##__VA_ARGS__ )
-#define LOG_WARN( fmt, ...)				Logger::Message(ConsoleColor::DARKYELLOW,	" [Warn]",		fmt, ##__VA_ARGS__ )
-#define LOG_ERROR( fmt, ...)			Logger::Message(ConsoleColor::RED,		" [Fail]",		fmt, ##__VA_ARGS__ )
-#define LOG_CUSTOM( color, fmt, ...)	Logger::Message(color,								" [Info]",		fmt, ##__VA_ARGS__ )
+//#define LOG_PRINT( fmt, ...)			Logger::Message(ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
+//#define LOG_DEBUG( fmt, ...)			Logger::Message(ConsoleColor::GRAY,		" [Debg]",		fmt, ##__VA_ARGS__ )
+//#define LOG_WARN( fmt, ...)				Logger::Message(ConsoleColor::DARKYELLOW,	" [Warn]",		fmt, ##__VA_ARGS__ )
+#define LOG_ERROR( fmt, ...)			Logger::MessageDirect(ConsoleColor::RED,		" [Fail]",		fmt, ##__VA_ARGS__ )
+//#define LOG_CUSTOM( color, fmt, ...)	Logger::Message(color,								" [Info]",		fmt, ##__VA_ARGS__ )
 
 class UILoggerComponent;
 
@@ -42,6 +42,7 @@ public:
 
     static void Initialize();
     static void Message(int color, const char* type, const char* fmt, ...);
+    static void MessageDirect(int color, const char* type, const char* fmt, ...);
     static void Cleanup();
 
 private:

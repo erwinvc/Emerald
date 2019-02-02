@@ -18,8 +18,10 @@ struct Light {
     float sinincrement2;
     float sinincrement3;
     Vector3 m_pos;
+    Vector3 m_original;
     Color m_col;
     float m_radius;
+
 };
 
 Light* currentLight;
@@ -31,6 +33,10 @@ Mesh* quad;
 Model model;
 Model model2;
 Mesh* sphere;
+
+PointlightRenderer* renderer;
+vector<Pointlight> pointLights;
+
 void CreateSphere() {
     int stacks = 20;
     int slices = 20;
@@ -78,6 +84,8 @@ void CreateSphere() {
 
     IndexBuffer* sphereIBO = new IndexBuffer(indices.data(), indices.size());
     sphere = new Mesh(sphereVAO, sphereIBO);
+
+    renderer = new PointlightRenderer(positions.size(), indices.size(), positions.data(), indices.data());
 }
 
 void CreateQuad() {
@@ -136,7 +144,7 @@ void Deferred::Resize(uint width, uint height) {
 }
 
 void Deferred::Initialize(Window* window, FreeCam& camera) {
-    int val = 8;
+    int val = 16;
     for (int x = -val; x < val; x++) {
         for (int y = -val; y < val; y++) {
             for (int z = -val; z < val; z++) {
@@ -147,13 +155,14 @@ void Deferred::Initialize(Window* window, FreeCam& camera) {
                 light.sinincrement1 = Math::RandomF(0, 0.1f);
                 light.sinincrement2 = Math::RandomF(0, 0.1f);
                 light.sinincrement3 = Math::RandomF(0, 0.1f);
-                light.m_pos = Vector3(x * 200, y * 200, z * 200);
-                light.m_col = Color::Random();
+                light.m_pos = Vector3(x * 100, y * 50 + 50, z * 50);
+                light.m_original = light.m_pos;
+                light.m_col = Color::RandomPrimary();
                 light.m_radius = 200;
                 lights.push_back(light);
+                pointLights.push_back(Pointlight(light.m_pos, Math::RandomF(10, 50), light.m_col));
             }
         }
-
     }
     cam = &camera;
     m_window = window;
@@ -194,8 +203,8 @@ void Deferred::Update() {
     if (lightEnabled) Utils::setPositionInFrontOfCam(currentLight->m_pos, *cam, 0.22f);
 }
 
-
 void Deferred::Render() {
+
     for (Light& l : lights) {
         l.sinval1 += l.sinincrement1;
         l.sinval2 += l.sinincrement2;
@@ -203,6 +212,20 @@ void Deferred::Render() {
         l.m_pos.x += Math::sin(l.sinval1);
         l.m_pos.y += Math::sin(l.sinval2);
         l.m_pos.z += Math::sin(l.sinval3);
+    }
+
+    static float sin = 0.00;
+    sin += 0.002f;
+    for (int i = 0; i < pointLights.size(); i++) {
+        Pointlight& light = pointLights[i];
+        Light& l = lights[i];
+        l.sinval1 += l.sinincrement1;
+        l.sinval2 += l.sinincrement2;
+        l.sinval3 += l.sinincrement3;
+
+        light.m_position.x += Math::sin(l.sinval1);
+        light.m_position.y += Math::sin(l.sinval2);
+        light.m_position.z += Math::sin(l.sinval3);
     }
 
     Matrix4 projectionMatrix = Matrix4::Perspective(70, (float)(1920) / 1080, 0.1f, 3000.0f);
@@ -249,7 +272,6 @@ void Deferred::Render() {
     // see the vertex shader for more details.
     GL(glDrawArrays(GL_TRIANGLES, 0, 3));
 
-    //
     // Next, we render all the point light soures.
     // We will be doing our own depth testing in frag shader, so disable depth testing.
     // Enable alpha blending. So that the rendered point lights are added to the framebuffer.
@@ -265,7 +287,7 @@ void Deferred::Render() {
     // we solve this problem.
     GL(glFrontFace(GL_CW));
 
-    pointLightShader->Reload();
+    //pointLightShader->Reload();
 
     pointLightShader->Bind();
     SetupDeferredShader(pointLightShader);
@@ -274,15 +296,17 @@ void Deferred::Render() {
     // We render every point light as a light sphere. And this light sphere is added onto the framebuffer
     // with additive alpha blending.
 
-    for (auto & light : lights) {
-        RenderPointLight(light.m_radius, light.m_pos, light.m_col);
-    }
+    renderer->Draw(pointLights);
+
+    //for (auto & light : lights) {
+    //    RenderPointLight(light.m_radius, light.m_pos, light.m_col);
+    //}
 
     hdr->Unbind();
 
     GL(glDisable(GL_BLEND));
 
-    hdrShader->Reload();
+    //hdrShader->Reload();
 
     hdrShader->Bind();
     glActiveTexture(GL_TEXTURE0);

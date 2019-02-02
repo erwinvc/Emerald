@@ -32,7 +32,7 @@ class Shader {
             GL(glDeleteShader(shader));
             return -1;
         }
-        LOG_PRINT("[~bShaders~x] Compiled ~1%s~x %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
+        LOG("[~bShaders~x] Compiled ~1%s~x %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
         return shader;
     }
 
@@ -64,15 +64,15 @@ public:
     }
     virtual ~Shader() { GL(glDeleteProgram(m_shaderID)); }
 
-    void Set(const String_t location, const int value) { GL(glUniform1i(m_uniforms[location], value)); }
-    void Set(const String_t location, const float value) { GL(glUniform1f(m_uniforms[location], value)); }
-    void Set(const String_t location, const float x, const float y) { GL(glUniform2f(m_uniforms[location], x, y)); }
-    void Set(const String_t location, const Color& color) { GL(glUniform4f(m_uniforms[location], color.R, color.G, color.B, color.A)); }
-    void Set(const String_t location, float x, float y, float z) { GL(glUniform3f(m_uniforms[location], x, y, z)); }
-    void Set(const String_t location, const Matrix4& matrix) { GL(glUniformMatrix4fv(m_uniforms[location], 1, GL_TRUE, matrix.elements)); }
-    void Set(const String_t location, const Vector4& vector) { GL(glUniform4f(m_uniforms[location], vector.x, vector.y, vector.z, vector.w)); }
-    void Set(const String_t location, const Vector3& vector) { GL(glUniform3f(m_uniforms[location], vector.x, vector.y, vector.z)); }
-    void Set(const String_t location, const Vector2& vector) { GL(glUniform2f(m_uniforms[location], vector.x, vector.y)); }
+    void Set(const String_t location, const int value) { glUniform1i(m_uniforms[location], value); }
+    void Set(const String_t location, const float value) { glUniform1f(m_uniforms[location], value); }
+    void Set(const String_t location, const float x, const float y) { glUniform2f(m_uniforms[location], x, y); }
+    void Set(const String_t location, const Color& color) { glUniform4f(m_uniforms[location], color.R, color.G, color.B, color.A); }
+    void Set(const String_t location, float x, float y, float z) { glUniform3f(m_uniforms[location], x, y, z); }
+    void Set(const String_t location, const Matrix4& matrix) { glUniformMatrix4fv(m_uniforms[location], 1, GL_TRUE, matrix.elements); }
+    void Set(const String_t location, const Vector4& vector) { glUniform4f(m_uniforms[location], vector.x, vector.y, vector.z, vector.w); }
+    void Set(const String_t location, const Vector3& vector) { glUniform3f(m_uniforms[location], vector.x, vector.y, vector.z); }
+    void Set(const String_t location, const Vector2& vector) { glUniform2f(m_uniforms[location], vector.x, vector.y); }
     void Set(const String_t location, const boolean value) { Set(location, value ? 1.0f : 0.0f); }
 
     void Reload() {

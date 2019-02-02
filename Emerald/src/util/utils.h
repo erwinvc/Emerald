@@ -49,8 +49,8 @@ namespace Utils {
     }
 
     static void DoTimedFunction(int* timer, int timeMS, function<void()> function) {
-        if (*timer < glfwGetTime()) {
-            *timer = glfwGetTime() + timeMS;
+        if (*timer < GetTickCount()) {
+            *timer = GetTickCount() + timeMS;
             function();
         }
     }

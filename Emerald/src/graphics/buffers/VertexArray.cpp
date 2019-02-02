@@ -4,6 +4,7 @@ VertexArray::VertexArray() {
 	glGenVertexArrays(1, &m_arrayID);
 }
 VertexArray::~VertexArray() {
+    glDeleteVertexArrays(1, &m_arrayID);
 	for (int i = 0; i < m_buffers.size(); i++) {
 		delete m_buffers[i];
 	}
