@@ -13,6 +13,7 @@ project "Emerald"
 	location "Emerald"
 	kind "ConsoleApp"
 	language "C++"
+	staticruntime "off"
 	
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -57,8 +58,7 @@ project "Emerald"
 	
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "off"
-		systemversion "10.0.17134.0"
+		systemversion "latest"
 
 		defines
 		{
@@ -67,8 +67,10 @@ project "Emerald"
 
 	filter "configurations:Debug"
 		defines "EE_DEBUG"
+		runtime "Debug"
 		symbols "On"
 
 	filter "configurations:Release"
 		defines "EE_RELEASE"
+		runtime "Release"
 		optimize "On"
