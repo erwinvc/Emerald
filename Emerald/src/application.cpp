@@ -7,7 +7,7 @@ static void ErrorCallback(int error, const char* description) {
 }
 
 Deferred* deferred;
-
+RenderingPipeline* pipeline;
 
 Application::Application() : m_running(true) {
     glfwSetErrorCallback(ErrorCallback);
@@ -43,10 +43,10 @@ Application::Application() : m_running(true) {
 
 void Application::OnEvent(Event& e) {
     e.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(); });
-    e.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e)
-    {
+    e.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
         glViewport(0, 0, e.GetWidth(), e.GetHeight());
-        if(deferred)deferred->Resize(e.GetWidth(), e.GetHeight());
+        if (deferred)deferred->Resize(e.GetWidth(), e.GetHeight());
+        if (pipeline)pipeline->Resize(e.GetWidth(), e.GetHeight());
         return true;
     });
 }
@@ -89,6 +89,7 @@ float ambientIntensity = 0.1f;
 
 void Application::Run() {
 
+    pipeline = new RenderingPipeline(&camera);
     //GLfloat vertices[] = {
     //    0, 0, 0,
     //    0, 3, 0,
@@ -174,28 +175,28 @@ void Application::Run() {
     //            23,21,22
     //};
 
-    Assimp::Importer importer;
-    const aiScene* ascene = importer.ReadFile("res/cursor.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
-    aiNode* arnode = ascene->mRootNode;
-    aiNode* anode = arnode->mChildren[0];
-    aiMesh* amesh = ascene->mMeshes[anode->mMeshes[0]];
-
-    vector<uint> shorts;
-    for (uint i = 0; i < amesh->mNumFaces; i++) {
-        aiFace face = amesh->mFaces[i];
-        for (uint j = 0; j < face.mNumIndices; j++)
-            shorts.push_back(face.mIndices[j]);
-    }
-
-    vector<GLfloat> texcoords;
-    for (uint i = 0; i < amesh[0].mNumVertices; i++) {
-        texcoords.push_back(amesh[0].mTextureCoords[0][i].x);
-        texcoords.push_back(amesh[0].mTextureCoords[0][i].y);
-    }
-
-    uint num = amesh->mNumVertices;
-    int num2 = (int)shorts.size();
-    renderer = new Renderer(num, num2, (float*)amesh->mVertices, (float*)amesh->mNormals, texcoords.data(), (float*)amesh->mTangents, shorts.data());
+    //Assimp::Importer importer;
+    //const aiScene* ascene = importer.ReadFile("res/cursor.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
+    //aiNode* arnode = ascene->mRootNode;
+    //aiNode* anode = arnode->mChildren[0];
+    //aiMesh* amesh = ascene->mMeshes[anode->mMeshes[0]];
+    //
+    //vector<uint> shorts;
+    //for (uint i = 0; i < amesh->mNumFaces; i++) {
+    //    aiFace face = amesh->mFaces[i];
+    //    for (uint j = 0; j < face.mNumIndices; j++)
+    //        shorts.push_back(face.mIndices[j]);
+    //}
+    //
+    //vector<GLfloat> texcoords;
+    //for (uint i = 0; i < amesh[0].mNumVertices; i++) {
+    //    texcoords.push_back(amesh[0].mTextureCoords[0][i].x);
+    //    texcoords.push_back(amesh[0].mTextureCoords[0][i].y);
+    //}
+    //
+    //uint num = amesh->mNumVertices;
+    //int num2 = (int)shorts.size();
+    //renderer = new Renderer(num, num2, (float*)amesh->mVertices, (float*)amesh->mNormals, texcoords.data(), (float*)amesh->mTangents, shorts.data());
 
     //{
     //    Assimp::Importer importer;
@@ -238,8 +239,8 @@ void Application::Run() {
     //    importer.FreeScene();
     //}
 
-    deferred = new Deferred();
-    deferred->Initialize(m_window, camera);
+    //deferred = new Deferred();
+    //deferred->Initialize(m_window, camera);
 
     //Cube
     //VertexArray* vao2 = new VertexArray();
@@ -336,7 +337,7 @@ void Application::Update(const TimeStep& time) {
     camera.Update(time);
     sinus += 0.001f * time.GetMills();
     sinus2 += 0.003f * time.GetMills();
-    deferred->Update();
+    //deferred->Update();
 }
 
 void Application::Render() {
@@ -344,11 +345,15 @@ void Application::Render() {
     m_window->ClearColor(background);
     GetImGuiManager()->Begin();
 
-    deferred->Render();
+    //deferred->Render();
+    pipeline->Render();
+
     GetImGuiManager()->End();
 
     m_window->SwapBuffers();
     m_window->PollEvents();
+
+
     //RenderTest();
 
     //shader->Start();

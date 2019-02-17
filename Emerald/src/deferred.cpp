@@ -85,7 +85,7 @@ void CreateSphere() {
     IndexBuffer* sphereIBO = new IndexBuffer(indices.data(), indices.size());
     sphere = new Mesh(sphereVAO, sphereIBO);
 
-    renderer = new PointlightRenderer(positions.size(), indices.size(), positions.data(), indices.data());
+    renderer = new PointlightRenderer(sphere);
 }
 
 void CreateQuad() {
@@ -152,15 +152,15 @@ void Deferred::Initialize(Window* window, FreeCam& camera) {
                 light.sinval1 = 0;
                 light.sinval2 = 0;
                 light.sinval3 = 0;
-                light.sinincrement1 = Math::RandomF(0, 0.1f);
-                light.sinincrement2 = Math::RandomF(0, 0.1f);
-                light.sinincrement3 = Math::RandomF(0, 0.1f);
+                light.sinincrement1 = Math::RandomFloat(0, 0.1f);
+                light.sinincrement2 = Math::RandomFloat(0, 0.1f);
+                light.sinincrement3 = Math::RandomFloat(0, 0.1f);
                 light.m_pos = Vector3(x * 100, y * 50 + 50, z * 50);
                 light.m_original = light.m_pos;
                 light.m_col = Color::RandomPrimary();
                 light.m_radius = 200;
                 lights.push_back(light);
-                pointLights.push_back(Pointlight(light.m_pos, Math::RandomF(10, 50), light.m_col));
+                pointLights.push_back(Pointlight(light.m_pos, Math::RandomFloat(10, 50), light.m_col));
             }
         }
     }
@@ -209,9 +209,9 @@ void Deferred::Render() {
         l.sinval1 += l.sinincrement1;
         l.sinval2 += l.sinincrement2;
         l.sinval3 += l.sinincrement3;
-        l.m_pos.x += Math::sin(l.sinval1);
-        l.m_pos.y += Math::sin(l.sinval2);
-        l.m_pos.z += Math::sin(l.sinval3);
+        l.m_pos.x += Math::Sin(l.sinval1);
+        l.m_pos.y += Math::Sin(l.sinval2);
+        l.m_pos.z += Math::Sin(l.sinval3);
     }
 
     static float sin = 0.00;
@@ -223,9 +223,9 @@ void Deferred::Render() {
         l.sinval2 += l.sinincrement2;
         l.sinval3 += l.sinincrement3;
 
-        light.m_position.x += Math::sin(l.sinval1);
-        light.m_position.y += Math::sin(l.sinval2);
-        light.m_position.z += Math::sin(l.sinval3);
+        light.m_position.x += Math::Sin(l.sinval1);
+        light.m_position.y += Math::Sin(l.sinval2);
+        light.m_position.z += Math::Sin(l.sinval3);
     }
 
     Matrix4 projectionMatrix = Matrix4::Perspective(70, (float)(1920) / 1080, 0.1f, 3000.0f);
@@ -287,7 +287,7 @@ void Deferred::Render() {
     // we solve this problem.
     GL(glFrontFace(GL_CW));
 
-    //pointLightShader->Reload();
+    pointLightShader->Reload();
 
     pointLightShader->Bind();
     SetupDeferredShader(pointLightShader);
@@ -306,7 +306,7 @@ void Deferred::Render() {
 
     GL(glDisable(GL_BLEND));
 
-    //hdrShader->Reload();
+    hdrShader->Reload();
 
     hdrShader->Bind();
     glActiveTexture(GL_TEXTURE0);
@@ -331,5 +331,5 @@ void Deferred::Render() {
     ImGui::ColorEdit4("Color", (float*)&currentLight->m_col);
     ImGui::Checkbox("Enabled", &lightEnabled);
 
-    ImGui::End();
+    ImGui::End();     
 }

@@ -7,12 +7,13 @@ private:
     uint m_fbo;
     uint m_dbo;
     uint m_width, m_height;
+    bool m_multisampled;
     Color m_color;
     Texture* m_texture;
     void Initialize();
 
 public:
-    FrameBuffer(uint width, uint height, Color& clearColor = Color(1, 0, 0)) : m_fbo(0), m_dbo(0), m_width(width), m_height(height), m_color(clearColor), m_texture(nullptr) { Initialize(); }
+    FrameBuffer(uint width, uint height, bool multisampled = false, Color& clearColor = Color(1, 0, 0)) : m_fbo(0), m_dbo(0), m_width(width), m_height(height), m_multisampled(multisampled), m_color(clearColor), m_texture(nullptr) { Initialize(); }
     ~FrameBuffer() {
         GL(glDeleteFramebuffers(1, &m_fbo));
         delete m_texture;

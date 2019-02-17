@@ -58,3 +58,14 @@ namespace Utils {
     //Math?
     void setPositionInFrontOfCam(Vector3& dest, const Camera& cam, float distance);
 }
+
+namespace GLUtils {
+    static String ShaderTypeToString(int type, bool camelCase) {
+        switch (type) {
+        case GL_VERTEX_SHADER: return camelCase ? "Vertex" : "vertex";
+        case GL_GEOMETRY_SHADER: return camelCase ? "Geometry" : "geometry";
+        case GL_FRAGMENT_SHADER: return camelCase ? "Fragment" : "fragment";
+        }
+        return "NULL";
+    }
+}

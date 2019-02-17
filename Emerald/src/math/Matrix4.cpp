@@ -223,7 +223,7 @@ Matrix4 Matrix4::Orthographic(float left, float right, float bottom, float top, 
 Matrix4 Matrix4::Perspective(float fov, float aspectRatio, float nearPlane, float farPlane) {
 	Matrix4 result(1.0f);
 
-	float q = 1.0f / Math::tan(Math::ToRadians(0.5f * fov));
+	float q = 1.0f / Math::Tan(Math::ToRadians(0.5f * fov));
 	float a = q / aspectRatio;
 
 	float b = (nearPlane + farPlane) / (nearPlane - farPlane);
@@ -272,8 +272,8 @@ Matrix4 Matrix4::Translate(const Vector3& translation) {
 Matrix4 Matrix4::Rotate(float angle, const Vector3& axis) {
 	Matrix4 result(1.0f);
 
-	float c = cos(angle);
-	float s = sin(angle);
+	float c = Math::Cos(angle);
+	float s = Math::Sin(angle);
 	float omc = 1.0f - c;
 
 	float x = axis.x;

@@ -164,7 +164,7 @@ bool Vector2::operator>=(const Vector2& other) const {
 float Vector2::Distance(const Vector2& other) const {
 	float a = x - other.x;
 	float b = y - other.y;
-	return sqrt(a * a + b * b);
+	return Math::Sqrt(a * a + b * b);
 }
 
 float Vector2::Dot(const Vector2& other) const {
@@ -172,7 +172,7 @@ float Vector2::Dot(const Vector2& other) const {
 }
 
 float Vector2::Magnitude() const {
-	return sqrt(x * x + y * y);
+	return Math::Sqrt(x * x + y * y);
 }
 
 Vector2 Vector2::Normalise() const {

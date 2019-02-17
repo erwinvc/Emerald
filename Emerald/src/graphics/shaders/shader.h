@@ -3,8 +3,10 @@
 class Shader {
     GLuint m_shaderID;
 
+    bool m_hasGeometry;
     String m_name;
     String m_vertex;
+    String m_geometry;
     String m_fragment;
 
     map<String, GLuint> m_uniforms;
@@ -13,7 +15,7 @@ class Shader {
         GL(uint shader = glCreateShader(type));
         String source = Utils::ReadFile(path);
         if (source.empty()) {
-            LOG_ERROR("[~bShaders~x] Failed to load %s shader %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
+            LOG_ERROR("[~bShaders~x] Failed to load %s shader %s", m_name, GLUtils::ShaderTypeToString(type, false));
             return -1;
         }
         String_t sourceCC = source.c_str();
@@ -28,7 +30,7 @@ class Shader {
             vector<char> error(length);
             GL(glGetShaderInfoLog(shader, length, &length, &error[0]));
             LOG_ERROR("%s", &error[0]);
-            LOG_ERROR("[~bShaders~x] Failed to compile %s shader %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
+            LOG_ERROR("[~bShaders~x] Failed to compile %s shader %s", m_name, GLUtils::ShaderTypeToString(type, false));
             GL(glDeleteShader(shader));
             return -1;
         }
@@ -40,13 +42,19 @@ class Shader {
         GL(uint program = glCreateProgram());
         uint vertex = LoadShader(m_vertex, GL_VERTEX_SHADER);
         uint fragment = LoadShader(m_fragment, GL_FRAGMENT_SHADER);
+        uint geometry = 0;
+        if (m_hasGeometry) geometry = LoadShader(m_geometry, GL_GEOMETRY_SHADER);
 
-        if (vertex == -1 || fragment == -1) {
+
+        if (vertex == -1 || geometry == -1 || fragment == -1) {
             GL(glDeleteProgram(program));
             return -1;
         }
 
         GL(glAttachShader(program, vertex));
+        if (m_hasGeometry) {
+            GL(glAttachShader(program, geometry));
+        }
         GL(glAttachShader(program, fragment));
         GL(glLinkProgram(program));
         GL(glValidateProgram(program));
@@ -58,9 +66,14 @@ class Shader {
     }
 public:
     Shader() {}
-    Shader(String name, String vertex, String fragment) : m_name(name), m_vertex(vertex), m_fragment(fragment) {
+    Shader(String name, String vertex, String geometry, String fragment) : m_shaderID(0), m_hasGeometry(true), m_name(name), m_vertex(vertex), m_geometry(geometry), m_fragment(fragment) {
         m_shaderID = Load();
-        if (m_shaderID != -1) RegisterUniforms();
+        RegisterUniforms();
+    }
+
+    Shader(String name, String vertex, String fragment) : m_shaderID(0), m_hasGeometry(false), m_name(name), m_vertex(vertex), m_geometry(""), m_fragment(fragment) {
+        m_shaderID = Load();
+        RegisterUniforms();
     }
     virtual ~Shader() { GL(glDeleteProgram(m_shaderID)); }
 
@@ -98,6 +111,7 @@ protected:
         m_uniforms.emplace(uniform, uniformLocation);
     }
     void RegisterUniforms() {
+        if (m_shaderID == -1) return;
         GLint count;
         GLint size;
         GLenum type;

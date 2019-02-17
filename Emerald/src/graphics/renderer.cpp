@@ -12,9 +12,9 @@ Renderer::Renderer(int numvertices, int numindices, float* vertices, float* norm
     m_offsetsTempBuffer = new Vector3[MAX_OBJECTS];
 
     for (int i = 0; i < MAX_OBJECTS; i++) {
-        m_offsetsTempBuffer[i].x = Math::RandomF(-1, 1);
-        m_offsetsTempBuffer[i].y = Math::RandomF(-1, 1);
-        m_offsetsTempBuffer[i].z = Math::RandomF(-1, 1);
+        m_offsetsTempBuffer[i].x = Math::RandomFloat(-1, 1);
+        m_offsetsTempBuffer[i].y = Math::RandomFloat(-1, 1);
+        m_offsetsTempBuffer[i].z = Math::RandomFloat(-1, 1);
     }
 
     m_vao = new VertexArray();

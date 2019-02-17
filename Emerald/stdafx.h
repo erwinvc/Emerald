@@ -87,6 +87,8 @@ using namespace std;
 #include "graphics/model.h"
 #include "entity/entity.h"
 
+#include "util/MeshGenerator.h"
+
 #include "assets/materialManager.h"
 #include "assets/textureManager.h"
 

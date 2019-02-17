@@ -4,6 +4,7 @@ out vec4 out_color;
 in vec2 textureCoords;
 
 uniform sampler2D hdrBuffer;
+uniform int applyPostProcessing;
 
 //void main()
 //{             
@@ -136,10 +137,29 @@ vec3 tonemap_aces(vec3 color) {
 	return color = clamp((color * (a * color + b)) / (color * (c * color + d) + e), vec3(0.0), vec3(1.0));
 }
 
-void main()
-{
+vec3 toonTonemap(vec3 color){
+const int levels = 8;
+	return floor(color * levels) / levels; 
+}
+
+vec3 blur(vec3 color, int amount){
+	for(int i =0; i< amount; i++){
+		color += texture(hdrBuffer, textureCoords + i / 100).rgb;
+	}
+	return color /amount;
+}
+void main(){
 	vec3 color = texture(hdrBuffer, textureCoords).rgb;
+
+	if(applyPostProcessing == 0) {
+		out_color = vec4(color, 1.0);
+		return;
+	}
+
 	vec3 toneMapped = tonemap_aces(color);
+
+	//toneMapped = toonTonemap(toneMapped);
 	out_color = vec4(vignette(toneMapped, vec3(0), 0.3, 0.8), 1);
+
 	//out_color = (out_color * (1.0 + (out_color / (0.5f/*change this*/)))) / (1.0 + out_color);
 }

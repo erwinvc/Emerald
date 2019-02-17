@@ -4,11 +4,10 @@ template <typename T, size_t N>
 constexpr size_t NUMOF(T(&)[N]) { return N; }
 
 namespace Math {
-
-    static const float PI = 3.1415927F;
-    static const float HALF_PI = 1.5707964F;
-    static const float THIRD_PI = 1.0471976F;
-    static const float QUARTER_PI = 0.7853982F;
+    static const float PI = 3.1415927f;
+    static const float HALF_PI = 1.5707964f;
+    static const float THIRD_PI = 1.0471976f;
+    static const float QUARTER_PI = 0.7853982f;
 
 
     inline float ToRadians(float degrees) {
@@ -16,55 +15,54 @@ namespace Math {
     }
 
     inline float ToDegrees(float radians) {
-        return (float)(radians * (180.0f / 3.14));
+        return (float)(radians * (180.0f / 3.14f));
     }
 
-    inline float abs(float val) {
-        return val <= 0.0F ? 0.0F - val : val;
+    inline float Abs(float val) {
+        return val <= 0.0f ? 0.0f - val : val;
     }
 
-
-    inline float sin(float angle) {
+    inline float Sin(float angle) {
         return (float)::sin(angle);
     }
 
-    inline float cos(float angle) {
+    inline float Cos(float angle) {
         return (float)::cos(angle);
     }
 
-    inline float tan(float angle) {
+    inline float Tan(float angle) {
         return (float)::tan(angle);
     }
 
-    inline float sqrt(float value) {
+    inline float Sqrt(float value) {
         return (float)::sqrt(value);
     }
 
-    inline float rsqrt(float value) {
+    inline float Rsqrt(float value) {
         return 1.0f / (float)::sqrt(value);
     }
 
-    inline float asin(float value) {
+    inline float Asin(float value) {
         return (float)::asin(value);
     }
 
-    inline float acos(float value) {
+    inline float Acos(float value) {
         return (float)::acos(value);
     }
 
-    inline float atan(float value) {
+    inline float Atan(float value) {
         return (float)::atan(value);
     }
 
-    inline float atan2(float y, float x) {
+    inline float Atan2(float y, float x) {
         return (float)::atan2(y, x);
     }
 
-    inline float _min(float value, float minimum) {
+    inline float Min(float value, float minimum) {
         return (value < minimum) ? minimum : value;
     }
 
-    inline float _max(float value, float maximum) {
+    inline float Max(float value, float maximum) {
         return (value > maximum) ? maximum : value;
     }
 
@@ -83,12 +81,12 @@ namespace Math {
         return val <= max && val >= min;
     }
 
-    inline float RandomF(float min, float max) {
+    inline float RandomFloat(float min, float max) {
         float r = (float)rand() / (float)RAND_MAX;
         return r * (max - min) + min;
     }
 
-    inline int RandomI(int min, int max) {
+    inline int RandomInt(int min, int max) {
         return min + rand() % ((max + 1) - min);
     }
 
@@ -97,6 +95,6 @@ namespace Math {
     }
 
     inline float Ease(float value, float easeTo, float multiplier) {
-        return value + (value < easeTo ? abs(value - easeTo) / multiplier : -abs(value - easeTo) / multiplier);
+        return value + (value < easeTo ? Abs(value - easeTo) / multiplier : -Abs(value - easeTo) / multiplier);
     }
 }

@@ -15,8 +15,12 @@ namespace Utils {
         const float y = cam.m_position.y;
         const float z = cam.m_position.z;
 
-        dest.x = x + sin(cam.m_rotation.yaw) * distance * abs(cos(cam.m_rotation.pitch));
-        dest.y = y - sin(cam.m_rotation.pitch) * distance;
-        dest.z = z - cos(cam.m_rotation.yaw) * distance * abs(cos(cam.m_rotation.pitch));
+        dest.x = x + Math::Sin(cam.m_rotation.yaw) * distance * Math::Abs(Math::Cos(cam.m_rotation.pitch));
+        dest.y = y - Math::Sin(cam.m_rotation.pitch) * distance;
+        dest.z = z - Math::Cos(cam.m_rotation.yaw) * distance * Math::Abs(Math::Cos(cam.m_rotation.pitch));
     }
+}
+
+namespace GLUtils {
+
 }
