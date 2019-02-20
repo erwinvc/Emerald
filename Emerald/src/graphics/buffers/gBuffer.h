@@ -36,5 +36,7 @@ public:
     void Unbind() {
         m_fbo->Unbind();
     }
+
+	FrameBuffer* GetFBO() { return m_fbo; }
 };
 

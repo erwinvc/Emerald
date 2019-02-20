@@ -5,6 +5,8 @@ in vec2 textureCoords;
 
 uniform sampler2D hdrBuffer;
 uniform int applyPostProcessing;
+uniform float gamma;
+uniform int tonemapping;
 
 //void main()
 //{             
@@ -31,8 +33,6 @@ uniform int applyPostProcessing;
 //        out_color = vec4(result, 1.0);
 //    }
 //}  
-
-float gamma = 1.0;
 
 vec3 linearToneMapping(vec3 color)
 {
@@ -101,9 +101,6 @@ vec3 Uncharted2ToneMapping(vec3 color)
 	return color;
 }
 
-
-
-
 vec3 GTAToneMapping(vec3 color)
 {
 	float A = 0.22;
@@ -134,7 +131,7 @@ vec3 tonemap_aces(vec3 color) {
 	float c = 2.43f;
 	float d = 0.59f;
 	float e = 0.14f;
-	return color = clamp((color * (a * color + b)) / (color * (c * color + d) + e), vec3(0.0), vec3(1.0));
+	return clamp((color * (a * color + b)) / (color * (c * color + d) + e), vec3(0.0), vec3(1.0));
 }
 
 vec3 toonTonemap(vec3 color){
@@ -142,12 +139,35 @@ const int levels = 8;
 	return floor(color * levels) / levels; 
 }
 
-vec3 blur(vec3 color, int amount){
-	for(int i =0; i< amount; i++){
-		color += texture(hdrBuffer, textureCoords + i / 100).rgb;
-	}
-	return color /amount;
+//Stephen Hill
+vec3 RRTAndODTFit(vec3 v)
+{
+    vec3 a = v * (v + 0.0245786f) - 0.000090537f;
+    vec3 b = v * (0.983729f * v + 0.4329510f) + 0.238081f;
+    return a / b;
 }
+
+vec3 ACESFitted(vec3 color)
+{
+	mat3 ACESInputMat = mat3(
+	    0.59719, 0.35458, 0.04823,
+	    0.07600, 0.90834, 0.01566,
+	    0.02840, 0.13383, 0.83777);
+
+    color = ACESInputMat * color;
+
+    color = RRTAndODTFit(color);
+
+	mat3 ACESOutputMat = mat3(
+     1.60475, -0.53108, -0.07367,
+    -0.10208,  1.10813, -0.00605,
+    -0.00327, -0.07276,  1.07602);
+
+    color = ACESOutputMat * color;
+
+	return clamp(color, vec3(0.0), vec3(1.0));
+}
+
 void main(){
 	vec3 color = texture(hdrBuffer, textureCoords).rgb;
 
@@ -156,10 +176,26 @@ void main(){
 		return;
 	}
 
-	vec3 toneMapped = tonemap_aces(color);
+	vec3 toneMapped = color;
+
+	switch(tonemapping){
+		case 0: toneMapped = linearToneMapping(color); break;
+		case 1: toneMapped = simpleReinhardToneMapping(color); break;
+		case 2: toneMapped = lumaBasedReinhardToneMapping(color); break;
+		case 3: toneMapped = whitePreservingLumaBasedReinhardToneMapping(color); break;
+		case 4: toneMapped = RomBinDaHouseToneMapping(color); break;
+		case 5: toneMapped = filmicToneMapping(color); break;
+		case 6: toneMapped = Uncharted2ToneMapping(color); break;
+		case 7: toneMapped = GTAToneMapping(color); break;
+		case 8: toneMapped = tonemap_aces(color); break;
+		case 9: toneMapped = toonTonemap(color); break;
+		case 10: toneMapped = ACESFitted(color); break;
+	}
+	//vec3 toneMapped = tonemap_aces(color);
 
 	//toneMapped = toonTonemap(toneMapped);
 	out_color = vec4(vignette(toneMapped, vec3(0), 0.3, 0.8), 1);
+
 
 	//out_color = (out_color * (1.0 + (out_color / (0.5f/*change this*/)))) / (1.0 + out_color);
 }
