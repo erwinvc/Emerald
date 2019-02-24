@@ -7,32 +7,11 @@ private:
     uint m_width, m_height;
     bool m_vSync;
 
-    function<void(Event&)> EventCallback;
-
 public:
-    Window(String title, int width, int height, std::function<void(Event&)> eventCallback) : m_title(title), m_width(width), m_height(height), m_vSync(false), EventCallback(eventCallback) {
+    Window(String title, int width, int height) : m_title(title), m_width(width), m_height(height), m_vSync(false) {
         m_window = glfwCreateWindow(m_width, m_height, m_title.c_str(), NULL, NULL);
+        GetGLCallbackManager()->Initialize(this);
         if (!m_window)glfwTerminate();
-        glfwSetWindowUserPointer(m_window, this);
-
-        glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
-            Window* windowptr = (Window*)glfwGetWindowUserPointer(window);
-            windowptr->SetWidth(width);
-            windowptr->SetHeight(height);
-
-            WindowResizeEvent event(width, height);
-            windowptr->EventCallback(event);
-        });
-
-        glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window) {
-            Window* windowptr = (Window*)glfwGetWindowUserPointer(window);
-            WindowCloseEvent event;
-            windowptr->EventCallback(event);
-        });
-
-        glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-            Window* windowptr = (Window*)glfwGetWindowUserPointer(window);
-        });
     }
 
     inline void SetWidth(uint width) { m_width = width; }
@@ -79,6 +58,6 @@ public:
 
     void SetTitle(const String& title) { glfwSetWindowTitle(m_window, title.c_str()); }
 
-    GLFWwindow* GetWindow() { return m_window; }
+    GLFWwindow* GetHandle() { return m_window; }
 
 };

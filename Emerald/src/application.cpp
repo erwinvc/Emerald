@@ -26,7 +26,7 @@ Application::Application() : m_running(true) {
     glfwWindowHint(GLFW_SAMPLES, 8);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
-    m_window = new Window("Test", 1920, 1080, [this](Event& e) { OnEvent(e); });
+    m_window = new Window("Test", 1920, 1080);
 
     m_window->MakeContextCurrent();
     m_window->Show();
@@ -39,21 +39,19 @@ Application::Application() : m_running(true) {
 
     GetTextureManager()->Initialize();
     GetMaterialManager()->Initialize();
+    GetGLCallbackManager()->AddOnResizeCallback(this, &Application::OnResize);
+    GetGLCallbackManager()->AddOnCloseCallback(this, &Application::OnWindowClose);
 }
 
-void Application::OnEvent(Event& e) {
-    e.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(); });
-    e.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
-        glViewport(0, 0, e.GetWidth(), e.GetHeight());
-        if (deferred)deferred->Resize(e.GetWidth(), e.GetHeight());
-        if (pipeline)pipeline->Resize(e.GetWidth(), e.GetHeight());
-        return true;
-    });
+
+void Application::OnResize(int width, int height) {
+    glViewport(0, 0, width, height);
+    if (deferred)deferred->Resize(width, height);
+    if (pipeline)pipeline->Resize(width, height);
 }
 
-bool Application::OnWindowClose() {
+void Application::OnWindowClose() {
     m_running = false;
-    return true;
 }
 
 float scale = 1;

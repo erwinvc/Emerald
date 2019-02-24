@@ -26,6 +26,10 @@ private:
         Button() : m_glIsUpNow(true), m_isUpNow(true), m_wasUp(true), m_justDown(false), m_justUp(false) {}
     } m_buttonStates[5];
 
+    void OnMouseButton(int button, int action, int mods);
+    void OnMousePos(double xpos, double ypos);
+    void OnScroll(double xoffset, double yoffset);
+
 public:
     int m_lastButton;
 
@@ -59,7 +63,6 @@ public:
         return Math::Within(m_usePosition.x, x - width / 2, x + width / 2) && Math::Within(m_usePosition.y, y - height / 2, y + height / 2);
     }
 
-    void HandleButton(int button, int action, int mods);
 };
 
 Mouse* GetMouse();

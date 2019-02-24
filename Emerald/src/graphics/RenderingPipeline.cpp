@@ -189,6 +189,7 @@ void RenderingPipeline::Render() {
 	m_quad->Draw();
 
 	String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted" };
+    ImGui::ShowTestWindow();
 
 	//uishader->RenderTexture(m_hdrBuffer->GetTexture()->GetHandle(), Vector2(0, 0), 0, Vector2(0, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), false, false);
 	//uishader->RenderTexture(m_gBuffer->m_colorTexture->GetHandle(), Vector2(0, 0), 0, Vector2(0.25f, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), false, false);

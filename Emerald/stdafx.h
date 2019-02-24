@@ -45,6 +45,7 @@ using namespace std;
 #include "math/matrix4.h"
 #include "math/mathFunctions.h"
 
+#include "util/singleton.h"
 #include "util/types.h"
 #include "util/thread/threadManager.h"
 #include "util/logger.h"
@@ -54,8 +55,7 @@ using namespace std;
 #include "util/utils.h"
 #include "util/glError.h"
 
-#include "events/event.h"
-#include "events/applicationEvent.h"
+#include "glCallbackManager.h"
 
 #include "graphics/buffers/bufferLayout.h"
 #include "graphics/buffers/buffer.h"
@@ -87,7 +87,7 @@ using namespace std;
 #include "graphics/model.h"
 #include "entity/entity.h"
 
-#include "util/MeshGenerator.h"
+#include "util/meshGenerator.h"
 
 #include "assets/materialManager.h"
 #include "assets/textureManager.h"

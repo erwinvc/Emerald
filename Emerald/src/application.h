@@ -17,11 +17,10 @@ public:
 
     Window* GetWindow() { return m_window; }
 
-    void OnEvent(Event& e);
     void Run();
     void Cleanup();
-    bool OnWindowClose();
-
+    void  OnWindowClose();
+    void OnResize(int width, int height);
     void Update(const TimeStep& time);
     void FixedUpdate();
     void Render();

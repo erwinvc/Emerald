@@ -3,22 +3,27 @@
 #include <chrono>
 
 typedef std::chrono::high_resolution_clock HighResolutionClock;
-typedef std::chrono::duration<float, std::milli> milliseconds_type;
+typedef std::chrono::duration<float, std::nano> ChronoNano;
+typedef std::chrono::duration<float, std::micro> ChronoMicro;
+typedef std::chrono::duration<float, std::milli> ChronoMilli;
+typedef std::chrono::duration<float, std::deca> ChronoSeconds;
 
-class Timer
-{
+class Timer {
 private:
     std::chrono::time_point<HighResolutionClock> m_start;
 public:
+    enum TimeFormat { NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS };
 
-    Timer() : m_start(HighResolutionClock::now()) { }
+    Timer() : m_start(HighResolutionClock::now()) {}
 
-    float GetNano() {
-        return std::chrono::duration_cast<milliseconds_type>(HighResolutionClock::now() - m_start).count() / 1000.0f;
-    }
-
-    float Get() {
-        return std::chrono::duration_cast<milliseconds_type>(HighResolutionClock::now() - m_start).count();
+    float Get(TimeFormat fmt = MILLISECONDS) {
+        switch (fmt) {
+        case NANOSECONDS: return std::chrono::duration_cast<ChronoNano>(HighResolutionClock::now() - m_start).count();
+        case MICROSECONDS: return std::chrono::duration_cast<ChronoMicro>(HighResolutionClock::now() - m_start).count();
+        case MILLISECONDS: return std::chrono::duration_cast<ChronoMilli>(HighResolutionClock::now() - m_start).count();
+        case SECONDS: return std::chrono::duration_cast<ChronoSeconds>(HighResolutionClock::now() - m_start).count();
+        }
+        return -1;
     }
 };
 

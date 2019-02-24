@@ -8,7 +8,7 @@
 #define RETURN 257
 
 class Keyboard {
-public:
+private:
     int m_lastKey;
     const int m_NOWPERIOD = 100;
     const int m_MAXDOWN = 600000; // ms
@@ -23,6 +23,8 @@ public:
     } m_keyStates[KEYSIZE];
 
     Window* m_window;
+
+    void OnKey(int key, int scancode, int action, int mods);
 
 public:
     void Initialize(Window* window);
