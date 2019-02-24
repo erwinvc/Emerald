@@ -184,7 +184,7 @@ void RenderingPipeline::Render() {
 	case 0: m_hdrBuffer->GetTexture()->Bind(); break;
 	case 1: m_gBuffer->m_colorTexture->Bind(); break;
 	case 2: m_gBuffer->m_normalTexture->Bind(); break;
-	case 3: m_gBuffer->GetFBO()->GetDepthTexture()->Bind(); break;
+	case 3: m_gBuffer->m_positionTexture->Bind(); break;
 	}
 	m_quad->Draw();
 
@@ -213,7 +213,7 @@ void RenderingPipeline::Render() {
 			if (ImGui::ImageButton((void*)m_gBuffer->m_colorTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2))selectedTexture = 1;
 			if (ImGui::ImageButton((void*)m_gBuffer->m_normalTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2))selectedTexture = 2;
 			ImGui::SameLine();
-			if (ImGui::ImageButton((void*)m_gBuffer->GetFBO()->GetDepthTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2))selectedTexture = 3;
+			if (ImGui::ImageButton((void*)m_gBuffer->m_positionTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2))selectedTexture = 3;
 			ImGui::TreePop();
 			ImGui::Separator();
 		}
