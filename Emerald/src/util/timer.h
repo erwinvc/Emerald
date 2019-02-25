@@ -1,7 +1,5 @@
 #pragma once
 
-#include <chrono>
-
 typedef std::chrono::high_resolution_clock HighResolutionClock;
 typedef std::chrono::duration<float, std::nano> ChronoNano;
 typedef std::chrono::duration<float, std::micro> ChronoMicro;
@@ -10,7 +8,7 @@ typedef std::chrono::duration<float, std::deca> ChronoSeconds;
 
 class Timer {
 private:
-    std::chrono::time_point<HighResolutionClock> m_start;
+    chrono::time_point<HighResolutionClock> m_start;
 public:
     enum TimeFormat { NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS };
 

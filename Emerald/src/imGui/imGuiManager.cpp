@@ -3,8 +3,19 @@
 ImGuiManager* ImGuiManager::g_instance = nullptr;
 
 void ImGuiManager::Initialize(Window* window) {
+    IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.IniFilename = NULL;
+    io.ConfigDockingWithShift = true;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     ImGui::StyleColorsDark();
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowRounding = 0.0f;
+    style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 
     ImGui_ImplGlfw_InitForOpenGL(window->GetHandle(), false);
     ImGui_ImplOpenGL3_Init("#version 410");
@@ -51,13 +62,6 @@ void ImGuiManager::Initialize(Window* window) {
 }
 
 void ImGuiManager::Begin() {
-    //ImGuiIO& io = ImGui::GetIO();
-    //io.DisplaySize = ImVec2(GetApplication()->GetWindow()->GetWidth(), GetApplication()->GetWindow()->GetHeight());
-
-    //float time = (float)glfwGetTime();
-    //io.DeltaTime = m_time > 0.0f ? (time - m_time) : (1.0f / 60.0f);
-    //m_time = time;
-
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -65,4 +69,9 @@ void ImGuiManager::Begin() {
 void ImGuiManager::End() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    GLFWwindow* backup = glfwGetCurrentContext();
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+    glfwMakeContextCurrent(backup);
 }
