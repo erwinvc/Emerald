@@ -9,6 +9,7 @@ private:
     Shader* m_pointLightShader;
     PointlightRenderer* m_pointlightRenderer;
     vector<Pointlight> m_pointlights;
+    TileRenderer* m_tileRenderer;
 
     //HDR
     bool m_applyPostProcessing;

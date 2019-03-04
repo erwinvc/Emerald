@@ -8,7 +8,6 @@ uniform sampler2D uNormalTex;
 uniform sampler2D uPositionTex;
 
 uniform vec3 uCameraPos;
-uniform vec3 directional;
 
 void main()
 {
@@ -16,7 +15,7 @@ void main()
   vec3 n = normalize(texture(uNormalTex, fsUv).xyz);
   vec3 pos = texture(uPositionTex, fsUv).xyz;
 
-  vec3 l = normalize(directional);
+  vec3 l = normalize(vec3(-0.7, 0.3, 0.1));
   vec3 v = normalize(uCameraPos - pos);
   vec3 h = normalize(l + v);
 
@@ -25,7 +24,7 @@ void main()
   0.7 * albedo.xyz * max(0.0, dot(n.xyz, l)) +
 // specular
   0.4 * pow(max(0.0, dot(h, n)), 32.0) +
-// ambient.
+// ambient
   0.2 * albedo.xyz;
 
   outColor = vec4(color, 1.0);

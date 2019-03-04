@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-Buffer::Buffer(GLfloat* data, GLuint count, GLuint componentCount, GLenum usage) : m_componentCount(componentCount), m_data(data){
+Buffer::Buffer(GLfloat* data, uint count, uint componentCount, GLenum usage) : m_componentCount(componentCount), m_data(data){
     GL(glGenBuffers(1, &m_bufferID));
     GL(glBindBuffer(GL_ARRAY_BUFFER, m_bufferID));
 

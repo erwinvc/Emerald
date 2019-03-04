@@ -1,14 +1,16 @@
 #pragma once
 class Buffer {
 private:
-    GLuint m_bufferID;
-    GLuint m_componentCount;
+    uint m_bufferID;
+    uint m_componentCount;
     GLfloat* m_data;
 public:
-    Buffer(GLfloat* data, GLuint count, GLuint componentCount, GLenum usage = GL_DYNAMIC_DRAW);
+    Buffer(GLfloat* data, uint count, uint componentCount, GLenum usage = GL_DYNAMIC_DRAW);
     ~Buffer();
 
-    inline GLuint GetComponentCount() { return m_componentCount; }
+    inline uint GetComponentCount() { return m_componentCount; }
+
+    inline uint GetID() { return m_bufferID; }
 
     inline void Bind() {
         GL(glBindBuffer(GL_ARRAY_BUFFER, m_bufferID));

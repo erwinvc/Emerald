@@ -11,10 +11,10 @@ class Shader {
 
     map<String, GLuint> m_uniforms;
 
-    GLuint LoadShader(String path, GLuint type) {
+    GLuint LoadShader(String path, GLuint type, bool disableLog) {
         GL(uint shader = glCreateShader(type));
         String source = Utils::ReadFile(path);
-        if (source.empty()) {
+        if (!disableLog && source.empty()) {
             LOG_ERROR("[~bShaders~x] Failed to load %s shader %s", m_name, GLUtils::ShaderTypeToString(type, false));
             return -1;
         }
@@ -25,25 +25,27 @@ class Shader {
         GLint result;
         GL(glGetShaderiv(shader, GL_COMPILE_STATUS, &result));
         if (result == GL_FALSE) {
-            GLint length;
-            GL(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length));
-            vector<char> error(length);
-            GL(glGetShaderInfoLog(shader, length, &length, &error[0]));
-            LOG_ERROR("%s", &error[0]);
-            LOG_ERROR("[~bShaders~x] Failed to compile %s shader %s", m_name, GLUtils::ShaderTypeToString(type, false));
+            if (!disableLog) {
+                GLint length;
+                GL(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length));
+                vector<char> error(length);
+                GL(glGetShaderInfoLog(shader, length, &length, &error[0]));
+                LOG_ERROR("%s", &error[0]);
+                LOG_ERROR("[~bShaders~x] Failed to compile %s shader %s", m_name, GLUtils::ShaderTypeToString(type, false));
+            }
             GL(glDeleteShader(shader));
             return -1;
         }
-        LOG("[~bShaders~x] Compiled ~1%s~x %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
+        if(!disableLog)LOG("[~bShaders~x] Compiled ~1%s~x %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
         return shader;
     }
 
-    GLuint Load() {
+    GLuint Load(bool reload = false) {
         GL(uint program = glCreateProgram());
-        uint vertex = LoadShader(m_vertex, GL_VERTEX_SHADER);
-        uint fragment = LoadShader(m_fragment, GL_FRAGMENT_SHADER);
+        uint vertex = LoadShader(m_vertex, GL_VERTEX_SHADER, reload);
+        uint fragment = LoadShader(m_fragment, GL_FRAGMENT_SHADER, reload);
         uint geometry = 0;
-        if (m_hasGeometry) geometry = LoadShader(m_geometry, GL_GEOMETRY_SHADER);
+        if (m_hasGeometry) geometry = LoadShader(m_geometry, GL_GEOMETRY_SHADER, reload);
 
 
         if (vertex == -1 || geometry == -1 || fragment == -1) {
@@ -89,7 +91,7 @@ public:
     void Set(const String_t location, const boolean value) { Set(location, value ? 1.0f : 0.0f); }
 
     void Reload() {
-        uint program = Load();
+        uint program = Load(true);
         if (program != -1) {
             GL(glDeleteProgram(m_shaderID));
             m_shaderID = program;

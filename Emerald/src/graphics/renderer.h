@@ -1,11 +1,5 @@
 #pragma once
 
-struct Vertex {
-	Vector3 m_position;
-	Matrix4 m_transform;
-	Color color;
-};
-
 class Renderer {
 private:
     bool m_started;

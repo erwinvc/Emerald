@@ -107,15 +107,9 @@ public:
         }
     }
 
-    void Draw2(Shader* shader) {
-        //for (auto& mesh : m_meshes) {
-        //    mesh->GetMaterial()->Bind(shader);
-        //    mesh->Draw();
-        //}
-        m_meshes[2]->GetMaterial()->Bind(shader);
-        m_meshes[2]->Draw();
-        m_meshes[0]->GetMaterial()->Bind(shader);
-        m_meshes[0]->Draw();
+    void Draw(Shader* shader, int index) {
+        m_meshes[index]->GetMaterial()->Bind(shader);
+        m_meshes[index]->Draw();
 
     }
 };

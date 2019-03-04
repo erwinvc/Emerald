@@ -41,6 +41,7 @@ using namespace std;
 #pragma warning (disable: 4267) /*size_t conversions*/
 
 #include "math/vector2.h"
+#include "math/vector2I.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/matrix4.h"
@@ -75,6 +76,7 @@ using namespace std;
 #include "graphics/shaders/UIShader.h"
 #include "graphics/renderer.h"
 
+
 #include "graphics/lighting/pointlight.h"
 #include "graphics/lighting/pointlightRenderer.h"
 
@@ -87,6 +89,11 @@ using namespace std;
 #include "graphics/mesh.h"
 #include "graphics/model.h"
 #include "entity/entity.h"
+
+#include "tile/tile.h"
+#include "graphics/instancedRenderer.h"
+#include "graphics/instancedRenderer2D.h"
+#include "graphics/tileRenderer.h"
 
 #include "util/meshGenerator.h"
 

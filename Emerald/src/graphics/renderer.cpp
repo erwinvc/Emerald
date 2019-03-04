@@ -1,6 +1,4 @@
 #include "stdafx.h"
-#include "renderer.h"
-
 
 Renderer::~Renderer() {
     delete m_vao;
@@ -27,7 +25,6 @@ Renderer::Renderer(int numvertices, int numindices, float* vertices, float* norm
     m_vao->AddBuffer(m_offsets, 4, true);
 
     m_ibo = new IndexBuffer(indices, numindices);
-
 }
 
 void Renderer::Begin() {

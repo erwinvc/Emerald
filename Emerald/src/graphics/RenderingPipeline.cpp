@@ -28,6 +28,25 @@ static void NewLight() {
     currentLight = &lights.back();
 }
 
+TileType GetRandomType() {
+    switch (Math::RandomInt(0, 5)) {
+    case 0: return FULL;
+    case 1: return INNER;
+    case 2: return OUTER;
+    case 3: return SLOPE;
+    case 4: return VALLEY;
+    }
+    return FULL;
+}
+
+struct t {
+    Tile tile;
+    Vector2 position;
+
+    t(Tile& t, Vector2& p) : tile(t), position(p) {}
+};
+vector<t> tiles;
+
 void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
     //Deferred
     //#Dirty get window size from config?
@@ -95,7 +114,18 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
             }
         }
     }
+
+    m_tileRenderer = new TileRenderer();
+
+
+
+    for (int x = 0; x < 10; x++) {
+        for (int y = 0; y < 10; y++) {
+            tiles.emplace_back(Tile(GetRandomType()), Vector2(x, y));
+        }
+    }
 }
+
 
 
 void RenderingPipeline::Render() {
@@ -129,16 +159,27 @@ void RenderingPipeline::Render() {
     GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
     GL(glEnable(GL_CULL_FACE));
     GL(glFrontFace(GL_CCW));
-
     //Draw to gBuffer
     m_gBuffer->Bind();
     m_gBuffer->Clear();
-
     //f
     m_geometryShader->Bind();
     m_geometryShader->Set("viewMatrix", m_camera->GetViewMatrix());
+    m_geometryShader->Set("uDiffTex", 0);
+    m_geometryShader->Set("uBumpTex", 1);
 
     model.Draw(m_geometryShader);
+
+    m_tileRenderer->Begin(m_camera, m_projectionMatrix);
+    m_gBuffer->BindTextures();
+
+
+    for (auto a : tiles) {
+        m_tileRenderer->Submit(a.tile, a.position);
+    }
+    //m_tileRenderer->Submit(Tile(), Vector2I(0, 0));
+
+    m_tileRenderer->Draw();
     //RenderGeometry();
 
     m_gBuffer->Unbind();
@@ -147,10 +188,16 @@ void RenderingPipeline::Render() {
     m_hdrBuffer->Bind();
     m_hdrBuffer->Clear();
 
+    //m_directionalLightShader->Reload();
     //Draw directional light
     m_directionalLightShader->Bind();
+    m_directionalLightShader->Set("uColorTex", 0);
+    m_directionalLightShader->Set("uNormalTex", 1);
+    m_directionalLightShader->Set("uPositionTex", 2);
     m_gBuffer->BindTextures();
+
     m_directionalLightShader->Set("uCameraPos", m_camera->m_position);
+    m_directionalLightShader->Set("direcional", m_directionalLight);
     GL(glDrawArrays(GL_TRIANGLES, 0, 3));
 
     GL(glDisable(GL_DEPTH_TEST));
@@ -161,6 +208,9 @@ void RenderingPipeline::Render() {
     //Draw pointlights
     m_pointLightShader->Bind();
     m_gBuffer->BindTextures();
+    m_pointLightShader->Set("uColorTex", 0);
+    m_pointLightShader->Set("uNormalTex", 1);
+    m_pointLightShader->Set("uPositionTex", 2);
     m_pointLightShader->Set("viewMatrix", m_camera->GetViewMatrix());
     m_pointLightShader->Set("uCameraPos", m_camera->m_position);
     m_pointlightRenderer->Draw(m_pointlights);
@@ -179,6 +229,7 @@ void RenderingPipeline::Render() {
     m_hdrShader->Set("applyPostProcessing", m_applyPostProcessing);
     m_hdrShader->Set("gamma", gamma);
     m_hdrShader->Set("tonemapping", selectedTonemapping);
+
     switch (selectedTexture) {
     case 0: m_hdrBuffer->GetTexture()->Bind(); break;
     case 1: m_gBuffer->m_colorTexture->Bind(); break;
@@ -211,45 +262,53 @@ void RenderingPipeline::Render() {
     //// When using ImGuiDockNodeFlags_PassthruDockspace, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
    ////if (opt_flags & ImGuiDockNodeFlags_PassthruDockspace)
 
-    static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_PassthruDockspace;
-
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-    ImGui::SetNextWindowViewport(viewport->ID);
-    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-    if (ImGui::Begin("Emerald", &open, window_flags)) {
-
-
-        ImGuiID dockspace_id = ImGui::GetID("Emerald");
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
-        ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(dockspace_id);
-
-        LOG("%d", node->ID);
-        ImGui::DockBuilderDockWindow("Emerald", node->ID);
-
-        if (ImGui::BeginMenuBar()) {
-            if (ImGui::BeginMenu("Scene")) {
-                if (ImGui::MenuItem("Flag: NoSplit", "", (opt_flags & ImGuiDockNodeFlags_NoSplit) != 0))                 opt_flags ^= ImGuiDockNodeFlags_NoSplit;
-                if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (opt_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0))  opt_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode;
-                if (ImGui::MenuItem("Flag: NoResize", "", (opt_flags & ImGuiDockNodeFlags_NoResize) != 0))                opt_flags ^= ImGuiDockNodeFlags_NoResize;
-                if (ImGui::MenuItem("Flag: PassthruDockspace", "", (opt_flags & ImGuiDockNodeFlags_PassthruDockspace) != 0))       opt_flags ^= ImGuiDockNodeFlags_PassthruDockspace;
-                if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (opt_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0))          opt_flags ^= ImGuiDockNodeFlags_AutoHideTabBar;
-                ImGui::Separator();
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMenuBar();
-        }
-
-        ImGui::End();
-    }
+    //ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
+    //opt_flags |= ImGuiDockNodeFlags_PassthruDockspace;
+    //ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+    //ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
+    //
+    //ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar;
+    //ImGuiViewport* viewport = ImGui::GetMainViewport();
+    //ImGui::SetNextWindowPos(viewport->Pos);
+    //ImGui::SetNextWindowSize(viewport->Size);
+    //ImGui::SetNextWindowViewport(viewport->ID);
+    //window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    //window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    //
+    //if (ImGui::Begin("DockWindow", &open, window_flags)) {
+    //
+    //   // 
+    //   // static bool done = false;
+    //   // if (!done) {
+    //   //     
+    //   //     ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(dockspace_id);
+    //   //     ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.40f, NULL, &dockspace_id);
+    //   //     done = true;
+    //   // }
+    //    //node->
+    //    //LOG("%d", node->ID);
+    //    //ImGui::DockBuilderDockWindow("Emerald", node->ID);
+    //
+    //    if (ImGui::BeginMenuBar()) {
+    //        if (ImGui::BeginMenu("Scene")) {
+    //            if (ImGui::MenuItem("Flag: NoSplit", "", (opt_flags & ImGuiDockNodeFlags_NoSplit) != 0))                 opt_flags ^= ImGuiDockNodeFlags_NoSplit;
+    //            if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (opt_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0))  opt_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode;
+    //            if (ImGui::MenuItem("Flag: NoResize", "", (opt_flags & ImGuiDockNodeFlags_NoResize) != 0))                opt_flags ^= ImGuiDockNodeFlags_NoResize;
+    //            if (ImGui::MenuItem("Flag: PassthruDockspace", "", (opt_flags & ImGuiDockNodeFlags_PassthruDockspace) != 0))       opt_flags ^= ImGuiDockNodeFlags_PassthruDockspace;
+    //            if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (opt_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0))          opt_flags ^= ImGuiDockNodeFlags_AutoHideTabBar;
+    //            ImGui::Separator();
+    //            ImGui::EndMenu();
+    //        }
+    //
+    //        ImGui::EndMenuBar();
+    //    }
+    //
+    //    ImGui::End();
+    //}
 
     static bool op3en;
-    if (ImGui::Begin("Emerald", &op3en, ImVec2(576, 680), -1)) {
+    if (ImGui::Begin("Emerald###Window", &op3en, ImVec2(576, 680), -1)) {
+        ImGui::DragFloat3("Directional", (float*)&m_directionalLight, 0.01f);
         if (ImGui::CollapsingHeader("HDR")) {
             if (ImGui::TreeNode("Tonemapping")) {
                 ImGui::SliderFloat("Gamma", &gamma, 0, 5);
@@ -274,6 +333,56 @@ void RenderingPipeline::Render() {
         ImGui::End();
         //auto a = ImGui::GetCurrentWindow();
     }
+
+    //static bool p_open = true;
+    //static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
+    //
+    //// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+    //// because it would be confusing to have two docking targets within each others.
+    //ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+    //ImGuiViewport* viewport = ImGui::GetMainViewport();
+    //ImGui::SetNextWindowPos(viewport->Pos);
+    //ImGui::SetNextWindowSize(viewport->Size);
+    //ImGui::SetNextWindowViewport(viewport->ID);
+    //window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    //window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    //
+    //// When using ImGuiDockNodeFlags_PassthruDockspace, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
+    //if (opt_flags & ImGuiDockNodeFlags_PassthruDockspace)
+    //    window_flags |= ImGuiWindowFlags_NoBackground;
+    //
+    //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    //ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+    //ImGui::PopStyleVar();
+    //
+    //// Dockspace
+    //ImGuiIO& io = ImGui::GetIO();
+    //if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+    //    ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+    //    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
+    //}
+    //
+    //if (ImGui::BeginMenuBar()) {
+    //    if (ImGui::BeginMenu("Docking")) {
+    //        // Disabling fullscreen would allow the window to be moved to the front of other windows, 
+    //        // which we can't undo at the moment without finer window depth/z control.
+    //        //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
+    //
+    //        if (ImGui::MenuItem("Flag: NoSplit", "", (opt_flags & ImGuiDockNodeFlags_NoSplit) != 0))                 opt_flags ^= ImGuiDockNodeFlags_NoSplit;
+    //        if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (opt_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0))  opt_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode;
+    //        if (ImGui::MenuItem("Flag: NoResize", "", (opt_flags & ImGuiDockNodeFlags_NoResize) != 0))                opt_flags ^= ImGuiDockNodeFlags_NoResize;
+    //        if (ImGui::MenuItem("Flag: PassthruDockspace", "", (opt_flags & ImGuiDockNodeFlags_PassthruDockspace) != 0))       opt_flags ^= ImGuiDockNodeFlags_PassthruDockspace;
+    //        if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (opt_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0))          opt_flags ^= ImGuiDockNodeFlags_AutoHideTabBar;
+    //        ImGui::Separator();
+    //        if (ImGui::MenuItem("Close DockSpace", NULL, false, p_open != NULL))
+    //            p_open = false;
+    //        ImGui::EndMenu();
+    //    }
+    //
+    //    ImGui::EndMenuBar();
+    //}
+    //
+    //ImGui::End();
 
 }
 
