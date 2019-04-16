@@ -7,12 +7,17 @@ private:
     Shader* m_geometryShader;
     Shader* m_directionalLightShader;
     Shader* m_pointLightShader;
+    DirectionalLight m_directionalLight;
     PointlightRenderer* m_pointlightRenderer;
     vector<Pointlight> m_pointlights;
     TileRenderer* m_tileRenderer;
 
+    Shader* m_ssaoShader;
+    FrameBuffer* m_ssaoFBO;
+	Texture* m_noiseTexture;
+
     //HDR
-    bool m_applyPostProcessing;
+    bool m_applyPostProcessing = true;
     FrameBuffer* m_hdrBuffer;
     Shader* m_hdrShader;
     Mesh* m_quad;
@@ -23,14 +28,13 @@ private:
     Camera* m_camera;
     Matrix4 m_projectionMatrix;
 
-    Vector3 m_directionalLight;
-
     void Initialize(int maxLights, int lightQuality);
 
 public:
-    RenderingPipeline(Camera* camera, int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 20) : m_applyPostProcessing(true), m_camera(camera), m_directionalLight(Vector3(-0.7, 0.3, 0.1)) { Initialize(maxLights, lightQuality); }
+    RenderingPipeline(Camera* camera, int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 20) : m_camera(camera) { Initialize(maxLights, lightQuality); }
     ~RenderingPipeline() {}
 
+    void Update(const TimeStep& time);
     void Render();
     void RenderGeometry();
     void Resize(uint width, uint height);

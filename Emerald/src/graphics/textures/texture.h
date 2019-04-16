@@ -9,6 +9,7 @@ private:
 
     void Load(Byte* data);
 public:
+    Texture(uint width, uint height, Byte* data, TextureParameters params = TextureParameters());
     Texture(uint width, uint height, TextureParameters params = TextureParameters());
     Texture(const String& path, TextureParameters params = TextureParameters());
     Texture(uint textureID, uint width, uint height, TextureParameters params = TextureParameters()) : m_params(params), m_textureID(textureID), m_width(width), m_height(height) {};
@@ -22,4 +23,3 @@ public:
     inline const uint GetWidth() const { return m_width; }
     inline const uint GetHeight() const { return m_height; }
 };
-

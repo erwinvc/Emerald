@@ -2,6 +2,18 @@
 
 class Color {
 public:
+    static Color White() { return Color(1, 1, 1); }
+    static Color Black() { return Color(0, 0, 0); }
+    static Color Gray() { return Color(0.5f, 0.5f, 0.5f); }
+    static Color Silver() { return Color(0.75f, 0.75f, 0.75f); }
+
+    static Color Red() { return Color(1, 0, 0); }
+    static Color Green() { return Color(0, 1, 0); }
+    static Color Blue() { return Color(0, 0, 1); }
+
+    static Color Yellow() { return Color(1, 1, 0); }
+    static Color Magenta() { return Color(1, 0, 1); }
+    static Color Cyan() { return Color(0, 1, 1); }
     float R;
     float G;
     float B;
@@ -31,11 +43,23 @@ public:
         return col;
     }
 
-    static Color& Random() {
-        return Color(Math::RandomFloat(0, 1), Math::RandomFloat(0, 1), Math::RandomFloat(0, 1), 1);
+    static Color& Random(float min = 0) {
+        float rr = Math::RandomFloat(0, 1);
+        float gg = Math::RandomFloat(0, 1);
+        float bb = Math::RandomFloat(0, 1);
+        if (rr + gg + bb < min) return Random(min);
+        return Color(rr, gg, bb);
     }
 
     static Color& RandomPrimary() {
-        return Color(Math::RandomInt(0, 1), Math::RandomInt(0, 1), Math::RandomInt(0, 1), 1);
+        switch (Math::RandomInt(0, 5)) {
+        case 0: return Red();
+        case 1: return Green();
+        case 2: return Blue();
+        case 3: return Yellow();
+        case 4: return Magenta();
+        case 5: return Cyan();
+        }
+        return White();
     }
 };

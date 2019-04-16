@@ -333,6 +333,8 @@ void Application::FixedUpdate() {
 void Application::Update(const TimeStep& time) {
     GetMouse()->Update();
     camera.Update(time);
+    pipeline->Update(time);
+
     sinus += 0.001f * time.GetMills();
     sinus2 += 0.003f * time.GetMills();
     //deferred->Update();

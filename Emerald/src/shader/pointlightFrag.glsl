@@ -1,8 +1,9 @@
 #version 400 core
 
-uniform sampler2D uColorTex;
-uniform sampler2D uNormalTex;
-uniform sampler2D uPositionTex;
+uniform sampler2D _GMisc;
+uniform sampler2D _GAlbedo;
+uniform sampler2D _GNormal;
+uniform sampler2D _GPosition;
 
 in vec4 fsPos;
 in vec4 newPos;
@@ -10,26 +11,30 @@ in vec4 color;
 
 out vec4 outColor;
 
-
 //uniform float uLightRadius;
 //uniform vec3 uLightPosition;
 //uniform vec3 uLightColor;
 
 uniform vec3 uCameraPos;
+uniform float reflectivity;
+uniform float shineDamper;
 
+uniform float _Diffuse;
+uniform float _Specular;
 
 void main() {
 float uLightRadius = newPos.w;
 vec3 uLightPosition = newPos.xyz;
 vec3 uLightColor = color.rgb;
+
 // get screen-space position of light sphere
 // (remember to do perspective division.)
   vec2 uv = (fsPos.xy / fsPos.w) * 0.5 + 0.5;
 
 // now we can sample from the gbuffer for every fragment the light sphere covers.
-  vec3 albedo = texture(uColorTex, uv).xyz;
-  vec3 n = normalize(texture(uNormalTex, uv).xyz);
-  vec3 pos = texture(uPositionTex, uv).xyz;
+  vec3 albedo = texture(_GAlbedo, uv).xyz;
+  vec3 n = normalize(texture(_GNormal, uv).xyz);
+  vec3 pos = texture(_GPosition, uv).xyz;
 
   vec3 lightToPosVector = pos.xyz - uLightPosition;
   float lightDist = length(lightToPosVector);  // position from light.
@@ -46,9 +51,9 @@ vec3 uLightColor = color.rgb;
 
   vec3 color =
 // diffuse
-  uLightColor * albedo.xyz * max(0.0, dot(n.xyz, l)) +
+  _Diffuse * uLightColor * albedo.xyz * max(0.0, dot(n.xyz, l)) +
 // specular
-  uLightColor * 0.2 * pow(max(0.0, dot(h, n)), 12.0); 
+ _Specular * uLightColor * reflectivity * pow(max(0.0, dot(h, n)), shineDamper); 
 
 // finally ztest and attenuation.
   color *= ztest * attenuation;

@@ -1,31 +1,37 @@
 #version 330
-in vec2 fsUv;
+in vec2 FSUV;
 
-out vec4 outColor;
+out vec4 OutColor;
 
-uniform sampler2D uColorTex;
-uniform sampler2D uNormalTex;
-uniform sampler2D uPositionTex;
+uniform sampler2D _GMisc;
+uniform sampler2D _GAlbedo;
+uniform sampler2D _GNormal;
+uniform sampler2D _GPosition;
+uniform sampler2D _SSAO;
 
-uniform vec3 uCameraPos;
+uniform vec4 _Color;
+uniform vec3 _Directional;
+uniform vec3 _CameraPosition;
+uniform float _Diffuse;
+uniform float _Specular;
+uniform float _Ambient;
 
 void main()
 {
-  vec3 albedo = texture(uColorTex, fsUv).xyz;
-  vec3 n = normalize(texture(uNormalTex, fsUv).xyz);
-  vec3 pos = texture(uPositionTex, fsUv).xyz;
+	vec3 misc = texture(_GMisc, FSUV).xyz;
+	vec3 albedo = texture(_GAlbedo, FSUV).xyz;
+	vec3 normal = normalize(texture(_GNormal, FSUV).xyz);
+	vec3 position = texture(_GPosition, FSUV).xyz;
+	float ssao = texture(_SSAO, FSUV).x;
 
-  vec3 l = normalize(vec3(-0.7, 0.3, 0.1));
-  vec3 v = normalize(uCameraPos - pos);
-  vec3 h = normalize(l + v);
+	vec3 l = normalize(_Directional);
+	vec3 v = normalize(_CameraPosition - position);
+	vec3 h = normalize(l + v);
 
-  vec3 color =
-// diffuse
-  0.7 * albedo.xyz * max(0.0, dot(n.xyz, l)) +
-// specular
-  0.4 * pow(max(0.0, dot(h, n)), 32.0) +
-// ambient
-  0.2 * albedo.xyz;
+	vec3 color = 
+	_Diffuse * albedo.xyz * max(0.0, dot(normal.xyz, l)) +
+	_Specular * pow(max(0.0, dot(h, normal)), 32.0) +
+	_Ambient * ssao * albedo.xyz;
 
-  outColor = vec4(color, 1.0);
+	OutColor = vec4(color * _Color.rgb, 1.0);
 }

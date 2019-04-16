@@ -3,30 +3,38 @@ in vec3 fsPos;
 in vec3 fsNormal;
 in vec2 fsUv;
 in mat3 tbnMatrix;
+in vec3 fstangent;
 
-uniform sampler2D uDiffTex;
-uniform sampler2D uBumpTex;
-uniform int hasBump;
+uniform sampler2D _Albedo;
+uniform sampler2D _Normal;
+uniform float _NormalStrength;
+uniform sampler2D _Specular;
+uniform float _SpecularStrength;
+uniform sampler2D _Emission;
+uniform float _EmissionStrength;
 
-out vec4 geoData[3];
+out vec4 geoData[4];
 
 void main(){
-	vec4 diff = texture(uDiffTex, vec2(1, -1) * fsUv).rgba;
+	vec4 diff = texture(_Albedo, vec2(1, -1) * fsUv).rgba;
 	if (diff.a < 0.2) {
 		discard;
 	}
 
+	
+    vec3 BumpMapNormal = texture(_Normal, vec2(1, -1) * fsUv).xyz;
+    BumpMapNormal = 2.0 * BumpMapNormal - vec3(1.0, 1.0, 1.0);
+    vec3 NewNormal;
 
-	vec3 normal;
-	if(hasBump == 1){
-		normal = normalize(texture(uBumpTex, vec2(1, -1) * fsUv).rgb);
-		normal = normalize((2*normal)-1);
-		normal = normalize(tbnMatrix * normal);
-	} else {
-		normal = fsNormal;
-	}
+    NewNormal = tbnMatrix * BumpMapNormal;
+    NewNormal = normalize(NewNormal);
 
-	geoData[0] = vec4(diff.rgb, 1);
-	geoData[1] = vec4(normal, 1);
-	geoData[2] = vec4(fsPos, 1);
+	vec3 normal = mix(fsNormal, NewNormal, _NormalStrength);
+
+	vec3 specular = texture(_Specular, vec2(1, -1) * fsUv).rgb * _SpecularStrength;
+
+	geoData[0] = vec4(specular.r, 1, 1, 1);
+	geoData[1] = vec4(diff.rgb, 1);
+	geoData[2] = vec4(normal, 1);
+	geoData[3] = vec4(fsPos, 1);
 }

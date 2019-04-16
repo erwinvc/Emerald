@@ -7,6 +7,7 @@ private:
 
     void Initialize();
 public:
+    Material* material;
     TileRenderer() { Initialize(); }
     void Begin(Camera* cam, Matrix4& proj);
     void Submit(Tile& tile, Vector2& position);

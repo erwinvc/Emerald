@@ -76,7 +76,7 @@ using namespace std;
 #include "graphics/shaders/UIShader.h"
 #include "graphics/renderer.h"
 
-
+#include "graphics/lighting/directionalLight.h"
 #include "graphics/lighting/pointlight.h"
 #include "graphics/lighting/pointlightRenderer.h"
 

@@ -8,12 +8,15 @@ private:
     void Initialize();
 
 public:
+    Texture* m_miscTexture;
     Texture* m_colorTexture;
     Texture* m_normalTexture;
     Texture* m_positionTexture;
+
     GBuffer(uint width, uint height) : m_width(width), m_height(height) { Initialize(); }
     GBuffer::~GBuffer() {
         delete m_fbo;
+        delete m_miscTexture;
         delete m_colorTexture;
         delete m_normalTexture;
         delete m_positionTexture;

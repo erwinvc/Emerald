@@ -36,7 +36,7 @@ class Shader {
             GL(glDeleteShader(shader));
             return -1;
         }
-        if(!disableLog)LOG("[~bShaders~x] Compiled ~1%s~x %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
+        if (!disableLog)LOG("[~bShaders~x] Compiled ~1%s~x %s", m_name, (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
         return shader;
     }
 
@@ -66,6 +66,15 @@ class Shader {
 
         return program;
     }
+
+    uint GetUniform(const String_t location) {
+        auto it = m_uniforms.find(location);
+        if (it == m_uniforms.end()) {
+            LOG("Uniform %s in shader %s not found", location, m_name);
+            return -1;
+        }
+        return it->second;
+    }
 public:
     Shader() {}
     Shader(String name, String vertex, String geometry, String fragment) : m_shaderID(0), m_hasGeometry(true), m_name(name), m_vertex(vertex), m_geometry(geometry), m_fragment(fragment) {
@@ -79,15 +88,15 @@ public:
     }
     virtual ~Shader() { GL(glDeleteProgram(m_shaderID)); }
 
-    void Set(const String_t location, const int value) { glUniform1i(m_uniforms[location], value); }
-    void Set(const String_t location, const float value) { glUniform1f(m_uniforms[location], value); }
-    void Set(const String_t location, const float x, const float y) { glUniform2f(m_uniforms[location], x, y); }
-    void Set(const String_t location, const Color& color) { glUniform4f(m_uniforms[location], color.R, color.G, color.B, color.A); }
-    void Set(const String_t location, float x, float y, float z) { glUniform3f(m_uniforms[location], x, y, z); }
-    void Set(const String_t location, const Matrix4& matrix) { glUniformMatrix4fv(m_uniforms[location], 1, GL_TRUE, matrix.elements); }
-    void Set(const String_t location, const Vector4& vector) { glUniform4f(m_uniforms[location], vector.x, vector.y, vector.z, vector.w); }
-    void Set(const String_t location, const Vector3& vector) { glUniform3f(m_uniforms[location], vector.x, vector.y, vector.z); }
-    void Set(const String_t location, const Vector2& vector) { glUniform2f(m_uniforms[location], vector.x, vector.y); }
+    void Set(const String_t location, const int value) { glUniform1i(GetUniform(location), value); }
+    void Set(const String_t location, const float value) { glUniform1f(GetUniform(location), value); }
+    void Set(const String_t location, const float x, const float y) { glUniform2f(GetUniform(location), x, y); }
+    void Set(const String_t location, const Color& color) { glUniform4f(GetUniform(location), color.R, color.G, color.B, color.A); }
+    void Set(const String_t location, float x, float y, float z) { glUniform3f(GetUniform(location), x, y, z); }
+    void Set(const String_t location, const Matrix4& matrix) { glUniformMatrix4fv(GetUniform(location), 1, GL_TRUE, matrix.elements); }
+    void Set(const String_t location, const Vector4& vector) { glUniform4f(GetUniform(location), vector.x, vector.y, vector.z, vector.w); }
+    void Set(const String_t location, const Vector3& vector) { glUniform3f(GetUniform(location), vector.x, vector.y, vector.z); }
+    void Set(const String_t location, const Vector2& vector) { glUniform2f(GetUniform(location), vector.x, vector.y); }
     void Set(const String_t location, const boolean value) { Set(location, value ? 1.0f : 0.0f); }
 
     void Reload() {
@@ -111,6 +120,7 @@ protected:
         GL(int uniformLocation = glGetUniformLocation(m_shaderID, uniform));
         if (uniformLocation == 0xffffffff) LOG("[~bShaders~x] Failed to find uniform~1 %s~x in the ~1%s ~xshader", uniform, m_name);
         m_uniforms.emplace(uniform, uniformLocation);
+        LOG("%s in %s = %d", uniform, m_name, uniformLocation);
     }
     void RegisterUniforms() {
         if (m_shaderID == -1) return;

@@ -4,6 +4,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../stb_image.h"
 
+Texture::Texture(uint width, uint height, Byte* data, TextureParameters params) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path("") {
+    Load(data);
+}
+
 Texture::Texture(uint width, uint height, TextureParameters params) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path("") {
     Load(NULL);
 }
