@@ -1,22 +1,35 @@
 #include "stdafx.h"
 
+bool FrameBuffer::CheckStatus() {
+	GL(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		LOG_ERROR("[~cBuffers~x] ~rFramebuffer %s failed: %s", m_name.c_str(), GLUtils::GetFBOStatus(status).c_str());
+		return false;
+	} else return true;
+}
 void FrameBuffer::Initialize() {
-    GL(glGenFramebuffers(1, &m_fbo));
-    GL(glGenRenderbuffers(1, &m_dbo));
+	GL(glGenFramebuffers(1, &m_fbo));
+	GL(glGenRenderbuffers(1, &m_dbo));
 
-    m_texture = new Texture(m_width, m_height, TextureParameters(RGBA16, LINEAR, REPEAT, T_FLOAT));
+	GL(glBindRenderbuffer(GL_RENDERBUFFER, m_dbo));
+	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, m_width, m_height));
+	GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
-    GL(glBindRenderbuffer(GL_RENDERBUFFER, m_dbo));
-    if (m_multisampled) {
-        GL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT32, m_width, m_height));
-    } else {
-        GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, m_width, m_height));
-    }
-    GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
+	GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_dbo));
 
-    GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
-    GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->GetHandle(), 0));
-    GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_dbo));
+	if (CheckStatus()) LOG("[~cBuffers~x] Framebuffer %s initialized", m_name.c_str());
 }
 
-void AddColorBuffer();
+void FrameBuffer::AddColorBuffer(Texture* texture) {
+	Bind();
+
+	GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->GetHandle(), 0));
+
+	m_colorAttachments++;
+	GL(glDrawBuffers(m_colorAttachments, drawBuffers));
+
+	GL(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
+	if (status != GL_FRAMEBUFFER_COMPLETE) LOG_ERROR("[~cBuffers~x] ~radding attachment to %s failed: %s", m_name.c_str(), GLUtils::GetFBOStatus(status).c_str());
+	Unbind();
+}

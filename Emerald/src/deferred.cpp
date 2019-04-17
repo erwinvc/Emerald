@@ -134,12 +134,12 @@ bool x, y;
 
 void Deferred::Resize(uint width, uint height) {
     if (gBuffer) {
-        delete gBuffer;
-        gBuffer = new GBuffer(width, height);
+        //delete gBuffer;
+        //gBuffer = new GBuffer(width, height);
     }
     if (hdr) {
-        delete hdr;
-        hdr = new FrameBuffer(width, height);
+        //delete hdr;
+        //hdr = new FrameBuffer(width, height);
     }
 }
 
@@ -191,7 +191,7 @@ void Deferred::Initialize(Window* window, FreeCam& camera) {
     CreateSphere();
     CreateQuad();
     NewLight();
-    hdr = new FrameBuffer(1920, 1080);
+    //hdr = new FrameBuffer(1920, 1080);
 }
 
 bool lightEnabled = true;
@@ -310,7 +310,7 @@ void Deferred::Render() {
 
     hdrShader->Bind();
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, hdr->GetTexture()->GetHandle());
+    //glBindTexture(GL_TEXTURE_2D, hdr->GetTexture()->GetHandle());
     quad->Draw();
 
     //uiShader->RenderTexture(hdr->GetTexture()->GetHandle(), origin, rot, Vector2(0, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), x, y);

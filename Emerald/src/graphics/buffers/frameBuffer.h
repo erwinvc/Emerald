@@ -4,20 +4,41 @@ class Texture;
 
 class FrameBuffer {
 private:
-    uint m_fbo;
-    uint m_dbo;
+	String m_name;
+	uint m_colorAttachments = 0;
+    uint m_fbo = 0;
+    uint m_dbo = 0;
     uint m_width, m_height;
-    bool m_multisampled;
     Color m_color;
-    Texture* m_texture;
-    void Initialize();
 
+	GLenum drawBuffers[16] = {
+	GL_COLOR_ATTACHMENT0,
+	GL_COLOR_ATTACHMENT1,
+	GL_COLOR_ATTACHMENT2,
+	GL_COLOR_ATTACHMENT3,
+	GL_COLOR_ATTACHMENT4,
+	GL_COLOR_ATTACHMENT5,
+	GL_COLOR_ATTACHMENT6,
+	GL_COLOR_ATTACHMENT7,
+	GL_COLOR_ATTACHMENT8,
+	GL_COLOR_ATTACHMENT9,
+	GL_COLOR_ATTACHMENT10,
+	GL_COLOR_ATTACHMENT11,
+	GL_COLOR_ATTACHMENT12,
+	GL_COLOR_ATTACHMENT13,
+	GL_COLOR_ATTACHMENT14,
+	GL_COLOR_ATTACHMENT15
+	};
+
+    void Initialize();
+	bool CheckStatus();
 public:
-    FrameBuffer(uint width, uint height, bool multisampled = false, Color& clearColor = Color(1, 0, 0)) : m_fbo(0), m_dbo(0), m_width(width), m_height(height), m_multisampled(multisampled), m_color(clearColor), m_texture(nullptr) { Initialize(); }
+    FrameBuffer(String name, uint width, uint height, Color& clearColor = Color(1, 0, 0)) : m_name(m_name), m_width(width), m_height(height), m_color(clearColor) { Initialize(); }
     ~FrameBuffer() {
         GL(glDeleteFramebuffers(1, &m_fbo));
-        delete m_texture;
     }
+
+	void AddColorBuffer(Texture* texture);
 
     void Bind() {
         GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
@@ -33,6 +54,5 @@ public:
 
     inline uint GetWidth() { return m_width; }
     inline uint GetHeight() { return m_height; }
-    inline Texture* GetTexture() { return m_texture; }
     inline void SetClearColor(Color& color) { m_color = color; }
 };

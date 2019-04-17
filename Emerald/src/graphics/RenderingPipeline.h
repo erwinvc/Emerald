@@ -13,12 +13,14 @@ private:
     TileRenderer* m_tileRenderer;
 
     Shader* m_ssaoShader;
-    FrameBuffer* m_ssaoFBO;
-	Texture* m_noiseTexture;
+	FrameBuffer* m_ssaoBuffer;
+	Texture* m_ssaoTexture;
+	Texture* m_ssaoNoiseTexture;
 
     //HDR
     bool m_applyPostProcessing = true;
     FrameBuffer* m_hdrBuffer;
+	Texture* m_hdrTexture;
     Shader* m_hdrShader;
     Mesh* m_quad;
 

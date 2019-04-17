@@ -16,56 +16,71 @@ class Camera;
 String va(String_t fmt, ...);
 
 namespace Utils {
-    //IO
-    static String ReadFile(String path) {
-        ifstream stream(path);
-        string str((istreambuf_iterator<char>(stream)), istreambuf_iterator<char>());
-        stream.close();
-        return str;
-    }
+	//IO
+	static String ReadFile(String path) {
+		ifstream stream(path);
+		string str((istreambuf_iterator<char>(stream)), istreambuf_iterator<char>());
+		stream.close();
+		return str;
+	}
 
-    //String
-    static vector<String> Split(String& s, String splitter) {
-        size_t pos;
-        vector<String> out;
-        while ((pos = s.find(splitter)) != String::npos) {
-            String token = s.substr(0, pos);
-            out.push_back(token);
-            s.erase(0, pos + splitter.length());
-        }
-        out.push_back(s);
-        return out;
-    }
+	//String
+	static vector<String> Split(String& s, String splitter) {
+		size_t pos;
+		vector<String> out;
+		while ((pos = s.find(splitter)) != String::npos) {
+			String token = s.substr(0, pos);
+			out.push_back(token);
+			s.erase(0, pos + splitter.length());
+		}
+		out.push_back(s);
+		return out;
+	}
 
 
-    static string ReplaceString(string subject, const string& search,
-        const string& replace) {
-        size_t pos = 0;
-        while ((pos = subject.find(search, pos)) != string::npos) {
-            subject.replace(pos, search.length(), replace);
-            pos += replace.length();
-        }
-        return subject;
-    }
+	static string ReplaceString(string subject, const string& search,
+		const string& replace) {
+		size_t pos = 0;
+		while ((pos = subject.find(search, pos)) != string::npos) {
+			subject.replace(pos, search.length(), replace);
+			pos += replace.length();
+		}
+		return subject;
+	}
 
-    static void DoTimedFunction(int* timer, int timeMS, function<void()> function) {
-        if (*timer < GetTickCount()) {
-            *timer = GetTickCount() + timeMS;
-            function();
-        }
-    }
+	static void DoTimedFunction(int* timer, int timeMS, function<void()> function) {
+		if (*timer < GetTickCount()) {
+			*timer = GetTickCount() + timeMS;
+			function();
+		}
+	}
 
-    //Math?
-    void setPositionInFrontOfCam(Vector3& dest, const Camera& cam, float distance);
+	//Math?
+	void setPositionInFrontOfCam(Vector3& dest, const Camera& cam, float distance);
 }
 
 namespace GLUtils {
-    static String ShaderTypeToString(int type, bool camelCase) {
-        switch (type) {
-        case GL_VERTEX_SHADER: return camelCase ? "Vertex" : "vertex";
-        case GL_GEOMETRY_SHADER: return camelCase ? "Geometry" : "geometry";
-        case GL_FRAGMENT_SHADER: return camelCase ? "Fragment" : "fragment";
-        }
-        return "NULL";
-    }
+	static String ShaderTypeToString(int type, bool camelCase) {
+		switch (type) {
+		case GL_VERTEX_SHADER: return camelCase ? "Vertex" : "vertex";
+		case GL_GEOMETRY_SHADER: return camelCase ? "Geometry" : "geometry";
+		case GL_FRAGMENT_SHADER: return camelCase ? "Fragment" : "fragment";
+		}
+		return "NULL";
+	}
+
+	static String GetFBOStatus(GLenum status) {
+		switch (status) {
+		case GL_FRAMEBUFFER_COMPLETE_EXT:						return "no error";
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:			return "incomplete attachment"; 
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:	return "missing Attachment";
+		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:			return "dimensions do not match";
+		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:				return "formats error";
+		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:			return "draw Buffer";
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:			return "read Buffer";
+		case GL_FRAMEBUFFER_UNSUPPORTED_EXT:					return "snsupported Framebuffer configuration";
+		default:												return "unkown Framebuffer Object error";
+		}
+	}
+
 }
