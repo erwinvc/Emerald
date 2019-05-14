@@ -3,7 +3,7 @@
 bool FrameBuffer::CheckStatus() {
 	GL(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		LOG_ERROR("[~cBuffers~x] ~rFramebuffer %s failed: %s", m_name.c_str(), GLUtils::GetFBOStatus(status).c_str());
+		LOG_ERROR("[~cBuffers~x] ~rFramebuffer %s failed: %s", m_name.c_str(), GLUtils::GetFBOStatus(status));
 		return false;
 	} else return true;
 }
@@ -30,6 +30,6 @@ void FrameBuffer::AddColorBuffer(Texture* texture) {
 	GL(glDrawBuffers(m_colorAttachments, drawBuffers));
 
 	GL(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
-	if (status != GL_FRAMEBUFFER_COMPLETE) LOG_ERROR("[~cBuffers~x] ~radding attachment to %s failed: %s", m_name.c_str(), GLUtils::GetFBOStatus(status).c_str());
+	if (status != GL_FRAMEBUFFER_COMPLETE) LOG_ERROR("[~cBuffers~x] ~radding attachment to %s failed: %s", m_name.c_str(), GLUtils::GetFBOStatus(status));
 	Unbind();
 }

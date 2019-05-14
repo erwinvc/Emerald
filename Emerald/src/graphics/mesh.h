@@ -27,9 +27,9 @@ public:
         m_ibo->Unbind();
     }
 
-    void DrawInstanced(int amount) {
+    void DrawInstanced(int amount, int mode = GL_TRIANGLES) {
         Bind();
-        m_ibo->DrawInstanced(amount);
+        m_ibo->DrawInstanced(amount, mode);
         //Unbind();
     }
 

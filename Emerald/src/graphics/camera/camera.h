@@ -1,7 +1,6 @@
 #pragma once
 
-class Camera
-{
+class Camera {
 public:
 	Vector3 m_position;
 	Vector3 m_rotation;
@@ -13,11 +12,16 @@ public:
 	virtual ~Camera() {}
 
 	Matrix4 GetViewMatrix() {
-        Matrix4 transform(1);
-        transform *= Matrix4::Rotate(m_rotation.x, Vector3::XAxis());
-        transform *= Matrix4::Rotate(m_rotation.y, Vector3::YAxis());
-        transform *= Matrix4::Rotate(m_rotation.z, Vector3::ZAxis());
-        transform *= Matrix4::Translate(-m_position);
-        return transform;
+		Matrix4 transform(1);
+		transform *= Matrix4::Rotate(m_rotation.x, Vector3::XAxis());
+		transform *= Matrix4::Rotate(m_rotation.y, Vector3::YAxis());
+		transform *= Matrix4::Rotate(m_rotation.z, Vector3::ZAxis());
+		transform *= Matrix4::Translate(-m_position);
+		return transform;
+	}
+
+	void OnImGui() {
+		ImGui::InputFloat3("Position", (float*)&m_position);
+		ImGui::InputFloat3("Rotation", (float*)&m_rotation);
 	}
 };

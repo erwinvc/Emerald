@@ -20,28 +20,48 @@ Vector2::Vector2(const Vector3& vector) {
 Vector2& Vector2::Add(const Vector2& other) {
 	x += other.x;
 	y += other.y;
+	return *this;
+}
 
+Vector2& Vector2::Add(const Vector2I& other) {
+	x += other.x;
+	y += other.y;
 	return *this;
 }
 
 Vector2& Vector2::Subtract(const Vector2& other) {
 	x -= other.x;
 	y -= other.y;
+	return *this;
+}
 
+Vector2& Vector2::Subtract(const Vector2I& other) {
+	x -= other.x;
+	y -= other.y;
 	return *this;
 }
 
 Vector2& Vector2::Multiply(const Vector2& other) {
 	x *= other.x;
 	y *= other.y;
+	return *this;
+}
 
+Vector2& Vector2::Multiply(const Vector2I& other) {
+	x *= other.x;
+	y *= other.y;
 	return *this;
 }
 
 Vector2& Vector2::Divide(const Vector2& other) {
 	x /= other.x;
 	y /= other.y;
+	return *this;
+}
 
+Vector2& Vector2::Divide(const Vector2I& other) {
+	x /= other.x;
+	y /= other.y;
 	return *this;
 }
 
@@ -73,40 +93,28 @@ Vector2& Vector2::Divide(float value) {
 	return *this;
 }
 
-Vector2 operator+(Vector2 left, const Vector2& right) {
-	return left.Add(right);
-}
+Vector2 operator+(Vector2 left, const Vector2& right) { return left.Add(right); }
+Vector2 operator+(Vector2 left, const Vector2I& right) { return left.Add(right); }
 
-Vector2 operator-(Vector2 left, const Vector2& right) {
-	return left.Subtract(right);
-}
+Vector2 operator-(Vector2 left, const Vector2& right) { return left.Subtract(right); }
+Vector2 operator-(Vector2 left, const Vector2I& right) { return left.Subtract(right); }
 
-Vector2 operator*(Vector2 left, const Vector2& right) {
-	return left.Multiply(right);
-}
+Vector2 operator*(Vector2 left, const Vector2& right) { return left.Multiply(right); }
+Vector2 operator*(Vector2 left, const Vector2I& right) { return left.Multiply(right); }
 
-Vector2 operator/(Vector2 left, const Vector2& right) {
-	return left.Divide(right);
-}
+Vector2 operator/(Vector2 left, const Vector2& right) { return left.Divide(right); }
+Vector2 operator/(Vector2 left, const Vector2I& right) { return left.Divide(right); }
 
-Vector2 operator+(Vector2 left, float value) {
-	return Vector2(left.x + value, left.y + value);
-}
+Vector2 operator+(Vector2 left, float value) { return Vector2(left.x + value, left.y + value); }
 
-Vector2 operator-(Vector2 left, float value) {
-	return Vector2(left.x - value, left.y - value);
-}
+Vector2 operator-(Vector2 left, float value) { return Vector2(left.x - value, left.y - value); }
 
-Vector2 operator*(Vector2 left, float value) {
-	return Vector2(left.x * value, left.y * value);
-}
+Vector2 operator*(Vector2 left, float value) { return Vector2(left.x * value, left.y * value); }
 
-Vector2 operator/(Vector2 left, float value) {
-	return Vector2(left.x / value, left.y / value);
-}
+Vector2 operator/(Vector2 left, float value) { return Vector2(left.x / value, left.y / value); }
 
 Vector2& Vector2::operator+=(const Vector2& other) {
-	return Add(other);
+return Add(other);
 }
 
 Vector2& Vector2::operator-=(const Vector2& other) {

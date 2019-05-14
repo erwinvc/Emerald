@@ -86,6 +86,11 @@ namespace Math {
         return r * (max - min) + min;
     }
 
+	inline float RandomFloat(float max) {
+		float r = (float)rand() / (float)RAND_MAX;
+		return r * max;
+	}
+
     inline int RandomInt(int min, int max) {
         return min + rand() % ((max + 1) - min);
     }

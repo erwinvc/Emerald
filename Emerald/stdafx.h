@@ -40,6 +40,10 @@ using namespace std;
 
 #pragma warning (disable: 4267) /*size_t conversions*/
 
+#define loop(x, n) for(int x = 0; x < n; ++x)
+#define foreach(x, y) for(auto& x : y)
+#define BUFFEROFFSET(i) ((char *)NULL + (i))
+
 #include "math/vector2.h"
 #include "math/vector2I.h"
 #include "math/vector3.h"
@@ -75,6 +79,7 @@ using namespace std;
 #include "graphics/shaders/phongShader.h"
 #include "graphics/shaders/UIShader.h"
 #include "graphics/renderer.h"
+#include "graphics/ssaoRenderer.h"
 
 #include "graphics/lighting/directionalLight.h"
 #include "graphics/lighting/pointlight.h"
@@ -90,10 +95,14 @@ using namespace std;
 #include "graphics/model.h"
 #include "entity/entity.h"
 
-#include "tile/tile.h"
+#include "graphics/lineRenderer.h"
 #include "graphics/instancedRenderer.h"
 #include "graphics/instancedRenderer2D.h"
 #include "graphics/tileRenderer.h"
+
+#include "world/tile.h"
+#include "world/chunk.h"
+#include "world/world.h"
 
 #include "util/meshGenerator.h"
 

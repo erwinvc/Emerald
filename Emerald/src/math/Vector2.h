@@ -1,6 +1,7 @@
 #pragma once
 
 struct Vector3;
+struct Vector2I;
 
 struct Vector2 {
 	float x, y;
@@ -11,9 +12,13 @@ struct Vector2 {
 	Vector2(const Vector3& vector);
 
 	Vector2& Add(const Vector2& other);
+	Vector2& Add(const Vector2I& other);
 	Vector2& Subtract(const Vector2& other);
+	Vector2& Subtract(const Vector2I& other);
 	Vector2& Multiply(const Vector2& other);
+	Vector2& Multiply(const Vector2I& other);
 	Vector2& Divide(const Vector2& other);
+	Vector2& Divide(const Vector2I& other);
 
 	Vector2& Add(float value);
 	Vector2& Subtract(float value);
@@ -34,9 +39,13 @@ struct Vector2 {
 	bool operator!=(const Vector2& other) const;
 
 	Vector2& operator+=(const Vector2& other);
+	Vector2& operator+=(const Vector2I& other);
 	Vector2& operator-=(const Vector2& other);
+	Vector2& operator-=(const Vector2I& other);
 	Vector2& operator*=(const Vector2& other);
+	Vector2& operator*=(const Vector2I& other);
 	Vector2& operator/=(const Vector2& other);
+	Vector2& operator/=(const Vector2I& other);
 
 	Vector2& operator+=(float value);
 	Vector2& operator-=(float value);

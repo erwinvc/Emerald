@@ -10,8 +10,6 @@ private:
     vector<function<void(double, double)>>      m_onScrollCallbacks;
     vector<function<void(uint)>>                m_onKeyTypedCallbacks;
 
-    
-
 public:
     void Initialize(Window* window);
 

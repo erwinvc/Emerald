@@ -23,40 +23,33 @@ uniform float _Diffuse;
 uniform float _Specular;
 
 void main() {
-float uLightRadius = newPos.w;
-vec3 uLightPosition = newPos.xyz;
-vec3 uLightColor = color.rgb;
+    float uLightRadius = newPos.w;
+    vec3 lightPos = newPos.xyz;
+    vec3 uLightColor = color.rgb;
 
-// get screen-space position of light sphere
-// (remember to do perspective division.)
-  vec2 uv = (fsPos.xy / fsPos.w) * 0.5 + 0.5;
+    vec2 uv = (fsPos.xy / fsPos.w) * 0.5 + 0.5;
 
-// now we can sample from the gbuffer for every fragment the light sphere covers.
-  vec3 albedo = texture(_GAlbedo, uv).xyz;
-  vec3 n = normalize(texture(_GNormal, uv).xyz);
-  vec3 pos = texture(_GPosition, uv).xyz;
+	vec3 misc = texture(_GMisc, uv).xyz;
+	vec3 albedo = texture(_GAlbedo, uv).xyz;
+	vec3 normal = normalize(texture(_GNormal, uv).xyz);
+	vec3 position = texture(_GPosition, uv).xyz;
+    
+    vec3 lightToPosVector = position.xyz - lightPos;
+    float lightDist = length(lightToPosVector);  
+    vec3 l = -lightToPosVector / (lightDist);
+    
+    float ztest = step(0.0, uLightRadius - lightDist);
+    
+    float attenuation = pow(clamp(1.0 - pow(lightDist / uLightRadius, 1.0), 0.0, 1.0), 2.0) / (lightDist * lightDist + 1.0);
+    vec3 v = normalize(uCameraPos - position);
+    vec3 h = normalize(l + v);
 
-  vec3 lightToPosVector = pos.xyz - uLightPosition;
-  float lightDist = length(lightToPosVector);  // position from light.
-  vec3 l = -lightToPosVector / (lightDist);
+    vec3 color =
+    _Diffuse * uLightColor * albedo * max(0.0, dot(normal, l)) +
+    _Specular * uLightColor * reflectivity * pow(max(0.0, dot(h, normal)), shineDamper); 
 
-// implement fake z-test. If too far from light center, then 0.
-  float ztest = step(0.0, uLightRadius - lightDist);
+    color *= ztest * attenuation;
 
-// light attenuation.
-  float d = lightDist / uLightRadius;
-  float attenuation = 1.0 - d;
-  vec3 v = normalize(uCameraPos - pos);
-  vec3 h = normalize(l + v);
-
-  vec3 color =
-// diffuse
-  _Diffuse * uLightColor * albedo.xyz * max(0.0, dot(n.xyz, l)) +
-// specular
- _Specular * uLightColor * reflectivity * pow(max(0.0, dot(h, n)), shineDamper); 
-
-// finally ztest and attenuation.
-  color *= ztest * attenuation;
-
-  outColor = vec4(color, 1.0);
+	vec3 finalColor = mix(color, albedo, misc.y);
+	outColor = vec4(finalColor, 1.0);
 }

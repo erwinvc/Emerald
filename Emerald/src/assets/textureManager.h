@@ -6,6 +6,7 @@ private:
     map<String, Texture*> m_textures;
 public:
     void Initialize() {
+		//#TODO Use texture class
         Byte bytes[] = { 0, 0, 0, -8, -8, 8, -8, -8,-8, 8, -8, -8, 0, 0, 0, -8 };
         uint texID;
         glGenTextures(1, &texID);
@@ -22,7 +23,7 @@ public:
         glBindTexture(GL_TEXTURE_2D, 0);
 
         m_nullTexture = new Texture(texID, 2, 2);
-        LOG("[Textures] TextureManager initialized");
+        LOG("[~gTexture~x] Texture manager initialized");
     }
     void AddTexture(String name, Texture* texture) {
         m_textures.emplace(name, texture);

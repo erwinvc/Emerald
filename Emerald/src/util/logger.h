@@ -1,10 +1,7 @@
 //#pragma once
 #define LOG( fmt, ...)					Logger::Message(ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
-//#define LOG_PRINT( fmt, ...)			Logger::Message(ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
-//#define LOG_DEBUG( fmt, ...)			Logger::Message(ConsoleColor::GRAY,		" [Debg]",		fmt, ##__VA_ARGS__ )
-//#define LOG_WARN( fmt, ...)				Logger::Message(ConsoleColor::DARKYELLOW,	" [Warn]",		fmt, ##__VA_ARGS__ )
+#define LOG_TIMED(time, fmt, ...)		Logger::MessageTimed(time, ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
 #define LOG_ERROR( fmt, ...)			Logger::MessageDirect(ConsoleColor::RED,		" [Fail]",		fmt, ##__VA_ARGS__ )
-//#define LOG_CUSTOM( color, fmt, ...)	Logger::Message(color,								" [Info]",		fmt, ##__VA_ARGS__ )
 
 class UILoggerComponent;
 
@@ -39,9 +36,10 @@ public:
         QueuedMessage(int color, String message, String type, time_t time) : m_color(color), m_message(message), m_type(type), m_time(time) {}
         QueuedMessage() : m_color(0),m_message(""), m_type(""), m_time(0) {}
     };
-
+	static const int MAXQUEUESIZE = 1000;
     static void Initialize();
-    static void Message(int color, const char* type, const char* fmt, ...);
+	static void Message(int color, const char* type, const char* fmt, ...);
+	static void MessageTimed(int time, int color, const char* type, const char* fmt, ...);
     static void MessageDirect(int color, const char* type, const char* fmt, ...);
     static void Cleanup();
 
@@ -49,9 +47,12 @@ private:
     static FILE *m_stream;
     static HANDLE m_outputHandle;
     static HANDLE m_inputHandle;
+	static Thread* m_inputThread;
+	static Thread* m_outputThread;
     static CONSOLE_SCREEN_BUFFER_INFO m_screenBuffer;
     static bool m_allocated;
     static bool m_firstEntry;
+	static bool m_stopping;
 
     static void LogToFile(const char * buff);
     static void SetTextColor(const int color);

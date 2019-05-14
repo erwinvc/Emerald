@@ -5,7 +5,7 @@ private:
     bool m_started;
     bool m_ended;
     Mesh* m_mesh = nullptr;
-    const uint MAX_OBJECTS = 4096;
+    const uint MAX_OBJECTS = 65536;
     Buffer* m_offsetsBuffer = nullptr;
     int m_amount = 0;
     Vector2* m_offsets = nullptr;
@@ -14,6 +14,7 @@ private:
     void Initialize();
 public:
     void Begin();
+	void Submit(int x, int y);
     void Submit(Vector2& offset);
     void End();
     void Draw(Shader* shader);

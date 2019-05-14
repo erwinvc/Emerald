@@ -1,5 +1,7 @@
 #pragma once
 
+class Tile;
+
 class TileRenderer {
 private:
     Shader* m_shader;
@@ -10,6 +12,7 @@ public:
     Material* material;
     TileRenderer() { Initialize(); }
     void Begin(Camera* cam, Matrix4& proj);
+	void Submit(Tile& tile, int x, int y);
     void Submit(Tile& tile, Vector2& position);
     void Draw();
 };

@@ -26,7 +26,7 @@ Application::Application() : m_running(true) {
     glfwWindowHint(GLFW_SAMPLES, 8);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
-    m_window = new Window("Test", 1920, 1080);
+    m_window = new Window("Emerald", 1920, 1080);
 
     m_window->MakeContextCurrent();
     m_window->Show();
@@ -310,6 +310,7 @@ void Application::Run() {
             Update(*m_timeStep);
             updates++;
             updateTimer += updateTick;
+			m_frameCount++;
         }
         delta += (now - updateTimer) / updateTick;
         //Update(delta);

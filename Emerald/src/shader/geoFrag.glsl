@@ -27,7 +27,7 @@ void main(){
 
 	vec3 specular = texture(_Specular, vec2(1, -1) * fsUv).rgb * _SpecularStrength;
 
-	geoData[0] = vec4(specular.r, 1, 1, 1);
+	geoData[0] = vec4(specular.r, 0, 0, 0);
 	geoData[1] = vec4(diff.rgb, 1);
 	geoData[2] = vec4(normal, 1);
 	geoData[3] = vec4(fsPos, 1);

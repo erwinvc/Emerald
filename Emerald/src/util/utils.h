@@ -4,11 +4,11 @@ class Camera;
 
 #define ASSERT(x, ...) \
 		if (!(x)) {\
-			LOG_ERROR("*************************"); \
-			LOG_ERROR("    ASSERTION FAILED!    "); \
-			LOG_ERROR("*************************"); \
-			LOG_ERROR(__FILE__, ": ", __LINE__); \
-			LOG_ERROR("Condition: ", #x); \
+			LOG("~r*************************"); \
+			LOG("~r    ASSERTION FAILED!    "); \
+			LOG("~r*************************"); \
+			LOG("~r%s:%d", __FILE__, __LINE__); \
+			LOG("~rCondition: %s", #x); \
 			LOG_ERROR(__VA_ARGS__); \
 			__debugbreak(); \
 }
@@ -60,16 +60,16 @@ namespace Utils {
 }
 
 namespace GLUtils {
-	static String ShaderTypeToString(int type, bool camelCase) {
+	static String_t ShaderTypeToString(int type, bool upperCase = false) {
 		switch (type) {
-		case GL_VERTEX_SHADER: return camelCase ? "Vertex" : "vertex";
-		case GL_GEOMETRY_SHADER: return camelCase ? "Geometry" : "geometry";
-		case GL_FRAGMENT_SHADER: return camelCase ? "Fragment" : "fragment";
+		case GL_VERTEX_SHADER: return upperCase ? "Vertex" : "vertex";
+		case GL_GEOMETRY_SHADER: return upperCase ? "Geometry" : "geometry";
+		case GL_FRAGMENT_SHADER: return upperCase ? "Fragment" : "fragment";
 		}
 		return "NULL";
 	}
 
-	static String GetFBOStatus(GLenum status) {
+	static String_t GetFBOStatus(GLenum status) {
 		switch (status) {
 		case GL_FRAMEBUFFER_COMPLETE_EXT:						return "no error";
 		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:			return "incomplete attachment"; 

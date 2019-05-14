@@ -12,10 +12,7 @@ private:
     vector<Pointlight> m_pointlights;
     TileRenderer* m_tileRenderer;
 
-    Shader* m_ssaoShader;
-	FrameBuffer* m_ssaoBuffer;
-	Texture* m_ssaoTexture;
-	Texture* m_ssaoNoiseTexture;
+	SSAORenderer* m_ssaoRenderer;
 
     //HDR
     bool m_applyPostProcessing = true;
@@ -28,8 +25,13 @@ private:
     UIShader* m_uiShader;
 
     Camera* m_camera;
-    Matrix4 m_projectionMatrix;
+	Matrix4 m_orthoMatrix;
+	Matrix4 m_perspectiveMatrix;
+	Matrix4 m_projectionMatrix;
+	bool m_perspective = true;
+	float m_lerpAmount = 0;
 
+	World* m_world;
     void Initialize(int maxLights, int lightQuality);
 
 public:

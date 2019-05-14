@@ -19,15 +19,15 @@ Texture::Texture(const String& path, TextureParameters params) : m_params(params
     Byte* data = stbi_load(m_path.c_str(), (int*)&m_width, (int*)&m_height, &bpc, 4);
 
     if (bpc != 3 && bpc != 4) {
-        LOG_ERROR("[~yTexture~x] Unsupported image bit-depth (%d) ~1%s", bpc, path.c_str());
+        LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", bpc, path.c_str());
         return;
     }
 
     if (data) {
         Load(data);
         stbi_image_free(data);
-        LOG("[~yTexture~x] Loaded ~1%s", path.c_str());
-    } else LOG_ERROR("[~yTexture~x] Failed to load ~1%s", path.c_str());
+        LOG("[~gTexture~x] Loaded ~1%s", path.c_str());
+    } else LOG_ERROR("[~gTexture~x] Failed to load ~1%s", path.c_str());
 }
 
 void Texture::Load(Byte* data) {

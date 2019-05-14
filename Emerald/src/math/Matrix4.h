@@ -43,4 +43,6 @@ struct Matrix4 {
 	static Matrix4 Invert(const Matrix4& matrix);
 
 	static Matrix4 Transpose(const Matrix4& matrix);
+
+	static Matrix4 Lerp(const Matrix4& from, const Matrix4& to, float amount);
 };

@@ -14,11 +14,9 @@ PointlightRenderer::PointlightRenderer(Mesh* mesh, int maxLights) : m_mesh(mesh)
     m_mesh->GetVAO()->AddBuffer(m_pointlightBuffer, 1, true);
 }
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
-
 void PointlightRenderer::Draw(vector<Pointlight>& pointlights) {
-    //#Dirty create wrapper for this
 
+    //#Dirty create wrapper for this
     int count = Math::Max(pointlights.size(), MAX_LIGHTS);
 
     m_pointlightBuffer->Bind();
@@ -30,7 +28,7 @@ void PointlightRenderer::Draw(vector<Pointlight>& pointlights) {
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 2*sizeof(Vector4), 0);
     glVertexAttribDivisor(1, 1);
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 2 * sizeof(Vector4), BUFFER_OFFSET(16));
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 2 * sizeof(Vector4), BUFFEROFFSET(16));
     glVertexAttribDivisor(2, 1);
     m_mesh->GetIBO()->Bind();
     m_mesh->GetIBO()->DrawInstanced(count);

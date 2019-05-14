@@ -2,30 +2,33 @@
 class Application {
 private:
 private:
-    static Application* g_instance;
-    Application();
+	static Application* g_instance;
+	Application();
 
-    Window* m_window;
-    Timer* m_timer;
-    TimeStep* m_timeStep;
-    bool m_running;
+	Window* m_window;
+	Timer* m_timer;
+	uint64_t m_frameCount;
+	TimeStep* m_timeStep;
+	bool m_running;
 public:
-    static Application* GetInstance() {
-        if (!g_instance) g_instance = new Application();
-        return g_instance;
-    }
+	static Application* GetInstance() {
+		if (!g_instance) g_instance = new Application();
+		return g_instance;
+	}
 
-    Window* GetWindow() { return m_window; }
+	Window* GetWindow() { return m_window; }
 
-    void Run();
-    void Cleanup();
-    void  OnWindowClose();
-    void OnResize(int width, int height);
-    void Update(const TimeStep& time);
-    void FixedUpdate();
-    void Render();
+	void Run();
+	void Cleanup();
+	void OnWindowClose();
+	void OnResize(int width, int height);
+	void Update(const TimeStep& time);
+	void FixedUpdate();
+	void Render();
+
+	uint64_t GetFrameCount() { return m_frameCount; }
 };
 
 static Application* GetApplication() {
-    return Application::GetInstance();
+	return Application::GetInstance();
 }

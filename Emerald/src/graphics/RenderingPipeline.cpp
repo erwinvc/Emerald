@@ -15,7 +15,7 @@ struct Light {
 
 };
 
-static Model model;
+//static Model model;
 
 static Light* currentLight;
 static vector<Light> lights;
@@ -47,7 +47,6 @@ struct t {
 	t(Tile& t, Vector2& p) : tile(t), position(p) {}
 };
 vector<t> tiles;
-vector<Vector3> ssaoKernel;
 
 void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	//Deferred
@@ -62,55 +61,24 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 
 	//HDR
 	m_hdrShader = new Shader("HDR", "src/shader/hdr.vert", "src/shader/hdr.frag");
-	m_hdrTexture = new Texture(1920, 1080, TextureParameters(RGBA, LINEAR, REPEAT, T_FLOAT));
+	m_hdrTexture = new Texture(1920, 1080, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT));
 	m_hdrBuffer = new FrameBuffer("HDR", 1920, 1080, Color(0.0f, 0.0f, 0.3f, 1.0f));
 	m_hdrBuffer->AddColorBuffer(m_hdrTexture);
 
 	//SSAO
-	m_ssaoShader = new Shader("SSAO", "src/shader/ssaoVert.glsl", "src/shader/ssaoFrag.glsl");
-	m_ssaoTexture = new Texture(1920, 1080, TextureParameters(RGBA, LINEAR, REPEAT, T_FLOAT));
-	m_ssaoBuffer = new FrameBuffer("SSAO", 1920, 1080, Color(0.3f, 0.0f, 0.0f, 1.0f));
-	m_ssaoBuffer->AddColorBuffer(m_ssaoTexture);
-	//for (unsigned int i = 0; i < 64; ++i) {
-	//    Vector3 sample(Math::RandomFloat(0.0f, 1.0f) * 2.0 - 1.0, Math::RandomFloat(0.0f, 1.0f) * 2.0 - 1.0, Math::RandomFloat(0.0f, 1.0f));
-	//    sample = sample.Normalize();
-	//    sample *= Math::RandomFloat(0.0f, 1.0f);
-	//    float scale = float(i) / 64.0;
-	//    scale = Math::Lerp(0.1f, 1.0f, scale * scale);
-	//    sample *= scale;
-	//    ssaoKernel.push_back(sample);
-	//}
-
-	std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
-	std::default_random_engine generator;
-	for (unsigned int i = 0; i < 64; ++i) {
-		Vector3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
-		sample = sample.Normalize();
-		sample *= randomFloats(generator);
-		float scale = float(i) / 64.0;
-
-		// scale samples s.t. they're more aligned to center of kernel
-		scale = Math::Lerp(0.1f, 1.0f, scale * scale);
-		sample *= scale;
-		ssaoKernel.push_back(sample);
-	}
-
-	//SSAO noise
-	vector<Color> ssaoNoise;
-	for (unsigned int i = 0; i < 16; i++) {
-		ssaoNoise.push_back(Color(Math::RandomFloat(0.0f, 1.0f) * 2.0 - 1.0, Math::RandomFloat(0.0f, 1.0f) * 2.0 - 1.0, 0.0f, 1));
-	}
-	m_ssaoNoiseTexture = new Texture(4, 4, (Byte*)ssaoNoise.data(), TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT));
+	m_ssaoRenderer = new SSAORenderer(1920, 1080);
 
 	//UI
 	m_uiShader = new UIShader();
 	m_uiShader->Initialize();
 
-	m_projectionMatrix = Matrix4::Perspective(70, (float)(1920) / 1080, 0.1f, 3000.0f);
+	float aspect = (float)(1920) / 1080;
+	m_perspectiveMatrix = Matrix4::Perspective(70, aspect, 0.01f, 1000.0f);
+	m_orthoMatrix = Matrix4::Orthographic(-500 * aspect, 500 * aspect, -500, 500, 0.001f, 100000.0f);
+	m_projectionMatrix = Matrix4::Perspective(70, aspect, 0.01f, 1000.0f);
 
 	//Shader variables
 	m_geometryShader->Bind();
-	m_geometryShader->Set("projectionMatrix", m_projectionMatrix);
 
 	m_directionalLightShader->Bind();
 	m_directionalLightShader->Set("uColorTex", 0);
@@ -123,39 +91,38 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	m_pointLightShader->Set("uNormalTex", 1);
 	m_pointLightShader->Set("uPositionTex", 2);
 	m_pointLightShader->Set("ssao", 3);
-	m_pointLightShader->Set("projectionMatrix", m_projectionMatrix);
 
 	m_pointlightRenderer = new PointlightRenderer(MeshGenerator::Sphere(lightQuality, lightQuality), maxLights);
 
 	m_quad = MeshGenerator::Quad();
 
-	model.LoadModel("sponza/sponza.obj");
+	//model.LoadModel("sponza/sponza.obj");
 
 	uishader = new UIShader();
 	uishader->Initialize();
 
-	//int val = 16;
-	//for (int x = -val; x < val; x++) {
-	//    for (int y = -val; y < val; y++) {
-	//        for (int z = -val; z < val; z++) {
-	//            Light light;
-	//            light.sinval1 = 0;
-	//            light.sinval2 = 0;
-	//            light.sinval3 = 0;
-	//            light.sinincrement1 = Math::RandomFloat(0, 0.1f);
-	//            light.sinincrement2 = Math::RandomFloat(0, 0.1f);
-	//            light.sinincrement3 = Math::RandomFloat(0, 0.1f);
-	//            light.m_pos = Vector3(x * 100, y * 50 + 50, z * 50);
-	//            light.m_original = light.m_pos;
-	//            light.m_col = Color::RandomPrimary();
-	//            light.m_radius = 200;
-	//            lights.push_back(light);
-	//            m_pointlights.push_back(Pointlight(light.m_pos, Math::RandomFloat(10, 50), light.m_col));
-	//        }
-	//    }
+	//int val = 10;
+	//for (int x = 0; x < val; x++) {
+	//	for (int y = 0; y < 1; y++) {
+	//		for (int z = 0; z < val; z++) {
+	//			Light light;
+	//			light.sinval1 = 0;
+	//			light.sinval2 = 0;
+	//			light.sinval3 = 0;
+	//			light.sinincrement1 = Math::RandomFloat(0, 0.1f);
+	//			light.sinincrement2 = Math::RandomFloat(0, 0.1f);
+	//			light.sinincrement3 = Math::RandomFloat(0, 0.1f);
+	//			light.m_pos = Vector3(x * 10, 1, z * 10);
+	//			light.m_original = light.m_pos;
+	//			light.m_col = Color::RandomPrimary();
+	//			light.m_radius = 200;
+	//			lights.push_back(light);
+	//			m_pointlights.push_back(Pointlight(light.m_pos, Math::RandomFloat(10, 50), light.m_col));
+	//		}
+	//	}
 	//}
 
-   // m_pointlights.push_back(Pointlight(m_camera->m_position, 50, Color::White()));
+    //m_pointlights.push_back(Pointlight(m_camera->m_position, 50, Color::White()));
 
 	m_tileRenderer = new TileRenderer();
 
@@ -164,19 +131,21 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 			tiles.emplace_back(Tile(FULL), Vector2(x, y));
 		}
 	}
+
+	m_world = new World();
 }
 
 
 float a1 = 10;
 float a2 = 10;
 
-float radius = 0.5;
-float bias = 0.025;
-int power = 1;
 void RenderingPipeline::Update(const TimeStep& time) {
 	if (ButtonJustDown(VK_MOUSE_MIDDLE)) {
 		m_pointlights.push_back(Pointlight(m_camera->m_position, 10, Color::RandomPrimary()));
 	}
+
+	m_lerpAmount = Math::Clamp(m_lerpAmount + time.GetSeconds(), 0.0f, 1.0f);
+	m_projectionMatrix = Matrix4::Lerp(m_projectionMatrix, m_perspective ? m_perspectiveMatrix : m_orthoMatrix, m_lerpAmount);
 }
 void RenderingPipeline::Render() {
 	//m_pointlights[0].m_position = m_camera->m_position;
@@ -215,50 +184,37 @@ void RenderingPipeline::Render() {
 	m_gBuffer->Clear();
 	//f
 	m_geometryShader->Bind();
+	m_geometryShader->Set("projectionMatrix", m_projectionMatrix);
 	m_geometryShader->Set("viewMatrix", m_camera->GetViewMatrix());
 
-	model.Draw(m_geometryShader);
+	//model.Draw(m_geometryShader);
 
 	m_tileRenderer->Begin(m_camera, m_projectionMatrix);
 	m_gBuffer->BindTextures();
 
-
-	for (auto a : tiles) {
-		m_tileRenderer->Submit(a.tile, a.position);
-	}
+	m_world->Draw(m_tileRenderer);
+	//for (auto a : tiles) {
+	//	m_tileRenderer->Submit(a.tile, a.position);
+	//}
 	//m_tileRenderer->Submit(Tile(), Vector2I(0, 0));
 
 	m_tileRenderer->Draw();
 	//RenderGeometry();
+
+	GetLineRenderer()->Begin();
+
+	loop(y, 10) {
+		GetLineRenderer()->Submit(0, 0, 0, 10, -10 + y, 10);
+	}
+	GetLineRenderer()->End();
+	GetLineRenderer()->Draw(m_projectionMatrix, m_camera->GetViewMatrix());
 
 	m_gBuffer->Unbind();
 
 	GL(glDisable(GL_DEPTH_TEST));
 	GL(glFrontFace(GL_CW));
 
-	//SSAO
-	m_gBuffer->BindTextures();
-	m_ssaoBuffer->Bind();
-	m_ssaoBuffer->Clear();
-	m_ssaoShader->Bind();
-	m_ssaoShader->Set("gPosition", 0);
-	m_ssaoShader->Set("gNormal", 1);
-	m_ssaoShader->Set("texNoise", 2);
-	m_ssaoShader->Set("radius", radius);
-	m_ssaoShader->Set("bias", bias);
-	m_ssaoShader->Set("power", power);
-
-	// Send kernel + rotation 
-	for (unsigned int i = 0; i < 64; ++i)
-		m_ssaoShader->Set(("samples[" + std::to_string(i) + "]").c_str(), ssaoKernel[i]);
-	m_ssaoShader->Set("projection", m_projectionMatrix);
-	m_ssaoShader->Set("view", m_camera->GetViewMatrix());
-	m_gBuffer->BindTextures();
-	m_gBuffer->m_positionTexture->Bind(0);
-	m_gBuffer->m_normalTexture->Bind(1);
-	m_ssaoNoiseTexture->Bind(2);
-	m_quad->Draw();
-	m_ssaoBuffer->Unbind();
+	m_ssaoRenderer->Render(m_gBuffer, m_projectionMatrix, m_camera);
 
 	GL(glFrontFace(GL_CCW));
 
@@ -275,7 +231,7 @@ void RenderingPipeline::Render() {
 	m_directionalLightShader->Set("_GPosition", 3);
 	m_directionalLightShader->Set("_SSAO", 4);
 	m_gBuffer->BindTextures();
-	m_ssaoTexture->Bind(4);
+	m_ssaoRenderer->GetTexture()->Bind(4);
 
 	m_directionalLightShader->Set("_Color", m_directionalLight.m_color);
 	m_directionalLightShader->Set("_Directional", m_directionalLight.m_direction);
@@ -298,6 +254,7 @@ void RenderingPipeline::Render() {
 	m_pointLightShader->Set("_GPosition", 3);
 	m_pointLightShader->Set("_SSAO", 4);
 
+	m_pointLightShader->Set("projectionMatrix", m_projectionMatrix);
 	m_pointLightShader->Set("viewMatrix", m_camera->GetViewMatrix());
 	m_pointLightShader->Set("uCameraPos", m_camera->m_position);
 	m_pointLightShader->Set("shineDamper", a1);
@@ -307,7 +264,6 @@ void RenderingPipeline::Render() {
 	m_pointlightRenderer->Draw(m_pointlights);
 
 	m_hdrBuffer->Unbind();
-
 
 	//Draw to screen
 	GL(glDisable(GL_BLEND));
@@ -328,7 +284,7 @@ void RenderingPipeline::Render() {
 	case 2: m_gBuffer->m_colorTexture->Bind(); break;
 	case 3: m_gBuffer->m_normalTexture->Bind(); break;
 	case 4: m_gBuffer->m_positionTexture->Bind(); break;
-	case 5: m_ssaoTexture->Bind(); break;
+	case 5: m_ssaoRenderer->m_textureBlur->Bind(); break;
 	}
 	m_quad->Draw();
 
@@ -421,7 +377,7 @@ void RenderingPipeline::Render() {
 				if (ImGui::ImageButton((void*)m_gBuffer->m_normalTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 3;
 				if (ImGui::ImageButton((void*)m_gBuffer->m_positionTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 4;
 				ImGui::SameLine();
-				if (ImGui::ImageButton((void*)m_ssaoTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 5;
+				if (ImGui::ImageButton((void*)m_ssaoRenderer->GetTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 5;
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
@@ -434,12 +390,17 @@ void RenderingPipeline::Render() {
 			}
 		}
 
+		if (ImGui::CollapsingHeader("Camera")) {
+			m_camera->OnImGui();
+		}
+
 		ImGui::SliderFloat("Normal", &m_tileRenderer->material->m_normalStrength, 0, 10);
 		ImGui::SliderFloat("shineDamper", &a1, 0, 64);
-		ImGui::SliderFloat("bias", &bias, 0, 0.25f);
-		ImGui::SliderFloat("radius", &radius, 0, 25);
-		ImGui::SliderInt("power", &power, 0, 64);
+		ImGui::SliderFloat("bias", &m_ssaoRenderer->m_radius, 0, 25);
+		ImGui::SliderFloat("radius", &m_ssaoRenderer->m_bias, 0, 25);
+		ImGui::SliderInt("power", &m_ssaoRenderer->m_power, 0, 64);
 
+		if (ImGui::Checkbox("Perspective", &m_perspective)) m_lerpAmount = 0;
 		ImGui::End();
 		//auto a = ImGui::GetCurrentWindow();
 	}
@@ -499,7 +460,7 @@ void RenderingPipeline::Render() {
 
 
 void RenderingPipeline::RenderGeometry() {
-	model.Draw(m_geometryShader);
+	//model.Draw(m_geometryShader);
 }
 
 //#TODO properly resize fbos
@@ -511,15 +472,12 @@ void RenderingPipeline::Resize(uint width, uint height) {
 	if (m_hdrBuffer) {
 		delete m_hdrBuffer;
 		delete m_hdrTexture;
-		m_hdrTexture = new Texture(width, height, TextureParameters(RGBA, LINEAR, REPEAT, T_FLOAT));
+		m_hdrTexture = new Texture(width, height, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT));
 		m_hdrBuffer = new FrameBuffer("HDR", width, height);
 		m_hdrBuffer->AddColorBuffer(m_hdrTexture);
 	}
-	if (m_ssaoBuffer) {
-		delete m_ssaoBuffer;
-		delete m_ssaoTexture;
-		m_ssaoTexture = new Texture(width, height, TextureParameters(RGBA, LINEAR, REPEAT, T_FLOAT));
-		m_ssaoBuffer = new FrameBuffer("SSAO", width, height);
-		m_ssaoBuffer->AddColorBuffer(m_ssaoTexture);
+	if (m_ssaoRenderer) {
+		delete m_ssaoRenderer;
+		m_ssaoRenderer = new SSAORenderer(width, height);
 	}
 }

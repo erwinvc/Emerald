@@ -31,7 +31,8 @@ void main()
 	vec3 color = 
 	_Diffuse * albedo.xyz * max(0.0, dot(normal.xyz, l)) +
 	_Specular * pow(max(0.0, dot(h, normal)), 32.0) +
-	_Ambient * ssao * albedo.xyz;
+	_Ambient * albedo.xyz;
 
-	OutColor = vec4(color * _Color.rgb, 1.0);
+	vec3 finalColor = mix(color * _Color.rgb * ssao, albedo, misc.y);
+	OutColor = vec4(finalColor, 1.0);
 }

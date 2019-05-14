@@ -3,16 +3,18 @@
 class Thread {
 private:
     String m_name;
-    HANDLE m_thread;
-    atomic<bool> m_shutDown;
-public:
-    Thread() : m_name(""), m_thread(INVALID_HANDLE_VALUE), m_shutDown(false) {}
-    Thread(String name) : m_name(name), m_thread(INVALID_HANDLE_VALUE), m_shutDown(false) {}
+    HANDLE m_handle;
+	atomic<bool> m_shutDown = false;
+	atomic<bool> m_finished = false;
 
-    void SetHandle(HANDLE handle) { m_thread = handle; }
-    HANDLE GetHandle() { return m_thread; };
+	friend class ThreadManager;
+public:
+    Thread() : m_name(""), m_handle(INVALID_HANDLE_VALUE) {}
+    Thread(String name) : m_name(name), m_handle(INVALID_HANDLE_VALUE) {}
+
+    HANDLE GetHandle() { return m_handle; };
     void Shutdown() { m_shutDown = true; }
-    bool IsShutdown() { return m_shutDown; }
+    bool IsFinished() { return m_finished; }
 
     String GetName() { return m_name; }
     void SetName(String& name) { m_name = name; }

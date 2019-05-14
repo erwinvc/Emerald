@@ -5,7 +5,7 @@ private:
     uint m_componentCount;
     GLfloat* m_data;
 public:
-    Buffer(GLfloat* data, uint count, uint componentCount, GLenum usage = GL_DYNAMIC_DRAW);
+    Buffer(GLfloat* data, uint count, uint componentCount, GLenum usage = GL_STATIC_DRAW);
     ~Buffer();
 
     inline uint GetComponentCount() { return m_componentCount; }

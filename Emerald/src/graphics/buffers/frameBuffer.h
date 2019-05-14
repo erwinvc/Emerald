@@ -33,7 +33,7 @@ private:
     void Initialize();
 	bool CheckStatus();
 public:
-    FrameBuffer(String name, uint width, uint height, Color& clearColor = Color(1, 0, 0)) : m_name(m_name), m_width(width), m_height(height), m_color(clearColor) { Initialize(); }
+    FrameBuffer(String name, uint width, uint height, Color& clearColor = Color(1, 0, 0)) : m_name(name), m_width(width), m_height(height), m_color(clearColor) { Initialize(); }
     ~FrameBuffer() {
         GL(glDeleteFramebuffers(1, &m_fbo));
     }

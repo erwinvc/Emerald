@@ -345,3 +345,11 @@ Matrix4 Matrix4::Transpose(const Matrix4& matrix) {
 		Vector4(matrix.rows[0].w, matrix.rows[1].w, matrix.rows[2].w, matrix.rows[3].w)
 	);
 }
+
+Matrix4 Matrix4::Lerp(const Matrix4& from, const Matrix4& to, float amount)
+{
+	Matrix4 ret = Matrix4::Identity();
+	for (int i = 0; i < 16; i++)
+		ret.elements[i] = Math::Lerp(from.elements[i], to.elements[i], amount);
+	return ret;
+}
