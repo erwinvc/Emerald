@@ -57,7 +57,7 @@ private:
     }
 
     void LoadMaterials(const aiScene *scene) {
-        for (int i = 0; i < scene->mNumMaterials; i++) {
+        for (int i = 0; i < (int)scene->mNumMaterials; i++) {
             aiMaterial* mat = scene->mMaterials[i];
             if (mat->GetTextureCount(aiTextureType_AMBIENT) > 0) {
                 aiString path;

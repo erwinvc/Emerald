@@ -50,6 +50,7 @@ using namespace std;
 #include "math/vector4.h"
 #include "math/matrix4.h"
 #include "math/mathFunctions.h"
+#include "math/groundRaycast.h"
 
 #include "util/singleton.h"
 #include "util/types.h"

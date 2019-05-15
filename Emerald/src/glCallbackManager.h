@@ -2,6 +2,10 @@
 
 class GLCallbackManager : public Singleton<GLCallbackManager> {
 private:
+	GLCallbackManager() {}
+	~GLCallbackManager() {}
+	friend Singleton;
+
     vector<function<void(int, int)>>            m_onResizeCallbacks;
     vector<function<void()>>                    m_onCloseCallbacks;
     vector<function<void(int, int, int, int)>>  m_onKeyCallbacks;
@@ -45,5 +49,5 @@ public:
 };
 
 static GLCallbackManager* GetGLCallbackManager() {
-    return &GLCallbackManager::GetInstance();
+    return GLCallbackManager::GetInstance();
 }

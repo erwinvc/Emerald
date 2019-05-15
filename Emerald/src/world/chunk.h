@@ -11,7 +11,7 @@ public:
 		if (m_populated) return;
 		loop(y, 16) {
 			loop(x, 16) {
-				m_tiles[y][x] = Tile(SLOPE);
+				m_tiles[y][x] = Tile(Math::RandomInt(0, 4));
 			}
 		}
 		m_populated = true;

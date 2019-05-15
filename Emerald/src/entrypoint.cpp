@@ -1,12 +1,9 @@
 #include "stdafx.h"
 
-Application* app;
-
 int main() {
-    srand((UINT)time(NULL));
+    srand((uint)time(NULL));
     Logger::Initialize();
-    app = GetApplication();
-    app->Run();
-    app->Cleanup();
+	GetApplication()->Run();
+	GetApplication()->Cleanup();
     Logger::Cleanup();
 }

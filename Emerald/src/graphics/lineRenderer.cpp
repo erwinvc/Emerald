@@ -69,11 +69,11 @@ void LineRenderer::End() {
 	m_started = false;
 	m_ended = true;
 }
-void LineRenderer::Draw(Matrix4& projection, Matrix4& view) {
+void LineRenderer::Draw() {
 	ASSERT(m_ended, "Call Renderer::End before calling Renderer::Draw");
 	m_shader->Bind();
-	m_shader->Set("projectionMatrix", projection);
-	m_shader->Set("viewMatrix", view);
+	m_shader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
+	m_shader->Set("viewMatrix", GetCamera()->GetViewMatrix());
 
 	m_lineBuffer->Bind();
 	glEnableVertexAttribArray(1);

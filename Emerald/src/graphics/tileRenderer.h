@@ -11,7 +11,7 @@ private:
 public:
     Material* material;
     TileRenderer() { Initialize(); }
-    void Begin(Camera* cam, Matrix4& proj);
+    void Begin();
 	void Submit(Tile& tile, int x, int y);
     void Submit(Tile& tile, Vector2& position);
     void Draw();

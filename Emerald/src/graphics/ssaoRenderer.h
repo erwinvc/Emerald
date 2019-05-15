@@ -9,19 +9,11 @@ public:
 	int m_power = 1;
 
 	SSAORenderer(uint width, uint height) { Initialize(width, height); }
-	~SSAORenderer() {
-		delete m_fbo;
-		delete m_fboBlur;
-		delete m_texture;
-		delete m_textureBlur;
-		delete m_noiseTexture;
-		delete m_shader;
-		delete m_shaderBlur;
-		delete m_quad;
-	}
+	~SSAORenderer();
 
-	void Render(GBuffer* gBuffer, const Matrix4& projection, Camera* camera);
+	void Render(GBuffer* gBuffer);
 	Texture* GetTexture() { return m_textureBlur; }
+	Texture* GetRawTexture() { return m_texture; }
 private:
 	FrameBuffer* m_fbo;
 	FrameBuffer* m_fboBlur;

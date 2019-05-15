@@ -8,21 +8,8 @@ public:
     void Initialize() {
 		//#TODO Use texture class
         Byte bytes[] = { 0, 0, 0, -8, -8, 8, -8, -8,-8, 8, -8, -8, 0, 0, 0, -8 };
-        uint texID;
-        glGenTextures(1, &texID);
-        glBindTexture(GL_TEXTURE_2D, texID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.4f);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        m_nullTexture = new Texture(texID, 2, 2);
+		m_nullTexture = new Texture(2, 2, bytes, TextureParameters(RGBA, NEAREST, REPEAT));
         LOG("[~gTexture~x] Texture manager initialized");
     }
     void AddTexture(String name, Texture* texture) {

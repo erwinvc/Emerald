@@ -173,7 +173,6 @@ void Deferred::Initialize(Window* window, FreeCam& camera) {
     pointLightShader = new Shader("Pointlight", "src/shader/pointlightVert.glsl", "src/shader/pointlightFrag.glsl");
 
     gBuffer = new GBuffer(1920, 1080);
-    gBuffer->SetClearColor(Color(0.0f, 0.0f, 0.3f, 1.0f));
 
     model.LoadModel("sponza/sponza.obj");
     //model2.LoadModel("fern/2.obj");

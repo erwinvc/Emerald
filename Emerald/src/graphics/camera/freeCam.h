@@ -3,8 +3,11 @@
 class FreeCam : public Camera {
 private:
 public:
+	FreeCam(float fov, float aspectRatio, float nearPlane, float farPlane) : Camera(fov, aspectRatio, nearPlane, farPlane) {}
+
     const float movementSpeed = 10;
 
+	void FixedUpdate() {}
     void Update(const TimeStep& time) {
         float speed = movementSpeed * time.GetSeconds();
         if (KeyDown(LSHIFT)) speed *= 10;
@@ -22,6 +25,8 @@ public:
             m_rotation.y -= GetMouse()->GetDelta().x * 0.005f;
             m_rotation.x = Math::Clamp(m_rotation.x - GetMouse()->GetDelta().y * 0.005f, -Math::HALF_PI, Math::HALF_PI);
         }
+
+		UpdateViewMatrix();
     }
 
 };

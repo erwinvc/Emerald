@@ -4,7 +4,7 @@ class Renderer {
 private:
     bool m_started;
     bool m_ended;
-    const uint MAX_OBJECTS = 1000000;
+    const int MAX_OBJECTS = 1000000;
     VertexArray* m_vao;
     IndexBuffer* m_ibo;
     Buffer* m_offsets;

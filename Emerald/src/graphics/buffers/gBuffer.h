@@ -16,10 +16,6 @@ public:
     GBuffer(uint width, uint height) : m_width(width), m_height(height) { Initialize(); }
     GBuffer::~GBuffer() {
         delete m_fbo;
-        delete m_miscTexture;
-        delete m_colorTexture;
-        delete m_normalTexture;
-        delete m_positionTexture;
     }
 
     void BindTextures();
@@ -30,10 +26,6 @@ public:
 
     void Clear() {
         m_fbo->Clear();
-    }
-
-    void SetClearColor(Color& color) {
-        m_fbo->SetClearColor(color);
     }
 
     void Unbind() {

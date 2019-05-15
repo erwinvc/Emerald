@@ -5,7 +5,7 @@ private:
     bool m_started;
     bool m_ended;
     Mesh* m_mesh = nullptr;
-    const uint MAX_OBJECTS = 65536;
+    const int MAX_OBJECTS = 65536;
     Buffer* m_offsetsBuffer = nullptr;
     int m_amount = 0;
     Vector2* m_offsets = nullptr;

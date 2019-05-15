@@ -30,8 +30,8 @@ void InstancedRenderer2D::Submit(int x, int y) {
 		return;
 	}
 	//shorten
-	m_offsetsPtr->x = x;
-	m_offsetsPtr->y = y;
+	m_offsetsPtr->x = (float)x;
+	m_offsetsPtr->y = (float)y;
 	m_offsetsPtr++;
 	m_amount++;
 }

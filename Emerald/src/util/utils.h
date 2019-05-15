@@ -49,8 +49,8 @@ namespace Utils {
 	}
 
 	static void DoTimedFunction(int* timer, int timeMS, function<void()> function) {
-		if (*timer < GetTickCount()) {
-			*timer = GetTickCount() + timeMS;
+		if (*timer < (int)GetTickCount()) {
+			*timer = (int)GetTickCount() + timeMS;
 			function();
 		}
 	}
@@ -82,5 +82,12 @@ namespace GLUtils {
 		default:												return "unkown Framebuffer Object error";
 		}
 	}
+}
 
+namespace ImGui {
+	static void Tooltip(String_t tooltip) {
+		if (ImGui::IsItemHovered() && GImGui->HoveredIdTimer > 0.5f) {
+			ImGui::SetTooltip(tooltip);
+		}
+	}
 }

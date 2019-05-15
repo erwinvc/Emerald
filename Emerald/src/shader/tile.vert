@@ -21,7 +21,12 @@ void main()
 	if (dot(cross(vsNormal, tangent), vsBitangents) < 0.0f) tangent *= -1.0f;
     tbnMatrix = mat3(tangent, vsBitangents, vsNormal);
 
-	fsPos = vec3(vsPos.x + vsPosition.x, vsPos.y, vsPos.z + vsPosition.y);
+	mat3 scale = mat3(
+	0.01f, 0, 0, 0, 0.01f, 0, 0, 0, 0.01f
+	);
+
+	vec3 pos = vsPos * scale;
+	fsPos = vec3(pos.x + vsPosition.x, pos.y, pos.z + vsPosition.y);
 
 	fsNormal = vsNormal;
 	fsUv = vsUv;

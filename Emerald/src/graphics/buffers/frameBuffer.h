@@ -4,12 +4,13 @@ class Texture;
 
 class FrameBuffer {
 private:
+	vector<Texture*> m_textures;
 	String m_name;
 	uint m_colorAttachments = 0;
-    uint m_fbo = 0;
-    uint m_dbo = 0;
-    uint m_width, m_height;
-    Color m_color;
+	uint m_fbo = 0;
+	uint m_dbo = 0;
+	uint m_width, m_height;
+	Color m_color;
 
 	GLenum drawBuffers[16] = {
 	GL_COLOR_ATTACHMENT0,
@@ -30,29 +31,27 @@ private:
 	GL_COLOR_ATTACHMENT15
 	};
 
-    void Initialize();
+	void Initialize();
 	bool CheckStatus();
 public:
-    FrameBuffer(String name, uint width, uint height, Color& clearColor = Color(1, 0, 0)) : m_name(name), m_width(width), m_height(height), m_color(clearColor) { Initialize(); }
-    ~FrameBuffer() {
-        GL(glDeleteFramebuffers(1, &m_fbo));
-    }
+	FrameBuffer(String name, uint width, uint height, Color& clearColor = Color::Black()) : m_name(name), m_width(width), m_height(height), m_color(clearColor) { Initialize(); }
+	~FrameBuffer();
 
 	void AddColorBuffer(Texture* texture);
 
-    void Bind() {
-        GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
-        GL(glViewport(0, 0, m_width, m_height));
-    }
-    void Unbind() {
-        GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-    }
-    void Clear() {
-        GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
-        GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    }
+	void Bind() {
+		GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
+		GL(glViewport(0, 0, m_width, m_height));
+	}
+	void Unbind() {
+		GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	}
+	void Clear() {
+		GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
+		GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	}
 
-    inline uint GetWidth() { return m_width; }
-    inline uint GetHeight() { return m_height; }
-    inline void SetClearColor(Color& color) { m_color = color; }
+	inline uint GetWidth() { return m_width; }
+	inline uint GetHeight() { return m_height; }
+	inline void SetClearColor(Color& color) { m_color = color; }
 };

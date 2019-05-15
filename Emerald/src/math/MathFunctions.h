@@ -91,6 +91,9 @@ namespace Math {
 		return r * max;
 	}
 
+	/// <summary> Generates a random integer </summary>
+	/// <param name="min"> Inclusive minimum </param>
+	/// <param name="max"> Inclusive maxmimum </param>
     inline int RandomInt(int min, int max) {
         return min + rand() % ((max + 1) - min);
     }

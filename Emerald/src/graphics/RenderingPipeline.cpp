@@ -15,7 +15,7 @@ struct Light {
 
 };
 
-//static Model model;
+static Model model;
 
 static Light* currentLight;
 static vector<Light> lights;
@@ -52,7 +52,6 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	//Deferred
 	//#Dirty get window size from config?
 	m_gBuffer = new GBuffer(1920, 1080);
-	m_gBuffer->SetClearColor(Color(0.0f, 0.0f, 0.3f, 1.0f));
 
 	//#Dirty add proper shader asset loading
 	m_geometryShader = new Shader("Geo", "src/shader/geoVert.glsl", "src/shader/geoFrag.glsl");
@@ -62,7 +61,7 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	//HDR
 	m_hdrShader = new Shader("HDR", "src/shader/hdr.vert", "src/shader/hdr.frag");
 	m_hdrTexture = new Texture(1920, 1080, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT));
-	m_hdrBuffer = new FrameBuffer("HDR", 1920, 1080, Color(0.0f, 0.0f, 0.3f, 1.0f));
+	m_hdrBuffer = new FrameBuffer("HDR", 1920, 1080);
 	m_hdrBuffer->AddColorBuffer(m_hdrTexture);
 
 	//SSAO
@@ -73,9 +72,8 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	m_uiShader->Initialize();
 
 	float aspect = (float)(1920) / 1080;
-	m_perspectiveMatrix = Matrix4::Perspective(70, aspect, 0.01f, 1000.0f);
-	m_orthoMatrix = Matrix4::Orthographic(-500 * aspect, 500 * aspect, -500, 500, 0.001f, 100000.0f);
-	m_projectionMatrix = Matrix4::Perspective(70, aspect, 0.01f, 1000.0f);
+	m_camera = new FreeCam(70, aspect, 0.01f, 1000.0f);
+	//m_projectionMatrix = Matrix4::Perspective(70, aspect, 0.01f, 1000.0f);
 
 	//Shader variables
 	m_geometryShader->Bind();
@@ -96,7 +94,7 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 
 	m_quad = MeshGenerator::Quad();
 
-	//model.LoadModel("sponza/sponza.obj");
+	model.LoadModel("sponza/a.fbx");
 
 	uishader = new UIShader();
 	uishader->Initialize();
@@ -140,12 +138,13 @@ float a1 = 10;
 float a2 = 10;
 
 void RenderingPipeline::Update(const TimeStep& time) {
+	m_camera->Update(time);
 	if (ButtonJustDown(VK_MOUSE_MIDDLE)) {
 		m_pointlights.push_back(Pointlight(m_camera->m_position, 10, Color::RandomPrimary()));
 	}
 
-	m_lerpAmount = Math::Clamp(m_lerpAmount + time.GetSeconds(), 0.0f, 1.0f);
-	m_projectionMatrix = Matrix4::Lerp(m_projectionMatrix, m_perspective ? m_perspectiveMatrix : m_orthoMatrix, m_lerpAmount);
+	//m_lerpAmount = Math::Clamp(m_lerpAmount + time.GetSeconds(), 0.0f, 1.0f);
+	//m_projectionMatrix = Matrix4::Lerp(m_projectionMatrix, m_perspective ? m_perspectiveMatrix : m_orthoMatrix, m_lerpAmount);
 }
 void RenderingPipeline::Render() {
 	//m_pointlights[0].m_position = m_camera->m_position;
@@ -184,12 +183,12 @@ void RenderingPipeline::Render() {
 	m_gBuffer->Clear();
 	//f
 	m_geometryShader->Bind();
-	m_geometryShader->Set("projectionMatrix", m_projectionMatrix);
+	m_geometryShader->Set("projectionMatrix", m_camera->GetProjectionMatrix());
 	m_geometryShader->Set("viewMatrix", m_camera->GetViewMatrix());
 
-	//model.Draw(m_geometryShader);
+	model.Draw(m_geometryShader);
 
-	m_tileRenderer->Begin(m_camera, m_projectionMatrix);
+	m_tileRenderer->Begin();
 	m_gBuffer->BindTextures();
 
 	m_world->Draw(m_tileRenderer);
@@ -207,14 +206,14 @@ void RenderingPipeline::Render() {
 		GetLineRenderer()->Submit(0, 0, 0, 10, -10 + y, 10);
 	}
 	GetLineRenderer()->End();
-	GetLineRenderer()->Draw(m_projectionMatrix, m_camera->GetViewMatrix());
+	GetLineRenderer()->Draw();
 
 	m_gBuffer->Unbind();
 
 	GL(glDisable(GL_DEPTH_TEST));
 	GL(glFrontFace(GL_CW));
 
-	m_ssaoRenderer->Render(m_gBuffer, m_projectionMatrix, m_camera);
+	m_ssaoRenderer->Render(m_gBuffer);
 
 	GL(glFrontFace(GL_CCW));
 
@@ -254,7 +253,7 @@ void RenderingPipeline::Render() {
 	m_pointLightShader->Set("_GPosition", 3);
 	m_pointLightShader->Set("_SSAO", 4);
 
-	m_pointLightShader->Set("projectionMatrix", m_projectionMatrix);
+	m_pointLightShader->Set("projectionMatrix", m_camera->GetProjectionMatrix());
 	m_pointLightShader->Set("viewMatrix", m_camera->GetViewMatrix());
 	m_pointLightShader->Set("uCameraPos", m_camera->m_position);
 	m_pointLightShader->Set("shineDamper", a1);
@@ -284,7 +283,8 @@ void RenderingPipeline::Render() {
 	case 2: m_gBuffer->m_colorTexture->Bind(); break;
 	case 3: m_gBuffer->m_normalTexture->Bind(); break;
 	case 4: m_gBuffer->m_positionTexture->Bind(); break;
-	case 5: m_ssaoRenderer->m_textureBlur->Bind(); break;
+	case 5: m_ssaoRenderer->GetTexture()->Bind(); break;
+	case 6: m_ssaoRenderer->GetRawTexture()->Bind(); break;
 	}
 	m_quad->Draw();
 
@@ -369,15 +369,28 @@ void RenderingPipeline::Render() {
 			}
 
 			if (ImGui::TreeNode("Framebuffers")) {
+				
 				if (ImGui::ImageButton((void*)m_hdrTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 0;
+				ImGui::Tooltip("Final");
 				ImGui::SameLine();
 				if (ImGui::ImageButton((void*)m_gBuffer->m_miscTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 1;
+				ImGui::Tooltip("Misc");
 				if (ImGui::ImageButton((void*)m_gBuffer->m_colorTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 2;
+				ImGui::Tooltip("Color");
 				ImGui::SameLine();
 				if (ImGui::ImageButton((void*)m_gBuffer->m_normalTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 3;
+				ImGui::Tooltip("Normal");
 				if (ImGui::ImageButton((void*)m_gBuffer->m_positionTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 4;
-				ImGui::SameLine();
-				if (ImGui::ImageButton((void*)m_ssaoRenderer->GetTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 5;
+				ImGui::Tooltip("Position");
+
+				if (ImGui::TreeNode("SSAO")) {
+					if (ImGui::ImageButton((void*)m_ssaoRenderer->GetTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 5;
+					ImGui::Tooltip("SSAO blurred");
+					ImGui::SameLine();
+					if (ImGui::ImageButton((void*)m_ssaoRenderer->GetRawTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 6;
+					ImGui::Tooltip("SSAO raw");
+					ImGui::TreePop();
+				}
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
@@ -400,7 +413,7 @@ void RenderingPipeline::Render() {
 		ImGui::SliderFloat("radius", &m_ssaoRenderer->m_bias, 0, 25);
 		ImGui::SliderInt("power", &m_ssaoRenderer->m_power, 0, 64);
 
-		if (ImGui::Checkbox("Perspective", &m_perspective)) m_lerpAmount = 0;
+		//if (ImGui::Checkbox("Perspective", &m_perspective)) m_lerpAmount = 0;
 		ImGui::End();
 		//auto a = ImGui::GetCurrentWindow();
 	}
@@ -471,7 +484,6 @@ void RenderingPipeline::Resize(uint width, uint height) {
 	}
 	if (m_hdrBuffer) {
 		delete m_hdrBuffer;
-		delete m_hdrTexture;
 		m_hdrTexture = new Texture(width, height, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT));
 		m_hdrBuffer = new FrameBuffer("HDR", width, height);
 		m_hdrBuffer->AddColorBuffer(m_hdrTexture);

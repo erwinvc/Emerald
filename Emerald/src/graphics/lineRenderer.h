@@ -12,17 +12,19 @@ private:
 	Mesh* m_mesh;
 	Shader* m_shader;
 	void Initialize();
+
+	LineRenderer() { Initialize(); }
+	~LineRenderer();
+
+	friend Singleton;
 public:
 	void Begin();
 	void Submit(Vector3& begin, Vector3& end);
 	void Submit(float x1, float y1, float z1, float x2, float y2, float z2);
 	void End();
-	void Draw(Matrix4& projection, Matrix4& view);
-
-	LineRenderer() { Initialize(); }
-	~LineRenderer();
+	void Draw();
 };
 
 static LineRenderer* GetLineRenderer() {
-	return &LineRenderer::GetInstance();
+	return LineRenderer::GetInstance();
 }

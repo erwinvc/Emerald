@@ -155,9 +155,3 @@ bool Vector2I::operator>(const Vector2I& other) const {
 bool Vector2I::operator>=(const Vector2I& other) const {
     return x >= other.x && y >= other.y;
 }
-
-int Vector2I::Distance(const Vector2I& other) const {
-    int a = x - other.x;
-    int b = y - other.y;
-    return Math::Sqrt(a * a + b * b);
-}

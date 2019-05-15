@@ -3,19 +3,19 @@
 void TileRenderer::Initialize() {
 	m_shader = new Shader("Tile", "src/shader/tile.vert", "src/shader/tile.frag");
 	Model* full = new Model();
-	full->LoadModel("tiles/Plane2.fbx");
+	full->LoadModel("tiles/Plane.fbx");
 
 	Model* inner = new Model();
-	inner->LoadModel("tiles/Inner Corner2.fbx");
+	inner->LoadModel("tiles/Inner Corner.fbx");
 
 	Model* outer = new Model();
-	outer->LoadModel("tiles/Outer Corner2.fbx");
+	outer->LoadModel("tiles/Outer Corner.fbx");
 
 	Model* slope = new Model();
-	slope->LoadModel("tiles/Slope2.fbx");
+	slope->LoadModel("tiles/Slope.fbx");
 
 	Model* valley = new Model();
-	valley->LoadModel("tiles/Valley2.fbx");
+	valley->LoadModel("tiles/Valley.fbx");
 
 	Texture* t = new Texture("res/white.png");
 	Texture* n = new Texture("sponza/bricksNormal.png");
@@ -36,11 +36,11 @@ void TileRenderer::Initialize() {
 	m_renderers[4] = new InstancedRenderer2D(valley->GetMeshes()[valley->GetMeshes().size() - 1]);
 }
 
-void TileRenderer::Begin(Camera* cam, Matrix4& proj/*#TODO Dirty*/) {
+void TileRenderer::Begin() {
 	m_shader->Reload();
 	m_shader->Bind();
-	m_shader->Set("viewMatrix", cam->GetViewMatrix());
-	m_shader->Set("projectionMatrix", proj);
+	m_shader->Set("viewMatrix", GetCamera()->GetViewMatrix());
+	m_shader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("uDiffTex", 0);
 	m_shader->Set("uBumpTex", 1);
 	for (int i = 0; i < 5; i++) {

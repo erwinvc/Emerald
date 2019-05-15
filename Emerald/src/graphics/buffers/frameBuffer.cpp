@@ -1,5 +1,10 @@
 #include "stdafx.h"
 
+FrameBuffer::~FrameBuffer() {
+	GL(glDeleteFramebuffers(1, &m_fbo));
+	for (Texture* tex : m_textures) delete tex;
+}
+
 bool FrameBuffer::CheckStatus() {
 	GL(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -22,6 +27,7 @@ void FrameBuffer::Initialize() {
 }
 
 void FrameBuffer::AddColorBuffer(Texture* texture) {
+	m_textures.push_back(texture);
 	Bind();
 
 	GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->GetHandle(), 0));
