@@ -1,25 +1,25 @@
 #include "stdafx.h"
 
 void TileRenderer::Initialize() {
-	m_shader = new Shader("Tile", "src/shader/tile.vert", "src/shader/tile.frag");
-	Model* full = new Model();
+	m_shader = NEW(Shader("Tile", "src/shader/tile.vert", "src/shader/tile.frag"));
+	Model* full = NEW(Model());
 	full->LoadModel("tiles/Plane.fbx");
 
-	Model* inner = new Model();
+	Model* inner = NEW(Model());
 	inner->LoadModel("tiles/Inner Corner.fbx");
 
-	Model* outer = new Model();
+	Model* outer = NEW(Model());
 	outer->LoadModel("tiles/Outer Corner.fbx");
 
-	Model* slope = new Model();
+	Model* slope = NEW(Model());
 	slope->LoadModel("tiles/Slope.fbx");
 
-	Model* valley = new Model();
+	Model* valley = NEW(Model());
 	valley->LoadModel("tiles/Valley.fbx");
 
-	Texture* t = new Texture("res/white.png");
-	Texture* n = new Texture("sponza/bricksNormal.png");
-	Material* m = new Material();
+	Texture* t = NEW(Texture("res/white.png"));
+	Texture* n = NEW(Texture("sponza/bricksNormal.png"));
+	Material* m = NEW(Material());
 	m->SetAlbedo(t)->SetNormal(n);
 
 	material = m;
@@ -29,20 +29,20 @@ void TileRenderer::Initialize() {
 	slope->GetMeshes()[slope->GetMeshes().size() - 1]->SetMaterial(m);
 	valley->GetMeshes()[valley->GetMeshes().size() - 1]->SetMaterial(m);
 
-	m_renderers[0] = new InstancedRenderer2D(full->GetMeshes()[full->GetMeshes().size() - 1]);
-	m_renderers[1] = new InstancedRenderer2D(inner->GetMeshes()[inner->GetMeshes().size() - 1]);
-	m_renderers[2] = new InstancedRenderer2D(outer->GetMeshes()[outer->GetMeshes().size() - 1]);
-	m_renderers[3] = new InstancedRenderer2D(slope->GetMeshes()[slope->GetMeshes().size() - 1]);
-	m_renderers[4] = new InstancedRenderer2D(valley->GetMeshes()[valley->GetMeshes().size() - 1]);
+	m_renderers[0] = NEW(InstancedRenderer2D(full->GetMeshes()[full->GetMeshes().size() - 1]));
+	m_renderers[1] = NEW(InstancedRenderer2D(inner->GetMeshes()[inner->GetMeshes().size() - 1]));
+	m_renderers[2] = NEW(InstancedRenderer2D(outer->GetMeshes()[outer->GetMeshes().size() - 1]));
+	m_renderers[3] = NEW(InstancedRenderer2D(slope->GetMeshes()[slope->GetMeshes().size() - 1]));
+	m_renderers[4] = NEW(InstancedRenderer2D(valley->GetMeshes()[valley->GetMeshes().size() - 1]));
 }
 
 void TileRenderer::Begin() {
 	m_shader->Reload();
 	m_shader->Bind();
+	m_shader->Set("_Boundaries", GetWorld()->GetBoundaries().GetCornerPositions());
 	m_shader->Set("viewMatrix", GetCamera()->GetViewMatrix());
 	m_shader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
-	m_shader->Set("uDiffTex", 0);
-	m_shader->Set("uBumpTex", 1);
+
 	for (int i = 0; i < 5; i++) {
 		m_renderers[i]->Begin();
 	}

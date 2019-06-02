@@ -15,7 +15,7 @@ public:
 
     GBuffer(uint width, uint height) : m_width(width), m_height(height) { Initialize(); }
     GBuffer::~GBuffer() {
-        delete m_fbo;
+        DELETE(m_fbo);
     }
 
     void BindTextures();

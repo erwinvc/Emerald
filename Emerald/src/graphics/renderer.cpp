@@ -7,7 +7,7 @@ Renderer::~Renderer() {
 }
 
 Renderer::Renderer(int numvertices, int numindices, float* vertices, float* normals, float* texcoords, float* tangents, uint* indices) : m_started(false), m_ended(false), m_amount(0), m_numindices(numindices), m_offsetsTempBuffer(nullptr), m_offsetsPtr(nullptr) {
-    m_offsetsTempBuffer = new Vector3[MAX_OBJECTS];
+	m_offsetsTempBuffer = new Vector3[MAX_OBJECTS];
 
     for (int i = 0; i < MAX_OBJECTS; i++) {
         m_offsetsTempBuffer[i].x = Math::RandomFloat(-1, 1);
@@ -15,16 +15,16 @@ Renderer::Renderer(int numvertices, int numindices, float* vertices, float* norm
         m_offsetsTempBuffer[i].z = Math::RandomFloat(-1, 1);
     }
 
-    m_vao = new VertexArray();
-    m_vao->AddBuffer(new Buffer(vertices, numvertices * 3, 3), 0, false);
-    m_vao->AddBuffer(new Buffer(texcoords, numvertices * 2, 2), 1, false);
-    m_vao->AddBuffer(new Buffer(normals, numvertices * 3, 3), 2, false);
-    m_vao->AddBuffer(new Buffer(tangents, numvertices * 3, 3), 3, false);
-    m_offsets = new Buffer((float*)m_offsetsTempBuffer, MAX_OBJECTS * 3, 3, GL_DYNAMIC_DRAW);
+    m_vao = NEW(VertexArray());
+    m_vao->AddBuffer(NEW(Buffer(vertices, numvertices * 3, 3)), 0, false);
+    m_vao->AddBuffer(NEW(Buffer(texcoords, numvertices * 2, 2)), 1, false);
+    m_vao->AddBuffer(NEW(Buffer(normals, numvertices * 3, 3)), 2, false);
+    m_vao->AddBuffer(NEW(Buffer(tangents, numvertices * 3, 3)), 3, false);
+    m_offsets = NEW(Buffer((float*)m_offsetsTempBuffer, MAX_OBJECTS * 3, 3, GL_DYNAMIC_DRAW));
 
     m_vao->AddBuffer(m_offsets, 4, true);
 
-    m_ibo = new IndexBuffer(indices, numindices);
+    m_ibo = NEW(IndexBuffer(indices, numindices));
 }
 
 void Renderer::Begin() {

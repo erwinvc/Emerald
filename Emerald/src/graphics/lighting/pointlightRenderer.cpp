@@ -2,15 +2,15 @@
 
 //#Dirty using mesh to access vao & ibo?
 PointlightRenderer::~PointlightRenderer() {
-    delete m_mesh;
-    delete m_pointlights;
+	DELETE(m_mesh);
+    DELETE(m_pointlights);
 }
 
 PointlightRenderer::PointlightRenderer(Mesh* mesh, int maxLights) : m_mesh(mesh) {
     ASSERT(maxLights <= MAX_LIGHTS, "[Rendering] Too many lights. Engine max is 32768")
-    m_pointlights = new Pointlight[MAX_LIGHTS];
+    m_pointlights = NEW(Pointlight[MAX_LIGHTS]);
 
-    m_pointlightBuffer = new Buffer((float*)m_pointlights, MAX_LIGHTS / 4 * sizeof(Pointlight), 8, GL_DYNAMIC_DRAW);
+    m_pointlightBuffer = NEW(Buffer((float*)m_pointlights, MAX_LIGHTS / 4 * sizeof(Pointlight), 8, GL_DYNAMIC_DRAW));
     m_mesh->GetVAO()->AddBuffer(m_pointlightBuffer, 1, true);
 }
 

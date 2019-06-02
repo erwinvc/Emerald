@@ -2,17 +2,14 @@
 
 class Window;
 
-class ImGuiManager {
+class ImGuiManager : public Singleton<ImGuiManager> {
 private:
-    static ImGuiManager* g_instance;
-    float m_time;
+    float m_time = 0;
 public:
-    static ImGuiManager* GetInstance() {
-        if (!g_instance) g_instance = new ImGuiManager();
-        return g_instance;
-    }
+	ImGuiManager() {}
+	~ImGuiManager() {}
+	friend Singleton;
 
-    ImGuiManager() : m_time(0) {}
     void Initialize(Window* window);
     void Begin();
     void End();

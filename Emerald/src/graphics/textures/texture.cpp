@@ -4,7 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../stb_image.h"
 
-Texture::Texture(uint width, uint height, Byte* data, TextureParameters params) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path("") {
+Texture::Texture(uint width, uint height, byte* data, TextureParameters params) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path("") {
     Load(data);
 }
 
@@ -16,7 +16,7 @@ Texture::Texture(const String& path, TextureParameters params) : m_params(params
     int bpc;
 
     stbi_set_flip_vertically_on_load(1);
-    Byte* data = stbi_load(m_path.c_str(), (int*)&m_width, (int*)&m_height, &bpc, 4);
+    byte* data = stbi_load(m_path.c_str(), (int*)&m_width, (int*)&m_height, &bpc, 4);
 
     if (bpc != 3 && bpc != 4) {
         LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", bpc, path.c_str());
@@ -30,7 +30,7 @@ Texture::Texture(const String& path, TextureParameters params) : m_params(params
     } else LOG_ERROR("[~gTexture~x] Failed to load ~1%s", path.c_str());
 }
 
-void Texture::Load(Byte* data) {
+void Texture::Load(byte* data) {
     GL(glGenTextures(1, &m_textureID));
     GL(glBindTexture(GL_TEXTURE_2D, m_textureID));
 

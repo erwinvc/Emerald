@@ -5,14 +5,14 @@ private:
     struct BufferElement {
         String m_name;
         uint m_type;
-        Byte m_amount;
-        Byte m_size;
+        byte m_amount;
+        byte m_size;
         uint m_offset;
     };
 
     vector<BufferElement> m_elements;
     uint m_stride;
-    void PushInternal(const String& name, uint type, Byte count, Byte size);
+    void PushInternal(const String& name, uint type, byte count, byte size);
 
 public:
     BufferLayout();
@@ -28,7 +28,7 @@ public:
     template<> void Push<float>(const String& name);
     template<> void Push<int>(const String& name);
     template<> void Push<uint>(const String& name);
-    template<> void Push<Byte>(const String& name);
+    template<> void Push<byte>(const String& name);
 
     template<> void Push<Vector2>(const String& name);
     template<> void Push<Vector3>(const String& name);
@@ -51,8 +51,8 @@ void BufferLayout::Push<uint>(const String& name) {
 }
 
 template<>
-void BufferLayout::Push<Byte>(const String& name) {
-    PushInternal(name, GL_BYTE, 1, sizeof(Byte));
+void BufferLayout::Push<byte>(const String& name) {
+    PushInternal(name, GL_BYTE, 1, sizeof(byte));
 }
 
 template<>

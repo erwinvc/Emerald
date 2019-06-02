@@ -171,6 +171,11 @@ void Logger::MessageDirect(int color, const char* type, const char* fmt, ...) {
 
 	AddToQueue(color, buffer, type, time(nullptr));
 
+	ForceEmptyQueue();
+	__debugbreak();
+}
+
+void Logger::ForceEmptyQueue() {
 	m_outputThread->Shutdown();
 
 	while (!m_outputThread->IsFinished()) Sleep(0);
@@ -179,7 +184,6 @@ void Logger::MessageDirect(int color, const char* type, const char* fmt, ...) {
 		ProcessMessage(move(m_queue.front()));
 		m_queue.pop();
 	}
-	__debugbreak();
 }
 
 /*Print the message to a logging file*/
@@ -200,6 +204,7 @@ void Logger::LogToFile(const char * buff) {
 
 void Logger::Cleanup() {
 	if (!m_allocated) return;
-	LOG("[~gLogging] Deallocating console");
+	LOG("[~gLogging~x] Deallocating console");
+	ForceEmptyQueue();
 	PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
 }

@@ -9,6 +9,7 @@ struct Vector4 {
 	Vector4(float scalar);
 	Vector4(float x, float y, float z, float w);
 	Vector4(const Vector3& xyz, float w);
+	Vector4(const Vector2& v1, const Vector2& v2);
 
 	Vector4& Add(const Vector4& other);
 	Vector4& Subtract(const Vector4& other);

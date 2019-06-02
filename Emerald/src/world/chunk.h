@@ -17,6 +17,10 @@ public:
 		m_populated = true;
 	}
 
+	const Vector2I& GetPosition() {
+		return m_position;
+	}
+
 	void Draw(TileRenderer* renderer);
 
 	Chunk(int x, int y) : m_position(x, y) { Populate(); }

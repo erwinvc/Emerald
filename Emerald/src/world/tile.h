@@ -12,7 +12,7 @@ enum TileType{
 class Tile {
 public:
     TileType m_type;
-	Byte m_materialID;
+	byte m_materialID;
 
 	Tile() : m_type(EMPTY) {}
 	Tile(TileType type) : m_type(type) {}

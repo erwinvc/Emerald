@@ -1,12 +1,21 @@
 #include "stdafx.h"
 
-String va(String_t fmt, ...) {
+String_t Format_t(String_t fmt, ...) {
     char vaBuffer[0x200];
     va_list ap;
     va_start(ap, fmt);
     vsprintf_s(vaBuffer, fmt, ap);
     va_end(ap);
-    return String(vaBuffer);
+    return vaBuffer;
+}
+
+String Format(String_t fmt, ...) {
+	char vaBuffer[0x200];
+	va_list ap;
+	va_start(ap, fmt);
+	vsprintf_s(vaBuffer, fmt, ap);
+	va_end(ap);
+	return String(vaBuffer);
 }
 
 namespace Utils {

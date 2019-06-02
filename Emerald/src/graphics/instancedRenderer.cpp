@@ -5,9 +5,9 @@ InstancedRenderer::~InstancedRenderer() {
 }
 
 void InstancedRenderer::Initialize() {
-    m_offsets = new Vector3[MAX_OBJECTS];
+    m_offsets = NEWARRAY(Vector3, MAX_OBJECTS);
 
-    m_offsetsBuffer = new Buffer((float*)m_offsets, MAX_OBJECTS * 3, 3, GL_DYNAMIC_DRAW);
+    m_offsetsBuffer = NEW(Buffer((float*)m_offsets, MAX_OBJECTS * 3, 3, GL_DYNAMIC_DRAW));
 
     m_mesh->GetVAO()->AddBuffer(m_offsetsBuffer, 4, true);
 }

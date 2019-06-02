@@ -12,7 +12,7 @@ uniform sampler2D _Specular;
 uniform float _SpecularStrength;
 uniform sampler2D _Emission;
 uniform float _EmissionStrength;
-
+uniform vec4 _Boundaries;
 out vec4 geoData[4];
 
 void main(){
@@ -32,6 +32,10 @@ void main(){
 	vec3 normal = mix(fsNormal, NewNormal, _NormalStrength);
 
 	vec3 specular = texture(_Specular, vec2(1, -1) * fsUv).rgb * _SpecularStrength;
+
+	float xDistance = (_Boundaries.y) - fsPos.y;
+	float xDistance2 = _Boundaries.z - fsPos.x;
+
 
 	geoData[0] = vec4(specular.r, 0, 0, 0);
 	geoData[1] = vec4(diff.rgb, 1);

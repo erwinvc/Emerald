@@ -2057,6 +2057,10 @@ bool ImGui::DragInt4(const char* label, int v[4], float v_speed, int v_min, int 
     return DragScalarN(label, ImGuiDataType_S32, v, 4, v_speed, &v_min, &v_max, format);
 }
 
+bool ImGui::DragInt64(const char* label, long long* v, float v_speed, long long v_min, long long v_max, const char* format) {
+	return DragScalar(label, ImGuiDataType_S64, v, v_speed, &v_min, &v_max, format);
+}
+
 bool ImGui::DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed, int v_min, int v_max, const char* format, const char* format_max)
 {
     ImGuiWindow* window = GetCurrentWindow();

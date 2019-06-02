@@ -12,6 +12,11 @@ Vector4::Vector4(const Vector3& xyz, float w)
 	: x(xyz.x), y(xyz.y), z(xyz.z), w(w) {
 }
 
+Vector4::Vector4(const Vector2& v1, const Vector2& v2)
+	: x(v1.x), y(v1.y), z(v2.x), w(v2.y) {
+}
+
+
 Vector4& Vector4::Add(const Vector4& other) {
 	x += other.x;
 	y += other.y;

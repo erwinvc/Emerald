@@ -1,15 +1,15 @@
 #include "stdafx.h"
 
 LayoutVertexArray::LayoutVertexArray(BufferLayout& layout, uint count) :m_layout(layout) {
-    m_buffer = new Buffer(nullptr, count, 0, GL_DYNAMIC_DRAW);
+    m_buffer = NEW(Buffer(nullptr, count, 0, GL_DYNAMIC_DRAW));
 }
 
 LayoutVertexArray::LayoutVertexArray(BufferLayout& layout, float* data, uint count) : m_layout(layout) {
-    m_buffer = new Buffer(data, count, 0, GL_STATIC_DRAW);
+    m_buffer = NEW(Buffer(data, count, 0, GL_STATIC_DRAW));
 }
 
 LayoutVertexArray::~LayoutVertexArray() {
-    delete m_buffer;
+    DELETE(m_buffer);
 }
 
 void LayoutVertexArray::Bind() {

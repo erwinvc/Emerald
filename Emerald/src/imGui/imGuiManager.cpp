@@ -1,7 +1,5 @@
 #include "stdafx.h"
 
-ImGuiManager* ImGuiManager::g_instance = nullptr;
-
 void ImGuiManager::Initialize(Window* window) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();

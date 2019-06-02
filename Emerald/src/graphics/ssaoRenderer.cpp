@@ -1,23 +1,23 @@
 #include "stdafx.h"
 SSAORenderer::~SSAORenderer() {
-	delete m_fbo;
-	delete m_fboBlur;
-	delete m_noiseTexture;
-	delete m_shader;
-	delete m_shaderBlur;
-	delete m_quad;
+	DELETE(m_fbo);
+	DELETE(m_fboBlur);
+	DELETE(m_noiseTexture);
+	DELETE(m_shader);
+	DELETE(m_shaderBlur);
+	DELETE(m_quad);
 }
 
 void SSAORenderer::Initialize(uint width, uint height) {
-	m_shader = new Shader("SSAO", "src/shader/ssao.vert", "src/shader/ssao.frag");
-	m_shaderBlur = new Shader("SSAO", "src/shader/ssao.vert", "src/shader/ssaoBlur.frag");
+	m_shader = NEW(Shader("SSAO", "src/shader/ssao.vert", "src/shader/ssao.frag"));
+	m_shaderBlur = NEW(Shader("SSAO", "src/shader/ssao.vert", "src/shader/ssaoBlur.frag"));
 
-	m_texture = new Texture(width, height, TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT));
-	m_fbo = new FrameBuffer("SSAO", width, height);
+	m_texture = NEW(Texture(width, height, TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT)));
+	m_fbo = NEW(FrameBuffer("SSAO", width, height));
 	m_fbo->AddColorBuffer(m_texture);
 
-	m_textureBlur = new Texture(width, height, TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT));
-	m_fboBlur = new FrameBuffer("SSAOBlur", width, height);
+	m_textureBlur = NEW(Texture(width, height, TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT)));
+	m_fboBlur = NEW(FrameBuffer("SSAOBlur", width, height));
 	m_fboBlur->AddColorBuffer(m_textureBlur);
 
 	for (int i = 0; i < KERNELCOUNT; ++i) {
@@ -35,7 +35,7 @@ void SSAORenderer::Initialize(uint width, uint height) {
 	for (unsigned int i = 0; i < 16; i++) {
 		ssaoNoise.push_back(Color(Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f) * 2.0f - 1.0f, 0.0f, 1));
 	}
-	m_noiseTexture = new Texture(4, 4, (Byte*)ssaoNoise.data(), TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT));
+	m_noiseTexture = NEW(Texture(4, 4, (byte*)ssaoNoise.data(), TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT)));
 
 	m_quad = MeshGenerator::Quad();
 
@@ -45,7 +45,7 @@ void SSAORenderer::Initialize(uint width, uint height) {
 	m_shader->Set("_Noise", 2);
 	m_shader->Set("_NoiseScale", GetApplication()->GetWindow()->GetWidth() / 4, GetApplication()->GetWindow()->GetHeight() / 4);
 	for (int i = 0; i < 64; i++) {
-		m_shader->Set(va("_Samples[%d]", i).c_str(), m_kernels[i]);
+		m_shader->Set(Format_t("_Samples[%d]", i), m_kernels[i]);
 	}
 
 	LOG("[~bEEngine~x] SSAO initialized");

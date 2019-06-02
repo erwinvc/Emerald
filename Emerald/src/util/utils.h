@@ -13,16 +13,10 @@ class Camera;
 			__debugbreak(); \
 }
 
-String va(String_t fmt, ...);
+String_t Format_t(String_t fmt, ...);
+String Format(String_t fmt, ...);
 
 namespace Utils {
-	//IO
-	static String ReadFile(String path) {
-		ifstream stream(path);
-		string str((istreambuf_iterator<char>(stream)), istreambuf_iterator<char>());
-		stream.close();
-		return str;
-	}
 
 	//String
 	static vector<String> Split(String& s, String splitter) {
@@ -37,6 +31,14 @@ namespace Utils {
 		return out;
 	}
 
+	static String_t GetShortFilename(const char* filename) {
+		const char* lastSlash = strrchr(filename, '/');
+		if (lastSlash == nullptr) {
+			lastSlash = strrchr(filename, '\\');
+		}
+		String_t shortFilename = lastSlash != nullptr ? lastSlash + 1 : filename;
+		return shortFilename;
+	}
 
 	static string ReplaceString(string subject, const string& search,
 		const string& replace) {
@@ -72,7 +74,7 @@ namespace GLUtils {
 	static String_t GetFBOStatus(GLenum status) {
 		switch (status) {
 		case GL_FRAMEBUFFER_COMPLETE_EXT:						return "no error";
-		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:			return "incomplete attachment"; 
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:			return "incomplete attachment";
 		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:	return "missing Attachment";
 		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:			return "dimensions do not match";
 		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:				return "formats error";

@@ -1,13 +1,13 @@
 #include "stdafx.h"
 
 void GBuffer::Initialize() {
-    m_fbo = new FrameBuffer("GBuffer", m_width, m_height);
+    m_fbo = NEW(FrameBuffer("GBuffer", m_width, m_height));
     m_fbo->Bind();
 
-    m_miscTexture = new Texture(m_width, m_height, TextureParameters(RGBA, LINEAR, REPEAT, T_UNSIGNED_BYTE));
-    m_colorTexture = new Texture(m_width, m_height, TextureParameters(RGBA, LINEAR, REPEAT, T_UNSIGNED_BYTE));
-    m_normalTexture = new Texture(m_width, m_height, TextureParameters(RGBA16, LINEAR, REPEAT, T_FLOAT));
-    m_positionTexture = new Texture(m_width, m_height, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT));
+    m_miscTexture = NEW(Texture(m_width, m_height, TextureParameters(RGBA, LINEAR, REPEAT, T_UNSIGNED_BYTE)));
+    m_colorTexture = NEW(Texture(m_width, m_height, TextureParameters(RGBA, LINEAR, REPEAT, T_UNSIGNED_BYTE)));
+    m_normalTexture = NEW(Texture(m_width, m_height, TextureParameters(RGBA16, LINEAR, REPEAT, T_FLOAT)));
+    m_positionTexture = NEW(Texture(m_width, m_height, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT)));
 
 	m_fbo->AddColorBuffer(m_miscTexture);
 	m_fbo->AddColorBuffer(m_colorTexture);

@@ -2,7 +2,8 @@
 
 FrameBuffer::~FrameBuffer() {
 	GL(glDeleteFramebuffers(1, &m_fbo));
-	for (Texture* tex : m_textures) delete tex;
+	LOG("Deleted %d texture", m_textures.size());
+	for (Texture* tex : m_textures) DELETE(tex);
 }
 
 bool FrameBuffer::CheckStatus() {

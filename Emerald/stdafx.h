@@ -1,8 +1,12 @@
 #pragma once
 
+#define _HAS_STD_BYTE 0
+//#define MEMORY_CHECK
+
 // Windows Header Files:
 #include <windows.h>
 #include <time.h>
+#include <fileapi.h>
 
 #include <string>
 #include <sstream>
@@ -34,7 +38,6 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_internal.h"
 #include "imgui_impl_opengl3.h"
-#include "imGui/imGuiManager.h"
 
 using namespace std;
 
@@ -49,18 +52,36 @@ using namespace std;
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/matrix4.h"
+#include "math/rect.h"
 #include "math/mathFunctions.h"
 #include "math/groundRaycast.h"
 
-#include "util/singleton.h"
 #include "util/types.h"
+#include "util/singleton.h"
+#include "imGui/imGuiManager.h"
+#include "util/memory.h"
+#include "util/fileSystem.h"
 #include "util/thread/threadManager.h"
+#include "util/utils.h"
 #include "util/logger.h"
 #include "util/color.h"
 #include "util/timestep.h"
 #include "util/timer.h"
-#include "util/utils.h"
 #include "util/glError.h"
+
+#undef DELETE
+
+#ifdef MEMORY_CHECK
+#define NEW(x) new (typeid(x).name()) x
+#define NEWARRAY(x, y) new (typeid(x).name()) x[y]
+#define DELETE(x) Destroy(x)
+#else
+#define NEW(x) new x
+#define NEWARRAY(x, y) new x[y]
+#define DELETE(x) delete x
+#endif
+
+//#define DELETEARRAY(x) DestroyArray(x)
 
 #include "glCallbackManager.h"
 

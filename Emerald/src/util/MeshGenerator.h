@@ -5,8 +5,8 @@ namespace MeshGenerator {
     /*Create a sphere with x amount of stacks and slices*/
    static Mesh* Sphere(int stacks = 20, int slices = 20) {
 
-        std::vector<GLfloat> positions;
-        std::vector<uint> indices;
+	   vector<GLfloat> positions;
+	   vector<uint> indices;
 
         for (int i = 0; i <= stacks; ++i) {
             float V = (float)i / (float)stacks;
@@ -36,10 +36,11 @@ namespace MeshGenerator {
             indices.push_back(GLuint(i + 1));
         }
 
-        VertexArray* sphereVAO = new VertexArray();
-        sphereVAO->AddBuffer(new Buffer(positions.data(), positions.size(), 3), 0, false);
+		shared_ptr<VertexArray> vao(new VertexArray());
+		shared_ptr<IndexBuffer> ibo(new IndexBuffer(indices.data(), indices.size()));
+		vao->AddBuffer(NEW(Buffer(positions.data(), positions.size(), 3)), 0, false);
 
-        return new Mesh(sphereVAO, new IndexBuffer(indices.data(), indices.size()));
+        return NEW(Mesh(vao, ibo));
     }
 
     /*Create a simple quad*/
@@ -50,9 +51,10 @@ namespace MeshGenerator {
                                 1,  1, 0,
                                 1, -1, 0 };
 
-        VertexArray* m_vao = new VertexArray();
-        m_vao->AddBuffer(new Buffer(vertices, NUMOF(vertices), 3), 0, false);
+		shared_ptr<VertexArray> vao(new VertexArray());
+		shared_ptr<IndexBuffer> ibo(new IndexBuffer(indices, NUMOF(indices)));
+		vao->AddBuffer(NEW(Buffer(vertices, NUMOF(vertices), 3)), 0, false);
 
-        return new Mesh(m_vao, new IndexBuffer(indices, NUMOF(indices)));
+		return NEW(Mesh(vao, ibo));
     }
 }

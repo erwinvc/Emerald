@@ -3,7 +3,7 @@
 ThreadManager g_threadManager;
 
 Thread* ThreadManager::RegisterThread(String name, void(*func)()) {
-	Thread* c_thread = new Thread(name);
+	Thread* c_thread = NEW(Thread(name));
 	UINT64* args = new UINT64[3]{ 0, (UINT64)c_thread, (UINT64)func };
 
 	c_thread->m_handle = CreateThread(0, 0, [](LPVOID lpFiberParameter) -> DWORD {
@@ -30,6 +30,7 @@ Thread* ThreadManager::RegisterThread(String name, void(*func)()) {
 void ThreadManager::Cleanup() {
 	for (auto& c_thread : m_threads) {
 		c_thread->Shutdown();
+		DELETE(c_thread);
 	}
 	m_conditionVariable.notify_all();
 

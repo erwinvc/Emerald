@@ -51,28 +51,28 @@ vector<t> tiles;
 void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	//Deferred
 	//#Dirty get window size from config?
-	m_gBuffer = new GBuffer(1920, 1080);
+	m_gBuffer = NEW(GBuffer(1920, 1080));
 
 	//#Dirty add proper shader asset loading
-	m_geometryShader = new Shader("Geo", "src/shader/geoVert.glsl", "src/shader/geoFrag.glsl");
-	m_directionalLightShader = new Shader("Directional", "src/shader/directionalVert.glsl", "src/shader/directionalFrag.glsl");
-	m_pointLightShader = new Shader("Pointlight", "src/shader/pointlightVert.glsl", "src/shader/pointlightFrag.glsl");
+	m_geometryShader = NEW(Shader("Geo", "src/shader/geoVert.glsl", "src/shader/geoFrag.glsl"));
+	m_directionalLightShader = NEW(Shader("Directional", "src/shader/directionalVert.glsl", "src/shader/directionalFrag.glsl"));
+	m_pointLightShader = NEW(Shader("Pointlight", "src/shader/pointlightVert.glsl", "src/shader/pointlightFrag.glsl"));
 
 	//HDR
-	m_hdrShader = new Shader("HDR", "src/shader/hdr.vert", "src/shader/hdr.frag");
-	m_hdrTexture = new Texture(1920, 1080, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT));
-	m_hdrBuffer = new FrameBuffer("HDR", 1920, 1080);
+	m_hdrShader = NEW(Shader("HDR", "src/shader/hdr.vert", "src/shader/hdr.frag"));
+	m_hdrTexture = NEW(Texture(1920, 1080, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT)));
+	m_hdrBuffer = NEW(FrameBuffer("HDR", 1920, 1080));
 	m_hdrBuffer->AddColorBuffer(m_hdrTexture);
 
 	//SSAO
-	m_ssaoRenderer = new SSAORenderer(1920, 1080);
+	m_ssaoRenderer = NEW(SSAORenderer(1920, 1080));
 
 	//UI
-	m_uiShader = new UIShader();
+	m_uiShader = NEW(UIShader());
 	m_uiShader->Initialize();
 
 	float aspect = (float)(1920) / 1080;
-	m_camera = new FreeCam(70, aspect, 0.01f, 1000.0f);
+	m_camera = NEW(FreeCam(70, aspect, 0.01f, 1000.0f));
 	//m_projectionMatrix = Matrix4::Perspective(70, aspect, 0.01f, 1000.0f);
 
 	//Shader variables
@@ -90,13 +90,13 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	m_pointLightShader->Set("uPositionTex", 2);
 	m_pointLightShader->Set("ssao", 3);
 
-	m_pointlightRenderer = new PointlightRenderer(MeshGenerator::Sphere(lightQuality, lightQuality), maxLights);
+	m_pointlightRenderer = NEW(PointlightRenderer(MeshGenerator::Sphere(lightQuality, lightQuality), maxLights));
 
 	m_quad = MeshGenerator::Quad();
 
 	model.LoadModel("sponza/a.fbx");
 
-	uishader = new UIShader();
+	uishader = NEW(UIShader());
 	uishader->Initialize();
 
 	//int val = 10;
@@ -120,17 +120,15 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	//	}
 	//}
 
-    //m_pointlights.push_back(Pointlight(m_camera->m_position, 50, Color::White()));
+	//m_pointlights.push_back(Pointlight(m_camera->m_position, 50, Color::White()));
 
-	m_tileRenderer = new TileRenderer();
+	m_tileRenderer = NEW(TileRenderer());
 
 	for (int x = 0; x < 10; x++) {
 		for (int y = 0; y < 10; y++) {
 			tiles.emplace_back(Tile(FULL), Vector2(x, y));
 		}
 	}
-
-	m_world = new World();
 }
 
 
@@ -178,6 +176,7 @@ void RenderingPipeline::Render() {
 	GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
 	GL(glEnable(GL_CULL_FACE));
 	GL(glFrontFace(GL_CCW));
+
 	//Draw to gBuffer
 	m_gBuffer->Bind();
 	m_gBuffer->Clear();
@@ -188,10 +187,12 @@ void RenderingPipeline::Render() {
 
 	model.Draw(m_geometryShader);
 
+
 	m_tileRenderer->Begin();
 	m_gBuffer->BindTextures();
 
-	m_world->Draw(m_tileRenderer);
+	GetWorld()->Draw(m_tileRenderer);
+
 	//for (auto a : tiles) {
 	//	m_tileRenderer->Submit(a.tile, a.position);
 	//}
@@ -202,9 +203,11 @@ void RenderingPipeline::Render() {
 
 	GetLineRenderer()->Begin();
 
-	loop(y, 10) {
-		GetLineRenderer()->Submit(0, 0, 0, 10, -10 + y, 10);
-	}
+	Vector3 cast = m_rayCast.Get(m_camera);
+	Vector3& pos = m_rayCast.GetGroundPosition();
+	GetLineRenderer()->DrawRect(Rect(((int)pos.x + 0.5f), ((int)pos.z + 0.5f), 1, 1));
+	GetLineRenderer()->DrawRect(GetWorld()->GetBoundaries());
+
 	GetLineRenderer()->End();
 	GetLineRenderer()->Draw();
 
@@ -369,7 +372,7 @@ void RenderingPipeline::Render() {
 			}
 
 			if (ImGui::TreeNode("Framebuffers")) {
-				
+
 				if (ImGui::ImageButton((void*)m_hdrTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 0;
 				ImGui::Tooltip("Final");
 				ImGui::SameLine();
@@ -412,8 +415,14 @@ void RenderingPipeline::Render() {
 		ImGui::SliderFloat("bias", &m_ssaoRenderer->m_radius, 0, 25);
 		ImGui::SliderFloat("radius", &m_ssaoRenderer->m_bias, 0, 25);
 		ImGui::SliderInt("power", &m_ssaoRenderer->m_power, 0, 64);
-
+		if (ImGui::Button("Test")) {
+			Material* mat = NEW(Material());
+			Destroy(mat);
+		}
 		//if (ImGui::Checkbox("Perspective", &m_perspective)) m_lerpAmount = 0;
+
+		GetMemory()->OnImGui();
+
 		ImGui::End();
 		//auto a = ImGui::GetCurrentWindow();
 	}
@@ -479,17 +488,17 @@ void RenderingPipeline::RenderGeometry() {
 //#TODO properly resize fbos
 void RenderingPipeline::Resize(uint width, uint height) {
 	if (m_gBuffer) {
-		delete m_gBuffer;
-		m_gBuffer = new GBuffer(width, height);
+		DELETE(m_gBuffer);
+		m_gBuffer = NEW(GBuffer(width, height));
 	}
 	if (m_hdrBuffer) {
-		delete m_hdrBuffer;
-		m_hdrTexture = new Texture(width, height, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT));
-		m_hdrBuffer = new FrameBuffer("HDR", width, height);
+		DELETE(m_hdrBuffer);
+		m_hdrTexture = NEW(Texture(width, height, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT)));
+		m_hdrBuffer = NEW(FrameBuffer("HDR", width, height));
 		m_hdrBuffer->AddColorBuffer(m_hdrTexture);
 	}
 	if (m_ssaoRenderer) {
-		delete m_ssaoRenderer;
-		m_ssaoRenderer = new SSAORenderer(width, height);
+		DELETE(m_ssaoRenderer);
+		m_ssaoRenderer = NEW(SSAORenderer(width, height));
 	}
 }

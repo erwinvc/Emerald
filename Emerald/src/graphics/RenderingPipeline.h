@@ -13,7 +13,7 @@ private:
 	TileRenderer* m_tileRenderer;
 
 	SSAORenderer* m_ssaoRenderer;
-
+	GroundRaycast m_rayCast;
 	//HDR
 	bool m_applyPostProcessing = true;
 	FrameBuffer* m_hdrBuffer;
@@ -30,24 +30,22 @@ private:
 	bool m_perspective = true;
 	float m_lerpAmount = 0;
 
-	World* m_world;
 	void Initialize(int maxLights, int lightQuality);
 
 public:
 	RenderingPipeline(int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 20) { Initialize(maxLights, lightQuality); }
 	~RenderingPipeline() {
-		delete m_gBuffer;
-		delete m_geometryShader;
-		delete m_directionalLightShader;
-		delete m_pointLightShader;
-		delete m_pointlightRenderer;
-		delete m_tileRenderer;
-		delete m_ssaoRenderer;
-		delete m_hdrBuffer;
-		delete m_hdrShader;
-		delete m_quad;
-		delete m_uiShader;
-		delete m_world;
+		DELETE(m_gBuffer);
+		DELETE(m_geometryShader);
+		DELETE(m_directionalLightShader);
+		DELETE(m_pointLightShader);
+		DELETE(m_pointlightRenderer);
+		DELETE(m_tileRenderer);
+		DELETE(m_ssaoRenderer);
+		DELETE(m_hdrBuffer);
+		DELETE(m_hdrShader);
+		DELETE(m_quad);
+		DELETE(m_uiShader);
 	}
 
 	void Update(const TimeStep& time);

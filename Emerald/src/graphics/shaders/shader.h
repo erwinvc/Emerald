@@ -13,7 +13,7 @@ class Shader {
 
 	GLuint LoadShader(String path, GLuint type, bool disableLog) {
 		GL(uint shader = glCreateShader(type));
-		String source = Utils::ReadFile(path);
+		String source = FileSystem::ReadFile(path);
 		if (!disableLog && source.empty()) {
 			LOG_ERROR("[~bShaders~x] Failed to load %s shader %s", m_name.c_str(), GLUtils::ShaderTypeToString(type));
 			return -1;
@@ -70,7 +70,7 @@ class Shader {
 		static int timer;
 		auto it = m_uniforms.find(location);
 		if (it == m_uniforms.end()) {
-				//LOG_TIMED(250, "[~bSh3kiaders~x] Failed to find Uniform %s:%s", m_name, location);
+			//LOG_TIMED(250, "[~bSh3kiaders~x] Failed to find Uniform %s:%s", m_name, location);
 			return -1;
 		}
 		return it->second;
@@ -86,7 +86,7 @@ public:
 		m_shaderID = Load();
 		RegisterUniforms();
 	}
-	virtual ~Shader() { GL(glDeleteProgram(m_shaderID)); }
+	~Shader() { GL(glDeleteProgram(m_shaderID)); }
 
 	void Set(const String_t location, const int value) { glUniform1i(GetUniform(location), value); }
 	void Set(const String_t location, const float value) { glUniform1f(GetUniform(location), value); }
@@ -94,13 +94,13 @@ public:
 	void Set(const String_t location, const Color& color) { glUniform4f(GetUniform(location), color.R, color.G, color.B, color.A); }
 	void Set(const String_t location, float x, float y, float z) { glUniform3f(GetUniform(location), x, y, z); }
 	void Set(const String_t location, const Matrix4& matrix) { glUniformMatrix4fv(GetUniform(location), 1, GL_TRUE, matrix.elements); }
+	void Set(const String_t location, const Rect& rect) { glUniform4f(GetUniform(location), rect.m_position.x, rect.m_position.y, rect.m_size.x, rect.m_size.y); }
 	void Set(const String_t location, const Vector4& vector) { glUniform4f(GetUniform(location), vector.x, vector.y, vector.z, vector.w); }
 	void Set(const String_t location, const Vector3& vector) { glUniform3f(GetUniform(location), vector.x, vector.y, vector.z); }
 	void Set(const String_t location, const Vector2& vector) { glUniform2f(GetUniform(location), vector.x, vector.y); }
-	void Set(const String_t location, const boolean value) { Set(location, value ? 1.0f : 0.0f); }
 	//void SetArray(const String_t location, const Vector3* vectors, int count) { glUniform3fv(GetUniform(location), count, (float*)vectors); }
 
-		void Reload() {
+	void Reload() {
 		uint program = Load(true);
 		if (program != -1) {
 			GL(glDeleteProgram(m_shaderID));
@@ -137,7 +137,7 @@ protected:
 			if (size > 1) {
 				String temp = name;
 				temp = temp.substr(0, temp.find("[", 0));
-				for (int j = 0; j < size; j++) AddUniform(va("%s[%d]", temp.c_str(), j).c_str());
+				for (int j = 0; j < size; j++) AddUniform(Format("%s[%d]", temp.c_str(), j).c_str());
 			} else AddUniform(name);
 			//AddUniform(name);
 		}

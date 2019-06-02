@@ -23,6 +23,13 @@ public:
 	void Submit(float x1, float y1, float z1, float x2, float y2, float z2);
 	void End();
 	void Draw();
+	void DrawRect(const Rect& rect, float y = 1.01f) {
+		Vector4& c = rect.GetCornerPositions();
+		Submit(c.x, y, c.y, c.z, y, c.y);
+		Submit(c.z, y, c.y, c.z, y, c.w);
+		Submit(c.z, y, c.w, c.x, y, c.w);
+		Submit(c.x, y, c.w, c.x, y, c.y);
+	}
 };
 
 static LineRenderer* GetLineRenderer() {

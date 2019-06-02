@@ -8,12 +8,12 @@ InstancedRenderer2D::~InstancedRenderer2D() {
 void InstancedRenderer2D::Initialize() {
 	m_offsets = new Vector2[MAX_OBJECTS];
 
-	m_offsetsBuffer = new Buffer((float*)m_offsets, MAX_OBJECTS * 2, 2, GL_DYNAMIC_DRAW);
+	m_offsetsBuffer = NEW(Buffer((float*)m_offsets, MAX_OBJECTS * 2, 2, GL_DYNAMIC_DRAW));
 	m_mesh->GetVAO()->AddBuffer(m_offsetsBuffer, 5, true);
 }
 
 void InstancedRenderer2D::Begin() {
-	ASSERT(m_ended, "Call Renderer::End before calling Renderer::Begin");
+	ASSERT(m_ended, "Call InstancedRenderer2D::End before calling InstancedRenderer2D::Begin");
 
 	//m_offsetsPtr = m_offsets;
 	m_amount = 0;
@@ -29,7 +29,6 @@ void InstancedRenderer2D::Submit(int x, int y) {
 		LOG_ERROR("[~bEEngine~x] Max amount of tiles reached: %d", m_amount);
 		return;
 	}
-	//shorten
 	m_offsetsPtr->x = (float)x;
 	m_offsetsPtr->y = (float)y;
 	m_offsetsPtr++;
@@ -45,7 +44,7 @@ void InstancedRenderer2D::Submit(Vector2& offset) {
 }
 
 void InstancedRenderer2D::End() {
-	ASSERT(m_started, "Call Renderer::Begin before calling Renderer::End");
+	ASSERT(m_started, "Call InstancedRenderer2D::Begin before calling InstancedRenderer2D::End");
 	m_offsetsBuffer->Bind();
 	GL(glUnmapBuffer(GL_ARRAY_BUFFER));
 	//if (m_amount == 0) return;
@@ -55,7 +54,7 @@ void InstancedRenderer2D::End() {
 	m_ended = true;
 }
 void InstancedRenderer2D::Draw(Shader* shader) {
-	ASSERT(m_ended, "Call Renderer::End before calling Renderer::Draw");
+	ASSERT(m_ended, "Call InstancedRenderer2D::End before calling InstancedRenderer2D::Draw");
 	m_mesh->GetMaterial()->Bind(shader);
 	m_mesh->DrawInstanced(m_amount);
 	//glDrawElementsInstanced(GL_TRIANGLES, m_numindices, GL_UNSIGNED_INT, 0, m_amount);
