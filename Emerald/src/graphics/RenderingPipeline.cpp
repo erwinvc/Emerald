@@ -415,6 +415,10 @@ void RenderingPipeline::Render() {
 		ImGui::SliderFloat("bias", &m_ssaoRenderer->m_radius, 0, 25);
 		ImGui::SliderFloat("radius", &m_ssaoRenderer->m_bias, 0, 25);
 		ImGui::SliderInt("power", &m_ssaoRenderer->m_power, 0, 64);
+
+		ImGui::SliderFloat("scale1", &m_tileRenderer->scale1, 0, 5);
+		ImGui::SliderFloat("scale2", &m_tileRenderer->scale2, 0, 5);
+		ImGui::SliderFloat("scale3", &m_tileRenderer->scale3, 0, 1);
 		if (ImGui::Button("Test")) {
 			Material* mat = NEW(Material());
 			Destroy(mat);

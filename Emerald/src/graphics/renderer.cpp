@@ -57,6 +57,6 @@ void Renderer::Draw() {
     m_vao->Bind();
     m_ibo->Bind();
     glDrawElementsInstanced(GL_TRIANGLES, m_numindices, GL_UNSIGNED_INT, 0, m_amount);
-    m_ibo->Draw(m_amount * m_numindices);
+    m_ibo->Draw(m_amount * m_numindices, GL_TRIANGLES);
 }
 

@@ -6,7 +6,7 @@ PointlightRenderer::~PointlightRenderer() {
     DELETE(m_pointlights);
 }
 
-PointlightRenderer::PointlightRenderer(Mesh* mesh, int maxLights) : m_mesh(mesh) {
+PointlightRenderer::PointlightRenderer(Mesh* mesh, uint32 maxLights) : m_mesh(mesh) {
     ASSERT(maxLights <= MAX_LIGHTS, "[Rendering] Too many lights. Engine max is 32768")
     m_pointlights = NEW(Pointlight[MAX_LIGHTS]);
 

@@ -11,9 +11,13 @@ out vec3 fsNormal;
 out vec2 fsUv;
 out mat3 tbnMatrix;
 out vec3 fstangent;
+out vec3 v_view_direction;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
+
+uniform sampler2D texture_iridescence;
+uniform sampler2D texture_noise;
 
 void main()
 {
@@ -30,5 +34,6 @@ void main()
 
 	fsNormal = vsNormal;
 	fsUv = vsUv;
+	v_view_direction = -viewMatrix[3].xyz;
 	gl_Position = projectionMatrix * viewMatrix * vec4(fsPos, 1.0);
 }

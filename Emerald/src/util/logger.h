@@ -51,7 +51,7 @@ public:
 		print_log_internal(buffer, position, forward<Args>(args)...);
 
 		//buffer[position++] = '\n';
-		//buffer[position] = 0;
+		buffer[position] = 0;
 
 		AddToQueue(ConsoleColor::WHITE, buffer, "[Info]", time(nullptr));
 	}

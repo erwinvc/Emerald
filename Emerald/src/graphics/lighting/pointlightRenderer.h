@@ -14,6 +14,6 @@ private:
 public:
     static const uint MAX_LIGHTS = 32768;
     void Draw(vector<Pointlight>& pointlights);
-    PointlightRenderer(Mesh* mesh, int maxLights = MAX_LIGHTS);
+    PointlightRenderer(Mesh* mesh, uint32 maxLights = MAX_LIGHTS);
     ~PointlightRenderer();
 };

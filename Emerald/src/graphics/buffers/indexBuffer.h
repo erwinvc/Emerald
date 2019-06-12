@@ -11,13 +11,13 @@ public:
     void Bind();
     void Unbind();
 
-    void Draw(int mode = GL_TRIANGLES) {
-        GL(glDrawElements(mode, m_count, GL_UNSIGNED_INT, NULL));
-    }
-    void Draw(uint count, int mode = GL_TRIANGLES) {
+	void Draw(uint mode = GL_TRIANGLES) {
+		GL(glDrawElements(mode, m_count, GL_UNSIGNED_INT, NULL));
+	}
+    void Draw(uint32 count, uint mode = GL_TRIANGLES) {
         GL(glDrawElements(mode, count, GL_UNSIGNED_INT, NULL));
     }
-    void DrawInstanced(int amount, int mode = GL_TRIANGLES) {
+    void DrawInstanced(uint32 amount, uint mode = GL_TRIANGLES) {
         GL(glDrawElementsInstanced(mode, m_count, GL_UNSIGNED_INT, 0, amount));
     }
 };

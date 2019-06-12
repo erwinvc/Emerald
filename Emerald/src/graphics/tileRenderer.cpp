@@ -3,19 +3,19 @@
 void TileRenderer::Initialize() {
 	m_shader = NEW(Shader("Tile", "src/shader/tile.vert", "src/shader/tile.frag"));
 	Model* full = NEW(Model());
-	full->LoadModel("tiles/Plane.fbx");
+	full->LoadModel("sponza/a.fbx");
 
 	Model* inner = NEW(Model());
-	inner->LoadModel("tiles/Inner Corner.fbx");
+	inner->LoadModel("sponza/a.fbx");
 
 	Model* outer = NEW(Model());
-	outer->LoadModel("tiles/Outer Corner.fbx");
+	outer->LoadModel("sponza/a.fbx");
 
 	Model* slope = NEW(Model());
-	slope->LoadModel("tiles/Slope.fbx");
+	slope->LoadModel("sponza/a.fbx");
 
 	Model* valley = NEW(Model());
-	valley->LoadModel("tiles/Valley.fbx");
+	valley->LoadModel("sponza/a.fbx");
 
 	Texture* t = NEW(Texture("res/white.png"));
 	Texture* n = NEW(Texture("sponza/bricksNormal.png"));
@@ -34,6 +34,9 @@ void TileRenderer::Initialize() {
 	m_renderers[2] = NEW(InstancedRenderer2D(outer->GetMeshes()[outer->GetMeshes().size() - 1]));
 	m_renderers[3] = NEW(InstancedRenderer2D(slope->GetMeshes()[slope->GetMeshes().size() - 1]));
 	m_renderers[4] = NEW(InstancedRenderer2D(valley->GetMeshes()[valley->GetMeshes().size() - 1]));
+
+	texIri = new Texture("res/irridescence.png");
+	texNoise = new Texture("res/noise.png");
 }
 
 void TileRenderer::Begin() {
@@ -42,6 +45,14 @@ void TileRenderer::Begin() {
 	m_shader->Set("_Boundaries", GetWorld()->GetBoundaries().GetCornerPositions());
 	m_shader->Set("viewMatrix", GetCamera()->GetViewMatrix());
 	m_shader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
+	m_shader->Set("texture_iridescence", 4);
+	texIri->Bind(4);
+	m_shader->Set("texture_noise", 5);
+	texNoise->Bind(5);
+	m_shader->Set("scale1", scale1);
+	m_shader->Set("scale2", scale2);
+	m_shader->Set("scale3", scale3);
+
 
 	for (int i = 0; i < 5; i++) {
 		m_renderers[i]->Begin();
