@@ -11,5 +11,4 @@ bin-int/
 
 !premake5.exe
 Emerald/imgui.ini
-Emerald/res/
 Profiling/

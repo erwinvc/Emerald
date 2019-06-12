@@ -42,7 +42,7 @@ void main(){
 	vec3 nview = normalize(v_view_direction);
 	vec3 n_reflection = normalize(reflect(nview, normal)); 
 	vec3 noise_vector = BumpMapNormal * scale1;
-
+	noise_vector =  mix(noise_vector, (texture2D(texture_noise, fsUv).xyz - vec3(0.5)) * 0.5f, scale2);
    float inverse_dot_view = 1.0 - max(dot(normalize(normal + noise_vector), nview), 0.0);
    vec3 lookup_table_color = texture2D(texture_iridescence, vec2(inverse_dot_view, 0.0)).rgb;
 
@@ -53,7 +53,7 @@ void main(){
 
 
 	geoData[0] = vec4(specular.r, 0, 0, 0);
-	geoData[1] = vec4(diff.rgb * mix(lookup_table_color * scale2, vec3(1), scale3), 1);
+	geoData[1] = vec4(diff.rgb * mix(lookup_table_color, vec3(1), scale3), 1);
 	geoData[2] = vec4(normal, 1);
 	geoData[3] = vec4(fsPos, 1);
 }

@@ -34,6 +34,7 @@ void main()
 
 	fsNormal = vsNormal;
 	fsUv = vsUv;
-	v_view_direction = -viewMatrix[3].xyz;
+
+	v_view_direction = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0,1.0)).xyz - fsPos;
 	gl_Position = projectionMatrix * viewMatrix * vec4(fsPos, 1.0);
 }
