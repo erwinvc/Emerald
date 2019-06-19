@@ -3,10 +3,11 @@ out vec4 out_color;
   
 in vec2 textureCoords;
 
-uniform sampler2D hdrBuffer;
-uniform int applyPostProcessing;
-uniform float gamma;
-uniform int tonemapping;
+uniform sampler2D _HDRBuffer;
+uniform int _ApplyPostProcessing;
+uniform float _Gamma;
+uniform float _Exposure;
+uniform int _Tonemapping;
 
 //void main()
 //{             
@@ -38,7 +39,7 @@ vec3 linearToneMapping(vec3 color)
 {
 	float exposure = 1.;
 	color = clamp(exposure * color, 0., 1.);
-	color = pow(color, vec3(1. / gamma));
+	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
 
@@ -46,7 +47,7 @@ vec3 simpleReinhardToneMapping(vec3 color)
 {
 	float exposure = 1.5;
 	color *= exposure/(1. + color / exposure);
-	color = pow(color, vec3(1. / gamma));
+	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
 
@@ -55,7 +56,7 @@ vec3 lumaBasedReinhardToneMapping(vec3 color)
 	float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
 	float toneMappedLuma = luma / (1. + luma);
 	color *= toneMappedLuma / luma;
-	color = pow(color, vec3(1. / gamma));
+	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
 
@@ -65,14 +66,14 @@ vec3 whitePreservingLumaBasedReinhardToneMapping(vec3 color)
 	float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
 	float toneMappedLuma = luma * (1. + luma / (white*white)) / (1. + luma);
 	color *= toneMappedLuma / luma;
-	color = pow(color, vec3(1. / gamma));
+	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
 
 vec3 RomBinDaHouseToneMapping(vec3 color)
 {
     color = exp( -1.0 / ( 2.72*color + 0.15 ) );
-	color = pow(color, vec3(1. / gamma));
+	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
 
@@ -97,7 +98,7 @@ vec3 Uncharted2ToneMapping(vec3 color)
 	color = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
 	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
 	color /= white;
-	color = pow(color, vec3(1. / gamma));
+	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
 
@@ -115,7 +116,7 @@ vec3 GTAToneMapping(vec3 color)
 	color = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
 	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
 	color /= white;
-	color = pow(color, vec3(1.0f / gamma));
+	color = pow(color, vec3(1.0f / _Gamma));
 	return color;
 }
 
@@ -168,17 +169,29 @@ vec3 ACESFitted(vec3 color)
 	return clamp(color, vec3(0.0), vec3(1.0));
 }
 
-void main(){
-	vec3 color = texture(hdrBuffer, textureCoords).rgb;
+vec3 Standard(vec3 color){
+	float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+	float mappedLuminance = (luminance * (1.0 + luminance / (1.0 * 1.0))) / (1.0 + luminance);
 
-	if(applyPostProcessing == 0) {
+	
+	// Scale color by ratio of average luminances.
+	vec3 mappedColor = (mappedLuminance / luminance) * color;
+
+	// Gamma correction.
+	return pow(mappedColor, vec3(1.0/_Gamma));
+}
+
+void main(){
+	vec3 color = texture(_HDRBuffer, textureCoords).rgb * _Exposure;
+
+	if(_ApplyPostProcessing == 0) {
 		out_color = vec4(color, 1.0);
 		return;
 	}
 
 	vec3 toneMapped = color;
 
-	switch(tonemapping){
+	switch(_Tonemapping){
 		case 0: toneMapped = linearToneMapping(color); break;
 		case 1: toneMapped = simpleReinhardToneMapping(color); break;
 		case 2: toneMapped = lumaBasedReinhardToneMapping(color); break;
@@ -190,12 +203,8 @@ void main(){
 		case 8: toneMapped = tonemap_aces(color); break;
 		case 9: toneMapped = toonTonemap(color); break;
 		case 10: toneMapped = ACESFitted(color); break;
+		case 11: toneMapped = Standard(color); break;
 	}
-	//vec3 toneMapped = tonemap_aces(color);
 
-	//toneMapped = toonTonemap(toneMapped);
 	out_color = vec4(vignette(toneMapped, vec3(0), 0.3, 0.8), 1);
-
-
-	//out_color = (out_color * (1.0 + (out_color / (0.5f/*change this*/)))) / (1.0 + out_color);
 }

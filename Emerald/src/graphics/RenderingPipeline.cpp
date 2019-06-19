@@ -274,11 +274,15 @@ void RenderingPipeline::Render() {
 
 	static int selectedTexture = 0;
 	static float gamma = 1;
+	static float exposure = 1;
 	static int selectedTonemapping = 8;
+	m_hdrShader->Reload();
 	m_hdrShader->Bind();
-	m_hdrShader->Set("applyPostProcessing", m_applyPostProcessing);
-	m_hdrShader->Set("gamma", gamma);
-	m_hdrShader->Set("tonemapping", selectedTonemapping);
+	m_hdrShader->Set("_HDRBuffer", 0);
+	m_hdrShader->Set("_ApplyPostProcessing", m_applyPostProcessing);
+	m_hdrShader->Set("_Gamma", gamma);
+	m_hdrShader->Set("_Exposure", exposure);
+	m_hdrShader->Set("_Tonemapping", selectedTonemapping);
 
 	switch (selectedTexture) {
 	case 0: m_hdrTexture->Bind(); break;
@@ -291,7 +295,7 @@ void RenderingPipeline::Render() {
 	}
 	m_quad->Draw();
 
-	String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted" };
+	String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard" };
 	//ImGui::ShowTestWindow();
 
 	//uishader->RenderTexture(m_hdrBuffer->GetTexture()->GetHandle(), Vector2(0, 0), 0, Vector2(0, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), false, false);
@@ -366,6 +370,7 @@ void RenderingPipeline::Render() {
 			ImGui::Checkbox("Post processing", &m_applyPostProcessing);
 			if (ImGui::TreeNode("Tonemapping")) {
 				ImGui::SliderFloat("Gamma", &gamma, 0, 5);
+				ImGui::SliderFloat("Exposure", &exposure, 0, 5);
 				ImGui::Combo("Tonemapping", &selectedTonemapping, tonemapping, NUMOF(tonemapping));
 				ImGui::TreePop();
 				ImGui::Separator();

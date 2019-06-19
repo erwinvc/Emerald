@@ -3,19 +3,20 @@
 void TileRenderer::Initialize() {
 	m_shader = NEW(Shader("Tile", "src/shader/tile.vert", "src/shader/tile.frag"));
 	Model* full = NEW(Model());
-	full->LoadModel("sponza/a.fbx");
+	full->LoadModel("tiles/Plane.fbx");
 
 	Model* inner = NEW(Model());
-	inner->LoadModel("sponza/a.fbx");
+	inner->LoadModel("tiles/Inner Corner.fbx");
 
 	Model* outer = NEW(Model());
-	outer->LoadModel("sponza/a.fbx");
+	outer->LoadModel("tiles/Outer Corner.fbx");
 
 	Model* slope = NEW(Model());
-	slope->LoadModel("sponza/a.fbx");
+	slope->LoadModel("tiles/Slope.fbx");
 
 	Model* valley = NEW(Model());
-	valley->LoadModel("sponza/a.fbx");
+	valley->LoadModel("tiles/Valley.fbx");
+
 
 	Texture* t = NEW(Texture("res/white.png"));
 	Texture* n = NEW(Texture("sponza/bricksNormal.png"));
