@@ -9,41 +9,31 @@ out vec3 fsPos;
 out vec3 fsNormal;
 out vec2 fsUv;
 out mat3 tbnMatrix;
+out vec3 fstangent;
+out vec3 v_view_direction;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 
+uniform sampler2D texture_iridescence;
+uniform sampler2D texture_noise;
+
 void main()
 {
+	vec3 tangent = normalize(vsTangents - dot(vsNormal, vsTangents) * vsNormal);
+	if (dot(cross(vsNormal, tangent), vsBitangents) < 0.0f) tangent *= -1.0f;
+    tbnMatrix = mat3(tangent, vsBitangents, vsNormal);
 
-	vec3 T = normalize(vec3(vec4(vsTangents,   0.0)));
-	vec3 B = normalize(vec3(vec4(vsBitangents, 0.0)));
-	vec3 N = normalize(vec3(vec4(vsNormal,    0.0)));
+	//mat3 scale = mat3(
+	//0.01f, 0, 0, 0, 0.01f, 0, 0, 0, 0.01f
+	//);
 
-	T = normalize(T - dot(N, T) * N);
-	
-	if (dot(cross(N, T), B) < 0.0f){
-		 T = T * -1.0f;
-	 }
-
-	tbnMatrix = mat3(T, B, N);
-
-
-	//vec3 n = normalize(vec3(vec4(vsNormal, 0.0)));
-	//vec3 t = normalize(vec3(vec4(vsTangents, 0.0)));
-	//vec3 b = normalize(vec3(vec4(vsBitangents, 0.0)));
-
-	//t = normalize(t - dot(n, t) * n);
-	//
-	//if (dot(cross(n, t), b) < 0.0f){
-	//	 t = t * -1.0f;
-	// }
-	//
-	//tbnMatrix = mat3(t, b, n);
-	//tbnMatrix = transpose(tbnMatrix);
-
+	//vec3 pos = vsPos * scale;
 	fsPos = vsPos;
+
 	fsNormal = vsNormal;
 	fsUv = vsUv;
-	gl_Position = projectionMatrix * viewMatrix * vec4(vsPos, 1.0);
+
+	v_view_direction = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0,1.0)).xyz - fsPos;
+	gl_Position = projectionMatrix * viewMatrix * vec4(fsPos, 1.0);
 }

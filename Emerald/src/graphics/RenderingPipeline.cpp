@@ -31,11 +31,11 @@ static void NewLight() {
 
 TileType GetRandomType() {
 	switch (Math::RandomInt(0, 5)) {
-	case 0: return FULL;
-	case 1: return INNER;
-	case 2: return OUTER;
-	case 3: return SLOPE;
-	case 4: return VALLEY;
+		case 0: return FULL;
+		case 1: return INNER;
+		case 2: return OUTER;
+		case 3: return SLOPE;
+		case 4: return VALLEY;
 	}
 	return FULL;
 }
@@ -47,6 +47,8 @@ struct t {
 	t(Tile& t, Vector2& p) : tile(t), position(p) {}
 };
 vector<t> tiles;
+Texture* texIri;
+Texture* texNoise;
 
 void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	//Deferred
@@ -94,7 +96,14 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 
 	m_quad = MeshGenerator::Quad();
 
-	model.LoadModel("sponza/a.fbx");
+	model.LoadModel("model/Erwien logo 1.fbx");
+	Texture* t = NEW(Texture("model/textures/lambert1_albedo.jpg"));
+	Texture* n = NEW(Texture("model/textures/lambert1_normal.png"));
+	Material* m = NEW(Material());
+	m->SetAlbedo(t)->SetNormal(n);
+	for(Mesh* v : model.GetMeshes()) {
+		v->SetMaterial(m);
+	}
 
 	uishader = NEW(UIShader());
 	uishader->Initialize();
@@ -129,8 +138,10 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 			tiles.emplace_back(Tile(FULL), Vector2(x, y));
 		}
 	}
-}
 
+	texIri = NEW(Texture("res/irridescence.png"));
+	texNoise = NEW(Texture("res/noise.png"));
+}
 
 float a1 = 10;
 float a2 = 10;
@@ -182,6 +193,13 @@ void RenderingPipeline::Render() {
 	m_gBuffer->Clear();
 	//f
 	m_geometryShader->Bind();
+	m_geometryShader->Set("texture_iridescence", 4);
+	texIri->Bind(4);
+	m_geometryShader->Set("texture_noise", 5);
+	texNoise->Bind(5);
+	m_geometryShader->Set("scale1", m_tileRenderer->scale1);
+	m_geometryShader->Set("scale2", m_tileRenderer->scale2);
+	m_geometryShader->Set("scale3", m_tileRenderer->scale3);
 	m_geometryShader->Set("projectionMatrix", m_camera->GetProjectionMatrix());
 	m_geometryShader->Set("viewMatrix", m_camera->GetViewMatrix());
 
@@ -276,7 +294,7 @@ void RenderingPipeline::Render() {
 	static float gamma = 1;
 	static float exposure = 1;
 	static int selectedTonemapping = 8;
-	m_hdrShader->Reload();
+	//m_hdrShader->Reload();
 	m_hdrShader->Bind();
 	m_hdrShader->Set("_HDRBuffer", 0);
 	m_hdrShader->Set("_ApplyPostProcessing", m_applyPostProcessing);
@@ -285,13 +303,13 @@ void RenderingPipeline::Render() {
 	m_hdrShader->Set("_Tonemapping", selectedTonemapping);
 
 	switch (selectedTexture) {
-	case 0: m_hdrTexture->Bind(); break;
-	case 1: m_gBuffer->m_miscTexture->Bind(); break;
-	case 2: m_gBuffer->m_colorTexture->Bind(); break;
-	case 3: m_gBuffer->m_normalTexture->Bind(); break;
-	case 4: m_gBuffer->m_positionTexture->Bind(); break;
-	case 5: m_ssaoRenderer->GetTexture()->Bind(); break;
-	case 6: m_ssaoRenderer->GetRawTexture()->Bind(); break;
+		case 0: m_hdrTexture->Bind(); break;
+		case 1: m_gBuffer->m_miscTexture->Bind(); break;
+		case 2: m_gBuffer->m_colorTexture->Bind(); break;
+		case 3: m_gBuffer->m_normalTexture->Bind(); break;
+		case 4: m_gBuffer->m_positionTexture->Bind(); break;
+		case 5: m_ssaoRenderer->GetTexture()->Bind(); break;
+		case 6: m_ssaoRenderer->GetRawTexture()->Bind(); break;
 	}
 	m_quad->Draw();
 

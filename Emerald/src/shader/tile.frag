@@ -24,13 +24,13 @@ uniform float scale2;
 uniform float scale3;
 
 void main(){
-	vec4 diff = texture(_Albedo, vec2(1, -1) * fsUv).rgba;
+	vec4 diff = texture(_Albedo, fsUv).rgba;
 	if (diff.a < 0.2) {
 		discard;
 	}
 
 	
-    vec3 BumpMapNormal = texture(_Normal, vec2(1, -1) * fsUv).xyz;
+    vec3 BumpMapNormal = texture(_Normal, fsUv).xyz;
     BumpMapNormal = 2.0 * BumpMapNormal - vec3(1.0, 1.0, 1.0);
     vec3 NewNormal;
 
@@ -42,11 +42,11 @@ void main(){
 	vec3 nview = normalize(v_view_direction);
 	vec3 n_reflection = normalize(reflect(nview, normal)); 
 	vec3 noise_vector = BumpMapNormal * scale1;
-	noise_vector =  mix(noise_vector, (texture2D(texture_noise, fsUv).xyz - vec3(0.5)) * 0.5f, scale2);
-   float inverse_dot_view = 1.0 - max(dot(normalize(normal + noise_vector), nview), 0.0);
-   vec3 lookup_table_color = texture2D(texture_iridescence, vec2(inverse_dot_view, 0.0)).rgb;
+	noise_vector =  mix(noise_vector, (texture(texture_noise, fsUv).xyz - vec3(0.5)) * 0.5f, scale2);
+    float inverse_dot_view = 1.0 - max(dot(normalize(normal + noise_vector), nview), 0.0);
+    vec3 lookup_table_color = texture(texture_iridescence, vec2(inverse_dot_view, 0.0)).rgb;
 
-	vec3 specular = texture(_Specular, vec2(1, -1) * fsUv).rgb * _SpecularStrength;
+	vec3 specular = texture(_Specular, fsUv).rgb * _SpecularStrength;
 
 	float xDistance = (_Boundaries.y) - fsPos.y;
 	float xDistance2 = _Boundaries.z - fsPos.x;

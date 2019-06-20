@@ -36,6 +36,10 @@ Application::Application() : m_running(true) {
 	GetMaterialManager()->Initialize();
 	GetGLCallbackManager()->AddOnResizeCallback(this, &Application::OnResize);
 	GetGLCallbackManager()->AddOnCloseCallback(this, &Application::OnWindowClose);
+
+	LOG("%-26s %s", "~cGPU manufacturer~i", glGetString(GL_VENDOR));
+	LOG("%-26s %s", "~cGPU~i", glGetString(GL_RENDERER));
+	LOG("%-26s %s", "~cOpenGL version~i", glGetString(GL_VERSION));
 }
 
 
