@@ -49,6 +49,21 @@ public:
 
 	void Draw(TileRenderer* renderer);
 
+	Tile* GetTile(int x, int y) {
+		int chunkX = x / 16;
+		int chunkY = y / 16;
+		int posX = x % 16;
+		int posY = y % 16;
+
+		LOG("%d, %d, %d, %d", chunkX, chunkY, posX, posY);
+		for (int i = 0; i < m_chunks.size(); i++) {
+			Vector2I pos = m_chunks[i].GetPosition();
+			if (pos.x == chunkX && pos.y == chunkY) {
+				return m_chunks[i].GetTile(posX, posY);
+			}
+		}
+		return nullptr;
+	}
 };
 
 static World* GetWorld() { return World::GetInstance(); }

@@ -6,7 +6,7 @@ class GroundRaycast {
 public:
 	Vector3& Get(Camera* camera);
 
-	Vector3& GetGroundPosition();
+	Vector3& GetGroundPosition(float height = 1);
 
 private:
 	Vector3& CalculateMouseRay(Camera* camera);

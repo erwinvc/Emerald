@@ -96,14 +96,14 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 
 	m_quad = MeshGenerator::Quad();
 
-	model.LoadModel("model/Erwien logo 1.fbx");
-	Texture* t = NEW(Texture("model/textures/lambert1_albedo.jpg"));
-	Texture* n = NEW(Texture("model/textures/lambert1_normal.png"));
-	Material* m = NEW(Material());
-	m->SetAlbedo(t)->SetNormal(n);
-	for(Mesh* v : model.GetMeshes()) {
-		v->SetMaterial(m);
-	}
+	//model.LoadModel("model/Erwien logo 1.fbx");
+	//Texture* t = NEW(Texture("model/textures/lambert1_albedo.jpg"));
+	//Texture* n = NEW(Texture("model/textures/lambert1_normal.png"));
+	//Material* m = NEW(Material());
+	//m->SetAlbedo(t)->SetNormal(n);
+	//for(Mesh* v : model.GetMeshes()) {
+	//	v->SetMaterial(m);
+	//}
 
 	uishader = NEW(UIShader());
 	uishader->Initialize();
@@ -203,7 +203,7 @@ void RenderingPipeline::Render() {
 	m_geometryShader->Set("projectionMatrix", m_camera->GetProjectionMatrix());
 	m_geometryShader->Set("viewMatrix", m_camera->GetViewMatrix());
 
-	model.Draw(m_geometryShader);
+	//model.Draw(m_geometryShader);
 
 
 	m_tileRenderer->Begin();
@@ -224,6 +224,12 @@ void RenderingPipeline::Render() {
 	Vector3 cast = m_rayCast.Get(m_camera);
 	Vector3& pos = m_rayCast.GetGroundPosition();
 	GetLineRenderer()->DrawRect(Rect(((int)pos.x + 0.5f), ((int)pos.z + 0.5f), 1, 1));
+	GetLineRenderer()->Submit(m_camera->m_position, pos);
+	if (GetMouse()->ButtonJustDown(VK_MOUSE_LEFT)) {
+		Tile* t = GetWorld()->GetTile(((int)pos.x + 0.5f), ((int)pos.z + 0.5f));
+		if(t)
+		t->m_type = EMPTY;
+	}
 	GetLineRenderer()->DrawRect(GetWorld()->GetBoundaries());
 
 	GetLineRenderer()->End();
