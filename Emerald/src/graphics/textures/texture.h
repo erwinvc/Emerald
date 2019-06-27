@@ -3,17 +3,18 @@
 class Texture {
 private:
     TextureParameters m_params;
-    uint m_textureID;
+    uint m_textureID = 0;
     uint m_width, m_height;
     String m_path;
 
-    void Load(byte* data);
 public:
     Texture(uint width, uint height, byte* data, TextureParameters params = TextureParameters());
     Texture(uint width, uint height, TextureParameters params = TextureParameters());
     Texture(const String& path, TextureParameters params = TextureParameters());
     Texture(uint textureID, uint width, uint height, TextureParameters params = TextureParameters()) : m_params(params), m_textureID(textureID), m_width(width), m_height(height) {};
     ~Texture();
+
+	void SetData(byte* data);
 
     uint GetHandle() { return m_textureID; }
     void Bind(uint slot = 0);
