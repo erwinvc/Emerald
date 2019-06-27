@@ -4,7 +4,7 @@ class Window {
 private:
     GLFWwindow* m_window;
     String m_title;
-    uint m_width, m_height;
+    int m_width, m_height;
     bool m_vSync;
 
 public:
@@ -17,8 +17,8 @@ public:
     inline void SetWidth(uint width) { m_width = width; }
     inline void SetHeight(uint height) { m_height = height; }
 
-    inline uint GetWidth() { return m_width; }
-    inline uint GetHeight() { return m_height; }
+    inline int GetWidth() { return m_width; }
+    inline int GetHeight() { return m_height; }
 
     ~Window() {
         glfwTerminate();
@@ -59,5 +59,4 @@ public:
     void SetTitle(const String& title) { glfwSetWindowTitle(m_window, title.c_str()); }
 
     GLFWwindow* GetHandle() { return m_window; }
-
 };

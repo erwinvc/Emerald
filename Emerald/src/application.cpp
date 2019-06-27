@@ -45,7 +45,9 @@ Application::Application() : m_running(true) {
 
 void Application::OnResize(int width, int height) {
 	glViewport(0, 0, width, height);
-	m_pipeline->Resize(width, height);
+	if (m_pipeline)m_pipeline->Resize(width, height);
+	m_window->SetWidth(width);
+	m_window->SetHeight(height);
 }
 
 void Application::OnWindowClose() {
@@ -53,7 +55,6 @@ void Application::OnWindowClose() {
 }
 
 void Application::Run() {
-
 	m_pipeline = NEW(RenderingPipeline());
 	GetKeyboard()->Initialize(m_window);
 	GetMouse()->Initialize(m_window);
@@ -97,8 +98,7 @@ void Application::Run() {
 		}
 	}
 }
-void Application::FixedUpdate() {
-}
+void Application::FixedUpdate() {}
 
 void Application::Update(const TimeStep& time) {
 	GetMouse()->Update();

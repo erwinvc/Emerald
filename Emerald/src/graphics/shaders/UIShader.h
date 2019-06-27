@@ -9,7 +9,7 @@ private:
     Shader* m_shader;
     Matrix4 CreateMatrix(Vector2& origin, float rot, Vector2& position, Vector2& scale, bool flipX, bool flipY);
 public:
-    UIShader() : m_shader(NEW(Shader("UI", "src/graphics/shaders/UI.vert", "src/graphics/shaders/UI.frag"))) {}
+    UIShader() : m_shader(NEW(Shader("UI", "src/shader/UI.vert", "src/shader/UI.frag"))) {}
 	~UIShader();
 
     void Initialize();

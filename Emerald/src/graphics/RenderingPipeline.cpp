@@ -50,7 +50,26 @@ vector<t> tiles;
 Texture* texIri;
 Texture* texNoise;
 
+Texture* tex;
 RenderingPipeline::RenderingPipeline(int maxLights, int lightQuality) : m_hdrBuffer(FrameBuffer::Create("HDR", 1920, 1080)) {
+struct col {
+	byte r;
+	byte g;
+	byte b;
+	byte a;
+};
+
+col datta[200][200] = {};
+
+
+	tex = new Texture(200, 200, TextureParameters(RGBA, NEAREST, REPEAT, T_UNSIGNED_BYTE));
+
+	for (int x = 0; x < 200; x++) {
+		for (int y = 0; y < 200; y++) {
+			datta[y][x] = { (byte)Math::RandomInt(0, 255), 0, 0, 255 };
+		}
+	}
+	tex->SetData((byte*)datta);
 	//Deferred
 	//#Dirty get window size from config?
 	m_gBuffer = NEW(GBuffer(FrameBuffer::Create("GBuffer", 1920, 1080), 1920, 1080));
@@ -147,6 +166,13 @@ void RenderingPipeline::Update(const TimeStep& time) {
 	//m_lerpAmount = Math::Clamp(m_lerpAmount + time.GetSeconds(), 0.0f, 1.0f);
 	//m_projectionMatrix = Matrix4::Lerp(m_projectionMatrix, m_perspective ? m_perspectiveMatrix : m_orthoMatrix, m_lerpAmount);
 }
+
+Vector2 origin = Vector2(0, 0);
+float rot = 0;
+Vector2 position = Vector2(0, 0);
+Vector2 sizee = Vector2(1, 1);
+Vector2 texSize = Vector2(200, 200);
+
 void RenderingPipeline::Render() {
 	//m_pointlights[0].m_position = m_camera->m_position;
 	//for (Light& l : lights) {
@@ -196,7 +222,7 @@ void RenderingPipeline::Render() {
 	m_geometryShader->Set("projectionMatrix", m_camera->GetProjectionMatrix());
 	m_geometryShader->Set("viewMatrix", m_camera->GetViewMatrix());
 
-	model.Draw(m_geometryShader);
+	//model.Draw(m_geometryShader);
 
 
 	m_tileRenderer->Begin();
@@ -217,6 +243,12 @@ void RenderingPipeline::Render() {
 	Vector3 cast = m_rayCast.Get(m_camera);
 	Vector3& pos = m_rayCast.GetGroundPosition();
 	GetLineRenderer()->DrawRect(Rect(((int)pos.x + 0.5f), ((int)pos.z + 0.5f), 1, 1));
+	GetLineRenderer()->Submit(m_camera->m_position, pos);
+	//if (GetMouse()->ButtonJustDown(VK_MOUSE_LEFT)) {
+	//	Tile* t = GetWorld()->GetTile(((int)pos.x + 0.5f), ((int)pos.z + 0.5f));
+	//	if (t)
+	//		t->m_type = EMPTY;
+	//}
 	GetLineRenderer()->DrawRect(GetWorld()->GetBoundaries());
 
 	GetLineRenderer()->End();
@@ -305,6 +337,10 @@ void RenderingPipeline::Render() {
 	case 6: m_ssaoRenderer->GetRawTexture()->Bind(); break;
 	}
 	m_quad->Draw();
+	m_hdrShader->Unbind();
+
+	float aspect = (float)(1920) / 1080;
+	m_uiShader->RenderTexture(tex->GetHandle(), origin, rot, position, sizee, texSize, false, false);
 
 	String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard" };
 	//ImGui::ShowTestWindow();
@@ -442,6 +478,13 @@ void RenderingPipeline::Render() {
 		ImGui::SliderFloat("scale1", &m_tileRenderer->scale1, 0, 5);
 		ImGui::SliderFloat("scale2", &m_tileRenderer->scale2, 0, 5);
 		ImGui::SliderFloat("scale3", &m_tileRenderer->scale3, 0, 1);
+
+		ImGui::SliderFloat2("origin", (float*)&origin, -1, 1);
+		ImGui::SliderFloat("rot", (float*)&rot, 0, Math::PI);
+		ImGui::SliderFloat2("position", (float*)&position, 0, 1);
+		ImGui::SliderFloat2("size", (float*)&sizee, 0, 1);
+		ImGui::SliderFloat2("texSize", (float*)&texSize, 0, 2000);
+
 		ImGui::End();
 	}
 }
