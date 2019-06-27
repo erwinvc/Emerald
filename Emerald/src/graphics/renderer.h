@@ -7,7 +7,7 @@ private:
     const int MAX_OBJECTS = 1000000;
     VertexArray* m_vao;
     IndexBuffer* m_ibo;
-    Buffer* m_offsets;
+    VertexBuffer* m_offsets;
     int m_amount;
     int m_numindices;
     Vector3* m_offsetsTempBuffer;

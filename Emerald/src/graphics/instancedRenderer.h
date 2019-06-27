@@ -6,7 +6,7 @@ private:
     bool m_ended;
     Mesh* m_mesh;
     const uint MAX_OBJECTS = 4096 * 4;
-    Buffer* m_offsetsBuffer;
+    VertexBuffer* m_offsetsBuffer;
     int m_amount;
     int m_numindices;
     Vector3* m_offsets;

@@ -7,8 +7,12 @@ void UIShader::Initialize() {
 							1, -1, 0 };
 	uint indices[] = { 0, 1, 2, 0, 2, 3 };
 
+	BufferLayout layout = {
+		{ShaderDataType::Float3, "position", 0 },
+	};
+
 	m_vao = make_shared<VertexArray>();
-	m_vao->AddBuffer(NEW(Buffer(vertices, NUMOF(vertices), 3)), 0, false);
+	m_vao->AddBuffer(NEW(VertexBuffer(vertices, NUMOF(vertices) / 3, layout)));
 	m_quad = NEW(Mesh(m_vao, make_shared<IndexBuffer>(indices, NUMOF(indices))));
 }
 

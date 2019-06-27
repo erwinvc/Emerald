@@ -5,7 +5,7 @@ private:
 	bool m_started;
 	bool m_ended;
 	const uint MAX_OBJECTS = 4096;
-	Buffer* m_lineBuffer;
+	VertexBuffer* m_lineBuffer;
 	int m_amount;
 	Vector3* m_lines;
 	Vector3* m_linesPtr;

@@ -8,12 +8,14 @@ LineRenderer::~LineRenderer() {
 void LineRenderer::Initialize() {
 	m_lines = new Vector3[MAX_OBJECTS * 2];
 
-	m_lineBuffer = NEW(Buffer((float*)m_lines, MAX_OBJECTS * 2 * 3, 3, GL_DYNAMIC_DRAW));
+	BufferLayout layout = {
+		{ShaderDataType::Float3, "position", 0}
+	};
+	m_lineBuffer = NEW(VertexBuffer((float*)m_lines, MAX_OBJECTS * 2, layout, GL_DYNAMIC_DRAW));
 
-	//Vector3 vertices[2] = { Vector3(0, 0, 0), Vector3(0, 0, 0) };
 	shared_ptr<VertexArray> vao(new VertexArray());
-	//vao->AddBuffer(new Buffer((float*)vertices, 2 * 3, 3), 0, false);
-	vao->AddBuffer(m_lineBuffer, 0, true);
+	vao->AddBuffer(m_lineBuffer);
+	vao->ApplyLayouts();
 
 	vector<uint> indices;
 	indices.push_back(0);

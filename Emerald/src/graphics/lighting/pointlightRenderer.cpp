@@ -10,8 +10,14 @@ PointlightRenderer::PointlightRenderer(Mesh* mesh, uint32 maxLights) : m_mesh(me
     ASSERT(maxLights <= MAX_LIGHTS, "[Rendering] Too many lights. Engine max is 32768")
     m_pointlights = NEW(Pointlight[MAX_LIGHTS]);
 
-    m_pointlightBuffer = NEW(Buffer((float*)m_pointlights, MAX_LIGHTS / 4 * sizeof(Pointlight), 8, GL_DYNAMIC_DRAW));
-    m_mesh->GetVAO()->AddBuffer(m_pointlightBuffer, 1, true);
+	BufferLayout layout = {
+		{ShaderDataType::Float4, "vars", 1},
+		{ShaderDataType::Float4, "col", 2}
+	};
+
+    m_pointlightBuffer = NEW(VertexBuffer(m_pointlights, MAX_LIGHTS / 4, layout, GL_DYNAMIC_DRAW));
+	m_mesh->GetVAO()->AddBuffer(m_pointlightBuffer);
+	m_mesh->GetVAO()->ApplyLayouts();
 }
 
 void PointlightRenderer::Draw(vector<Pointlight>& pointlights) {

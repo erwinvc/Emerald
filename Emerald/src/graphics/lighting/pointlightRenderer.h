@@ -5,11 +5,10 @@ private:
     /*Max lights the engine can properly handle*/
     uint m_maxLights;
     Mesh* m_mesh;
-    Buffer* m_pointlightBuffer;
+    VertexBuffer* m_pointlightBuffer;
     int m_numindices;
 
     Pointlight* m_pointlights;
-
 
 public:
     static const uint MAX_LIGHTS = 32768;

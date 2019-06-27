@@ -31,11 +31,11 @@ static void NewLight() {
 
 TileType GetRandomType() {
 	switch (Math::RandomInt(0, 5)) {
-		case 0: return FULL;
-		case 1: return INNER;
-		case 2: return OUTER;
-		case 3: return SLOPE;
-		case 4: return VALLEY;
+	case 0: return FULL;
+	case 1: return INNER;
+	case 2: return OUTER;
+	case 3: return SLOPE;
+	case 4: return VALLEY;
 	}
 	return FULL;
 }
@@ -50,10 +50,10 @@ vector<t> tiles;
 Texture* texIri;
 Texture* texNoise;
 
-void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
+RenderingPipeline::RenderingPipeline(int maxLights, int lightQuality) : m_hdrBuffer(FrameBuffer::Create("HDR", 1920, 1080)) {
 	//Deferred
 	//#Dirty get window size from config?
-	m_gBuffer = NEW(GBuffer(1920, 1080));
+	m_gBuffer = NEW(GBuffer(FrameBuffer::Create("GBuffer", 1920, 1080), 1920, 1080));
 
 	//#Dirty add proper shader asset loading
 	m_geometryShader = NEW(Shader("Geo", "src/shader/geoVert.glsl", "src/shader/geoFrag.glsl"));
@@ -63,8 +63,7 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	//HDR
 	m_hdrShader = NEW(Shader("HDR", "src/shader/hdr.vert", "src/shader/hdr.frag"));
 	m_hdrTexture = NEW(Texture(1920, 1080, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT)));
-	m_hdrBuffer = NEW(FrameBuffer("HDR", 1920, 1080));
-	m_hdrBuffer->AddColorBuffer(m_hdrTexture);
+	m_hdrBuffer.AddColorBuffer(m_hdrTexture);
 
 	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer(1920, 1080));
@@ -96,15 +95,6 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 
 	m_quad = MeshGenerator::Quad();
 
-	model.LoadModel("model/Erwien logo 1.fbx");
-	Texture* t = NEW(Texture("model/textures/lambert1_albedo.jpg"));
-	Texture* n = NEW(Texture("model/textures/lambert1_normal.png"));
-	Material* m = NEW(Material());
-	m->SetAlbedo(t)->SetNormal(n);
-	for(Mesh* v : model.GetMeshes()) {
-		v->SetMaterial(m);
-	}
-
 	uishader = NEW(UIShader());
 	uishader->Initialize();
 
@@ -130,6 +120,8 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	//}
 
 	//m_pointlights.push_back(Pointlight(m_camera->m_position, 50, Color::White()));
+	model = Model();
+	model.LoadModel("sponza/a.fbx");
 
 	m_tileRenderer = NEW(TileRenderer());
 
@@ -191,6 +183,7 @@ void RenderingPipeline::Render() {
 	//Draw to gBuffer
 	m_gBuffer->Bind();
 	m_gBuffer->Clear();
+
 	//f
 	m_geometryShader->Bind();
 	m_geometryShader->Set("texture_iridescence", 4);
@@ -239,8 +232,8 @@ void RenderingPipeline::Render() {
 	GL(glFrontFace(GL_CCW));
 
 	//Draw to HDR
-	m_hdrBuffer->Bind();
-	m_hdrBuffer->Clear();
+	m_hdrBuffer.Bind();
+	m_hdrBuffer.Clear();
 
 	//m_directionalLightShader->Reload();
 	//Draw directional light
@@ -283,7 +276,7 @@ void RenderingPipeline::Render() {
 	m_pointLightShader->Set("_Specular", m_directionalLight.m_specular);
 	m_pointlightRenderer->Draw(m_pointlights);
 
-	m_hdrBuffer->Unbind();
+	m_hdrBuffer.Unbind();
 
 	//Draw to screen
 	GL(glDisable(GL_BLEND));
@@ -303,13 +296,13 @@ void RenderingPipeline::Render() {
 	m_hdrShader->Set("_Tonemapping", selectedTonemapping);
 
 	switch (selectedTexture) {
-		case 0: m_hdrTexture->Bind(); break;
-		case 1: m_gBuffer->m_miscTexture->Bind(); break;
-		case 2: m_gBuffer->m_colorTexture->Bind(); break;
-		case 3: m_gBuffer->m_normalTexture->Bind(); break;
-		case 4: m_gBuffer->m_positionTexture->Bind(); break;
-		case 5: m_ssaoRenderer->GetTexture()->Bind(); break;
-		case 6: m_ssaoRenderer->GetRawTexture()->Bind(); break;
+	case 0: m_hdrTexture->Bind(); break;
+	case 1: m_gBuffer->m_miscTexture->Bind(); break;
+	case 2: m_gBuffer->m_colorTexture->Bind(); break;
+	case 3: m_gBuffer->m_normalTexture->Bind(); break;
+	case 4: m_gBuffer->m_positionTexture->Bind(); break;
+	case 5: m_ssaoRenderer->GetTexture()->Bind(); break;
+	case 6: m_ssaoRenderer->GetRawTexture()->Bind(); break;
 	}
 	m_quad->Draw();
 
@@ -393,7 +386,9 @@ void RenderingPipeline::Render() {
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
+			if (ImGui::TreeNode("FramebufferManager")) {
 
+			}
 			if (ImGui::TreeNode("Framebuffers")) {
 
 				if (ImGui::ImageButton((void*)m_hdrTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 0;
@@ -427,83 +422,28 @@ void RenderingPipeline::Render() {
 				m_directionalLight.OnImGui();
 				ImGui::TreePop();
 			}
+			if (ImGui::TreeNode("SSAO")) {
+				m_ssaoRenderer->OnImGui();
+				ImGui::TreePop();
+			}
 		}
 
 		if (ImGui::CollapsingHeader("Camera")) {
 			m_camera->OnImGui();
 		}
 
+		if (ImGui::CollapsingHeader("Memory")) {
+			GetMemory()->OnImGui();
+		}
+
 		ImGui::SliderFloat("Normal", &m_tileRenderer->material->m_normalStrength, 0, 10);
 		ImGui::SliderFloat("shineDamper", &a1, 0, 64);
-		ImGui::SliderFloat("bias", &m_ssaoRenderer->m_radius, 0, 25);
-		ImGui::SliderFloat("radius", &m_ssaoRenderer->m_bias, 0, 25);
-		ImGui::SliderInt("power", &m_ssaoRenderer->m_power, 0, 64);
 
 		ImGui::SliderFloat("scale1", &m_tileRenderer->scale1, 0, 5);
 		ImGui::SliderFloat("scale2", &m_tileRenderer->scale2, 0, 5);
 		ImGui::SliderFloat("scale3", &m_tileRenderer->scale3, 0, 1);
-		if (ImGui::Button("Test")) {
-			Material* mat = NEW(Material());
-			Destroy(mat);
-		}
-		//if (ImGui::Checkbox("Perspective", &m_perspective)) m_lerpAmount = 0;
-
-		GetMemory()->OnImGui();
-
 		ImGui::End();
-		//auto a = ImGui::GetCurrentWindow();
 	}
-
-	//static bool p_open = true;
-	//static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
-	//
-	//// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-	//// because it would be confusing to have two docking targets within each others.
-	//ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-	//ImGuiViewport* viewport = ImGui::GetMainViewport();
-	//ImGui::SetNextWindowPos(viewport->Pos);
-	//ImGui::SetNextWindowSize(viewport->Size);
-	//ImGui::SetNextWindowViewport(viewport->ID);
-	//window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-	//window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-	//
-	//// When using ImGuiDockNodeFlags_PassthruDockspace, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
-	//if (opt_flags & ImGuiDockNodeFlags_PassthruDockspace)
-	//    window_flags |= ImGuiWindowFlags_NoBackground;
-	//
-	//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	//ImGui::Begin("DockSpace Demo", &p_open, window_flags);
-	//ImGui::PopStyleVar();
-	//
-	//// Dockspace
-	//ImGuiIO& io = ImGui::GetIO();
-	//if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-	//    ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
-	//    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
-	//}
-	//
-	//if (ImGui::BeginMenuBar()) {
-	//    if (ImGui::BeginMenu("Docking")) {
-	//        // Disabling fullscreen would allow the window to be moved to the front of other windows, 
-	//        // which we can't undo at the moment without finer window depth/z control.
-	//        //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
-	//
-	//        if (ImGui::MenuItem("Flag: NoSplit", "", (opt_flags & ImGuiDockNodeFlags_NoSplit) != 0))                 opt_flags ^= ImGuiDockNodeFlags_NoSplit;
-	//        if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (opt_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0))  opt_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode;
-	//        if (ImGui::MenuItem("Flag: NoResize", "", (opt_flags & ImGuiDockNodeFlags_NoResize) != 0))                opt_flags ^= ImGuiDockNodeFlags_NoResize;
-	//        if (ImGui::MenuItem("Flag: PassthruDockspace", "", (opt_flags & ImGuiDockNodeFlags_PassthruDockspace) != 0))       opt_flags ^= ImGuiDockNodeFlags_PassthruDockspace;
-	//        if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (opt_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0))          opt_flags ^= ImGuiDockNodeFlags_AutoHideTabBar;
-	//        ImGui::Separator();
-	//        if (ImGui::MenuItem("Close DockSpace", NULL, false, p_open != NULL))
-	//            p_open = false;
-	//        ImGui::EndMenu();
-	//    }
-	//
-	//    ImGui::EndMenuBar();
-	//}
-	//
-	//ImGui::End();
-
 }
 
 
@@ -516,14 +456,14 @@ void RenderingPipeline::RenderGeometry() {
 void RenderingPipeline::Resize(uint width, uint height) {
 	if (m_gBuffer) {
 		DELETE(m_gBuffer);
-		m_gBuffer = NEW(GBuffer(width, height));
+		m_gBuffer = NEW(GBuffer(FrameBuffer::Create("GBuffer", width, height), width, height));
 	}
-	if (m_hdrBuffer) {
-		DELETE(m_hdrBuffer);
-		m_hdrTexture = NEW(Texture(width, height, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT)));
-		m_hdrBuffer = NEW(FrameBuffer("HDR", width, height));
-		m_hdrBuffer->AddColorBuffer(m_hdrTexture);
-	}
+	//if (m_hdrBuffer) {
+	//	DELETE(m_hdrBuffer);
+	//	m_hdrTexture = NEW(Texture(width, height, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT)));
+	//	m_hdrBuffer = FrameBuffer::Create("HDR", width, height);
+	//	m_hdrBuffer->AddColorBuffer(m_hdrTexture);
+	//}
 	if (m_ssaoRenderer) {
 		DELETE(m_ssaoRenderer);
 		m_ssaoRenderer = NEW(SSAORenderer(width, height));

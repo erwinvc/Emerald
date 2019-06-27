@@ -8,8 +8,13 @@ InstancedRenderer2D::~InstancedRenderer2D() {
 void InstancedRenderer2D::Initialize() {
 	m_offsets = new Vector2[MAX_OBJECTS];
 
-	m_offsetsBuffer = NEW(Buffer((float*)m_offsets, MAX_OBJECTS * 2, 2, GL_DYNAMIC_DRAW));
-	m_mesh->GetVAO()->AddBuffer(m_offsetsBuffer, 5, true);
+	BufferLayout layout = {
+		{ShaderDataType::Float2, "ehh", 5, true}
+	};
+
+	m_offsetsBuffer = NEW(VertexBuffer((float*)m_offsets, MAX_OBJECTS, layout, GL_DYNAMIC_DRAW));
+	m_mesh->GetVAO()->AddBuffer(m_offsetsBuffer);
+	m_mesh->GetVAO()->ApplyLayouts();
 }
 
 void InstancedRenderer2D::Begin() {

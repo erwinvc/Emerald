@@ -16,7 +16,7 @@ private:
 	GroundRaycast m_rayCast;
 	//HDR
 	bool m_applyPostProcessing = true;
-	FrameBuffer* m_hdrBuffer;
+	FrameBuffer& m_hdrBuffer;
 	Texture* m_hdrTexture;
 	Shader* m_hdrShader;
 	Mesh* m_quad;
@@ -30,10 +30,8 @@ private:
 	bool m_perspective = true;
 	float m_lerpAmount = 0;
 
-	void Initialize(int maxLights, int lightQuality);
-
 public:
-	RenderingPipeline(int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 20) { Initialize(maxLights, lightQuality); }
+	RenderingPipeline(int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 20);
 	~RenderingPipeline() {
 		DELETE(m_gBuffer);
 		DELETE(m_geometryShader);
@@ -42,7 +40,6 @@ public:
 		DELETE(m_pointlightRenderer);
 		DELETE(m_tileRenderer);
 		DELETE(m_ssaoRenderer);
-		DELETE(m_hdrBuffer);
 		DELETE(m_hdrShader);
 		DELETE(m_quad);
 		DELETE(m_uiShader);

@@ -6,16 +6,17 @@ in vec2 fsUv;
 uniform sampler2D _SSAO;
 
 void main() {
-    vec2 texelSize = 1.0 / vec2(textureSize(_SSAO, 0));
+	const int amount = 2;
+    vec2 texelSize = 1.0f / vec2(textureSize(_SSAO, 0));
     float result = 0.0;
-    for (int x = -2; x < 2; ++x) 
+    for (int x = -amount; x < amount; ++x) 
     {
-        for (int y = -2; y < 2; ++y) 
+        for (int y = -amount; y < amount; ++y) 
         {
-            vec2 offset = vec2(float(x), float(y)) * texelSize;
+            vec2 offset = vec2(x, y) * texelSize;
             result += texture(_SSAO, fsUv + offset).r;
         }
     }
-	float res = result / (4.0 * 4.0);
+	float res = result / (2 * amount * 2 * amount);
     FragColor = vec4(res, res, res, 1);
 }  

@@ -57,6 +57,11 @@ namespace Utils {
 		}
 	}
 
+	template<typename T>
+	static void RemoveFromVector(vector<T>& vec, const T& obj) {
+		vec.erase(remove(vec.begin(), vec.end(), obj), vec.end());
+	}
+
 	//Math?
 	void setPositionInFrontOfCam(Vector3& dest, const Camera& cam, float distance);
 }

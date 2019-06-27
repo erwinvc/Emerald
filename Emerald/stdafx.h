@@ -86,10 +86,9 @@ using namespace std;
 #include "glCallbackManager.h"
 
 #include "graphics/buffers/bufferLayout.h"
-#include "graphics/buffers/buffer.h"
+#include "graphics/buffers/vertexBuffer.h"
 #include "graphics/buffers/indexBuffer.h"
 #include "graphics/buffers/vertexArray.h"
-#include "graphics/buffers/layoutVertexArray.h"
 #include "graphics/buffers/frameBuffer.h"
 #include "graphics/buffers/gBuffer.h"
 

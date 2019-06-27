@@ -25,6 +25,13 @@ private:
 		}
 	}
 
+	struct Vertex {
+		Vector3 m_position;
+		Vector3 m_normal;
+		Vector2 m_uv;
+		Vector3 m_tangents;
+		Vector3 m_biTangents;
+	};
 	Mesh* ProcessMesh(aiMesh *mesh, const aiScene *scene) {
 		vector<GLfloat> texcoords;
 		for (uint i = 0; i < mesh[0].mNumVertices; i++) {
@@ -33,12 +40,31 @@ private:
 		}
 
 		//VAO
+
+
+		BufferLayout layout = {
+			{ShaderDataType::Float3, "vsPos", 0},
+			{ShaderDataType::Float3, "vsNormal", 0},
+			{ShaderDataType::Float2, "vsUv", 0},
+			{ShaderDataType::Float3, "vsTangents", 0},
+			{ShaderDataType::Float3, "vsBitangents", 0}
+		};
+
+		Vertex* vertices = new Vertex[mesh->mNumVertices];
+
+		for (int i = 0; i < mesh->mNumVertices; i++) {
+			vertices[i].m_position = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+			vertices[i].m_normal = Vector3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+			vertices[i].m_uv = Vector2(mesh[0].mTextureCoords[0][i].x, mesh[0].mTextureCoords[0][i].y);
+			vertices[i].m_tangents = Vector3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+			vertices[i].m_biTangents = Vector3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+		}
+
 		shared_ptr<VertexArray> vaoModel(new VertexArray());
-		vaoModel->AddBuffer(NEW(Buffer((float*)mesh->mVertices, mesh->mNumVertices * 3, 3)), 0, false);
-		vaoModel->AddBuffer(NEW(Buffer((float*)mesh->mNormals, mesh->mNumVertices * 3, 3)), 1, false);
-		vaoModel->AddBuffer(NEW(Buffer((float*)texcoords.data(), texcoords.size(), 2)), 2, false);
-		vaoModel->AddBuffer(NEW(Buffer((float*)mesh->mTangents, mesh->mNumVertices * 3, 3)), 3, false);
-		vaoModel->AddBuffer(NEW(Buffer((float*)mesh->mBitangents, mesh->mNumVertices * 3, 3)), 4, false);
+		vaoModel->AddBuffer(NEW(VertexBuffer((float*)vertices, mesh->mNumVertices, layout)));
+		vaoModel->ApplyLayouts();
+
+		delete[] vertices;
 
 		//IBO
 		vector<GLuint> indices;
