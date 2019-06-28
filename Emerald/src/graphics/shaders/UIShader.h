@@ -13,5 +13,5 @@ public:
 	~UIShader();
 
     void Initialize();
-    void RenderTexture(uint texture, Vector2& origin, float rot, Vector2& position, Vector2& size, Vector2& texSize, bool flipX, bool flipY);
+    void RenderTexture(uint texture, Vector2& origin, float rot, Vector2& position, Vector2& size, bool flipX, bool flipY);
 };

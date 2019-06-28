@@ -1,19 +1,7 @@
 #include "stdafx.h"
 
 void UIShader::Initialize() {
-	GLfloat vertices[] = { -1, -1, 0,
-						   -1,  1, 0,
-							1,  1, 0,
-							1, -1, 0 };
-	uint indices[] = { 0, 1, 2, 0, 2, 3 };
-
-	BufferLayout layout = {
-		{ShaderDataType::Float3, "position", 0 },
-	};
-
-	m_vao = make_shared<VertexArray>();
-	m_vao->AddBuffer(NEW(VertexBuffer(vertices, NUMOF(vertices) / 3, layout)));
-	m_quad = NEW(Mesh(m_vao, make_shared<IndexBuffer>(indices, NUMOF(indices))));
+	m_quad = MeshGenerator::Quad();
 }
 
 UIShader::~UIShader() {
@@ -37,15 +25,12 @@ Matrix4 UIShader::CreateMatrix(Vector2& origin, float rot, Vector2& position, Ve
 	return transform;
 }
 
-void UIShader::RenderTexture(uint texture, Vector2& origin, float rot, Vector2& position, Vector2& size, Vector2& texSize, bool flipX, bool flipY) {
+void UIShader::RenderTexture(uint texture, Vector2& origin, float rot, Vector2& position, Vector2& size, bool flipX, bool flipY) {
 	m_shader->Bind();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	m_shader->Set("textureSampler", 0);
 	m_shader->Set("transformationMatrix", CreateMatrix(origin, rot, position, size, flipX, flipY));
-	m_shader->Set("texResolution", texSize);
-	m_shader->Set("texPos", Vector2(0, 0));
-	m_shader->Set("texSize", Vector2(0, 0));
 	m_quad->Draw();
 }
