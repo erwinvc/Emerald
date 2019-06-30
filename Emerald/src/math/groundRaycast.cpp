@@ -47,3 +47,8 @@ Vector3 GroundRaycast::GetGroundPosition(float height) {
 
 	return delta.Multiply(k).Add(rayStart);
 }
+
+Vector2I GroundRaycast::GetTile() {
+	Vector3 pos = GetGroundPosition();
+	return { (int)pos.x, (int)pos.z };
+}

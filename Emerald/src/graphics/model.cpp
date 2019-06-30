@@ -10,6 +10,7 @@ void Model::LoadModel(const String& path) {
 		aiProcess_Debone |
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_ValidateDataStructure;
+
 	String_t shortName = Utils::GetShortFilename(path.c_str());
 	Timer timer;
 	Assimp::Importer importer;
@@ -21,7 +22,7 @@ void Model::LoadModel(const String& path) {
 	for (int i = 0; i < (int)scene->mNumMaterials; i++) m_materials[i] = NEW(Material());
 
 	m_dir = path.substr(0, path.find_last_of('/'));
-	if (scene->HasMaterials()) LoadMaterials(scene);
+	if (scene->HasMaterials()) LoadMaterials(scene); 
 	LOG("[~g3DModel~x] ~1%s~x loaded in %.2f MS", shortName, timer.Get());
 	ProcessNode(scene->mRootNode, scene);
 }

@@ -16,7 +16,8 @@ public:
     void Begin();
 	void Submit(Tile& tile, int x, int y);
     void Submit(Tile& tile, Vector2& position);
-    void Draw();
+	void End();
+	void Draw();
 
 	float scale1 = 0;
 	float scale2 = 0;

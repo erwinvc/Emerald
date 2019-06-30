@@ -65,9 +65,13 @@ void TileRenderer::Submit(Tile& tile, int x, int y) {
 void TileRenderer::Submit(Tile& tile, Vector2& position) {
 	m_renderers[tile.m_type]->Submit(position);
 }
-void TileRenderer::Draw() {
+void TileRenderer::End() {
 	for (int i = 0; i < 5; i++) {
 		m_renderers[i]->End();
+	}
+}
+void TileRenderer::Draw() {
+	for (int i = 0; i < 5; i++) {
 		m_renderers[i]->Draw(m_shader);
 	}
 }

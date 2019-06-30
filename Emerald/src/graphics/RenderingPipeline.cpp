@@ -16,6 +16,7 @@ struct Light {
 };
 
 static Model model;
+static Entity entity;
 
 static Light* currentLight;
 static vector<Light> lights;
@@ -52,14 +53,14 @@ Texture* texNoise;
 
 Texture* tex;
 RenderingPipeline::RenderingPipeline(int maxLights, int lightQuality) : m_hdrBuffer(FrameBuffer::Create("HDR", 1920, 1080)) {
-struct col {
-	byte r;
-	byte g;
-	byte b;
-	byte a;
-};
+	struct col {
+		byte r;
+		byte g;
+		byte b;
+		byte a;
+	};
 
-col datta[200][200] = {};
+	col datta[200][200] = {};
 
 
 	tex = new Texture(200, 200, TextureParameters(RGBA, NEAREST, REPEAT, T_UNSIGNED_BYTE));
@@ -141,7 +142,7 @@ col datta[200][200] = {};
 	//m_pointlights.push_back(Pointlight(m_camera->m_position, 50, Color::White()));
 	model = Model();
 	model.LoadModel("sponza/a.fbx");
-
+	entity = Entity(&model);
 	m_tileRenderer = NEW(TileRenderer());
 
 	for (int x = 0; x < 10; x++) {
@@ -221,14 +222,14 @@ void RenderingPipeline::Render() {
 	m_geometryShader->Set("projectionMatrix", m_camera->GetProjectionMatrix());
 	m_geometryShader->Set("viewMatrix", m_camera->GetViewMatrix());
 
+	entity.Draw(m_geometryShader);
 	//model.Draw(m_geometryShader);
-
 
 	m_tileRenderer->Begin();
 	m_gBuffer->BindTextures();
 
 	GetWorld()->Draw(m_tileRenderer);
-
+	m_tileRenderer->End();
 	//for (auto a : tiles) {
 	//	m_tileRenderer->Submit(a.tile, a.position);
 	//}
@@ -240,9 +241,8 @@ void RenderingPipeline::Render() {
 	GetLineRenderer()->Begin();
 
 	Vector3 cast = m_rayCast.Get(m_camera);
-	Vector3& pos = m_rayCast.GetGroundPosition();
-	GetLineRenderer()->DrawRect(Rect((int)pos.x + 0.5f, (int)pos.z + 0.5f, 1.0f, 1.0f));
-	GetLineRenderer()->Submit(m_camera->m_position, pos);
+	Vector2I pos = m_rayCast.GetTile();
+	GetLineRenderer()->DrawRect(Rect((float)pos.x + 0.5f, (float)pos.y + 0.5f, 1.0f, 1.0f));
 	//if (GetMouse()->ButtonJustDown(VK_MOUSE_LEFT)) {
 	//	Tile* t = GetWorld()->GetTile(((int)pos.x + 0.5f), ((int)pos.z + 0.5f));
 	//	if (t)
@@ -459,6 +459,10 @@ void RenderingPipeline::Render() {
 			}
 			if (ImGui::TreeNode("SSAO")) {
 				m_ssaoRenderer->OnImGui();
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("Entities")) {
+				entity.OnImGui();
 				ImGui::TreePop();
 			}
 		}

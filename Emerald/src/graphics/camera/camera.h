@@ -9,8 +9,7 @@ private:
 
 protected:
 	void UpdateViewMatrix() {
-		Matrix4 transform(1);
-		transform *= Matrix4::Translate(Vector3(0, 0, 1));
+		 Matrix4 transform= Matrix4::Translate(Vector3(0, 0, 1));
 		transform *= Matrix4::Rotate(m_rotation.x, Vector3::XAxis());
 		transform *= Matrix4::Rotate(m_rotation.y, Vector3::YAxis());
 		transform *= Matrix4::Rotate(m_rotation.z, Vector3::ZAxis());

@@ -31,7 +31,7 @@ void InstancedRenderer2D::Begin() {
 
 void InstancedRenderer2D::Submit(int x, int y) {
 	if (m_amount >= MAX_OBJECTS) {
-		LOG_ERROR("[~bEEngine~x] Max amount of tiles reached: %d", m_amount);
+		//LOG("[~bEEngine~x] Max amount of tiles reached: %d", m_amount);
 		return;
 	}
 	m_offsetsPtr->x = (float)x;

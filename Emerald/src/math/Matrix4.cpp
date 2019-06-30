@@ -346,10 +346,20 @@ Matrix4 Matrix4::Transpose(const Matrix4& matrix) {
 	);
 }
 
-Matrix4 Matrix4::Lerp(const Matrix4& from, const Matrix4& to, float amount)
-{
+Matrix4 Matrix4::Lerp(const Matrix4& from, const Matrix4& to, float amount) {
 	Matrix4 ret = Matrix4::Identity();
 	for (int i = 0; i < 16; i++)
 		ret.elements[i] = Math::Lerp(from.elements[i], to.elements[i], amount);
 	return ret;
 }
+
+Matrix4 Matrix4::TRS(const Vector3& position, const Vector3& rotation, const Vector3& scale) {
+	Matrix4 transform = Matrix4::Identity();
+	transform *= Matrix4::Translate(position);
+	transform *= Matrix4::Rotate(rotation.x, Vector3::XAxis());
+	transform *= Matrix4::Rotate(rotation.y, Vector3::YAxis());
+	transform *= Matrix4::Rotate(rotation.z, Vector3::ZAxis());
+	transform *= Matrix4::Scale(scale);
+	return transform;
+}
+

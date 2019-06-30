@@ -7,6 +7,7 @@ public:
 	Vector3 Get(Camera* camera);
 
 	Vector3 GetGroundPosition(float height = 1);
+	Vector2I GetTile();
 
 private:
 	Vector3 CalculateMouseRay(Camera* camera);

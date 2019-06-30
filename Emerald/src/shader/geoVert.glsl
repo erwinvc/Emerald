@@ -12,6 +12,7 @@ out mat3 tbnMatrix;
 out vec3 fstangent;
 out vec3 v_view_direction;
 
+uniform mat4 transformationMatrix;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 
@@ -34,6 +35,6 @@ void main()
 	fsNormal = vsNormal;
 	fsUv = vsUv;
 
-	v_view_direction = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0,1.0)).xyz - fsPos;
-	gl_Position = projectionMatrix * viewMatrix * vec4(fsPos, 1.0);
+	v_view_direction = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - fsPos;
+	gl_Position = projectionMatrix * viewMatrix * transformationMatrix * vec4(fsPos, 1.0);
 }

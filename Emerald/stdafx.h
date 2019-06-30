@@ -126,6 +126,7 @@ using namespace std;
 #include "world/tile.h"
 #include "world/chunk.h"
 #include "world/world.h"
+#include "world/wangTile.h"
 
 #include "util/meshGenerator.h"
 

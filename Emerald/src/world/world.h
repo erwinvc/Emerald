@@ -34,8 +34,8 @@ public:
 	}
 
 	void Populate() {
-		loop(y, 4) {
-			loop(x, 4) {
+		loop(y, 256) {
+			loop(x, 256) {
 				GenerateChunk(x, y);
 			}
 		}
@@ -54,7 +54,6 @@ public:
 		int posX = x % 16;
 		int posY = y % 16;
 
-		LOG("%d, %d, %d, %d", chunkX, chunkY, posX, posY);
 		for (int i = 0; i < m_chunks.size(); i++) {
 			Vector2I pos = m_chunks[i].GetPosition();
 			if (pos.x == chunkX && pos.y == chunkY) {

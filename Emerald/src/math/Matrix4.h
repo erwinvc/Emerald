@@ -45,4 +45,6 @@ struct Matrix4 {
 	static Matrix4 Transpose(const Matrix4& matrix);
 
 	static Matrix4 Lerp(const Matrix4& from, const Matrix4& to, float amount);
+
+	static Matrix4 TRS(const Vector3& position, const Vector3& rotation, const Vector3& scale);
 };
