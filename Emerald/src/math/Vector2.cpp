@@ -8,8 +8,16 @@ Vector2::Vector2(float scalar)
 	: x(scalar), y(scalar) {
 }
 
+Vector2::Vector2(int scalar)
+	: x((float)scalar), y((float)scalar) {
+}
+
 Vector2::Vector2(float x, float y)
 	: x(x), y(y) {
+}
+
+Vector2::Vector2(int x, int y)
+	: x((float)x), y((float)y) {
 }
 
 Vector2::Vector2(const Vector3& vector) {

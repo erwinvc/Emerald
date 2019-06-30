@@ -26,7 +26,7 @@ void ImGuiManager::Initialize(Window* window) {
 
 	GetGLCallbackManager()->AddOnMousePosCallback([](int x, int y) {
 		ImGuiIO& io = ImGui::GetIO();
-		io.MousePos = ImVec2(x, y);
+		io.MousePos = ImVec2((float)x, (float)y);
 	});
 
 	GetGLCallbackManager()->AddOnScrollCallback([](double x, double y) {
@@ -47,7 +47,7 @@ void ImGuiManager::Initialize(Window* window) {
 
 	GetGLCallbackManager()->AddOnResizeCallback([](int width, int height) {
 		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(width, height);
+		io.DisplaySize = ImVec2((float)width, (float)height);
 		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 	});
 

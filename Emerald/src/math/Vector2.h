@@ -8,7 +8,9 @@ struct Vector2 {
 
 	Vector2();
 	Vector2(float scalar);
+	Vector2(int scalar);
 	Vector2(float x, float y);
+	Vector2(int x, int y);
 	Vector2(const Vector3& vector);
 
 	Vector2& Add(const Vector2& other);

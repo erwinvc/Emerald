@@ -18,6 +18,10 @@ namespace Math {
         return (float)(radians * (180.0f / 3.14f));
     }
 
+	inline int Abs(int val) {
+		return val <= 0 ? 1 - val : val;
+	}
+
     inline float Abs(float val) {
         return val <= 0.0f ? 0.0f - val : val;
     }
@@ -62,9 +66,17 @@ namespace Math {
         return (value < minimum) ? minimum : value;
     }
 
-    inline float Max(float value, float maximum) {
+	inline int Min(int value, int minimum) {
+		return (value < minimum) ? minimum : value;
+	}
+
+    inline int Max(int value, int maximum) {
         return (value > maximum) ? maximum : value;
     }
+
+	inline float Max(float value, float maximum) {
+		return (value > maximum) ? maximum : value;
+	}
 
     template<typename T>
     inline T Clamp(T val, T min, T max) {

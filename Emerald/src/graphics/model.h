@@ -52,7 +52,7 @@ private:
 
 		Vertex* vertices = new Vertex[mesh->mNumVertices];
 
-		for (int i = 0; i < mesh->mNumVertices; i++) {
+		for (uint32 i = 0; i < mesh->mNumVertices; i++) {
 			vertices[i].m_position = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 			vertices[i].m_normal = Vector3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 			vertices[i].m_uv = Vector2(mesh[0].mTextureCoords[0][i].x, mesh[0].mTextureCoords[0][i].y);

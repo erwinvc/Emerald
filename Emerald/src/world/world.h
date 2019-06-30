@@ -27,7 +27,6 @@ private:
 		yMax *= 16;
 
 		m_boundaries = Rect((xMin + xMax) / 2, (yMin + yMax) / 2, Math::Abs(xMin) + Math::Abs(xMax), Math::Abs(yMin) + Math::Abs(yMax));
-		Logger::LogMessage(m_boundaries);
 	}
 public:
 	const Rect& GetBoundaries() {

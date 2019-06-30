@@ -7,7 +7,7 @@ private:
 public:
 	void Initialize() {
 		//#TODO Use texture class
-		byte bytes[] = { 0, 0, 0, -8, -8, 8, -8, -8,-8, 8, -8, -8, 0, 0, 0, -8 };
+		byte bytes[] = { (byte)0, (byte)0, (byte)0, (byte)-8, (byte)-8, (byte)8, (byte)-8, (byte)-8,(byte)-8, (byte)8, (byte)-8, (byte)-8, (byte)0, (byte)0, (byte)0, (byte)-8 };
 
 		m_nullTexture = NEW(Texture(2, 2, bytes, TextureParameters(RGBA, NEAREST, REPEAT)));
 		LOG("[~gTexture~x] Texture manager initialized");

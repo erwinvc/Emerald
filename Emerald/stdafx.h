@@ -2,6 +2,7 @@
 
 #define _HAS_STD_BYTE 0
 //#define MEMORY_CHECK
+#pragma warning (disable: 4244) /*type_traits conversion warning*/
 
 // Windows Header Files:
 #include <windows.h>
@@ -43,6 +44,7 @@ using namespace std;
 
 #pragma warning (disable: 4267) /*size_t conversions*/
 
+#pragma warning (default: 4244) /*size_t conversions*/
 #define loop(x, n) for(int x = 0; x < n; ++x)
 #define foreach(x, y) for(auto& x : y)
 #define BUFFEROFFSET(i) ((char *)NULL + (i))

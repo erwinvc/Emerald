@@ -171,7 +171,6 @@ Vector2 origin = Vector2(0, 0);
 float rot = 0;
 Vector2 position = Vector2(0, 0);
 Vector2 sizee = Vector2(1, 1);
-Vector2 texSize = Vector2(200, 200);
 
 void RenderingPipeline::Render() {
 	//m_pointlights[0].m_position = m_camera->m_position;
@@ -242,7 +241,7 @@ void RenderingPipeline::Render() {
 
 	Vector3 cast = m_rayCast.Get(m_camera);
 	Vector3& pos = m_rayCast.GetGroundPosition();
-	GetLineRenderer()->DrawRect(Rect(((int)pos.x + 0.5f), ((int)pos.z + 0.5f), 1, 1));
+	GetLineRenderer()->DrawRect(Rect((int)pos.x + 0.5f, (int)pos.z + 0.5f, 1.0f, 1.0f));
 	GetLineRenderer()->Submit(m_camera->m_position, pos);
 	//if (GetMouse()->ButtonJustDown(VK_MOUSE_LEFT)) {
 	//	Tile* t = GetWorld()->GetTile(((int)pos.x + 0.5f), ((int)pos.z + 0.5f));
@@ -340,7 +339,7 @@ void RenderingPipeline::Render() {
 	m_hdrShader->Unbind();
 
 	float aspect = (float)(1920) / 1080;
-	m_uiShader->RenderTexture(tex->GetHandle(), origin, rot, position, sizee, texSize, false, false);
+	m_uiShader->RenderTexture(tex->GetHandle(), origin, rot, position, sizee, false, false);
 
 	String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard" };
 	//ImGui::ShowTestWindow();
@@ -427,24 +426,24 @@ void RenderingPipeline::Render() {
 			}
 			if (ImGui::TreeNode("Framebuffers")) {
 
-				if (ImGui::ImageButton((void*)m_hdrTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 0;
+				if (ImGui::ImageButton(m_hdrTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 0;
 				ImGui::Tooltip("Final");
 				ImGui::SameLine();
-				if (ImGui::ImageButton((void*)m_gBuffer->m_miscTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 1;
+				if (ImGui::ImageButton(m_gBuffer->m_miscTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 1;
 				ImGui::Tooltip("Misc");
-				if (ImGui::ImageButton((void*)m_gBuffer->m_colorTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 2;
+				if (ImGui::ImageButton(m_gBuffer->m_colorTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 2;
 				ImGui::Tooltip("Color");
 				ImGui::SameLine();
-				if (ImGui::ImageButton((void*)m_gBuffer->m_normalTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 3;
+				if (ImGui::ImageButton(m_gBuffer->m_normalTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 3;
 				ImGui::Tooltip("Normal");
-				if (ImGui::ImageButton((void*)m_gBuffer->m_positionTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 4;
+				if (ImGui::ImageButton(m_gBuffer->m_positionTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 4;
 				ImGui::Tooltip("Position");
 
 				if (ImGui::TreeNode("SSAO")) {
-					if (ImGui::ImageButton((void*)m_ssaoRenderer->GetTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 5;
+					if (ImGui::ImageButton(m_ssaoRenderer->GetTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 5;
 					ImGui::Tooltip("SSAO blurred");
 					ImGui::SameLine();
-					if (ImGui::ImageButton((void*)m_ssaoRenderer->GetRawTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 6;
+					if (ImGui::ImageButton(m_ssaoRenderer->GetRawTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) selectedTexture = 6;
 					ImGui::Tooltip("SSAO raw");
 					ImGui::TreePop();
 				}
@@ -483,7 +482,6 @@ void RenderingPipeline::Render() {
 		ImGui::SliderFloat("rot", (float*)&rot, 0, Math::PI);
 		ImGui::SliderFloat2("position", (float*)&position, 0, 1);
 		ImGui::SliderFloat2("size", (float*)&sizee, 0, 1);
-		ImGui::SliderFloat2("texSize", (float*)&texSize, 0, 2000);
 
 		ImGui::End();
 	}

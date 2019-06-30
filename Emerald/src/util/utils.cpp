@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 String_t Format_t(String_t fmt, ...) {
-    char vaBuffer[0x200];
+    static char vaBuffer[0x200];
     va_list ap;
     va_start(ap, fmt);
     vsprintf_s(vaBuffer, fmt, ap);

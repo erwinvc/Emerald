@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 Vector2I::Vector2I()
-    : x(0.0f), y(0.0f) {
+    : x(0), y(0) {
 }
 
 Vector2I::Vector2I(int scalar)

@@ -67,7 +67,7 @@ void Application::Run() {
 	/*Main loop*/
 	m_timer = Timer();
 	m_timeStep = TimeStep(m_timer.Get());
-	long timer = m_timer.Get();
+	float timer = m_timer.Get();
 	float updateTimer = m_timer.Get();
 	float updateTick = 1000.0f / 60.0f;
 	double delta = 0;
