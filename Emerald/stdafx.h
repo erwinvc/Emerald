@@ -40,6 +40,13 @@
 #include "imgui_internal.h"
 #include "imgui_impl_opengl3.h"
 
+// Assimp
+#include "assimp/cimport.h"
+#include "assimp/scene.h"
+#include "assimp/postprocess.h"
+#include "assimp/material.h"
+#include <assimp/Importer.hpp>
+
 using namespace std;
 
 #pragma warning (disable: 4267) /*size_t conversions*/
@@ -59,13 +66,15 @@ using namespace std;
 #include "math/groundRaycast.h"
 
 #include "util/types.h"
+#include "util/ref.h"
 #include "util/singleton.h"
 #include "imGui/imGuiManager.h"
 #include "util/memory.h"
 #include "util/fileSystem.h"
-#include "util/thread/threadManager.h"
 #include "util/utils.h"
+#include "util/thread/threadManager.h"
 #include "util/logger.h"
+#include "util/thread/glFiberManager.h"
 #include "util/color.h"
 #include "util/timestep.h"
 #include "util/timer.h"
@@ -81,9 +90,13 @@ using namespace std;
 #define NEW(x) new x
 #define NEWARRAY(x, y) new x[y]
 #define DELETE(x) delete x
+#define DELETEARRAY(x) delete[] x
+
 #endif
 
 //#define DELETEARRAY(x) DestroyArray(x)
+
+#include "util/tween/tween.h"
 
 #include "glCallbackManager.h"
 
@@ -94,13 +107,22 @@ using namespace std;
 #include "graphics/buffers/frameBuffer.h"
 #include "graphics/buffers/gBuffer.h"
 
-#include "graphics/textures/textureParameters.h"
-#include "graphics/textures/texture.h"
-#include "graphics/textures/textureUtils.h"
-#include "graphics/window.h"
 #include "graphics/shaders/shader.h"
-#include "graphics/shaders/phongShader.h"
-#include "graphics/shaders/UIShader.h"
+#include "graphics/shaders/shaderManager.h"
+
+#include "assets/asset.h"
+#include "assets/texture/textureParameters.h"
+#include "assets/texture/texture.h"
+#include "assets/texture/textureUtils.h"
+#include "assets/loaders/assetLoader.h"
+#include "assets/loaders/customLoader.h"
+#include "assets/loaders/textureLoader.h"
+#include "assets/loaders/shaderLoader.h"
+#include "assets/loaders/modelLoader.h"
+#include "assets/loaders/stateLoader.h"
+
+#include "graphics/window.h"
+#include "graphics/shaders/UIRenderer.h"
 #include "graphics/renderer.h"
 #include "graphics/ssaoRenderer.h"
 
@@ -117,6 +139,7 @@ using namespace std;
 #include "graphics/mesh.h"
 #include "graphics/model.h"
 #include "entity/entity.h"
+#include "assets/assetManager.h"
 
 #include "graphics/lineRenderer.h"
 #include "graphics/instancedRenderer.h"
@@ -136,3 +159,11 @@ using namespace std;
 #include "deferred.h"
 #include "graphics/RenderingPipeline.h"
 #include "application.h"
+
+#include "gameState/state.h"
+#include "gameState/stateManager.h"
+#include "gameState/states/loadingState.h"
+#include "gameState/states/mainMenuState.h"
+#include "gameState/states/loadingWorldState.h"
+#include "gameState/states/gameState.h"
+#include "gameState/states/menuState.h"

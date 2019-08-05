@@ -35,10 +35,11 @@ private:
     TextureFilter m_filter;
     TextureWrap m_wrap;
     TextureType m_type;
+	bool m_flipY;
 public:
 
-    TextureParameters(TextureFormat format = RGBA, TextureFilter filter = LINEARMIPMAP, TextureWrap wrap = REPEAT, TextureType type = T_UNSIGNED_BYTE)
-        : m_format(format), m_filter(filter), m_wrap(wrap), m_type(type) {
+	TextureParameters(TextureFormat format = RGBA, TextureFilter filter = LINEARMIPMAP, TextureWrap wrap = REPEAT, TextureType type = T_UNSIGNED_BYTE, bool flipY = true)
+        : m_format(format), m_filter(filter), m_wrap(wrap), m_type(type), m_flipY(flipY) {
     };
 
     //TextureParameters(TextureFilter filter = LINEAR, TextureWrap wrap = CLAMP, TextureType type = T_UNSIGNED_BYTE)
@@ -53,10 +54,11 @@ public:
     //    : m_format(RGBA), m_filter(LINEAR), m_wrap(CLAMP), m_type(type) {
     //}
 
-    inline int GetFormat() { return m_format; }
-    inline int GetWrap() { return m_wrap; }
-    inline int GetType() { return m_type; }
-    inline int GetFilter(int type) {
+	inline bool GetFlipY() const { return m_flipY; }
+	inline int GetFormat() const { return m_format; }
+    inline int GetWrap() const { return m_wrap; }
+    inline int GetType() const { return m_type; }
+    inline int GetFilter(int type) const {
         switch (type) {
         case GL_TEXTURE_MIN_FILTER: {
             switch (m_filter) {

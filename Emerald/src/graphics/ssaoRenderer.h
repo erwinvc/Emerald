@@ -15,22 +15,21 @@ public:
 	Texture* GetTexture() { return m_textureBlur; }
 	Texture* GetRawTexture() { return m_texture; }
 
-	void OnImGui()
-	{
+	void OnImGui() {
 		ImGui::SliderFloat("bias", &m_radius, 0, 25);
 		ImGui::SliderFloat("radius", &m_bias, 0, 25);
 		ImGui::SliderInt("power", &m_power, 0, 64);
 	}
 
 private:
-	FrameBuffer& m_fbo;
-	FrameBuffer& m_fboBlur;
-	Texture* m_texture;
-	Texture* m_textureBlur;
-	Texture* m_noiseTexture;
-	Shader* m_shader;
-	Shader* m_shaderBlur;
-	Mesh* m_quad;
+	Ref<FrameBuffer> m_fbo;
+	Ref<FrameBuffer> m_fboBlur;
+	Ref<Texture> m_texture;
+	Ref<Texture> m_textureBlur;
+	Ref<Texture> m_noiseTexture;
+	Ref<Shader> m_shader;
+	Ref<Shader> m_shaderBlur;
+	Ref<Mesh> m_quad;
 
 	vector<Vector3> m_kernels;
 };

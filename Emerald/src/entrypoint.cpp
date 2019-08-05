@@ -4,7 +4,7 @@
 int main() {
 	srand((uint)time(NULL));
 	Logger::Initialize();
-	GetApplication()->Run();
+	GetApplication()->Initialize();
 	GetApplication()->Cleanup();
 	Logger::Cleanup();
 }

@@ -27,6 +27,7 @@ private:
 		yMax *= 16;
 
 		m_boundaries = Rect((xMin + xMax) / 2, (yMin + yMax) / 2, Math::Abs(xMin) + Math::Abs(xMax), Math::Abs(yMin) + Math::Abs(yMax));
+
 	}
 public:
 	const Rect& GetBoundaries() {
@@ -34,8 +35,8 @@ public:
 	}
 
 	void Populate() {
-		loop(y, 256) {
-			loop(x, 256) {
+		loop(y, 16) {
+			loop(x, 16) {
 				GenerateChunk(x, y);
 			}
 		}

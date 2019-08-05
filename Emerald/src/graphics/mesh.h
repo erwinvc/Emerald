@@ -2,17 +2,17 @@
 
 class Mesh {
 private:
-	shared_ptr<VertexArray> m_vao;
-	shared_ptr<IndexBuffer> m_ibo;
-	Material* m_material;
+	Ref<VertexArray> m_vao;
+	Ref<IndexBuffer> m_ibo;
+	Ref<Material> m_material;
 
 public:
 	Mesh() : m_vao(nullptr), m_ibo(nullptr), m_material(nullptr) {}
-	Mesh(shared_ptr<VertexArray> vao, shared_ptr<IndexBuffer> ibo, Material* mat) : m_vao(vao), m_ibo(ibo), m_material(mat) {}
-	Mesh(shared_ptr<VertexArray> vao, shared_ptr<IndexBuffer> ibo);
+	Mesh(Ref<VertexArray> vao, Ref<IndexBuffer> ibo, Ref<Material> mat) : m_vao(vao), m_ibo(ibo), m_material(mat) {}
+	Mesh(Ref<VertexArray> vao, Ref<IndexBuffer> ibo);
 	~Mesh() {}
 	Material* GetMaterial() { return m_material; }
-	void SetMaterial(Material* mat) { m_material = mat; }
+	void SetMaterial(Ref<Material> mat) { m_material = mat; }
 
 	void Bind() {
 		m_vao->Bind();
@@ -36,6 +36,6 @@ public:
 		//Unbind();
 	}
 
-	inline shared_ptr<VertexArray> GetVAO() { return m_vao; }
-	inline shared_ptr<IndexBuffer> GetIBO() { return m_ibo; }
+	inline Ref<VertexArray> GetVAO() { return m_vao; }
+	inline Ref<IndexBuffer> GetIBO() { return m_ibo; }
 };

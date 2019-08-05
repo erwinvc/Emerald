@@ -11,12 +11,12 @@ FrameBuffer::FrameBuffer(String name, uint width, uint height, Color& clearColor
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 	GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_dbo));
 
-	if (CheckStatus()) LOG("[~cBuffers~x] Framebuffer %s initialized", m_name.c_str());
+	if (CheckStatus()) LOG("[~cBuffers~x] Created ~1%s~x framebuffer", m_name.c_str());
 }
 
 FrameBuffer::~FrameBuffer() {
 	GL(glDeleteFramebuffers(1, &m_fbo));
-	LOG("Deleted %d texture", m_textures.size());
+	LOG("[~cBuffers~x] Deleted %d texture", m_textures.size());
 	for (Texture* tex : m_textures) DELETE(tex);
 }
 
@@ -40,9 +40,4 @@ void FrameBuffer::AddColorBuffer(Texture* texture) {
 	GL(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
 	if (status != GL_FRAMEBUFFER_COMPLETE) LOG_ERROR("[~cBuffers~x] ~radding attachment to %s failed: %s", m_name.c_str(), GLUtils::GetFBOStatus(status));
 	Unbind();
-}
-
-FrameBuffer& FrameBuffer::Create(const String& name, int width, int height) {
-	FrameBuffer* fbo = NEW(FrameBuffer(name, width, height));
-	return *fbo;
 }

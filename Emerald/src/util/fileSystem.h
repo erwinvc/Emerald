@@ -11,9 +11,7 @@ public:
 	}
 
 	static bool DoesFileExist(const String& path) {
-		ifstream i(path.c_str());
-		return i.good();
-		//DWORD result = GetFileAttributesA(path.c_str());
-		//return !(result == INVALID_FILE_ATTRIBUTES && GetLastError() == ERROR_FILE_NOT_FOUND);
+		struct stat buffer;
+		return (stat(path.c_str(), &buffer) == 0);
 	}
 };

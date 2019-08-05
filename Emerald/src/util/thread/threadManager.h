@@ -10,19 +10,18 @@ private:
 	friend class ThreadManager;
 public:
     Thread() : m_name(""), m_handle(INVALID_HANDLE_VALUE) {}
-    Thread(String name) : m_name(name), m_handle(INVALID_HANDLE_VALUE) {}
+    Thread(const String& name) : m_name(name), m_handle(INVALID_HANDLE_VALUE) {}
 
     HANDLE GetHandle() { return m_handle; };
     void Shutdown() { m_shutDown = true; }
     bool IsFinished() { return m_finished; }
 
-    String GetName() { return m_name; }
+    const String& GetName() { return m_name; }
     void SetName(String& name) { m_name = name; }
 };
 
 class ThreadManager {
 private:
-    condition_variable m_conditionVariable;
     mutex m_lock;
     vector<Thread*> m_threads;
 

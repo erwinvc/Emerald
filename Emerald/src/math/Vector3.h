@@ -13,6 +13,7 @@ struct Vector3 {
     Vector3();
     Vector3(float scalar);
     Vector3(float x, float y, float z);
+	Vector3(const aiVector3D& vec) : x(vec.x), y(vec.y), z(vec.z) {}
     Vector3(const Vector2& other);
     Vector3(float x, float y);
     Vector3(const Vector4& other);

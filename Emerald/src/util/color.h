@@ -14,14 +14,34 @@ public:
 	static Color Yellow() { return Color(1, 1, 0); }
 	static Color Magenta() { return Color(1, 0, 1); }
 	static Color Cyan() { return Color(0, 1, 1); }
+
+	static Color Transparent() { return Color(0, 0, 0, 0); }
+
 	float R;
 	float G;
 	float B;
 	float A;
 
 	Color() : R(0), G(0), B(0), A(0) {}
+	Color(int32 hexValue) {
+		R = ((hexValue >> 16) & 0xFF) / 255.0f;
+		G = ((hexValue >> 8) & 0xFF) / 255.0f;
+		B = ((hexValue) & 0xFF) / 255.0f;
+		A = 1;
+	}
 	Color(float val) : R(val), G(val), B(val), A(val) {}
 	Color(float r, float g, float b, float a = 1.0f) : R(r), G(g), B(b), A(a) {}
+
+	void Set(float r, float g, float b) {
+		R = r;
+		G = g;
+		B = b;
+	}
+
+	void Set(float r, float g, float b, float a) {
+		Set(r, g, b);
+		A = a;
+	}
 
 	void clamp() {
 		if (R < 0) R = 0;
@@ -43,6 +63,19 @@ public:
 		return col;
 	}
 
+	friend Color operator*(const Color& color, float value) {
+		return Color(color.R * value, color.G * value, color.B * value, color.A * value);
+	}
+
+	friend Color operator+(const Color& col1, const Color& col2) {
+		return Color(col1.R + col2.R, col1.G + col2.G, col1.B + col2.B, col1.A + col2.A);
+	}
+
+	friend Color operator-(const Color& col1, const Color& col2) {
+		return Color(col1.R - col2.R, col1.G - col2.G, col1.B - col2.B, col1.A - col2.A);
+	}
+
+
 	static Color& Random(float min = 0) {
 		float rr = Math::RandomFloat(0, 1);
 		float gg = Math::RandomFloat(0, 1);
@@ -61,5 +94,9 @@ public:
 		case 5: return Cyan();
 		}
 		return White();
+	}
+
+	static Color Mix(const Color& col1, const Color& col2, float val) {
+		return col1 * (1 - val) + col2 * val;
 	}
 };

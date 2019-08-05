@@ -1,16 +1,30 @@
 #pragma once
 
-class MaterialManager {
+class MaterialManager : public Singleton<MaterialManager> {
 private:
-    Material* m_nullMaterial;
-public:
+	map<String, Material*> m_materials;
+	Material* m_nullMaterial;
+
+	MaterialManager() {}
 	~MaterialManager() { DELETE(m_nullMaterial); }
-    void Initialize() {
-        m_nullMaterial = NEW(Material());
-    }
+	friend Singleton;
 
-    Material* GetNullMaterial() { return m_nullMaterial; }
+public:
+	void Initialize() {
+		m_nullMaterial = NEW(Material());
+	}
 
+	Material* GetNullMaterial() { return m_nullMaterial; }
+
+	Ref<Material> Create(const String& name) {
+		Material* mat = NEW(Material());
+		m_materials[name] = mat;
+		return mat;
+	}
+
+	Ref<Material> Get(const String& name) {
+		return m_materials[name];
+	}
 };
 
-MaterialManager* GetMaterialManager();
+static MaterialManager* GetMaterialManager() { return MaterialManager::GetInstance(); }

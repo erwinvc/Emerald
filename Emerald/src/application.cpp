@@ -4,7 +4,19 @@ static void ErrorCallback(int error, const char* description) {
 	LOG_ERROR("[GLFW] %s", description);
 }
 
-Application::Application() : m_running(true) {
+void Application::OnResize(int width, int height) {
+	glViewport(0, 0, width, height);
+	if (m_pipeline)m_pipeline->OnResize(width, height);
+	GetStateManager()->OnResize(width, height);
+	m_window->SetWidth(width);
+	m_window->SetHeight(height);
+}
+
+void Application::OnWindowClose() {
+	m_running = false;
+}
+
+void Application::Initialize() {
 	glfwSetErrorCallback(ErrorCallback);
 	if (!glfwInit()) {
 		LOG_ERROR("[GLFW] GLFW failed to initialize");
@@ -13,7 +25,7 @@ Application::Application() : m_running(true) {
 
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -24,49 +36,40 @@ Application::Application() : m_running(true) {
 	m_window = NEW(Window("Emerald", 1920, 1080));
 
 	m_window->MakeContextCurrent();
-	m_window->Show();
 	m_window->ClearColor(Color(0.5f, 0.7f, 1.0f, 1.0f));
+	m_window->SetVSync(true);
 
 	if (glewInit() != GLEW_OK) {
-		LOG_ERROR("GLEW failed to initialize");
+		LOG_ERROR("[GLEW] failed to initialize");
 		return;
 	}
 
-	GetTextureManager()->Initialize();
-	GetMaterialManager()->Initialize();
-	GetGLCallbackManager()->AddOnResizeCallback(this, &Application::OnResize);
+	//GetGLCallbackManager()->AddOnResizeCallback(this, &Application::OnResize);
 	GetGLCallbackManager()->AddOnCloseCallback(this, &Application::OnWindowClose);
 
-	LOG("%-26s %s", "~cGPU manufacturer~i", glGetString(GL_VENDOR));
-	LOG("%-26s %s", "~cGPU~i", glGetString(GL_RENDERER));
-	LOG("%-26s %s", "~cOpenGL version~i", glGetString(GL_VERSION));
-}
+	LOG("[~cGPU~x] %-26s %s", "GPU manufacturer~1", glGetString(GL_VENDOR));
+	LOG("[~cGPU~x] %-26s %s", "GPU~1", glGetString(GL_RENDERER));
+	LOG("[~cGPU~x] %-26s %s", "OpenGL version~1", glGetString(GL_VERSION));
 
+	m_pipeline = NEW(RenderingPipeline());
 
-void Application::OnResize(int width, int height) {
-	glViewport(0, 0, width, height);
-	if (m_pipeline)m_pipeline->Resize(width, height);
-	m_window->SetWidth(width);
-	m_window->SetHeight(height);
-}
+	m_window->SetIcon("icon32");
 
-void Application::OnWindowClose() {
-	m_running = false;
+	GetStateManager()->RegisterStates();
+
+	GetGLFiberManager()->Initialize();
+	GetGLFiberManager()->AddFiber("Main", [] {GetApplication()->Run(); });
+	GetGLFiberManager()->AddFiber("AssetManager", [] {GetAssetManager()->Update(); });
+
+	m_window->Show();
+
+	while (m_running) {
+		GetGLFiberManager()->Tick();
+	}
 }
 
 void Application::Run() {
-	m_pipeline = NEW(RenderingPipeline());
-	GetKeyboard()->Initialize(m_window);
-	GetMouse()->Initialize(m_window);
-	GetImGuiManager()->Initialize(m_window);
-
-	glEnable(GL_DEPTH_TEST);
-
-	m_window->SetVSync(false);
-
-	/*Main loop*/
 	m_timer = Timer();
-	m_timeStep = TimeStep(m_timer.Get());
 	float timer = m_timer.Get();
 	float updateTimer = m_timer.Get();
 	float updateTick = 1000.0f / 60.0f;
@@ -74,56 +77,70 @@ void Application::Run() {
 	int frames = 0, updates = 0;
 	while (m_running) {
 		m_window->Clear();
-		float now = m_timer.Get();
-		if (now - updateTimer > updateTick) {
-			m_timeStep.Update(now);
-			Update(m_timeStep);
+		float time = m_timer.Get();
+		if (time - updateTimer > updateTick) {
+			Update(time - m_lastFrameTime);
+			m_lastFrameTime = time;
 			updates++;
 			updateTimer += updateTick;
 			m_frameCount++;
 		}
-		delta += (now - updateTimer) / updateTick;
-		//Update(delta);
-		//while (delta >= 1.0) {
-		//    FixedUpdate();
-		//    updates++;
-		//    delta--;
-		//}
+		delta += (time - updateTimer) / updateTick;
 		Render();
 		frames++;
 		if (glfwGetTime() - timer > 1.0) {
 			m_window->SetTitle(Format_t("Emerald | UPS: %d FPS: %d", updates, frames));
+			m_fps = frames;
 			timer++;
 			updates = frames = 0;
 		}
+		GetGLFiberManager()->GoToMainFiber();
 	}
 }
-void Application::FixedUpdate() {}
 
-void Application::Update(const TimeStep& time) {
+void Application::Update(TimeStep time) {
 	GetMouse()->Update();
-	m_pipeline->Update(time);
+	GetStateManager()->Update(time);
+	GetTweenManager()->Update(time);
+	GetShaderManager()->Update(time);
 }
 
 void Application::Render() {
-
 	m_window->ClearColor(Color(0, 0, 0, 1));
-	GetImGuiManager()->Begin();
 
-	m_pipeline->Render();
+	if (m_pipeline->Initialized()) {
+		m_pipeline->PreGeometryRender();
+		GetLineRenderer()->Begin();
+		GetStateManager()->RenderGeometry();
+		GetLineRenderer()->End();
+		GetLineRenderer()->Draw();
+		m_pipeline->PostGeometryRender();
 
-	GetImGuiManager()->End();
+		m_pipeline->PreUIRender();
+		GetStateManager()->RenderUI();
+		m_pipeline->PostUIRender();
 
+		GetImGuiManager()->Begin();
+		if (ImGui::Begin("Emerald###Window", &m_ImGuiOpen, ImVec2(576, 680), -1)) {
+			m_pipeline->OnImGUI();
+			GetStateManager()->OnImGUI();
+			GetShaderManager()->OnImGUI();
+			ImGui::End();
+		}
+		GetImGuiManager()->End();
+	} else {
+		GLUtils::EnableBlending();
+		GetStateManager()->RenderUI();
+		GLUtils::DisableBlending();
+	}
 	m_window->SwapBuffers();
 	m_window->PollEvents();
 }
 
 void Application::Cleanup() {
+	GetStateManager()->Cleanup();
 	GetThreadManager()->Cleanup();
 	DELETE(m_window);
 	DELETE(m_pipeline);
 	GetMemory()->CheckAllocations();
-	//delete m_timer;
-	//delete m_timeStep;
-	//delete m_pipeline;
 }

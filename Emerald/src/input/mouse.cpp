@@ -31,5 +31,3 @@ void Mouse::OnScroll(double xoffset, double yoffset) {
     GetMouse()->m_scroll.x = (float)xoffset;
     GetMouse()->m_scroll.y = (float)yoffset;
 }
-
-Mouse* GetMouse() { return &g_mouse; }

@@ -5,6 +5,7 @@ constexpr size_t NUMOF(T(&)[N]) { return N; }
 
 namespace Math {
 	static const float PI = 3.1415927f;
+	static const float TWO_PI = 6.2831854f;
 	static const float HALF_PI = 1.5707964f;
 	static const float THIRD_PI = 1.0471976f;
 	static const float QUARTER_PI = 0.7853982f;
@@ -44,6 +45,10 @@ namespace Math {
 
 	inline float Rsqrt(float value) {
 		return 1.0f / (float)::sqrt(value);
+	}
+
+	inline float Pow(float value, float pow) {
+		return (float)::pow(value, pow);
 	}
 
 	inline float Asin(float value) {

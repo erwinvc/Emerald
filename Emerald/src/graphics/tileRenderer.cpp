@@ -1,34 +1,24 @@
 #include "stdafx.h"
 
 void TileRenderer::Initialize() {
-	m_shader = NEW(Shader("Tile", "src/shader/tile.vert", "src/shader/tile.frag"));
-	Model* full = NEW(Model());
-	full->LoadModel("tiles/Plane.fbx");
+	m_shader = GetShaderManager()->Get("Tile");
 
-	Model* inner = NEW(Model());
-	inner->LoadModel("tiles/Inner Corner.fbx");
+	Ref<Model> full = GetAssetManager()->Get<Model>("Plane");
+	Ref<Model> inner = GetAssetManager()->Get<Model>("InnerCorner");
+	Ref<Model> outer = GetAssetManager()->Get<Model>("OuterCorner");
+	Ref<Model> slope = GetAssetManager()->Get<Model>("Slope");
+	Ref<Model> valley = GetAssetManager()->Get<Model>("Valley");
 
-	Model* outer = NEW(Model());
-	outer->LoadModel("tiles/Outer Corner.fbx");
+	Ref<Texture> t = GetAssetManager()->Get<Texture>("White");
+	Ref<Texture> n = GetAssetManager()->Get<Texture>("BricksNormal");
+	m_material = GetMaterialManager()->Create("Tile");
+	m_material->SetAlbedo(t)->SetNormal(n);
 
-	Model* slope = NEW(Model());
-	slope->LoadModel("tiles/Slope.fbx");
-
-	Model* valley = NEW(Model());
-	valley->LoadModel("tiles/Valley.fbx");
-
-
-	Texture* t = NEW(Texture("res/white.png"));
-	Texture* n = NEW(Texture("sponza/bricksNormal.png"));
-	Material* m = NEW(Material());
-	m->SetAlbedo(t)->SetNormal(n);
-
-	material = m;
-	full->GetMeshes()[full->GetMeshes().size() - 1]->SetMaterial(m);
-	inner->GetMeshes()[inner->GetMeshes().size() - 1]->SetMaterial(m);
-	outer->GetMeshes()[outer->GetMeshes().size() - 1]->SetMaterial(m);
-	slope->GetMeshes()[slope->GetMeshes().size() - 1]->SetMaterial(m);
-	valley->GetMeshes()[valley->GetMeshes().size() - 1]->SetMaterial(m);
+	full->GetMeshes()[full->GetMeshes().size() - 1]->SetMaterial(m_material);
+	inner->GetMeshes()[inner->GetMeshes().size() - 1]->SetMaterial(m_material);
+	outer->GetMeshes()[outer->GetMeshes().size() - 1]->SetMaterial(m_material);
+	slope->GetMeshes()[slope->GetMeshes().size() - 1]->SetMaterial(m_material);
+	valley->GetMeshes()[valley->GetMeshes().size() - 1]->SetMaterial(m_material);
 
 	m_renderers[0] = NEW(InstancedRenderer2D(full->GetMeshes()[full->GetMeshes().size() - 1]));
 	m_renderers[1] = NEW(InstancedRenderer2D(inner->GetMeshes()[inner->GetMeshes().size() - 1]));
@@ -36,12 +26,11 @@ void TileRenderer::Initialize() {
 	m_renderers[3] = NEW(InstancedRenderer2D(slope->GetMeshes()[slope->GetMeshes().size() - 1]));
 	m_renderers[4] = NEW(InstancedRenderer2D(valley->GetMeshes()[valley->GetMeshes().size() - 1]));
 
-	texIri = new Texture("res/irridescence.png");
-	texNoise = new Texture("res/noise.png");
+	texIri = GetAssetManager()->Get<Texture>("Irridescence");
+	texNoise = GetAssetManager()->Get<Texture>("Noise");
 }
 
 void TileRenderer::Begin() {
-	m_shader->Reload();
 	m_shader->Bind();
 	m_shader->Set("_Boundaries", GetWorld()->GetBoundaries().GetCornerPositions());
 	m_shader->Set("viewMatrix", GetCamera()->GetViewMatrix());
@@ -50,9 +39,9 @@ void TileRenderer::Begin() {
 	texIri->Bind(4);
 	m_shader->Set("texture_noise", 5);
 	texNoise->Bind(5);
-	m_shader->Set("scale1", scale1);
-	m_shader->Set("scale2", scale2);
-	m_shader->Set("scale3", scale3);
+	m_shader->Set("scale1", m_scale1);
+	m_shader->Set("scale2", m_scale2);
+	m_shader->Set("scale3", m_scale3);
 
 
 	for (int i = 0; i < 5; i++) {

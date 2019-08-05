@@ -1,22 +1,20 @@
 #include "stdafx.h"
 SSAORenderer::~SSAORenderer() {
-	DELETE(m_noiseTexture);
-	DELETE(m_shader);
-	DELETE(m_shaderBlur);
-	DELETE(m_quad);
 }
 
-SSAORenderer::SSAORenderer(uint width, uint height) :
-	m_fbo(FrameBuffer::Create("SSAO", width, height)), m_fboBlur(FrameBuffer::Create("SSAOBlur", width, height)), m_texture(nullptr), m_textureBlur(nullptr), m_noiseTexture(nullptr), m_shader(nullptr), m_shaderBlur(nullptr), m_quad(nullptr){
+SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_textureBlur(nullptr), m_noiseTexture(nullptr), m_shader(nullptr), m_shaderBlur(nullptr), m_quad(nullptr) {
 
-	m_shader = NEW(Shader("SSAO", "src/shader/ssao.vert", "src/shader/ssao.frag"));
-	m_shaderBlur = NEW(Shader("SSAO", "src/shader/ssao.vert", "src/shader/ssaoBlur.frag"));
+	m_fbo = GetFrameBufferManager()->Create("SSAO", width, height);
+	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", width, height);
+
+	m_shader = GetShaderManager()->Get("SSAO");
+	m_shaderBlur = GetShaderManager()->Get("SSAOBlur");
 
 	m_texture = NEW(Texture(width, height, TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT)));
-	m_fbo.AddColorBuffer(m_texture);
+	m_fbo->AddColorBuffer(m_texture);
 
 	m_textureBlur = NEW(Texture(width, height, TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT)));
-	m_fboBlur.AddColorBuffer(m_textureBlur);
+	m_fboBlur->AddColorBuffer(m_textureBlur);
 
 	for (int i = 0; i < KERNELCOUNT; ++i) {
 		Vector3 sample(Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f));
@@ -46,15 +44,15 @@ SSAORenderer::SSAORenderer(uint width, uint height) :
 		m_shader->Set(Format_t("_Samples[%d]", i), m_kernels[i]);
 	}
 
-	LOG("[~bEEngine~x] SSAO initialized");
+	LOG("[~bRenderer~x] SSAO initialized");
 }
 
 void SSAORenderer::Render(GBuffer* gBuffer) {
 	GL(glDisable(GL_DEPTH_TEST));
 	GL(glFrontFace(GL_CW));
 
-	m_fbo.Bind();
-	m_fbo.Clear();
+	m_fbo->Bind();
+	m_fbo->Clear();
 
 	m_shader->Bind();
 	m_shader->Set("_Radius", m_radius);
@@ -67,13 +65,12 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	gBuffer->m_normalTexture->Bind(1);
 	m_noiseTexture->Bind(2);
 	m_quad->Draw();
-	m_fbo.Unbind();
+	m_fbo->Unbind();
 
-	m_fboBlur.Bind();
-	m_shaderBlur->Reload();
+	m_fboBlur->Bind();
 	m_shaderBlur->Bind();
 	m_shaderBlur->Set("_SSAO", 0);
 	m_texture->Bind();
 	m_quad->Draw();
-	m_fboBlur.Unbind();
+	m_fboBlur->Unbind();
 }

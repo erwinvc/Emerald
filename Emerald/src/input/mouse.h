@@ -6,7 +6,7 @@
 #define VK_MOUSE_MIDDLE	2
 #define VK_MOUSE_RIGHT	1
 
-class Mouse {
+class Mouse : public Singleton<Mouse> {
 private:
     const int m_NOWPERIOD = 100, m_MAXDOWN = 600000, m_DOUBLECLICKPERIOD = 200;
 
@@ -65,7 +65,7 @@ public:
 
 };
 
-Mouse* GetMouse();
+static Mouse* GetMouse() { return Mouse::GetInstance(); }
 
 inline bool ButtonDown(DWORD button) {
     return GetMouse()->ButtonDown(button);

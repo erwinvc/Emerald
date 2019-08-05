@@ -5,7 +5,7 @@ private:
 public:
 	FreeCam(float fov, float aspectRatio, float nearPlane, float farPlane) : Camera(fov, aspectRatio, nearPlane, farPlane) {}
 
-    const float movementSpeed = 10;
+    const float movementSpeed = 10.0f;
 
 	void FixedUpdate() {}
     void Update(const TimeStep& time) {

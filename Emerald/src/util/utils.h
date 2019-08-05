@@ -17,6 +17,7 @@ String_t Format_t(String_t fmt, ...);
 String Format(String_t fmt, ...);
 
 namespace Utils {
+	static void nullfunc() {}
 
 	//String
 	static vector<String> Split(String& s, String splitter) {
@@ -62,6 +63,11 @@ namespace Utils {
 		vec.erase(remove(vec.begin(), vec.end(), obj), vec.end());
 	}
 
+	template<typename T>
+	static void VectorContains(vector<T>& vec, const T& obj) {
+		return vec.find(obj) != vec.end();
+	}
+
 	//Math?
 	void setPositionInFrontOfCam(Vector3& dest, const Camera* cam, float distance);
 }
@@ -97,4 +103,9 @@ namespace ImGui {
 			ImGui::SetTooltip(tooltip);
 		}
 	}
+}
+
+namespace GLUtils {
+	void EnableBlending();
+	void DisableBlending();
 }

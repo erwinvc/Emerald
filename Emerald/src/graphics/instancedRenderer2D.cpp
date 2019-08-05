@@ -5,6 +5,7 @@ InstancedRenderer2D::~InstancedRenderer2D() {
 	delete m_offsetsBuffer;
 }
 
+// coded by marco
 void InstancedRenderer2D::Initialize() {
 	m_offsets = new Vector2[MAX_OBJECTS];
 

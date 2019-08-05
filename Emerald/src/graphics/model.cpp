@@ -23,6 +23,6 @@ void Model::LoadModel(const String& path) {
 
 	m_dir = path.substr(0, path.find_last_of('/'));
 	if (scene->HasMaterials()) LoadMaterials(scene); 
-	LOG("[~g3DModel~x] ~1%s~x loaded in %.2f MS", shortName, timer.Get());
+	LOG("[~g3DModel~x] ~1%s~x loaded in %.2fms", shortName, timer.Get());
 	ProcessNode(scene->mRootNode, scene);
 }

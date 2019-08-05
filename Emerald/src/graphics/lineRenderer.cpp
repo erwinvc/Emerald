@@ -2,7 +2,6 @@
 
 LineRenderer::~LineRenderer() {
 	delete[] m_lines;
-	delete m_shader;
 }
 
 void LineRenderer::Initialize() {
@@ -13,7 +12,7 @@ void LineRenderer::Initialize() {
 	};
 	m_lineBuffer = NEW(VertexBuffer((float*)m_lines, MAX_OBJECTS * 2, layout, GL_DYNAMIC_DRAW));
 
-	shared_ptr<VertexArray> vao(new VertexArray());
+	Ref<VertexArray> vao(NEW(VertexArray()));
 	vao->AddBuffer(m_lineBuffer);
 	vao->ApplyLayouts();
 
@@ -21,12 +20,12 @@ void LineRenderer::Initialize() {
 	indices.push_back(0);
 	indices.push_back(1);
 
-	shared_ptr<IndexBuffer> ibo(new IndexBuffer(indices.data(), indices.size()));
+	Ref<IndexBuffer> ibo(NEW(IndexBuffer(indices.data(), indices.size())));
 	m_mesh = NEW(Mesh(vao, ibo));
 
-	m_shader = NEW(Shader("Line", "src/shader/line.vert", "src/shader/line.frag"));
+	m_shader = GetShaderManager()->Get("Line");
 
-	LOG("[~bEEngine~x] Line renderer initialized");
+	LOG("[~bRenderer~x] Line renderer initialized");
 }
 
 void LineRenderer::Begin() {
@@ -75,11 +74,11 @@ void LineRenderer::End() {
 }
 void LineRenderer::Draw() {
 	ASSERT(m_ended, "Call LineRenderer::Begin & LineRenderer::End before calling LineRenderer::Draw");
-	m_shader->Reload();
 	m_shader->Bind();
 	m_shader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("viewMatrix", GetCamera()->GetViewMatrix());
 
+	m_mesh->Bind();
 	m_lineBuffer->Bind();
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vector3), 0);
@@ -90,4 +89,7 @@ void LineRenderer::Draw() {
 
 	m_mesh->GetIBO()->Bind();
 	m_mesh->GetIBO()->DrawInstanced(m_amount, GL_LINES);
+	m_lineBuffer->Unbind();
+	m_mesh->Unbind();
+	m_shader->Unbind();
 }

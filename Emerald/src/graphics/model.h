@@ -1,13 +1,6 @@
 #pragma once
 
-#include "assimp/cimport.h"
-#include "assimp/scene.h"
-#include "assimp/postprocess.h"
-#include "assimp/material.h"
-#include <assimp/Importer.hpp>
-#include "assets/textureManager.h"
-
-class Model {
+class Model : public Asset{
 private:
 	vector<Mesh*> m_meshes;
 	vector<Material*> m_materials;
@@ -60,7 +53,7 @@ private:
 			vertices[i].m_biTangents = Vector3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
 		}
 
-		shared_ptr<VertexArray> vaoModel(new VertexArray());
+		Ref<VertexArray> vaoModel(new VertexArray());
 		vaoModel->AddBuffer(NEW(VertexBuffer((float*)vertices, mesh->mNumVertices, layout)));
 		vaoModel->ApplyLayouts();
 
@@ -79,7 +72,7 @@ private:
 		mat->GetTexture(aiTextureType_DIFFUSE, 0, &path);
 		String fullPath = m_dir + "\\" + path.C_Str();
 
-		shared_ptr<IndexBuffer> ibo(new IndexBuffer(indices.data(), indices.size()));
+		Ref<IndexBuffer> ibo(new IndexBuffer(indices.data(), indices.size()));
 		return NEW(Mesh(vaoModel, ibo, m_materials[mesh->mMaterialIndex]));
 	}
 
@@ -116,7 +109,13 @@ private:
 			}
 		}
 	}
+	void LoadModel(const String& path);
+
 public:
+	Model(vector<Mesh*> meshes) : m_meshes(meshes)
+	{
+		
+	}
 	~Model() {
 		for (auto& mesh : m_meshes) DELETE(mesh);
 		for (auto& mat : m_materials) DELETE(mat);
@@ -130,7 +129,6 @@ public:
 
 	vector<Mesh*> GetMeshes() { return m_meshes; }
 
-	void LoadModel(const String& path);
 
 	void Draw(Shader* shader) {
 		for (auto& mesh : m_meshes) {

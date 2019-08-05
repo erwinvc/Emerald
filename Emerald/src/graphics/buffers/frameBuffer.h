@@ -1,6 +1,7 @@
 #pragma once
 
 class Texture;
+class FrameBufferManager;
 
 class FrameBuffer {
 private:
@@ -35,11 +36,14 @@ private:
 
 	FrameBuffer(String name, uint width, uint height, Color& clearColor = Color::Black());
 
+	friend FrameBufferManager;
+
 public:
 	~FrameBuffer();
 
 	void AddColorBuffer(Texture* texture);
 
+	const String& GetName() { return m_name; }
 	void Bind() const {
 		GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 		GL(glViewport(0, 0, m_width, m_height));
@@ -55,5 +59,37 @@ public:
 	inline uint GetWidth() const { return m_width; }
 	inline uint GetHeight() const { return m_height; }
 	inline void SetClearColor(Color& color) { m_color = color; }
-	static FrameBuffer& Create(const String& name, int width, int height);
 };
+
+class FrameBufferManager : public Singleton<FrameBufferManager> {
+private:
+	vector<FrameBuffer*> m_frameBuffers;
+public:
+	FrameBufferManager() {}
+	~FrameBufferManager() {
+		for (FrameBuffer* fbo : m_frameBuffers) {
+			DELETE(fbo);
+		}
+	}
+
+	Ref<FrameBuffer> Create(const String& name, int width, int height) {
+		for (FrameBuffer* fbo : m_frameBuffers) {
+			if (fbo->GetName().compare(name) == 0) {
+				LOG_ERROR("[~cBuffers~x] ~rFramebuffer ~1%s~r already exists", fbo->GetName().c_str());
+				return Ref<FrameBuffer>(fbo);
+			}
+		}
+		FrameBuffer* fbo = NEW(FrameBuffer(name, width, height));
+		m_frameBuffers.push_back(fbo);
+		return Ref<FrameBuffer>(fbo);
+	}
+
+	void Delete(FrameBuffer* fbo) {
+		if (fbo != nullptr) {
+			DELETE(fbo);
+			Utils::RemoveFromVector(m_frameBuffers, fbo);
+		}
+	}
+};
+
+static FrameBufferManager* GetFrameBufferManager() { return FrameBufferManager::GetInstance(); }

@@ -31,5 +31,14 @@ namespace Utils {
 }
 
 namespace GLUtils {
+	void EnableBlending() {
+		GL(glEnable(GL_BLEND));
+		GL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+		GL(glDisable(GL_DEPTH_TEST));
+	}
 
+	void DisableBlending() {
+		GL(glEnable(GL_DEPTH_TEST));
+		GL(glDisable(GL_BLEND));
+	}
 }

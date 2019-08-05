@@ -2,21 +2,16 @@
 
 class TimeStep {
 private:
-    float m_lastUpdate, m_updateTime;
+    float m_time;
 public:
-    TimeStep()
-        : m_lastUpdate(0.0f), m_updateTime(0.0f) {
+
+    TimeStep(float initial = 0.0)
+        : m_time(initial) {
     }
 
-    TimeStep(float initial)
-        : m_lastUpdate(initial), m_updateTime(initial) {
-    }
+	operator float() const { return m_time; }
 
-    inline void Update(float time) {
-        m_lastUpdate = time - m_updateTime;
-        m_updateTime = time;
-    }
+    inline float GetSeconds() const { return m_time / 1000.0f; }
+	inline float GetMills() const { return m_time; }
 
-    inline float GetMills() const { return m_lastUpdate; }
-    inline float GetSeconds() const { return m_lastUpdate * 0.001f; }
 };

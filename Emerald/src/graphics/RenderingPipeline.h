@@ -2,52 +2,53 @@
 
 class RenderingPipeline {
 private:
+	bool m_initialized = false;
 	//Deferred
 	GBuffer* m_gBuffer;
-	Shader* m_geometryShader;
 	Shader* m_directionalLightShader;
 	Shader* m_pointLightShader;
 	DirectionalLight m_directionalLight;
 	PointlightRenderer* m_pointlightRenderer;
 	vector<Pointlight> m_pointlights;
-	TileRenderer* m_tileRenderer;
 
 	SSAORenderer* m_ssaoRenderer;
-	GroundRaycast m_rayCast;
+
 	//HDR
 	bool m_applyPostProcessing = true;
-	FrameBuffer& m_hdrBuffer;
+	Ref<FrameBuffer> m_hdrBuffer;
 	Texture* m_hdrTexture;
 	Shader* m_hdrShader;
 	Mesh* m_quad;
-
-	//UI
-	UIShader* m_uiShader;
 
 	Camera* m_camera;
 	Matrix4 m_orthoMatrix;
 	Matrix4 m_perspectiveMatrix;
 	bool m_perspective = true;
 	float m_lerpAmount = 0;
-
+	int m_selectedTexture = 0;
+	float m_gamma = 1;
+	float m_exposure = 1;
+	int m_selectedTonemapping = 8;
 public:
-	RenderingPipeline(int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 20);
+	RenderingPipeline() {}
 	~RenderingPipeline() {
 		DELETE(m_gBuffer);
-		DELETE(m_geometryShader);
-		DELETE(m_directionalLightShader);
-		DELETE(m_pointLightShader);
 		DELETE(m_pointlightRenderer);
-		DELETE(m_tileRenderer);
 		DELETE(m_ssaoRenderer);
-		DELETE(m_hdrShader);
 		DELETE(m_quad);
-		DELETE(m_uiShader);
 	}
 
-	void Update(const TimeStep& time);
-	void Render();
-	void RenderGeometry();
-	void Resize(uint width, uint height);
-	Camera* GetCamera() { return m_camera; }
+	void Initialize(int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 20);
+
+	void PreGeometryRender();
+	void PostGeometryRender();
+	void PreUIRender();
+	void PostUIRender();
+	void OnImGUI();
+	void OnResize(uint width, uint height);
+
+	inline GBuffer* GetGBuffer() { return m_gBuffer; }
+	inline Camera* GetCamera() { return m_camera; }
+	inline bool Initialized() { return m_initialized; }
+	inline vector<Pointlight>& GetPointLights() { return m_pointlights; }
 };

@@ -2,7 +2,7 @@
 
 class GBuffer {
 private:
-	FrameBuffer& m_fbo;
+	Ref<FrameBuffer> m_fbo;
 	uint m_depthRenderBuffer;
 	uint m_width, m_height;
 
@@ -12,23 +12,23 @@ public:
 	Texture* m_normalTexture;
 	Texture* m_positionTexture;
 
-	GBuffer(FrameBuffer& fbo, uint width, uint height);
+	GBuffer(Ref<FrameBuffer> fbo, uint width, uint height);
 	GBuffer::~GBuffer() {
 	}
 
 	void BindTextures();
 
 	void Bind() {
-		m_fbo.Bind();
+		m_fbo->Bind();
 	}
 
 	void Clear() {
-		m_fbo.Clear();
+		m_fbo->Clear();
 	}
 
 	void Unbind() {
-		m_fbo.Unbind();
+		m_fbo->Unbind();
 	}
 
-	FrameBuffer& GetFBO() const { return m_fbo; }
+	Ref<FrameBuffer> GetFBO() const { return m_fbo; }
 };
