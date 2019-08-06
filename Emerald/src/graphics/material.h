@@ -4,10 +4,10 @@ class Texture;
 
 class Material {
 private:
-	Texture* m_albedo;
-	Texture* m_normal;
-	Texture* m_specular;
-	Texture* m_emission;
+	AssetRef<Texture> m_albedo;
+	AssetRef<Texture> m_normal;
+	AssetRef<Texture> m_specular;
+	AssetRef<Texture> m_emission;
 
 public:
 	float m_normalStrength = 0;
@@ -16,17 +16,17 @@ public:
 
 	Material();
 	~Material();
-	Material* SetAlbedo(Texture* albedo) { m_albedo = albedo; return this; }
-	Material* SetNormal(Texture* normal) { m_normalStrength = 1; m_normal = normal; return this; }
-	Material* SetSpecular(Texture* specular) { m_specularStrength = 1; m_specular = specular; return this; }
-	Material* SetEmission(Texture* emission) { m_emissionStrength = 1; m_emission = emission; return this; }
+	AssetRef<Material> SetAlbedo(AssetRef<Texture> albedo) { m_albedo = albedo; return this; }
+	AssetRef<Material> SetNormal(AssetRef<Texture> normal) { m_normalStrength = 1; m_normal = normal; return this; }
+	AssetRef<Material> SetSpecular(AssetRef<Texture> specular) { m_specularStrength = 1; m_specular = specular; return this; }
+	AssetRef<Material> SetEmission(AssetRef<Texture> emission) { m_emissionStrength = 1; m_emission = emission; return this; }
+	
+	AssetRef<Texture> GetAlbedo() { return m_albedo; }
+	AssetRef<Texture> GetNormal() { return m_normal; }
+	AssetRef<Texture> GetSpecular() { return m_normal; }
+	AssetRef<Texture> GetEmission() { return m_emission; }
 
-	Texture* GetAlbedo() { return m_albedo; }
-	Texture* GetNormal() { return m_normal; }
-	Texture* GetSpecular() { return m_normal; }
-	Texture* GetEmission() { return m_emission; }
-
-	void Bind(Shader* shader, int slot = 0) {
+	void Bind(AssetRef<Shader> shader, int slot = 0) {
 		shader->Set("_Albedo", slot);
 		shader->Set("_Normal", slot + 1);
 		shader->Set("_NormalStrength", m_normalStrength);

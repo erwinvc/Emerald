@@ -3,7 +3,7 @@
 class VertexArray {
 private:
 	GLuint m_arrayID;
-	vector<VertexBuffer*> m_buffers;
+	vector<ManagedRef<VertexBuffer>> m_buffers;
 
 public:
 	VertexArray();
@@ -20,9 +20,9 @@ public:
 	}
 
 	int GetBufferCount() { return m_buffers.size(); }
-	vector<VertexBuffer*> GetBuffers() { return m_buffers; }
-	VertexBuffer* GetBuffer(int index) { return m_buffers.at(index); }
-	void AddBuffer(VertexBuffer* buffer);
+	vector<ManagedRef<VertexBuffer>> GetBuffers() { return m_buffers; }
+	ManagedRef<VertexBuffer> GetBuffer(int index) { return m_buffers.at(index); }
+	void AddBuffer(ManagedRef<VertexBuffer> buffer);
 	void Bind();
 	void Unbind();
 };

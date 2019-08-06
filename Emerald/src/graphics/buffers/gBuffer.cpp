@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-GBuffer::GBuffer(Ref<FrameBuffer> fbo, uint width, uint height) : m_fbo(fbo), m_width(width), m_height(height) {
+GBuffer::GBuffer(AssetRef<FrameBuffer> fbo, uint width, uint height) : m_fbo(fbo), m_width(width), m_height(height) {
     m_fbo->Bind();
 
     m_miscTexture = NEW(Texture(m_width, m_height, TextureParameters(RGBA, LINEAR, REPEAT, T_UNSIGNED_BYTE)));

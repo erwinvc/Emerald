@@ -80,10 +80,12 @@ private:
 		m_shaderID = Load();
 		RegisterUniforms();
 	}
-	~Shader() { GL(glDeleteProgram(m_shaderID)); }
 
 	friend class ShaderManager;
 public:
+
+	~Shader() { GL(glDeleteProgram(m_shaderID)); }
+
 	void Set(const String_t location, const int value) { glUniform1i(GetUniform(location), value); }
 	void Set(const String_t location, const int x, const int y) { glUniform2i(GetUniform(location), x, y); }
 	void Set(const String_t location, const float value) { glUniform1f(GetUniform(location), value); }

@@ -13,7 +13,7 @@ public:
 	bool IsAsyncLoaded() { return m_finishedAsync; }
 
 	virtual void AsyncLoad() = 0;
-	virtual void SyncLoad(map<String, Asset*>& assets) = 0;
+	virtual void SyncLoad(map<String, AssetBase*>& assets) = 0;
 
 	virtual float GetProgress() = 0;
 };

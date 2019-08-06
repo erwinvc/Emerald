@@ -10,6 +10,7 @@ in vec4 newPos;
 in vec4 color;
 
 out vec4 outColor;
+//out vec4 outBright;
 
 //uniform float uLightRadius;
 //uniform vec3 uLightPosition;
@@ -52,4 +53,9 @@ void main() {
 
 	vec3 finalColor = mix(color, albedo, misc.y);
 	outColor = vec4(finalColor, 1.0);
+
+	//float brightness = dot(outColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+	//float brightness = (outColor.r + outColor.g + outColor.b);
+    //if(brightness > 3.0) outBright = vec4(outColor.rgb, 1.0);
+    //else outBright = vec4(0.0, 0.0, 0.0, 1.0);
 }

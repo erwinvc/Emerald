@@ -5,9 +5,9 @@ private:
     bool m_started;
     bool m_ended;
     const int MAX_OBJECTS = 1000000;
-    VertexArray* m_vao;
-    IndexBuffer* m_ibo;
-    VertexBuffer* m_offsets;
+	ManagedRef<VertexArray> m_vao;
+	ManagedRef<IndexBuffer> m_ibo;
+	ManagedRef<VertexBuffer> m_offsets;
     int m_amount;
     int m_numindices;
     Vector3* m_offsetsTempBuffer;

@@ -1,13 +1,13 @@
 #include "stdafx.h"
 
-void ModelLoader::SyncLoad(map<String, Asset*>& assets) {
-	vector<Mesh*> meshes(m_preloadedMeshes.size());
+void ModelLoader::SyncLoad(map<String, AssetBase*>& assets) {
+	vector<AssetRef<Mesh>> meshes(m_preloadedMeshes.size());
 	for (PreloadedMesh& preloadedMesh : m_preloadedMeshes) {
-		Ref<VertexArray> vaoModel(new VertexArray());
+		ManagedRef<VertexArray> vaoModel(new VertexArray());
 		vaoModel->AddBuffer(NEW(VertexBuffer((float*)preloadedMesh.m_vertices, preloadedMesh.m_numVertices, m_layout)));
 		vaoModel->ApplyLayouts();
 
-		Ref<IndexBuffer> ibo(new IndexBuffer(preloadedMesh.m_indices, preloadedMesh.m_numIndices));
+		ManagedRef<IndexBuffer> ibo(new IndexBuffer(preloadedMesh.m_indices, preloadedMesh.m_numIndices));
 		Mesh* mesh = NEW(Mesh(vaoModel, ibo, GetMaterialManager()->GetNullMaterial()));
 		meshes.push_back(mesh);
 

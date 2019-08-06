@@ -5,7 +5,7 @@ class FrameBufferManager;
 
 class FrameBuffer {
 private:
-	vector<Texture*> m_textures;
+	vector<AssetRef<Texture>> m_textures;
 	String m_name;
 	uint m_colorAttachments = 0;
 	uint m_fbo = 0;
@@ -41,7 +41,7 @@ private:
 public:
 	~FrameBuffer();
 
-	void AddColorBuffer(Texture* texture);
+	void AddColorBuffer(AssetRef<Texture> texture);
 
 	const String& GetName() { return m_name; }
 	void Bind() const {
@@ -63,32 +63,27 @@ public:
 
 class FrameBufferManager : public Singleton<FrameBufferManager> {
 private:
-	vector<FrameBuffer*> m_frameBuffers;
-public:
+	vector<AssetRef<FrameBuffer>> m_frameBuffers;
 	FrameBufferManager() {}
-	~FrameBufferManager() {
-		for (FrameBuffer* fbo : m_frameBuffers) {
-			DELETE(fbo);
-		}
-	}
+	~FrameBufferManager() {}
+	friend Singleton;
+public:
 
-	Ref<FrameBuffer> Create(const String& name, int width, int height) {
-		for (FrameBuffer* fbo : m_frameBuffers) {
+
+	AssetRef<FrameBuffer> Create(const String& name, int width, int height) {
+		for (AssetRef<FrameBuffer>& fbo : m_frameBuffers) {
 			if (fbo->GetName().compare(name) == 0) {
 				LOG_ERROR("[~cBuffers~x] ~rFramebuffer ~1%s~r already exists", fbo->GetName().c_str());
-				return Ref<FrameBuffer>(fbo);
+				return AssetRef<FrameBuffer>(fbo);
 			}
 		}
-		FrameBuffer* fbo = NEW(FrameBuffer(name, width, height));
+		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, width, height));
 		m_frameBuffers.push_back(fbo);
-		return Ref<FrameBuffer>(fbo);
+		return AssetRef<FrameBuffer>(fbo);
 	}
 
-	void Delete(FrameBuffer* fbo) {
-		if (fbo != nullptr) {
-			DELETE(fbo);
-			Utils::RemoveFromVector(m_frameBuffers, fbo);
-		}
+	void Delete(AssetRef<FrameBuffer>& fbo) {
+		Utils::RemoveFromVector(m_frameBuffers, fbo);
 	}
 };
 

@@ -19,11 +19,10 @@ void TextureLoader::AsyncLoad() {
 
 	m_finishedAsync = true;
 }
-void TextureLoader::SyncLoad(map<String, Asset*>& assets) {
+void TextureLoader::SyncLoad(map<String, AssetBase*>& assets) {
 	if (m_data != nullptr) {
-		Texture* texture = NEW(Texture(m_width, m_height, m_data, m_params));
+		assets[m_name] = NEW(Texture(m_width, m_height, m_data, m_params));
 		stbi_image_free(m_data);
-		assets.emplace(m_name, texture);
 		LOG("[~gTexture~x] Loaded ~1%s", m_file.c_str());
 	} else LOG_ERROR("[~gTexture~x] Failed to load ~1%s", m_file.c_str());
 }

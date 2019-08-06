@@ -7,18 +7,17 @@ private:
 	String m_name;
 	bool m_started = false;
 	bool m_finished = false;
+	vector<AssetLoader*> m_queue;
 
 	AssetBatch(const String& name) : m_name(name) {}
 
 	friend AssetManager;
 public:
 	~AssetBatch() {
-		for (AssetLoader* loader : m_queue) {
-			if (loader != nullptr) DELETE(loader);
-		}
+		for (AssetLoader* loader : m_queue)
+			DELETE(loader);
 	}
 
-	vector<AssetLoader*> m_queue;
 
 	template<class T>
 	void Add(T* loader) {
@@ -32,8 +31,8 @@ public:
 class AssetManager : public Singleton<AssetManager> {
 	Timer m_timer;
 
-	map<String, Asset*> m_assets;
-	AssetBatch* m_currentBatch;
+	map<String, AssetBase*> m_assets;
+	ManagedRef<AssetBatch> m_currentBatch;
 
 	const int THREADCOUNT = 4;
 	int m_currentBatchSize = 0;
@@ -43,16 +42,20 @@ class AssetManager : public Singleton<AssetManager> {
 		for (int i = 0; i < THREADCOUNT; i++)
 			GetThreadManager()->RegisterThread(Format("AssetManagerPool%d", i), [] {});
 	}
-	~AssetManager() {}
+	~AssetManager() {
+		for (auto it = m_assets.begin(); it != m_assets.end(); it++) {
+			DELETE(it->second);
+		}
+	}
 	friend Singleton;
 
 public:
-	AssetBatch* CreateBatch(const String& name) {
+	ManagedRef<AssetBatch> CreateBatch(const String& name) {
 		LOG("[~yAssets~x] Asset batch ~1%s~x created", name.c_str());
 		return NEW(AssetBatch(name));
 	}
 
-	void SubmitBatch(AssetBatch* batch) {
+	void SubmitBatch(ManagedRef<AssetBatch> batch) {
 		LOG("[~yAssets~x] Asset batch ~1%s~x submitted", batch->m_name.c_str());
 		m_currentBatch = batch;
 		m_currentBatchSize = 0;
@@ -64,7 +67,7 @@ public:
 	}
 
 	void Update() {
-		if (m_currentBatch != nullptr) {
+		if (m_currentBatch) {
 			m_currentBatch->m_started = true;
 			m_timer = Timer();
 			for (AssetLoader* loader : m_currentBatch->m_queue) {
@@ -84,15 +87,15 @@ public:
 	}
 
 	template<typename T>
-	Ref<T> Get(const String& name) {
+	AssetRef<T> Get(const String& name) {
 		return (T*)m_assets[name];
 	}
 
 	template<typename T>
-	Ref<T> ForceLoad(TextureLoader* loader) {
+	AssetRef<T> ForceLoad(AssetRef<AssetLoader> loader) {
 		loader->AsyncLoad();
 		loader->SyncLoad(m_assets);
-		return (T*)m_assets[loader->GetName()];
+		return Get<T>(loader->GetName());
 	}
 };
 

@@ -11,7 +11,7 @@ public:
 	TextureLoader(const String& name, const String& file, const TextureParameters& params = TextureParameters()) : AssetLoader(name, true), m_file(file), m_params(params) {}
 
 	void AsyncLoad() override;
-	void SyncLoad(map<String, Asset*>& assets) override;
+	void SyncLoad(map<String, AssetBase*>& assets) override;
 
 	float GetProgress() override {
 		return 0;

@@ -1,10 +1,10 @@
 #pragma once
 
-class Model : public Asset{
+class Model : public AssetBase{
 private:
-	vector<Mesh*> m_meshes;
-	vector<Material*> m_materials;
-	map<String, Texture*> m_textures;
+	vector<AssetRef<Mesh>> m_meshes;
+	vector<AssetRef<Material>> m_materials;
+	map<String, AssetRef<Texture>> m_textures;
 	String m_dir;
 
 	void ProcessNode(aiNode* node, const aiScene* scene) {
@@ -53,7 +53,7 @@ private:
 			vertices[i].m_biTangents = Vector3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
 		}
 
-		Ref<VertexArray> vaoModel(new VertexArray());
+		ManagedRef<VertexArray> vaoModel(new VertexArray());
 		vaoModel->AddBuffer(NEW(VertexBuffer((float*)vertices, mesh->mNumVertices, layout)));
 		vaoModel->ApplyLayouts();
 
@@ -72,7 +72,7 @@ private:
 		mat->GetTexture(aiTextureType_DIFFUSE, 0, &path);
 		String fullPath = m_dir + "\\" + path.C_Str();
 
-		Ref<IndexBuffer> ibo(new IndexBuffer(indices.data(), indices.size()));
+		ManagedRef<IndexBuffer> ibo(new IndexBuffer(indices.data(), indices.size()));
 		return NEW(Mesh(vaoModel, ibo, m_materials[mesh->mMaterialIndex]));
 	}
 
@@ -112,32 +112,23 @@ private:
 	void LoadModel(const String& path);
 
 public:
-	Model(vector<Mesh*> meshes) : m_meshes(meshes)
+	Model(vector<AssetRef<Mesh>> meshes) : m_meshes(meshes)
 	{
 		
 	}
-	~Model() {
-		for (auto& mesh : m_meshes) DELETE(mesh);
-		for (auto& mat : m_materials) DELETE(mat);
-		for (auto& tex : m_textures) DELETE(tex.second);
-		//map<String, Material*>::iterator it;
-		//for (it = m_materials.begin(); it != m_materials.end(); it++) {
-		//    delete it->second;
-		//    m_materials.erase(it);
-		//}
-	}
+	~Model() {}
 
-	vector<Mesh*> GetMeshes() { return m_meshes; }
+	vector<AssetRef<Mesh>> GetMeshes() { return m_meshes; }
 
 
-	void Draw(Shader* shader) {
+	void Draw(AssetRef<Shader> shader) {
 		for (auto& mesh : m_meshes) {
 			mesh->GetMaterial()->Bind(shader);
 			mesh->Draw();
 		}
 	}
 
-	void Draw(Shader* shader, int index) {
+	void Draw(AssetRef<Shader> shader, int index) {
 		m_meshes[index]->GetMaterial()->Bind(shader);
 		m_meshes[index]->Draw();
 

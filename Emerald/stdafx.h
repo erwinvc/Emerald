@@ -63,7 +63,6 @@ using namespace std;
 #include "math/matrix4.h"
 #include "math/rect.h"
 #include "math/mathFunctions.h"
-#include "math/groundRaycast.h"
 
 #include "util/types.h"
 #include "util/ref.h"
@@ -79,6 +78,8 @@ using namespace std;
 #include "util/timestep.h"
 #include "util/timer.h"
 #include "util/glError.h"
+
+#include "math/groundRaycast.h"
 
 #undef DELETE
 
@@ -110,7 +111,7 @@ using namespace std;
 #include "graphics/shaders/shader.h"
 #include "graphics/shaders/shaderManager.h"
 
-#include "assets/asset.h"
+#include "assets/assetBase.h"
 #include "assets/texture/textureParameters.h"
 #include "assets/texture/texture.h"
 #include "assets/texture/textureUtils.h"

@@ -102,7 +102,7 @@ public:
 
 		LOG("[~g3DModel~x] loaded ~1%s~x in %.2fms", m_name.c_str(), timer.Get());
 	}
-	void SyncLoad(map<String, Asset*>& assets) override;
+	void SyncLoad(map<String, AssetBase*>& assets) override;
 
 	float GetProgress() override {
 		return 0;

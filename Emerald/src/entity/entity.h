@@ -3,20 +3,20 @@ class Entity {
 private:
 
 public:
-	Model* m_model;
+	AssetRef<Model> m_model;
 	Vector3 m_position;
 	Vector3 m_rotation;
 	Vector3 m_scale;
 
 	Entity() {}
-	Entity(Model* model) : m_model(model) {
+	Entity(AssetRef<Model> model) : m_model(model) {
 		m_position = Vector3(0, 0, -1);
 		m_rotation = Vector3();
 		m_scale = 0.2f;
 	}
 	virtual ~Entity() {}
 
-	void Draw(Shader* shader) {
+	void Draw(AssetRef<Shader> shader) {
 		Matrix4 transform = Matrix4::TRS(m_position, m_rotation, m_scale);
 		shader->Set("transformationMatrix", transform);
 		m_model->Draw(shader);

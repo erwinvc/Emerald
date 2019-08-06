@@ -36,8 +36,8 @@ namespace MeshGenerator {
 			indices.push_back(GLuint(i + 1));
 		}
 
-		Ref<VertexArray> vao(new VertexArray());
-		Ref<IndexBuffer> ibo(new IndexBuffer(indices.data(), indices.size()));
+		ManagedRef<VertexArray> vao(new VertexArray());
+		ManagedRef<IndexBuffer> ibo(new IndexBuffer(indices.data(), indices.size()));
 
 		BufferLayout layout = {
 			{ShaderDataType::Float3, "position", 0} };
@@ -54,8 +54,8 @@ namespace MeshGenerator {
 								1,  1, 0,
 								1, -1, 0 };
 
-		Ref<VertexArray> vao(new VertexArray());
-		Ref<IndexBuffer> ibo(new IndexBuffer(indices, NUMOF(indices)));
+		ManagedRef<VertexArray> vao(new VertexArray());
+		ManagedRef<IndexBuffer> ibo(new IndexBuffer(indices, NUMOF(indices)));
 
 		BufferLayout layout = {
 			{ShaderDataType::Float3, "position", 0} };

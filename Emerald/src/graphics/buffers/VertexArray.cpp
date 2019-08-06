@@ -5,12 +5,9 @@ VertexArray::VertexArray() {
 }
 VertexArray::~VertexArray() {
     glDeleteVertexArrays(1, &m_arrayID);
-    for (int i = 0; i < m_buffers.size(); i++) {
-        DELETE(m_buffers[i]);
-    }
 }
 
-void VertexArray::AddBuffer(VertexBuffer* buffer) {
+void VertexArray::AddBuffer(ManagedRef<VertexBuffer> buffer) {
     for (auto buff : m_buffers) {
         ASSERT(buffer->GetHandle() != buff->GetHandle(), "VAO already contains this buffer");
     }

@@ -2,7 +2,7 @@
 
 class GBuffer {
 private:
-	Ref<FrameBuffer> m_fbo;
+	AssetRef<FrameBuffer> m_fbo;
 	uint m_depthRenderBuffer;
 	uint m_width, m_height;
 
@@ -12,7 +12,7 @@ public:
 	Texture* m_normalTexture;
 	Texture* m_positionTexture;
 
-	GBuffer(Ref<FrameBuffer> fbo, uint width, uint height);
+	GBuffer(AssetRef<FrameBuffer> fbo, uint width, uint height);
 	GBuffer::~GBuffer() {
 	}
 
@@ -30,5 +30,5 @@ public:
 		m_fbo->Unbind();
 	}
 
-	Ref<FrameBuffer> GetFBO() const { return m_fbo; }
+	AssetRef<FrameBuffer> GetFBO() const { return m_fbo; }
 };

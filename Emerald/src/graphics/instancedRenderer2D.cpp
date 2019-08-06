@@ -2,7 +2,6 @@
 
 InstancedRenderer2D::~InstancedRenderer2D() {
 	delete[] m_offsets;
-	delete m_offsetsBuffer;
 }
 
 // coded by marco
@@ -59,7 +58,7 @@ void InstancedRenderer2D::End() {
 	m_started = false;
 	m_ended = true;
 }
-void InstancedRenderer2D::Draw(Shader* shader) {
+void InstancedRenderer2D::Draw(AssetRef<Shader> shader) {
 	ASSERT(m_ended, "Call InstancedRenderer2D::End before calling InstancedRenderer2D::Draw");
 	m_mesh->GetMaterial()->Bind(shader);
 	m_mesh->DrawInstanced(m_amount);

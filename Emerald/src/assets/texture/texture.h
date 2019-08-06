@@ -1,6 +1,6 @@
 #pragma once
 
-class Texture : public Asset {
+class Texture : public AssetBase {
 private:
 	TextureParameters m_params;
 	uint m_textureID = 0;

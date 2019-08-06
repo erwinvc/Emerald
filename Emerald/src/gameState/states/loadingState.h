@@ -3,9 +3,9 @@
 class LoadingState : public State {
 private:
 	String m_name = "Loading";
-	Ref<Texture> m_logo;
-	Texture* m_loadingTexture;
-	AssetBatch* m_batch;
+	AssetRef<Texture> m_logo;
+	AssetRef<Texture> m_loadingTexture;
+	ManagedRef<AssetBatch> m_batch;
 public:
 	const String& GetName() override { return m_name; }
 

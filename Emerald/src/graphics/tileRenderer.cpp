@@ -3,16 +3,18 @@
 void TileRenderer::Initialize() {
 	m_shader = GetShaderManager()->Get("Tile");
 
-	Ref<Model> full = GetAssetManager()->Get<Model>("Plane");
-	Ref<Model> inner = GetAssetManager()->Get<Model>("InnerCorner");
-	Ref<Model> outer = GetAssetManager()->Get<Model>("OuterCorner");
-	Ref<Model> slope = GetAssetManager()->Get<Model>("Slope");
-	Ref<Model> valley = GetAssetManager()->Get<Model>("Valley");
+	AssetRef<Model> full = GetAssetManager()->Get<Model>("Plane");
+	AssetRef<Model> inner = GetAssetManager()->Get<Model>("InnerCorner");
+	AssetRef<Model> outer = GetAssetManager()->Get<Model>("OuterCorner");
+	AssetRef<Model> slope = GetAssetManager()->Get<Model>("Slope");
+	AssetRef<Model> valley = GetAssetManager()->Get<Model>("Valley");
 
-	Ref<Texture> t = GetAssetManager()->Get<Texture>("White");
-	Ref<Texture> n = GetAssetManager()->Get<Texture>("BricksNormal");
+	AssetRef<Texture> t = GetAssetManager()->Get<Texture>("White");
+	AssetRef<Texture> n = GetAssetManager()->Get<Texture>("BricksNormal");
+
 	m_material = GetMaterialManager()->Create("Tile");
-	m_material->SetAlbedo(t)->SetNormal(n);
+	m_material->SetAlbedo(t);
+	m_material->SetNormal(n);
 
 	full->GetMeshes()[full->GetMeshes().size() - 1]->SetMaterial(m_material);
 	inner->GetMeshes()[inner->GetMeshes().size() - 1]->SetMaterial(m_material);

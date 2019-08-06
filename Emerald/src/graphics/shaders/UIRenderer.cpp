@@ -27,7 +27,7 @@ Matrix4 UIRenderer::CreateMatrix(Vector2& origin, float rot, Vector2& position, 
 void UIRenderer::Rect(Vector2& origin, Vector2& position, Vector2& size, const Color& color, float rot) {
 	RenderTexture(GetTextureManager()->GetNullTexture(), origin, position, size, color, rot, false, false);
 }
-void UIRenderer::RenderTexture(Ref<Texture> texture, Vector2& origin, Vector2& position, Vector2& size, const Color& color, float rot, bool flipX, bool flipY) {
+void UIRenderer::RenderTexture(AssetRef<Texture> texture, Vector2& origin, Vector2& position, Vector2& size, const Color& color, float rot, bool flipX, bool flipY) {
 	RenderTexture(texture->GetHandle(), origin, position, size, color, rot, flipX, flipY);
 }
 

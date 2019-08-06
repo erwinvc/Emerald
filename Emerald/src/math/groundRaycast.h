@@ -4,16 +4,16 @@ class Camera;
 
 class GroundRaycast {
 public:
-	Vector3 Get(Camera* camera);
+	Vector3 Get(ManagedRef<Camera> camera);
 
 	Vector3 GetGroundPosition(float height = 1);
 	Vector2I GetTile();
 
 private:
-	Vector3 CalculateMouseRay(Camera* camera);
+	Vector3 CalculateMouseRay(ManagedRef<Camera>  camera);
 	Vector2 GetNormalizedDeviceCoords(float mouseX, float mouseY);
-	Vector4 ToEyeCoords(Vector4& clipCoords, Camera* camera);
-	Vector3 ToWorldCoords(Vector4& eyeCoords, Camera* camera);
+	Vector4 ToEyeCoords(Vector4& clipCoords, ManagedRef<Camera> camera);
+	Vector3 ToWorldCoords(Vector4& eyeCoords, ManagedRef<Camera> camera);
 
 	//Tile search(Vector3 ray, float distance, Tile[][] objects) {
 	//	if (distance > RAY_RANGE) return null;

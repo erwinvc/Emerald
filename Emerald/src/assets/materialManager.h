@@ -6,7 +6,7 @@ private:
 	Material* m_nullMaterial;
 
 	MaterialManager() {}
-	~MaterialManager() { DELETE(m_nullMaterial); }
+	~MaterialManager() {}
 	friend Singleton;
 
 public:
@@ -14,15 +14,14 @@ public:
 		m_nullMaterial = NEW(Material());
 	}
 
-	Material* GetNullMaterial() { return m_nullMaterial; }
+	AssetRef<Material> GetNullMaterial() { return m_nullMaterial; }
 
-	Ref<Material> Create(const String& name) {
-		Material* mat = NEW(Material());
-		m_materials[name] = mat;
-		return mat;
+	AssetRef<Material> Create(const String& name) {
+		m_materials[name] = NEW(Material());
+		return m_materials[name];
 	}
 
-	Ref<Material> Get(const String& name) {
+	AssetRef<Material> Get(const String& name) {
 		return m_materials[name];
 	}
 };

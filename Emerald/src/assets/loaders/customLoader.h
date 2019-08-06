@@ -12,7 +12,7 @@ public:
 		m_async();
 	}
 
-	void SyncLoad(map<String, Asset*>& assets) override {
+	void SyncLoad(map<String, AssetBase*>& assets) override {
 		m_sync();
 	}
 

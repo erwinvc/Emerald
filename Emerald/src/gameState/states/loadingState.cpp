@@ -2,12 +2,13 @@
 
 void LoadingState::Initialize() {
 
+	GetTextureManager()->Initialize();
+
 	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/Emerald_logo_no_background.png")));
 
 	GetShaderManager()->Create("UI", "src/shader/UI");
 	GetUIRenderer()->Initialize();
 
-	GetTextureManager()->Initialize();
 	m_batch = GetAssetManager()->CreateBatch("Main Assets");
 
 	m_batch->Add(NEW(CustomLoader("ImGui",			[] {GetImGuiManager()->Initialize(GetApplication()->GetWindow()); })));
@@ -23,6 +24,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("HDR",			"src/shader/hdr")));
 	m_batch->Add(NEW(ShaderLoader("SSAO",			"src/shader/ssao")));
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur",		"src/shader/ssaoBlur")));
+	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 	
 	m_batch->Add(NEW(ModelLoader("Plane",			"tiles/Plane.fbx")));
 	m_batch->Add(NEW(ModelLoader("InnerCorner",		"tiles/Inner Corner.fbx")));
@@ -59,7 +61,6 @@ void LoadingState::Update(const TimeStep& time) {
 	progress = Math::Ease(progress, GetAssetManager()->GetProgress(), 6);
 	color = Color::Mix(Color(0xde9c96), Color(0x96deae), progress);
 	if (m_batch->IsFinished() && AnyKeyJustDown()) {
-		DELETE(m_batch);
 		GetStateManager()->SetState(GameStates::GAME);
 	}
 }

@@ -38,5 +38,5 @@ static Application* GetApplication() {
 }
 
 static RenderingPipeline* GetPipeline() { return Application::GetInstance()->GetPipeline(); }
-static Camera* GetCamera() { return Application::GetInstance()->GetPipeline()->GetCamera(); }
+static ManagedRef<Camera> GetCamera() { return Application::GetInstance()->GetPipeline()->GetCamera(); }
 //static GBuffer* GetGBuffer() { return Application::GetInstance()->GetPipeline()->GetGBuffer(); }

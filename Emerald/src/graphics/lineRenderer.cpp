@@ -12,7 +12,7 @@ void LineRenderer::Initialize() {
 	};
 	m_lineBuffer = NEW(VertexBuffer((float*)m_lines, MAX_OBJECTS * 2, layout, GL_DYNAMIC_DRAW));
 
-	Ref<VertexArray> vao(NEW(VertexArray()));
+	ManagedRef<VertexArray> vao(NEW(VertexArray()));
 	vao->AddBuffer(m_lineBuffer);
 	vao->ApplyLayouts();
 
@@ -20,7 +20,7 @@ void LineRenderer::Initialize() {
 	indices.push_back(0);
 	indices.push_back(1);
 
-	Ref<IndexBuffer> ibo(NEW(IndexBuffer(indices.data(), indices.size())));
+	ManagedRef<IndexBuffer> ibo(NEW(IndexBuffer(indices.data(), indices.size())));
 	m_mesh = NEW(Mesh(vao, ibo));
 
 	m_shader = GetShaderManager()->Get("Line");

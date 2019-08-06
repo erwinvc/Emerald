@@ -5,12 +5,12 @@ private:
 	bool m_started;
 	bool m_ended;
 	const uint MAX_OBJECTS = 4096;
-	VertexBuffer* m_lineBuffer;
+	ManagedRef<VertexBuffer> m_lineBuffer;
 	int m_amount;
 	Vector3* m_lines;
 	Vector3* m_linesPtr;
-	Mesh* m_mesh;
-	Shader* m_shader;
+	AssetRef<Mesh> m_mesh;
+	AssetRef<Shader> m_shader;
 	void Initialize();
 
 	LineRenderer() { Initialize(); }

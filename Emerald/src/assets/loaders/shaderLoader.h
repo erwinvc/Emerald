@@ -10,7 +10,7 @@ public:
 
 	}
 
-	void SyncLoad(map<String, Asset*>& assets) override {
+	void SyncLoad(map<String, AssetBase*>& assets) override {
 		GetShaderManager()->Create(m_name, m_file);
 	}
 

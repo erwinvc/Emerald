@@ -4,6 +4,8 @@ out vec4 out_color;
 in vec2 textureCoords;
 
 uniform sampler2D _HDRBuffer;
+uniform sampler2D _HDRBloom;
+uniform bool _Bloom;
 uniform int _ApplyPostProcessing;
 uniform float _Gamma;
 uniform float _Exposure;
@@ -183,6 +185,9 @@ vec3 Standard(vec3 color){
 
 void main(){
 	vec3 color = texture(_HDRBuffer, textureCoords).rgb * _Exposure;
+	vec3 bloomColor = texture(_HDRBloom, textureCoords).rgb;
+	if(_Bloom)
+		color += bloomColor;
 
 	if(_ApplyPostProcessing == 0) {
 		out_color = vec4(color, 1.0);

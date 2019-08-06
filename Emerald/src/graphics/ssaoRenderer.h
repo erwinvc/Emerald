@@ -1,6 +1,18 @@
 #pragma once
 
 class SSAORenderer {
+private:
+	AssetRef<FrameBuffer> m_fbo;
+	AssetRef<FrameBuffer> m_fboBlur;
+	AssetRef<Texture> m_texture;
+	AssetRef<Texture> m_textureBlur;
+	AssetRef<Texture> m_noiseTexture;
+	AssetRef<Shader> m_shader;
+	AssetRef<Shader> m_shaderBlur;
+	AssetRef<Mesh> m_quad;
+
+	vector<Vector3> m_kernels;
+
 public:
 	const int KERNELCOUNT = 64;
 
@@ -12,24 +24,12 @@ public:
 	~SSAORenderer();
 
 	void Render(GBuffer* gBuffer);
-	Texture* GetTexture() { return m_textureBlur; }
-	Texture* GetRawTexture() { return m_texture; }
+	AssetRef<Texture> GetTexture() { return m_textureBlur; }
+	AssetRef<Texture> GetRawTexture() { return m_texture; }
 
 	void OnImGui() {
 		ImGui::SliderFloat("bias", &m_radius, 0, 25);
 		ImGui::SliderFloat("radius", &m_bias, 0, 25);
 		ImGui::SliderInt("power", &m_power, 0, 64);
 	}
-
-private:
-	Ref<FrameBuffer> m_fbo;
-	Ref<FrameBuffer> m_fboBlur;
-	Ref<Texture> m_texture;
-	Ref<Texture> m_textureBlur;
-	Ref<Texture> m_noiseTexture;
-	Ref<Shader> m_shader;
-	Ref<Shader> m_shaderBlur;
-	Ref<Mesh> m_quad;
-
-	vector<Vector3> m_kernels;
 };

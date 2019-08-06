@@ -3,10 +3,10 @@
 class GameState : public State {
 private:
 	String m_name = "Game";
-	Shader* m_geometryShader;
-	Shader* m_uiShader;
+	AssetRef<Shader> m_geometryShader;
+	AssetRef<Shader> m_uiShader;
 
-	TileRenderer* m_tileRenderer;
+	ManagedRef<TileRenderer> m_tileRenderer;
 
 	GroundRaycast m_rayCast;
 

@@ -47,7 +47,7 @@ public:
 		m_chunks.push_back(Chunk(x, y));
 	}
 
-	void Draw(TileRenderer* renderer);
+	void Draw(ManagedRef<TileRenderer> renderer);
 
 	Tile* GetTile(int x, int y) {
 		int chunkX = x / 16;

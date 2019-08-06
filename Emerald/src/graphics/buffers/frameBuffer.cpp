@@ -17,7 +17,6 @@ FrameBuffer::FrameBuffer(String name, uint width, uint height, Color& clearColor
 FrameBuffer::~FrameBuffer() {
 	GL(glDeleteFramebuffers(1, &m_fbo));
 	LOG("[~cBuffers~x] Deleted %d texture", m_textures.size());
-	for (Texture* tex : m_textures) DELETE(tex);
 }
 
 bool FrameBuffer::CheckStatus() {
@@ -28,7 +27,7 @@ bool FrameBuffer::CheckStatus() {
 	} else return true;
 }
 
-void FrameBuffer::AddColorBuffer(Texture* texture) {
+void FrameBuffer::AddColorBuffer(AssetRef<Texture> texture) {
 	m_textures.push_back(texture);
 	Bind();
 
