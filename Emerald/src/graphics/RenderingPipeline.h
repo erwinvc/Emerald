@@ -16,6 +16,7 @@ private:
 
 	//HDR
 	bool m_applyPostProcessing = true;
+	bool m_FXAA = true;
 	AssetRef<FrameBuffer> m_hdrBuffer;
 	AssetRef<Texture> m_hdrTexture;
 	AssetRef<Texture> m_hdrBrightTexture;

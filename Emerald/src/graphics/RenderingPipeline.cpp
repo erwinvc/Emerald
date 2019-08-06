@@ -160,6 +160,7 @@ void RenderingPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_HDRBuffer", 0);
 	//m_hdrShader->Set("_HDRBloom", 1);
 	m_hdrShader->Set("_ApplyPostProcessing", m_applyPostProcessing);
+	m_hdrShader->Set("_FXAA", m_FXAA);
 	m_hdrShader->Set("_Gamma", m_gamma);
 	m_hdrShader->Set("_Exposure", m_exposure);
 	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
@@ -197,6 +198,7 @@ void RenderingPipeline::OnImGUI() {
 	ImGui::DragFloat3("Directional", (float*)&m_directionalLight, 0.01f);
 	if (ImGui::CollapsingHeader("HDR")) {
 		ImGui::Checkbox("Post processing", &m_applyPostProcessing);
+		ImGui::Checkbox("FXAA", &m_FXAA);
 		if (ImGui::TreeNode("Tonemapping")) {
 			ImGui::SliderFloat("Gamma", &m_gamma, 0, 5);
 			ImGui::SliderFloat("Exposure", &m_exposure, 0, 5);
