@@ -1,15 +1,14 @@
 #include "stdafx.h"
 
+Vector2I toResize(-1, -1);
+
 static void ErrorCallback(int error, const char* description) {
 	LOG_ERROR("[GLFW] %s", description);
 }
 
 void Application::OnResize(int width, int height) {
-	glViewport(0, 0, width, height);
-	if (m_pipeline)m_pipeline->OnResize(width, height);
-	GetStateManager()->OnResize(width, height);
-	m_window->SetWidth(width);
-	m_window->SetHeight(height);
+	if (!m_initialized) return;
+	toResize = Vector2I(width, height);
 }
 
 void Application::OnWindowClose() {
@@ -25,7 +24,7 @@ void Application::Initialize() {
 
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -44,7 +43,7 @@ void Application::Initialize() {
 		return;
 	}
 
-	//GetGLCallbackManager()->AddOnResizeCallback(this, &Application::OnResize);
+	GetGLCallbackManager()->AddOnResizeCallback(this, &Application::OnResize);
 	GetGLCallbackManager()->AddOnCloseCallback(this, &Application::OnWindowClose);
 
 	LOG("[~cGPU~x] %-26s %s", "GPU manufacturer~1", glGetString(GL_VENDOR));
@@ -62,6 +61,8 @@ void Application::Initialize() {
 	GetGLFiberManager()->AddFiber("AssetManager", [] {GetAssetManager()->Update(); });
 
 	m_window->Show();
+
+	m_initialized = true;
 
 	while (m_running) {
 		GetGLFiberManager()->Tick();
@@ -122,9 +123,12 @@ void Application::Render() {
 
 		GetImGuiManager()->Begin();
 		if (ImGui::Begin("Emerald###Window", &m_ImGuiOpen, ImVec2(576, 680), -1)) {
-			m_pipeline->OnImGUI();
-			GetStateManager()->OnImGUI();
-			GetShaderManager()->OnImGUI();
+			if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
+				m_pipeline->OnImGUI();
+				GetStateManager()->OnImGUI();
+				GetShaderManager()->OnImGUI();
+				ImGui::EndTabBar();
+			}
 			ImGui::End();
 		}
 		GetImGuiManager()->End();
@@ -133,6 +137,20 @@ void Application::Render() {
 		GetStateManager()->RenderUI();
 		GLUtils::DisableBlending();
 	}
+
+	if (toResize.x != -1) {
+		uint width = toResize.x;
+		uint height = toResize.y;
+		glViewport(0, 0, width, height);
+		m_window->SetWidth(width);
+		m_window->SetHeight(height);
+		m_pipeline->OnResize(width, height);
+		float aspect = (float)(width) / height;
+		GetCamera()->SetProjectionMatrix(70, aspect, 0.01f, 1000.0f);
+		//GetStateManager()->OnResize(width, height);
+		toResize = Vector2I(-1, -1);
+	}
+
 	m_window->SwapBuffers();
 	m_window->PollEvents();
 }

@@ -5,6 +5,7 @@ private:
 	~Application() {}
 	friend Singleton;
 
+	bool m_initialized = false;
 	Window* m_window;
 	Timer m_timer;
 	uint64_t m_frameCount;

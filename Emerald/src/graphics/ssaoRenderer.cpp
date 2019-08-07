@@ -6,15 +6,11 @@ SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_text
 
 	m_fbo = GetFrameBufferManager()->Create("SSAO", width, height);
 	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", width, height);
+	m_texture = m_fbo->AddColorBuffer(TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT));
+	m_textureBlur = m_fboBlur->AddColorBuffer(TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT));
 
 	m_shader = GetShaderManager()->Get("SSAO");
 	m_shaderBlur = GetShaderManager()->Get("SSAOBlur");
-
-	m_texture = NEW(Texture(width, height, TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT)));
-	m_fbo->AddColorBuffer(m_texture);
-
-	m_textureBlur = NEW(Texture(width, height, TextureParameters(RGBA32, NEAREST, REPEAT, T_FLOAT)));
-	m_fboBlur->AddColorBuffer(m_textureBlur);
 
 	for (int i = 0; i < KERNELCOUNT; ++i) {
 		Vector3 sample(Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f));
@@ -39,7 +35,6 @@ SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_text
 	m_shader->Set("_GPosition", 0);
 	m_shader->Set("_GNormal", 1);
 	m_shader->Set("_Noise", 2);
-	m_shader->Set("_NoiseScale", GetApplication()->GetWindow()->GetWidth() / 4, GetApplication()->GetWindow()->GetHeight() / 4);
 	for (int i = 0; i < 64; i++) {
 		m_shader->Set(Format_t("_Samples[%d]", i), m_kernels[i]);
 	}
@@ -60,6 +55,7 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_shader->Set("_Power", m_power);
 	m_shader->Set("_Projection", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("_View", GetCamera()->GetViewMatrix());
+	m_shader->Set("_NoiseScale", GetApplication()->GetWindow()->GetWidth() / 4, GetApplication()->GetWindow()->GetHeight() / 4);
 
 	gBuffer->m_positionTexture->Bind(0);
 	gBuffer->m_normalTexture->Bind(1);
@@ -73,4 +69,9 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_texture->Bind();
 	m_quad->Draw();
 	m_fboBlur->Unbind();
+}
+
+void SSAORenderer::Resize(uint width, uint height) {
+	m_fbo->Resize(width, height);
+	m_fboBlur->Resize(width, height);
 }

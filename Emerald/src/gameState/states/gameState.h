@@ -1,13 +1,19 @@
 #pragma once
 
+class Test {
+public:
+	int j = 0;
+	int i = 0;
+};
+
 class GameState : public State {
 private:
 	String m_name = "Game";
 	AssetRef<Shader> m_geometryShader;
 	AssetRef<Shader> m_uiShader;
 
-	ManagedRef<TileRenderer> m_tileRenderer;
-
+	TileRenderer* m_tileRenderer;
+	shared_ptr<Test> test;
 	GroundRaycast m_rayCast;
 
 public:
@@ -19,12 +25,17 @@ public:
 
 		m_tileRenderer = NEW(TileRenderer());
 
+		test = shared_ptr<Test>(new Test());
 	}
 	void Update(const TimeStep& time) override {
 		GetCamera()->Update(time);
 		if (ButtonJustDown(VK_MOUSE_MIDDLE)) {
 			GetPipeline()->GetPointLights().push_back(Pointlight(GetCamera()->m_position, 10, Color::RandomPrimary()));
 		}
+	}
+
+	void aaa(Test* testt) {
+		testt->i++;
 	}
 	void RenderGeometry() override {
 		m_tileRenderer->Begin();
@@ -47,8 +58,7 @@ public:
 	}
 	void RenderUI() override {
 	}
-	void OnImGUI() override
-	{
+	void OnImGUI() override {
 		ImGui::SliderFloat("scale1", &m_tileRenderer->m_scale1, 0, 5);
 		ImGui::SliderFloat("scale2", &m_tileRenderer->m_scale2, 0, 5);
 		ImGui::SliderFloat("scale3", &m_tileRenderer->m_scale3, 0, 1);

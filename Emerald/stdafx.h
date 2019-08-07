@@ -101,6 +101,8 @@ using namespace std;
 
 #include "glCallbackManager.h"
 
+#include "assets/texture/textureParameters.h"
+
 #include "graphics/buffers/bufferLayout.h"
 #include "graphics/buffers/vertexBuffer.h"
 #include "graphics/buffers/indexBuffer.h"
@@ -112,7 +114,6 @@ using namespace std;
 #include "graphics/shaders/shaderManager.h"
 
 #include "assets/assetBase.h"
-#include "assets/texture/textureParameters.h"
 #include "assets/texture/texture.h"
 #include "assets/texture/textureUtils.h"
 #include "assets/loaders/assetLoader.h"

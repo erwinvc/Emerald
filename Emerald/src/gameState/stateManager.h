@@ -14,6 +14,7 @@ private:
 	StateManager() {}
 	~StateManager() {
 		for (State* state : m_states) {
+			state->Cleanup();
 			DELETE(state);
 		}
 	}
@@ -26,7 +27,7 @@ public:
 	State* GetState() { return m_currentState; }
 
 	void RegisterStates();
-
+	void RemoveState(State* state);
 	void SetState(State* state) {
 		m_currentState->OnExitState();
 		m_currentState = state;
@@ -40,7 +41,18 @@ public:
 	void Update(TimeStep time) { m_currentState->Update(time); }
 	void RenderGeometry() { m_currentState->RenderGeometry(); }
 	void RenderUI() { m_currentState->RenderUI(); }
-	void OnImGUI() { m_currentState->OnImGUI(); }
+	void OnImGUI() {
+		if (ImGui::BeginTabItem("State")) {
+			int i = 0;
+			for (State* state : m_states) {
+				if (ImGui::Selectable(state->GetName().c_str(), m_currentState == state)) {
+					SetState(state);
+				}
+			}
+			if (ImGui::CollapsingHeader("Current state")) m_currentState->OnImGUI();
+			ImGui::EndTabItem();
+		}
+	}
 	void Cleanup() { m_currentState->Cleanup(); }
 
 	template<typename T>

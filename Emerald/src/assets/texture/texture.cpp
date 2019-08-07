@@ -4,15 +4,15 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../stb_image.h"
 
-Texture::Texture(int32 width, int32 height, byte* data, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path(""), m_keepData(keepData) {
+Texture::Texture(int32 width, int32 height, byte* data, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path(""), m_data(nullptr), m_keepData(keepData) {
 	SetData(data);
 }
 
-Texture::Texture(int32 width, int32 height, TextureParameters params) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path(""), m_keepData(false) {
+Texture::Texture(int32 width, int32 height, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path(""), m_data(nullptr), m_keepData(keepData) {
 	SetData(NULL);
 }
 
-Texture::Texture(const String& path, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(0), m_height(0), m_path(path), m_keepData(keepData) {
+Texture::Texture(const String& path, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(0), m_height(0), m_path(path), m_data(nullptr), m_keepData(keepData) {
 	if (!FileSystem::DoesFileExist(path)) {
 		LOG_ERROR("[~gTexture~x] file at ~1%s~x does not exist!", path.c_str());
 		return;
@@ -36,7 +36,7 @@ Texture::Texture(const String& path, TextureParameters params, bool keepData) : 
 }
 
 void Texture::SetData(byte* data) {
-	if (m_textureID == 0) GL(glGenTextures(1, &m_textureID));
+	GL(glGenTextures(1, &m_textureID));
 
 	GL(glBindTexture(GL_TEXTURE_2D, m_textureID));
 
@@ -49,21 +49,20 @@ void Texture::SetData(byte* data) {
 	GL(glGenerateMipmap(GL_TEXTURE_2D));
 
 	if (m_keepData) {
-		m_data = new byte[2 * 4 * m_width * m_height];
-		memcpy(m_data, data, 2 * 4 * m_width * m_height);
+		if (data != nullptr) {
+			m_data = new byte[sizeof(data)];
+			memcpy(m_data, data, sizeof(data));
+		}
 	}
 	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.4f);
-
+	//
 	//float val;
 	//glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &val);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, Math::_min(16.0f, val));
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, Math::Min(16.0f, val));
 }
 
 Texture::~Texture() {
-	glDeleteTextures(1, &m_textureID);
-	if (m_keepData) {
-		delete[] m_data;
-	}
+	Cleanup();
 }
 
 void Texture::Bind(uint slot) {
@@ -75,4 +74,19 @@ void Texture::Unbind(uint slot) {
 	glBindTexture(GL_TEXTURE_2D, slot);
 }
 
-#undef STB_IMAGE_IMPLEMENTATION
+void Texture::Cleanup() {
+	glDeleteTextures(1, &m_textureID);
+	if (m_keepData) {
+		delete[] m_data;
+	}
+}
+
+void Texture::Resize(int width, int height) {
+	if (m_width == width && m_height == height) return;
+	m_width = width;
+	m_height = height;
+
+	Bind();
+	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetFormat(), m_width, m_height, 0, GL_RGBA, m_params.GetType(), nullptr));
+	GL(glGenerateMipmap(GL_TEXTURE_2D));
+}

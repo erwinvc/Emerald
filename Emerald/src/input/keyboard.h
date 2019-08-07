@@ -34,8 +34,8 @@ public:
 	}
 
 	bool KeyDown(DWORD key) {
-		if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard) return false;
-		return ((int)key < KEYSIZE) ? ((GetTickCount() < m_keyStates[key].time + m_MAXDOWN) && !m_keyStates[key].m_isUpNow) : false;
+		if ((int)key >= KEYSIZE || (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard)) return false;
+		return (GetTickCount() < m_keyStates[key].time + m_MAXDOWN) && !m_keyStates[key].m_isUpNow;
 	}
 
 	bool AnyKeyDown() {
@@ -43,8 +43,8 @@ public:
 	}
 
 	bool KeyJustUp(DWORD key) {
-		if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard) return false;
-		bool result = ((int)key < KEYSIZE) ? (GetTickCount() < m_keyStates[key].time + m_NOWPERIOD && m_keyStates[key].m_isUpNow) : false;
+		if ((int)key >= KEYSIZE || (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard)) return false;
+		bool result = GetTickCount() < m_keyStates[key].time + m_NOWPERIOD && m_keyStates[key].m_isUpNow;
 		if (result) ResetKeyState(key);
 		return result;
 	}
@@ -54,9 +54,9 @@ public:
 	}
 
 	bool KeyJustDown(DWORD key) {
-		if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard) return false;
-		bool result = ((int)key < KEYSIZE) ? m_keyStates[key].m_justDown : false;
-		if (result) m_keyStates[key].m_justDown = false;
+		if ((int)key >= KEYSIZE || (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard)) return false;
+		bool result = m_keyStates[key].m_justDown;
+ 		if (result) m_keyStates[key].m_justDown = false;
 		return result;
 	}
 

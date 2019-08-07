@@ -24,6 +24,8 @@ public:
 	~SSAORenderer();
 
 	void Render(GBuffer* gBuffer);
+	void Resize(uint width, uint height);
+
 	AssetRef<Texture> GetTexture() { return m_textureBlur; }
 	AssetRef<Texture> GetRawTexture() { return m_texture; }
 
@@ -32,4 +34,5 @@ public:
 		ImGui::SliderFloat("radius", &m_bias, 0, 25);
 		ImGui::SliderInt("power", &m_power, 0, 64);
 	}
+
 };

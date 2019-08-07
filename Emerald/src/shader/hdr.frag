@@ -9,6 +9,7 @@ uniform float _Gamma;
 uniform bool _FXAA;
 uniform float _Exposure;
 uniform int _Tonemapping;
+uniform vec2 _ScreenSize;
 
 //void main()
 //{             
@@ -43,7 +44,7 @@ float middleGrey = 0.18f;
 
 vec3 computeFxaa()
 {
-    vec2 screenTextureOffset = vec2(1.0f/1920.0f, 1.0f/1080.0f);
+    vec2 screenTextureOffset = 1.0f/_ScreenSize;
     vec3 luma = vec3(0.299f, 0.587f, 0.114f);
 
     vec3 offsetNW = texture(_HDRBuffer, fsUv + (vec2(-1.0f, -1.0f) * screenTextureOffset)).xyz;

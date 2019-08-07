@@ -1,11 +1,12 @@
 #include "stdafx.h"
 #include <random>
 
-void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
-	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", 1920, 1080);
+void RenderingPipeline::Initialize(uint width, uint height, int maxLights, int lightQuality) {
+	m_width = width;
+	m_height = height;
+
 	//Deferred
-	//#Dirty get window size from config?
-	m_gBuffer = NEW(GBuffer(GetFrameBufferManager()->Create("GBuffer", 1920, 1080), 1920, 1080));
+	m_gBuffer = NEW(GBuffer(m_width, m_height));
 
 	//#Dirty add proper shader asset loading
 	m_directionalLightShader = GetShaderManager()->Get("Directional");
@@ -29,10 +30,9 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
-	m_hdrTexture = NEW(Texture(1920, 1080, TextureParameters(RGBA32, LINEAR, CLAMP_TO_EDGE, T_FLOAT)));
-	m_hdrBrightTexture = NEW(Texture(1920, 1080, TextureParameters(RGBA16, LINEAR, CLAMP_TO_EDGE, T_FLOAT)));
-	m_hdrBuffer->AddColorBuffer(m_hdrTexture);
-	m_hdrBuffer->AddColorBuffer(m_hdrBrightTexture);
+	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", m_width, m_height);
+	m_hdrTexture = m_hdrBuffer->AddColorBuffer(TextureParameters(RGBA32, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	//m_hdrBrightTexture = m_hdrBuffer->AddColorBuffer(TextureParameters(RGBA16, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
 	//Bloom
 	//m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", 1920, 1080);
@@ -43,9 +43,9 @@ void RenderingPipeline::Initialize(int maxLights, int lightQuality) {
 	//m_pingPongFBO[1]->AddColorBuffer(m_pingPongTexture[1]);
 
 	//SSAO
-	m_ssaoRenderer = NEW(SSAORenderer(1920, 1080));
+	m_ssaoRenderer = NEW(SSAORenderer(m_width, m_height));
 
-	float aspect = (float)(1920) / 1080;
+	float aspect = (float)(m_width) / m_height;
 	m_camera = NEW(FreeCam(70, aspect, 0.01f, 1000.0f));
 	m_camera->m_position = Vector3(10, 5, -2);
 	m_camera->m_rotation = Vector3(0.5, Math::PI, 0);
@@ -164,18 +164,20 @@ void RenderingPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_Gamma", m_gamma);
 	m_hdrShader->Set("_Exposure", m_exposure);
 	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
+	m_hdrShader->Set("_ScreenSize", (float)GetApplication()->GetWidth(), (float)GetApplication()->GetHeight());
+
 	//m_hdrShader->Set("_Bloom", m_bloom);
 	switch (m_selectedTexture) {
 	case 0: m_hdrTexture->Bind(); break;
-	case 1: m_hdrBrightTexture->Bind(); break;
-	case 2: m_gBuffer->m_miscTexture->Bind(); break;
-	case 3: m_gBuffer->m_colorTexture->Bind(); break;
-	case 4: m_gBuffer->m_normalTexture->Bind(); break;
-	case 5: m_gBuffer->m_positionTexture->Bind(); break;
-	case 6: m_ssaoRenderer->GetTexture()->Bind(); break;
-	case 7: m_ssaoRenderer->GetRawTexture()->Bind(); break;
-	//case 8: m_pingPongTexture[0]->Bind(); break;
-	//case 9: m_pingPongTexture[1]->Bind(); break;
+	//case 1: m_hdrBrightTexture->Bind(); break;
+	case 1: m_gBuffer->m_miscTexture->Bind(); break;
+	case 2: m_gBuffer->m_colorTexture->Bind(); break;
+	case 3: m_gBuffer->m_normalTexture->Bind(); break;
+	case 4: m_gBuffer->m_positionTexture->Bind(); break;
+	case 5: m_ssaoRenderer->GetTexture()->Bind(); break;
+	case 6: m_ssaoRenderer->GetRawTexture()->Bind(); break;
+		//case 8: m_pingPongTexture[0]->Bind(); break;
+		//case 9: m_pingPongTexture[1]->Bind(); break;
 	}
 
 	//m_pingPongTexture[1]->Bind(1);
@@ -193,82 +195,84 @@ void RenderingPipeline::PostUIRender() {
 }
 
 void RenderingPipeline::OnImGUI() {
-	String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard" };
-	ImGui::LabelText("", Format_t("State: %s", GetStateManager()->GetState()->GetName().c_str()));
-	ImGui::DragFloat3("Directional", (float*)&m_directionalLight, 0.01f);
-	if (ImGui::CollapsingHeader("HDR")) {
-		ImGui::Checkbox("Post processing", &m_applyPostProcessing);
-		ImGui::Checkbox("FXAA", &m_FXAA);
-		if (ImGui::TreeNode("Tonemapping")) {
-			ImGui::SliderFloat("Gamma", &m_gamma, 0, 5);
-			ImGui::SliderFloat("Exposure", &m_exposure, 0, 5);
-			ImGui::Combo("Tonemapping", &m_selectedTonemapping, tonemapping, NUMOF(tonemapping));
+	if (ImGui::BeginTabItem("Pipeline")) {
+		String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard" };
+		ImGui::DragFloat3("Directional", (float*)&m_directionalLight, 0.01f);
+		if (ImGui::CollapsingHeader("HDR")) {
+			ImGui::Checkbox("Post processing", &m_applyPostProcessing);
+			ImGui::Checkbox("FXAA", &m_FXAA);
+			if (ImGui::TreeNode("Tonemapping")) {
+				ImGui::SliderFloat("Gamma", &m_gamma, 0, 5);
+				ImGui::SliderFloat("Exposure", &m_exposure, 0, 5);
+				ImGui::Combo("Tonemapping", &m_selectedTonemapping, tonemapping, NUMOF(tonemapping));
 
-			ImGui::TreePop();
-			ImGui::Separator();
-		}
-		if (ImGui::TreeNode("FramebufferManager")) {
-			ImGui::TreePop();
-		}
-		if (ImGui::TreeNode("Framebuffers")) {
-
-			if (ImGui::ImageButton(m_hdrTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 0;
-			ImGui::Tooltip("Final");
-			ImGui::SameLine();
-			if (ImGui::ImageButton(m_hdrBrightTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 1;
-			ImGui::Tooltip("Bright");
-
-			if (ImGui::ImageButton(m_gBuffer->m_miscTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 2;
-			ImGui::Tooltip("Misc");
-			ImGui::SameLine();
-			if (ImGui::ImageButton(m_gBuffer->m_colorTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 3;
-			ImGui::Tooltip("Color");
-
-			if (ImGui::ImageButton(m_gBuffer->m_normalTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 4;
-			ImGui::Tooltip("Normal");
-			ImGui::SameLine();
-			if (ImGui::ImageButton(m_gBuffer->m_positionTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 5;
-			ImGui::Tooltip("Position");
-
-			//if (ImGui::ImageButton(m_pingPongTexture[0]->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 8;
-			//ImGui::Tooltip("Pingpong1");
-			//ImGui::SameLine();
-			//if (ImGui::ImageButton(m_pingPongTexture[1]->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 9;
-			//ImGui::Tooltip("Pingpong2");
-
-			if (ImGui::TreeNode("SSAO")) {
-				if (ImGui::ImageButton(m_ssaoRenderer->GetTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 6;
-				ImGui::Tooltip("SSAO blurred");
-				ImGui::SameLine();
-				if (ImGui::ImageButton(m_ssaoRenderer->GetRawTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 7;
-				ImGui::Tooltip("SSAO raw");
+				ImGui::TreePop();
+				ImGui::Separator();
+			}
+			if (ImGui::TreeNode("FramebufferManager")) {
 				ImGui::TreePop();
 			}
-			ImGui::TreePop();
-			ImGui::Separator();
-		}
-	}
-	if (ImGui::CollapsingHeader("Scene")) {
-		if (ImGui::TreeNode("Lighting")) {
-			ImGui::Text("Directional");
-			m_directionalLight.OnImGui();
-			ImGui::TreePop();
-		}
-		if (ImGui::TreeNode("SSAO")) {
-			m_ssaoRenderer->OnImGui();
-			ImGui::TreePop();
-		}
-	}
+			if (ImGui::TreeNode("Framebuffers")) {
 
-	if (ImGui::CollapsingHeader("Camera")) {
-		m_camera->OnImGui();
-	}
+				if (ImGui::ImageButton(m_hdrTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 0;
+				ImGui::Tooltip("Final");
+				//ImGui::SameLine();
+				//if (ImGui::ImageButton(m_hdrBrightTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 1;
+				//ImGui::Tooltip("Bright");
 
-	if (ImGui::CollapsingHeader("Memory")) {
-		GetMemory()->OnImGui();
+				if (ImGui::ImageButton(m_gBuffer->m_miscTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 1;
+				ImGui::Tooltip("Misc");
+				ImGui::SameLine();
+				if (ImGui::ImageButton(m_gBuffer->m_colorTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 2;
+				ImGui::Tooltip("Color");
+
+				if (ImGui::ImageButton(m_gBuffer->m_normalTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 3;
+				ImGui::Tooltip("Normal");
+				ImGui::SameLine();
+				if (ImGui::ImageButton(m_gBuffer->m_positionTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 4;
+				ImGui::Tooltip("Position");
+
+				//if (ImGui::ImageButton(m_pingPongTexture[0]->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 8;
+				//ImGui::Tooltip("Pingpong1");
+				//ImGui::SameLine();
+				//if (ImGui::ImageButton(m_pingPongTexture[1]->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 9;
+				//ImGui::Tooltip("Pingpong2");
+
+				if (ImGui::TreeNode("SSAO")) {
+					if (ImGui::ImageButton(m_ssaoRenderer->GetTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 5;
+					ImGui::Tooltip("SSAO blurred");
+					ImGui::SameLine();
+					if (ImGui::ImageButton(m_ssaoRenderer->GetRawTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 6;
+					ImGui::Tooltip("SSAO raw");
+					ImGui::TreePop();
+				}
+				ImGui::TreePop();
+				ImGui::Separator();
+			}
+		}
+		if (ImGui::CollapsingHeader("Scene")) {
+			if (ImGui::TreeNode("Lighting")) {
+				ImGui::Text("Directional");
+				m_directionalLight.OnImGui();
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("SSAO")) {
+				m_ssaoRenderer->OnImGui();
+				ImGui::TreePop();
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Camera")) {
+			m_camera->OnImGui();
+		}
+
+		if (ImGui::CollapsingHeader("Memory")) {
+			GetMemory()->OnImGui();
+		}
+		ImGui::SliderFloat("Shinedamper", &shineDamper, 0, 5);
+		ImGui::SliderFloat("Reflectivity", &reflectivity, 0, 5);
+		ImGui::EndTabItem();
 	}
-	ImGui::SliderFloat("Shinedamper", &shineDamper, 0, 5);
-	ImGui::SliderFloat("Reflectivity", &reflectivity, 0, 5);
 	//ImGui::Checkbox("Bloom", &m_bloom);
 
 
@@ -278,18 +282,10 @@ void RenderingPipeline::OnImGUI() {
 
 //#TODO properly resize fbos
 void RenderingPipeline::OnResize(uint width, uint height) {
-	if (m_gBuffer) {
-		DELETE(m_gBuffer);
-		m_gBuffer = NEW(GBuffer(GetFrameBufferManager()->Create("GBuffer", width, height), width, height));
-	}
-	//if (m_hdrBuffer) {
-	//	DELETE(m_hdrBuffer);
-	//	m_hdrTexture = NEW(Texture(width, height, TextureParameters(RGBA32, LINEAR, REPEAT, T_FLOAT)));
-	//	m_hdrBuffer = FrameBuffer::Create("HDR", width, height);
-	//	m_hdrBuffer->AddColorBuffer(m_hdrTexture);
-	//}
-	if (m_ssaoRenderer) {
-		DELETE(m_ssaoRenderer);
-		m_ssaoRenderer = NEW(SSAORenderer(width, height));
-	}
+	if (!m_initialized) return;
+	m_width = width;
+	m_height = height;
+	m_gBuffer->Resize(width, height);
+	m_hdrBuffer->Resize(width, height);
+	m_ssaoRenderer->Resize(width, height);
 }

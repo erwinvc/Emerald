@@ -30,16 +30,16 @@ public:
 	}
 
 	void OnImGUI() {
-		if (ImGui::CollapsingHeader("Shaders")) {
+		if (ImGui::BeginTabItem("Shaders")) {
 			int i = 0;
-			for (AssetRef<Shader> shader : m_shadersVector) {
+			for (AssetRef<Shader>& shader : m_shadersVector) {
 				ImGui::Text(shader->m_name.c_str());
 				if (ImGui::Button(Format_t("Reload##%d", i++))) {
-					LOG(shader->m_name.c_str());
 					shader->Reload();
 				}
 				ImGui::Separator();
 			}
+			ImGui::EndTabItem();
 		}
 	}
 };

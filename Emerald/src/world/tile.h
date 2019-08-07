@@ -1,7 +1,6 @@
 #pragma once
 
-enum TileType{
-	EMPTY = -1,
+enum TileType : uint8 {
     FULL,
     INNER,
     OUTER,
@@ -14,7 +13,7 @@ public:
     TileType m_type;
 	byte m_materialID;
 
-	Tile() : m_type(EMPTY) {}
+	Tile() : m_type(FULL) {}
 	Tile(TileType type) : m_type(type) {}
 	Tile(int type) : m_type(TileType(type)) {}
 };

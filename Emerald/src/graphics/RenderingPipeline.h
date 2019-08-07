@@ -19,7 +19,7 @@ private:
 	bool m_FXAA = true;
 	AssetRef<FrameBuffer> m_hdrBuffer;
 	AssetRef<Texture> m_hdrTexture;
-	AssetRef<Texture> m_hdrBrightTexture;
+	//AssetRef<Texture> m_hdrBrightTexture;
 	AssetRef<Shader> m_hdrShader;
 	AssetRef<Mesh> m_quad;
 
@@ -37,6 +37,9 @@ private:
 	float m_gamma = 1;
 	float m_exposure = 1;
 	int m_selectedTonemapping = 8;
+
+	uint m_width;
+	uint m_height;
 	//bool m_bloom = true;
 public:
 	RenderingPipeline() {}
@@ -46,7 +49,7 @@ public:
 		DELETE(m_ssaoRenderer);
 	}
 
-	void Initialize(int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 20);
+	void Initialize(uint width, uint height, int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 20);
 
 	void PreGeometryRender();
 	void PostGeometryRender();

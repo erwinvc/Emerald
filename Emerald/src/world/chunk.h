@@ -27,7 +27,7 @@ public:
 		return m_position;
 	}
 
-	void Draw(ManagedRef<TileRenderer> renderer);
+	void Draw(TileRenderer* renderer);
 
 	Chunk(int x, int y) : m_position(x, y) { Populate(); }
 };

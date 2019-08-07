@@ -11,33 +11,33 @@ void LoadingState::Initialize() {
 
 	m_batch = GetAssetManager()->CreateBatch("Main Assets");
 
-	m_batch->Add(NEW(CustomLoader("ImGui",			[] {GetImGuiManager()->Initialize(GetApplication()->GetWindow()); })));
-	m_batch->Add(NEW(CustomLoader("Mouse",			[] {GetMouse()->Initialize(GetApplication()->GetWindow()); })));
-	m_batch->Add(NEW(CustomLoader("Keyboard",		[] {GetKeyboard()->Initialize(GetApplication()->GetWindow()); })));
+	m_batch->Add(NEW(CustomLoader("ImGui", [] {GetImGuiManager()->Initialize(GetApplication()->GetWindow()); })));
+	m_batch->Add(NEW(CustomLoader("Mouse", [] {GetMouse()->Initialize(GetApplication()->GetWindow()); })));
+	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetApplication()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
-	m_batch->Add(NEW(ShaderLoader("Line",			"src/shader/line")));
-	m_batch->Add(NEW(ShaderLoader("Geometry",		"src/shader/geometry")));
-	m_batch->Add(NEW(ShaderLoader("Tile",			"src/shader/tile")));
-	m_batch->Add(NEW(ShaderLoader("Directional",	"src/shader/directional")));
-	m_batch->Add(NEW(ShaderLoader("Pointlight",		"src/shader/pointlight")));
-	m_batch->Add(NEW(ShaderLoader("HDR",			"src/shader/hdr")));
-	m_batch->Add(NEW(ShaderLoader("SSAO",			"src/shader/ssao")));
-	m_batch->Add(NEW(ShaderLoader("SSAOBlur",		"src/shader/ssaoBlur")));
+	m_batch->Add(NEW(ShaderLoader("Line", "src/shader/line")));
+	m_batch->Add(NEW(ShaderLoader("Geometry", "src/shader/geometry")));
+	m_batch->Add(NEW(ShaderLoader("Tile", "src/shader/tile")));
+	m_batch->Add(NEW(ShaderLoader("Directional", "src/shader/directional")));
+	m_batch->Add(NEW(ShaderLoader("Pointlight", "src/shader/pointlight")));
+	m_batch->Add(NEW(ShaderLoader("HDR", "src/shader/hdr")));
+	m_batch->Add(NEW(ShaderLoader("SSAO", "src/shader/ssao")));
+	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "src/shader/ssaoBlur")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
-	
-	m_batch->Add(NEW(ModelLoader("Plane",			"tiles/Plane.fbx")));
-	m_batch->Add(NEW(ModelLoader("InnerCorner",		"tiles/Inner Corner.fbx")));
-	m_batch->Add(NEW(ModelLoader("OuterCorner",		"tiles/Outer Corner.fbx")));
-	m_batch->Add(NEW(ModelLoader("Slope",			"tiles/Slope.fbx")));
-	m_batch->Add(NEW(ModelLoader("Valley",			"tiles/Valley.fbx")));
+
+	m_batch->Add(NEW(ModelLoader("Plane", "tiles/Ground.fbx")));
+	m_batch->Add(NEW(ModelLoader("InnerCorner", "tiles/Inner Corner.fbx")));
+	m_batch->Add(NEW(ModelLoader("OuterCorner", "tiles/Outer Corner.fbx")));
+	m_batch->Add(NEW(ModelLoader("Slope", "tiles/Slope.fbx")));
+	m_batch->Add(NEW(ModelLoader("Valley", "tiles/Valley.fbx")));
 
 	m_batch->Add(NEW(TextureLoader("Irridescence", "res/irridescence.png")));
 	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png")));
 	m_batch->Add(NEW(TextureLoader("White", "res/white.png")));
 	m_batch->Add(NEW(TextureLoader("BricksNormal", "sponza/bricksNormal.png")));
 
-	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(); })));
+	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(GetApplication()->GetWidth(), GetApplication()->GetHeight()); })));
 
 	for (State* state : GetStateManager()->GetStates()) {
 		if (state != this) {
@@ -62,6 +62,7 @@ void LoadingState::Update(const TimeStep& time) {
 	color = Color::Mix(Color(0xde9c96), Color(0x96deae), progress);
 	if (m_batch->IsFinished() && AnyKeyJustDown()) {
 		GetStateManager()->SetState(GameStates::GAME);
+		GetStateManager()->RemoveState(this);
 	}
 }
 void LoadingState::RenderGeometry() {}
@@ -82,7 +83,9 @@ void LoadingState::OnImGUI() {
 	ImGui::SliderFloat2("size", (float*)&sizee, 0, 1);
 }
 
-void LoadingState::Cleanup() {}
+void LoadingState::Cleanup()
+{
+}
 
 void LoadingState::OnEnterState() {
 	GetAssetManager()->SubmitBatch(m_batch);
