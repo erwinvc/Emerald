@@ -5,7 +5,6 @@ ThreadManager g_threadManager;
 Thread* ThreadManager::RegisterThread(String name, void(*func)()) {
 	Thread* c_thread = NEW(Thread(name));
 	uint64* args = new uint64[3]{ 0, (uint64)c_thread, (uint64)func };
-
 	c_thread->m_handle = CreateThread(0, 0, [](void* lpFiberParameter) -> DWORD {
 		uint64* arguments = (uint64*)lpFiberParameter;
 		Thread* thread = (Thread*)arguments[1];

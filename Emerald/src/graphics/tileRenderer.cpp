@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+static float rotation = 0;
 void TileRenderer::Initialize() {
 	m_shader = GetShaderManager()->Get("Tile");
 
@@ -22,14 +23,25 @@ void TileRenderer::Initialize() {
 	slope->GetMeshes()[slope->GetMeshes().size() - 1]->SetMaterial(m_material);
 	valley->GetMeshes()[valley->GetMeshes().size() - 1]->SetMaterial(m_material);
 
-	m_renderers[0] = NEW(InstancedRenderer2D(full->GetMeshes()[full->GetMeshes().size() - 1]));
-	m_renderers[1] = NEW(InstancedRenderer2D(inner->GetMeshes()[inner->GetMeshes().size() - 1]));
-	m_renderers[2] = NEW(InstancedRenderer2D(outer->GetMeshes()[outer->GetMeshes().size() - 1]));
-	m_renderers[3] = NEW(InstancedRenderer2D(slope->GetMeshes()[slope->GetMeshes().size() - 1]));
-	m_renderers[4] = NEW(InstancedRenderer2D(valley->GetMeshes()[valley->GetMeshes().size() - 1]));
+	BufferLayout layout = {
+		{ShaderDataType::Float2, "position", 5, true},
+		{ShaderDataType::Float, "rotation", 6, true}
+	};
+
+	m_renderers[0] = NEW(InstancedRenderer2D<TileBufferData>(full->GetMeshes()[full->GetMeshes().size() - 1], layout));
+	m_renderers[1] = NEW(InstancedRenderer2D<TileBufferData>(inner->GetMeshes()[inner->GetMeshes().size() - 1], layout));
+	m_renderers[2] = NEW(InstancedRenderer2D<TileBufferData>(outer->GetMeshes()[outer->GetMeshes().size() - 1], layout));
+	m_renderers[3] = NEW(InstancedRenderer2D<TileBufferData>(slope->GetMeshes()[slope->GetMeshes().size() - 1], layout));
+	m_renderers[4] = NEW(InstancedRenderer2D<TileBufferData>(valley->GetMeshes()[valley->GetMeshes().size() - 1], layout));
 
 	texIri = GetAssetManager()->Get<Texture>("Irridescence");
 	texNoise = GetAssetManager()->Get<Texture>("Noise");
+
+	GetThreadManager()->RegisterThread("a", [] {
+			rotation += 0.02f;
+			if (rotation > Math::TWO_PI) rotation = 0;
+			Sleep(20);
+	});
 }
 
 void TileRenderer::Begin() {
@@ -44,18 +56,18 @@ void TileRenderer::Begin() {
 	m_shader->Set("scale1", m_scale1);
 	m_shader->Set("scale2", m_scale2);
 	m_shader->Set("scale3", m_scale3);
-
+	m_shader->Set("rotation1", Matrix4::Rotate((float)rotation, Vector3::YAxis()));
 
 	for (int i = 0; i < 5; i++) {
 		m_renderers[i]->Begin();
 	}
 }
 void TileRenderer::Submit(Tile& tile, int x, int y) {
-	m_renderers[tile.m_type]->Submit(x, y);
+	m_renderers[tile.m_type]->Submit(TileBufferData((float)x, (float)y, rotation));
 }
-void TileRenderer::Submit(Tile& tile, Vector2& position) {
-	m_renderers[tile.m_type]->Submit(position);
-}
+//void TileRenderer::Submit(Tile& tile, Vector2& position) {
+//	m_renderers[tile.m_type]->Submit(position);
+//}
 void TileRenderer::End() {
 	for (int i = 0; i < 5; i++) {
 		m_renderers[i]->End();

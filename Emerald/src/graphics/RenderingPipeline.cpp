@@ -79,7 +79,7 @@ void RenderingPipeline::PreGeometryRender() {
 	m_gBuffer->Clear();
 }
 
-float shineDamper = 0;
+float shineDamper = 0.001f;
 float reflectivity = 0;
 void RenderingPipeline::PostGeometryRender() {
 	m_gBuffer->Unbind();
@@ -269,7 +269,7 @@ void RenderingPipeline::OnImGUI() {
 		if (ImGui::CollapsingHeader("Memory")) {
 			GetMemory()->OnImGui();
 		}
-		ImGui::SliderFloat("Shinedamper", &shineDamper, 0, 5);
+		ImGui::SliderFloat("Shinedamper", &shineDamper, 0.001f, 5);
 		ImGui::SliderFloat("Reflectivity", &reflectivity, 0, 5);
 		ImGui::EndTabItem();
 	}
