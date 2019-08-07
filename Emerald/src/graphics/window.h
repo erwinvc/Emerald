@@ -56,11 +56,8 @@ public:
 		glfwSwapInterval(toggle);
 	}
 
-	void SetIcon(const String& icon) {
-		Texture* texture = NEW(Texture(Format_t("res/%s.png", icon.c_str()), TextureParameters(RGBA, LINEARMIPMAP, REPEAT, T_UNSIGNED_BYTE, false), true));
-		GLFWimage image = { texture->GetWidth(), texture->GetHeight(),  texture->GetData() };
-		GL(glfwSetWindowIcon(GetHandle(), 1, &image));
-		DELETE(texture);
+	void SetIcon(const Icon& icon) {
+		GL(glfwSetWindowIcon(GetHandle(), 1, icon.GetImage()));
 	}
 
 	void SetTitle(const String& title) { glfwSetWindowTitle(m_window, title.c_str()); }

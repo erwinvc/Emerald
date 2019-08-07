@@ -52,7 +52,7 @@ void Application::Initialize() {
 
 	m_pipeline = NEW(RenderingPipeline());
 
-	m_window->SetIcon("icon32");
+	m_window->SetIcon(Icon("icon32"));
 
 	GetStateManager()->RegisterStates();
 

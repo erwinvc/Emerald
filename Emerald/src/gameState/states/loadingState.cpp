@@ -6,6 +6,7 @@ void LoadingState::Initialize() {
 
 	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/Emerald_logo_no_background.png")));
 
+
 	GetShaderManager()->Create("UI", "src/shader/UI");
 	GetUIRenderer()->Initialize();
 

@@ -116,6 +116,7 @@ using namespace std;
 #include "assets/assetBase.h"
 #include "assets/texture/texture.h"
 #include "assets/texture/textureUtils.h"
+#include "assets/texture/icon.h"
 #include "assets/loaders/assetLoader.h"
 #include "assets/loaders/customLoader.h"
 #include "assets/loaders/textureLoader.h"
