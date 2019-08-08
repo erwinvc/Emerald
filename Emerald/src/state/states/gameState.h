@@ -34,9 +34,6 @@ public:
 		}
 	}
 
-	void aaa(Test* testt) {
-		testt->i++;
-	}
 	void RenderGeometry() override {
 		m_tileRenderer->Begin();
 		GetPipeline()->GetGBuffer()->BindTextures();
@@ -49,11 +46,13 @@ public:
 		Vector2I pos = m_rayCast.GetTile();
 		GetLineRenderer()->DrawRect(Rect((float)pos.x + 0.5f, (float)pos.y + 0.5f, 1.0f, 1.0f));
 
-		//if (GetMouse()->ButtonJustDown(VK_MOUSE_LEFT)) {
-		//	Tile* t = GetWorld()->GetTile(((int)pos.x + 0.5f), ((int)pos.z + 0.5f));
-		//	if (t)
-		//		t->m_type = EMPTY;
-		//}
+		if (GetMouse()->ButtonDown(VK_MOUSE_LEFT)) {
+			int x = (int)((float)pos.x + 0.5f);
+			int y = (int)((float)pos.y + 0.5f);
+			LOG("%d %d", x, y);
+			Tile* t = GetWorld()->GetTile(x, y);
+			if (t) t->SetType(FULL, TileTransform::LOW);
+		}
 		GetLineRenderer()->DrawRect(GetWorld()->GetBoundaries());
 	}
 	void RenderUI() override {
@@ -63,7 +62,6 @@ public:
 		ImGui::SliderFloat("scale2", &m_tileRenderer->m_scale2, 0, 5);
 		ImGui::SliderFloat("scale3", &m_tileRenderer->m_scale3, 0, 1);
 		ImGui::SliderFloat("Normal", &m_tileRenderer->m_material->m_normalStrength, 0, 10);
-
 	}
 	void Cleanup() override;
 

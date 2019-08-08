@@ -5,10 +5,10 @@ class Tile;
 struct TileBufferData {
 	float m_x;
 	float m_y;
-	float m_rotation;
+	float m_transformIndex;
 
-	TileBufferData(float x, float y, float rotation) : m_x(x), m_y(y), m_rotation(rotation) {}
-	TileBufferData() : m_x(0), m_y(0), m_rotation(0) {}
+	TileBufferData(float x, float y, int transformIndex) : m_x(x), m_y(y), m_transformIndex((float)transformIndex) {}
+	TileBufferData() : m_x(0), m_y(0), m_transformIndex(0) {}
 };
 
 class TileRenderer {

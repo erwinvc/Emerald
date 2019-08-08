@@ -1,6 +1,5 @@
 #include "stdafx.h"
 
-static float rotation = 0;
 void TileRenderer::Initialize() {
 	m_shader = GetShaderManager()->Get("Tile");
 
@@ -25,7 +24,7 @@ void TileRenderer::Initialize() {
 
 	BufferLayout layout = {
 		{ShaderDataType::Float2, "position", 5, true},
-		{ShaderDataType::Float, "rotation", 6, true}
+		{ShaderDataType::Float, "transformIndex", 6, true}
 	};
 
 	m_renderers[0] = NEW(InstancedRenderer2D<TileBufferData>(full->GetMeshes()[full->GetMeshes().size() - 1], layout));
@@ -37,18 +36,26 @@ void TileRenderer::Initialize() {
 	texIri = GetAssetManager()->Get<Texture>("Irridescence");
 	texNoise = GetAssetManager()->Get<Texture>("Noise");
 
-	GetThreadManager()->RegisterThread("a", [] {
-			rotation += 0.02f;
-			if (rotation > Math::TWO_PI) rotation = 0;
-			Sleep(20);
-	});
+	Matrix4 transforms[6] = {
+		Matrix4::Identity(),
+		Matrix4::Translate(Vector3(0.0f, -1.0f, 0.0f)),
+		Matrix4::Rotate(0, Vector3::YAxis()),
+		Matrix4::Rotate(Math::HALF_PI, Vector3::YAxis()),
+		Matrix4::Rotate(Math::PI, Vector3::YAxis()),
+		Matrix4::Rotate(Math::HALF_PI + Math::PI, Vector3::YAxis())
+	};
+
+	m_shader->Bind();
+	for (int i = 0; i < NUMOF(transforms); i++) {
+		m_shader->Set(Format_t("_Transforms[%d]", i), transforms[i]);
+	}
 }
 
 void TileRenderer::Begin() {
 	m_shader->Bind();
 	m_shader->Set("_Boundaries", GetWorld()->GetBoundaries().GetCornerPositions());
-	m_shader->Set("viewMatrix", GetCamera()->GetViewMatrix());
-	m_shader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
+	m_shader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
+	m_shader->Set("_ProjectionMatrix", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("texture_iridescence", 4);
 	texIri->Bind(4);
 	m_shader->Set("texture_noise", 5);
@@ -56,14 +63,14 @@ void TileRenderer::Begin() {
 	m_shader->Set("scale1", m_scale1);
 	m_shader->Set("scale2", m_scale2);
 	m_shader->Set("scale3", m_scale3);
-	m_shader->Set("rotation1", Matrix4::Rotate((float)rotation, Vector3::YAxis()));
 
 	for (int i = 0; i < 5; i++) {
 		m_renderers[i]->Begin();
 	}
 }
 void TileRenderer::Submit(Tile& tile, int x, int y) {
-	m_renderers[tile.m_type]->Submit(TileBufferData((float)x, (float)y, rotation));
+	int8 type = tile.m_type == -1 ? 0 : tile.m_type;
+	m_renderers[type]->Submit(TileBufferData((float)x, (float)y, tile.m_transformIndex));
 }
 //void TileRenderer::Submit(Tile& tile, Vector2& position) {
 //	m_renderers[tile.m_type]->Submit(position);

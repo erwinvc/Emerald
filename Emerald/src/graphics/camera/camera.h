@@ -2,8 +2,6 @@
 
 class Camera {
 private:
-	//m_perspectiveMatrix = Matrix4::Perspective(70, aspect, 0.01f, 1000.0f);
-	//m_orthoMatrix = Matrix4::Orthographic(-5 * aspect, 5 * aspect, -5, 5, -500.0f, 500.0f);
 	Matrix4 m_projectionMatrix;
 	Matrix4 m_viewMatrix;
 
@@ -30,8 +28,6 @@ public:
 	void SetProjectionMatrix(float fov, float aspectRatio, float nearPlane, float farPlane) {
 		m_projectionMatrix = Matrix4::Perspective(fov, aspectRatio, nearPlane, farPlane);
 	}
-
-
 
 	Matrix4& GetProjectionMatrix() { return m_projectionMatrix; }
 	Matrix4& GetViewMatrix() { return m_viewMatrix; }

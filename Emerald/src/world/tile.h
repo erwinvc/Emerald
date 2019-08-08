@@ -1,6 +1,7 @@
 #pragma once
 
-enum TileType : uint8 {
+enum TileType : int8 {
+	EMPTY = -1,
 	FULL,
 	INNER,
 	OUTER,
@@ -8,7 +9,9 @@ enum TileType : uint8 {
 	VALLEY
 };
 
-enum Rotation {
+enum TileTransform {
+	HIGH,
+	LOW,
 	UP,
 	RIGHT,
 	DOWN,
@@ -19,9 +22,14 @@ class Tile {
 public:
 	TileType m_type;
 	byte m_materialID;
-	int rotationValue;
+	TileTransform m_transformIndex;
 
-	Tile() : m_type(FULL) {}
-	Tile(TileType type) : m_type(type) {}
-	Tile(int type) : m_type(TileType(type)) {}
+	Tile() : m_type(FULL), m_transformIndex(HIGH) {}
+	Tile(TileType type) : m_type(type), m_transformIndex(HIGH) {}
+	Tile(int type) : m_type(TileType(type)), m_transformIndex(HIGH) {}
+
+	void SetType(TileType type, TileTransform transform) {
+		m_type = type;
+		m_transformIndex = transform;
+	}
 };

@@ -97,7 +97,8 @@ public:
 	void Set(const String_t location, const Vector4& vector) { glUniform4f(GetUniform(location), vector.x, vector.y, vector.z, vector.w); }
 	void Set(const String_t location, const Vector3& vector) { glUniform3f(GetUniform(location), vector.x, vector.y, vector.z); }
 	void Set(const String_t location, const Vector2& vector) { glUniform2f(GetUniform(location), vector.x, vector.y); }
-	//void SetArray(const String_t location, const Vector3* vectors, int count) { glUniform3fv(GetUniform(location), count, (float*)vectors); }
+	//void Set(const String_t location, const Vector3* vectors, int count) { glUniform3fv(GetUniform(location), count, (float*)vectors); }
+	//void Set(const String_t location, const Matrix4* matrices, int count) { glUniformMatrix4fv(GetUniform(location), count, GL_TRUE, (float*)matrices); }
 
 	void Reload() {
 		uint program = Load();

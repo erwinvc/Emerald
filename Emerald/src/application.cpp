@@ -63,6 +63,7 @@ void Application::Initialize() {
 	m_window->Show();
 
 	m_initialized = true;
+	
 
 	while (m_running) {
 		GetGLFiberManager()->Tick();
