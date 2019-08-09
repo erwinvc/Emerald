@@ -35,8 +35,8 @@ public:
 	}
 
 	void Populate() {
-		loop(y, 16) {
-			loop(x, 16) {
+		loop(y, 4) {
+			loop(x, 4) {
 				GenerateChunk(x, y);
 			}
 		}
@@ -47,7 +47,7 @@ public:
 		m_chunks.push_back(Chunk(x, y));
 	}
 
-	void Draw(TileRenderer* renderer);
+	void Draw();
 
 	Tile* GetTile(int x, int y) {
 		int chunkX = x / 16;
@@ -63,6 +63,21 @@ public:
 		}
 		return nullptr;
 	}
+
+	Tile* GetTile(const Vector2I& pos) {
+		return GetTile(pos.x, pos.y);
+	}
+
+	void BreakTile(int x, int y) {
+		Tile* tile = GetTile(x, y);
+		if (tile) {
+			tile->SetEmpty();
+			//tile->m_heights = Vector4(0, 0);
+			
+			//WangTile::UpdateArea(x, y);
+		}
+	}
+
 };
 
 static World* GetWorld() { return World::GetInstance(); }

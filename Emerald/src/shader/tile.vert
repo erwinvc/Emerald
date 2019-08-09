@@ -6,6 +6,7 @@ layout(location = 3) in vec3 vsTangents;
 layout(location = 4) in vec3 vsBitangents;
 layout(location = 5) in vec2 vsPosition;
 layout(location = 6) in float vsTransformIndex;
+//layout(location = 7) in vec4 vsHeights;
 
 out vec3 fsPos;
 out vec3 fsNormal;
@@ -20,12 +21,33 @@ uniform mat4 _ViewMatrix;
 uniform mat4 _Transforms[6];
 
 void main(){
-	mat3 transformRotation = mat3(_Transforms[int(vsTransformIndex)]);
+	//float height = 0;
+	//
+	//if(vsPos.x > 0 && vsPos.z > 0){
+	//	height = vsHeights[0];
+	//}else if(vsPos.x > 0 && vsPos.z < 0){
+	//	height =  vsHeights[1];
+	//}else if(vsPos.x < 0 && vsPos.z < 0){
+	//	height =  vsHeights[2];
+	//}else if(vsPos.x < 0 && vsPos.z > 0){
+	//	height =  vsHeights[3];
+	//}
+	//
+	//mat4 translate1 = mat4(1.0, 0.0, 0.0, 0, 
+	//				  0.0, 1.0, 0.0, height, 
+	//				  0.0, 0.0, 1.0, 0.0,  
+	//				  0.0, 0.0, 0.0, 1.0);
 
-	vec3 worldPos = (_Transforms[int(vsTransformIndex)] * vec4(vsPos, 1.0)).xyz;
-	vec3 worldNormal = (transformRotation * vsNormal).xyz;
-	vec3 worldTangent = (transformRotation * vsTangents).xyz;
-	vec3 worldBiTangent = (transformRotation * vsBitangents).xyz;
+	mat4 selectedMatrix = _Transforms[int(vsTransformIndex)];
+	
+
+	
+	vec3 worldPos = (selectedMatrix * vec4(vsPos, 1.0)).xyz;
+	vec3 worldNormal = (selectedMatrix * vec4(vsNormal, 0.0)).xyz;
+	vec3 worldTangent = (selectedMatrix * vec4(vsTangents, 0.0)).xyz;
+	vec3 worldBiTangent = (selectedMatrix * vec4(vsBitangents, 0.0)).xyz;
+
+
 
 	vec3 tangent = normalize(worldTangent - dot(worldNormal, worldTangent) * worldNormal);
 	if (dot(cross(worldNormal, tangent), worldBiTangent) < 0.0f) tangent *= -1.0f;

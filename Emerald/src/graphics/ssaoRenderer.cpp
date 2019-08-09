@@ -43,7 +43,6 @@ SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_text
 }
 
 void SSAORenderer::Render(GBuffer* gBuffer) {
-	GL(glDisable(GL_DEPTH_TEST));
 	GL(glFrontFace(GL_CW));
 
 	m_fbo->Bind();
@@ -69,6 +68,8 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_texture->Bind();
 	m_quad->Draw();
 	m_fboBlur->Unbind();
+	GL(glFrontFace(GL_CCW));
+
 }
 
 void SSAORenderer::Resize(uint width, uint height) {

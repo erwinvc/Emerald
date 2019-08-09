@@ -9,9 +9,21 @@ private:
 public:
 	void Populate() {
 		if (m_populated) return;
+		//siv::PerlinNoise noise;
 		loop(y, 16) {
 			loop(x, 16) {
 				m_tiles[y][x] = Tile();
+				//float dx1 = (((float)m_position.x * 16) + (float)x + 0.5f) / 8;
+				//float dx2 = (((float)m_position.x * 16) + (float)x - 0.5f) / 8;
+				//float dy1 = (((float)m_position.y * 16) + (float)y + 0.5f) / 8;
+				//float dy2 = (((float)m_position.y * 16) + (float)y - 0.5f) / 8;
+				//Vector4 heights(
+				//	(float)noise.noise(dx1, dy1),
+				//	(float)noise.noise(dx1, dy2),
+				//	(float)noise.noise(dx2, dy2),
+				//	(float)noise.noise(dx2, dy1)
+				//);
+				//m_tiles[y][x].m_heights = heights;
 			}
 		}
 		m_populated = true;
@@ -27,7 +39,7 @@ public:
 		return m_position;
 	}
 
-	void Draw(TileRenderer* renderer);
+	void Draw();
 
 	Chunk(int x, int y) : m_position(x, y) { Populate(); }
 };

@@ -38,6 +38,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(TextureLoader("White", "res/white.png")));
 	m_batch->Add(NEW(TextureLoader("BricksNormal", "sponza/bricksNormal.png")));
 
+	m_batch->Add(NEW(CustomLoader("Tile renderer", [] {GetTileRenderer()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(GetApplication()->GetWidth(), GetApplication()->GetHeight()); })));
 
 	for (State* state : GetStateManager()->GetStates()) {
@@ -61,7 +62,7 @@ Color color;
 void LoadingState::Update(const TimeStep& time) {
 	progress = Math::Ease(progress, GetAssetManager()->GetProgress(), 6);
 	color = Color::Mix(Color(0xde9c96), Color(0x96deae), progress);
-	if (m_batch->IsFinished() && AnyKeyJustDown()) {
+	if (m_batch->IsFinished()) {
 		GetStateManager()->SetState(GameStates::GAME);
 		GetStateManager()->RemoveState(this);
 	}
@@ -84,8 +85,7 @@ void LoadingState::OnImGUI() {
 	ImGui::SliderFloat2("size", (float*)&sizee, 0, 1);
 }
 
-void LoadingState::Cleanup()
-{
+void LoadingState::Cleanup() {
 }
 
 void LoadingState::OnEnterState() {

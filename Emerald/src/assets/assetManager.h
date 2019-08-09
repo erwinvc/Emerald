@@ -39,8 +39,8 @@ class AssetManager : public Singleton<AssetManager> {
 	int m_currentBatchProgress = 0;
 
 	AssetManager() {
-		for (int i = 0; i < THREADCOUNT; i++)
-			GetThreadManager()->RegisterThread(Format("AssetManagerPool%d", i), [] {});
+		//for (int i = 0; i < THREADCOUNT; i++)
+		//	GetThreadManager()->RegisterThread(Format("AssetManagerPool%d", i), [] {});
 	}
 	~AssetManager() {
 		for (auto it = m_assets.begin(); it != m_assets.end(); it++) {

@@ -85,11 +85,8 @@ void RenderingPipeline::PostGeometryRender() {
 	m_gBuffer->Unbind();
 
 	GL(glDisable(GL_DEPTH_TEST));
-	GL(glFrontFace(GL_CW));
 
-	m_ssaoRenderer->Render(m_gBuffer);
-
-	GL(glFrontFace(GL_CCW));
+	if (m_ssaoEnabled) m_ssaoRenderer->Render(m_gBuffer);
 
 	//Draw to HDR
 	m_hdrBuffer->Bind();
@@ -107,7 +104,10 @@ void RenderingPipeline::PostGeometryRender() {
 	m_directionalLightShader->Set("_Diffuse", m_directionalLight.m_diffuse);
 	m_directionalLightShader->Set("_Specular", m_directionalLight.m_specular);
 	m_directionalLightShader->Set("_Ambient", m_directionalLight.m_ambient);
-	GL(glDrawArrays(GL_TRIANGLES, 0, 3));
+	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
+
+	m_quad->Bind();
+	m_quad->Draw();
 
 	GL(glEnable(GL_BLEND));
 	GL(glBlendFunc(GL_ONE, GL_ONE));
@@ -169,19 +169,19 @@ void RenderingPipeline::PostGeometryRender() {
 	//m_hdrShader->Set("_Bloom", m_bloom);
 	switch (m_selectedTexture) {
 	case 0: m_hdrTexture->Bind(); break;
-	//case 1: m_hdrBrightTexture->Bind(); break;
+		//case 1: m_hdrBrightTexture->Bind(); break;
 	case 1: m_gBuffer->m_miscTexture->Bind(); break;
 	case 2: m_gBuffer->m_colorTexture->Bind(); break;
 	case 3: m_gBuffer->m_normalTexture->Bind(); break;
 	case 4: m_gBuffer->m_positionTexture->Bind(); break;
 	case 5: m_ssaoRenderer->GetTexture()->Bind(); break;
 	case 6: m_ssaoRenderer->GetRawTexture()->Bind(); break;
-		//case 8: m_pingPongTexture[0]->Bind(); break;
-		//case 9: m_pingPongTexture[1]->Bind(); break;
+			//case 8: m_pingPongTexture[0]->Bind(); break;
+			//case 9: m_pingPongTexture[1]->Bind(); break;
 	}
 
 	//m_pingPongTexture[1]->Bind(1);
-
+	m_quad->Bind();
 	m_quad->Draw();
 	m_hdrShader->Unbind();
 }
@@ -238,13 +238,15 @@ void RenderingPipeline::OnImGUI() {
 				//if (ImGui::ImageButton(m_pingPongTexture[1]->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 9;
 				//ImGui::Tooltip("Pingpong2");
 
-				if (ImGui::TreeNode("SSAO")) {
-					if (ImGui::ImageButton(m_ssaoRenderer->GetTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 5;
-					ImGui::Tooltip("SSAO blurred");
-					ImGui::SameLine();
-					if (ImGui::ImageButton(m_ssaoRenderer->GetRawTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 6;
-					ImGui::Tooltip("SSAO raw");
-					ImGui::TreePop();
+				if (m_ssaoEnabled) {
+					if (ImGui::TreeNode("SSAO")) {
+						if (ImGui::ImageButton(m_ssaoRenderer->GetTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 5;
+						ImGui::Tooltip("SSAO blurred");
+						ImGui::SameLine();
+						if (ImGui::ImageButton(m_ssaoRenderer->GetRawTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 6;
+						ImGui::Tooltip("SSAO raw");
+						ImGui::TreePop();
+					}
 				}
 				ImGui::TreePop();
 				ImGui::Separator();
@@ -257,6 +259,7 @@ void RenderingPipeline::OnImGUI() {
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("SSAO")) {
+				ImGui::Checkbox("Enabled", &m_ssaoEnabled);
 				m_ssaoRenderer->OnImGui();
 				ImGui::TreePop();
 			}

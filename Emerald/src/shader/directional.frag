@@ -15,6 +15,7 @@ uniform vec3 _CameraPosition;
 uniform float _Diffuse;
 uniform float _Specular;
 uniform float _Ambient;
+uniform bool _SSAOEnabled;
 
 void main()
 {
@@ -33,6 +34,7 @@ void main()
 	_Specular * pow(max(0.0, dot(h, normal)), 32.0) +
 	_Ambient * albedo.xyz;
 
-	vec3 finalColor = mix(color * _Color.rgb * ssao, albedo, misc.y);
+	vec3 finalColor = mix(color * _Color.rgb * (_SSAOEnabled ? ssao : 1), albedo, misc.y);
+	//vec3 finalColor = mix(color * _Color.rgb, albedo, misc.y);
 	OutColor = vec4(finalColor, 1.0);
 }

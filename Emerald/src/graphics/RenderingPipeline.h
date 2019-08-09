@@ -12,6 +12,8 @@ private:
 	PointlightRenderer* m_pointlightRenderer;
 	vector<Pointlight> m_pointlights;
 
+	//SSAO
+	bool m_ssaoEnabled = false;
 	SSAORenderer* m_ssaoRenderer;
 
 	//HDR

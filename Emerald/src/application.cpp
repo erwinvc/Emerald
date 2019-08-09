@@ -63,7 +63,7 @@ void Application::Initialize() {
 	m_window->Show();
 
 	m_initialized = true;
-	
+
 
 	while (m_running) {
 		GetGLFiberManager()->Tick();
@@ -112,10 +112,12 @@ void Application::Render() {
 
 	if (m_pipeline->Initialized()) {
 		m_pipeline->PreGeometryRender();
+
 		GetLineRenderer()->Begin();
 		GetStateManager()->RenderGeometry();
 		GetLineRenderer()->End();
 		GetLineRenderer()->Draw();
+
 		m_pipeline->PostGeometryRender();
 
 		m_pipeline->PreUIRender();

@@ -12,8 +12,6 @@ private:
 	AssetRef<Shader> m_geometryShader;
 	AssetRef<Shader> m_uiShader;
 
-	TileRenderer* m_tileRenderer;
-	shared_ptr<Test> test;
 	GroundRaycast m_rayCast;
 
 public:
@@ -23,9 +21,6 @@ public:
 		m_geometryShader = GetShaderManager()->Get("GEO");
 		m_uiShader = GetShaderManager()->Get("UI");
 
-		m_tileRenderer = NEW(TileRenderer());
-
-		test = shared_ptr<Test>(new Test());
 	}
 	void Update(const TimeStep& time) override {
 		GetCamera()->Update(time);
@@ -35,13 +30,11 @@ public:
 	}
 
 	void RenderGeometry() override {
-		m_tileRenderer->Begin();
 		GetPipeline()->GetGBuffer()->BindTextures();
-
-		GetWorld()->Draw(m_tileRenderer);
-		m_tileRenderer->End();
-		m_tileRenderer->Draw();
-
+		GetTileRenderer()->Begin();
+		GetWorld()->Draw();
+		GetTileRenderer()->End();
+		GetTileRenderer()->Draw();
 		Vector3 cast = m_rayCast.Get(GetCamera());
 		Vector2I pos = m_rayCast.GetTile();
 		GetLineRenderer()->DrawRect(Rect((float)pos.x + 0.5f, (float)pos.y + 0.5f, 1.0f, 1.0f));
@@ -49,19 +42,18 @@ public:
 		if (GetMouse()->ButtonDown(VK_MOUSE_LEFT)) {
 			int x = (int)((float)pos.x + 0.5f);
 			int y = (int)((float)pos.y + 0.5f);
-			LOG("%d %d", x, y);
-			Tile* t = GetWorld()->GetTile(x, y);
-			if (t) t->SetType(FULL, TileTransform::LOW);
+			GetWorld()->BreakTile(x, y);
 		}
 		GetLineRenderer()->DrawRect(GetWorld()->GetBoundaries());
 	}
 	void RenderUI() override {
+		GetUIRenderer()->Rect(Origin::CENTER, Vector2(0.9f, 0.9f), Vector2(0.01f, 0.05f), Color::White(), GetCamera()->m_rotation.yaw);
 	}
 	void OnImGUI() override {
-		ImGui::SliderFloat("scale1", &m_tileRenderer->m_scale1, 0, 5);
-		ImGui::SliderFloat("scale2", &m_tileRenderer->m_scale2, 0, 5);
-		ImGui::SliderFloat("scale3", &m_tileRenderer->m_scale3, 0, 1);
-		ImGui::SliderFloat("Normal", &m_tileRenderer->m_material->m_normalStrength, 0, 10);
+		ImGui::SliderFloat("scale1", &GetTileRenderer()->m_scale1, 0, 5);
+		ImGui::SliderFloat("scale2", &GetTileRenderer()->m_scale2, 0, 5);
+		ImGui::SliderFloat("scale3", &GetTileRenderer()->m_scale3, 0, 1);
+		ImGui::SliderFloat("Normal", &GetTileRenderer()->m_material->m_normalStrength, 0, 10);
 	}
 	void Cleanup() override;
 

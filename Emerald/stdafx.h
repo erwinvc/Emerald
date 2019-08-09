@@ -20,7 +20,7 @@
 #include <cstdlib>
 #include <atomic>
 #include <mutex>
-
+#include <iomanip>
 
 // Datastructures
 #include <map>
@@ -46,6 +46,9 @@
 #include "assimp/postprocess.h"
 #include "assimp/material.h"
 #include <assimp/Importer.hpp>
+
+#include "vendor/noise.h"
+#include "vendor/json.h"
 
 using namespace std;
 
@@ -149,10 +152,10 @@ using namespace std;
 #include "graphics/instancedRenderer2D.h"
 #include "graphics/tileRenderer.h"
 
+#include "world/wangTile.h"
 #include "world/tile.h"
 #include "world/chunk.h"
 #include "world/world.h"
-#include "world/wangTile.h"
 
 #include "util/meshGenerator.h"
 

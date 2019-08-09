@@ -25,6 +25,7 @@ void TileRenderer::Initialize() {
 	BufferLayout layout = {
 		{ShaderDataType::Float2, "position", 5, true},
 		{ShaderDataType::Float, "transformIndex", 6, true}
+		//{ShaderDataType::Float4, "heights", 7, true},
 	};
 
 	m_renderers[0] = NEW(InstancedRenderer2D<TileBufferData>(full->GetMeshes()[full->GetMeshes().size() - 1], layout));
@@ -37,12 +38,12 @@ void TileRenderer::Initialize() {
 	texNoise = GetAssetManager()->Get<Texture>("Noise");
 
 	Matrix4 transforms[6] = {
-		Matrix4::Identity(),
-		Matrix4::Translate(Vector3(0.0f, -1.0f, 0.0f)),
 		Matrix4::Rotate(0, Vector3::YAxis()),
-		Matrix4::Rotate(Math::HALF_PI, Vector3::YAxis()),
+		Matrix4::Rotate(Math::HALF_PI + Math::PI, Vector3::YAxis()),
 		Matrix4::Rotate(Math::PI, Vector3::YAxis()),
-		Matrix4::Rotate(Math::HALF_PI + Math::PI, Vector3::YAxis())
+		Matrix4::Rotate(Math::HALF_PI, Vector3::YAxis()),
+		Matrix4::Translate(Vector3(0.0f, -1.0f, 0.0f)),
+		Matrix4::Identity()
 	};
 
 	m_shader->Bind();
