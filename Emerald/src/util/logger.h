@@ -1,12 +1,12 @@
 //#pragma once
-#define LOG( fmt, ...)					Logger::Message(ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
-#define LOG( fmt, ...)					Logger::Message(ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
-#define LOG_TIMED(time, fmt, ...)		Logger::MessageTimed(time, ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
-#define LOG_ERROR( fmt, ...)			Logger::MessageDirect(ConsoleColor::RED,		" [Fail]",		fmt, ##__VA_ARGS__ )
+#define LOG( fmt, ...)					Logger::Message((int)ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
+#define LOG( fmt, ...)					Logger::Message((int)ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
+#define LOG_TIMED(time, fmt, ...)		Logger::MessageTimed(time, (int)ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
+#define LOG_ERROR( fmt, ...)			Logger::MessageDirect((int)ConsoleColor::RED,		" [Fail]",		fmt, ##__VA_ARGS__ )
 
 class UILoggerComponent;
 
-enum ConsoleColor {
+enum class ConsoleColor {
 	BLACK = 0,
 	DARKBLUE = FOREGROUND_BLUE,
 	DARKGREEN = FOREGROUND_GREEN,
@@ -184,23 +184,23 @@ private:
 	template <>
 	static String_t ToString<ConsoleColor>(ConsoleColor const& t) {
 		switch (t) {
-		case BLACK: return "~3";
-		case DARKBLUE: return "~B";
-		case DARKGREEN: return "~G";
-		case DARKCYAN: return "~C";
-		case DARKRED: return "~R";
-		case DARKMAGENTA: return "~M";
-		case DARKYELLOW: return "~Y";
-		case DARKGRAY: return "~2";
-		case GRAY: return "~1";
-		case BLUE: return "~b";
-		case GREEN: return "~g";
-		case CYAN: return "~c";
-		case RED: return "~r";
-		case MAGENTA: return "~m";
-		case YELLOW: return "~y";
-		case WHITE: return "~0";
-		case RESET: return "~x";
+		case ConsoleColor::BLACK: return "~3";
+		case ConsoleColor::DARKBLUE: return "~B";
+		case ConsoleColor::DARKGREEN: return "~G";
+		case ConsoleColor::DARKCYAN: return "~C";
+		case ConsoleColor::DARKRED: return "~R";
+		case ConsoleColor::DARKMAGENTA: return "~M";
+		case ConsoleColor::DARKYELLOW: return "~Y";
+		case ConsoleColor::DARKGRAY: return "~2";
+		case ConsoleColor::GRAY: return "~1";
+		case ConsoleColor::BLUE: return "~b";
+		case ConsoleColor::GREEN: return "~g";
+		case ConsoleColor::CYAN: return "~c";
+		case ConsoleColor::RED: return "~r";
+		case ConsoleColor::MAGENTA: return "~m";
+		case ConsoleColor::YELLOW: return "~y";
+		case ConsoleColor::WHITE: return "~0";
+		case ConsoleColor::RESET: return "~x";
 		}
 	}
 };

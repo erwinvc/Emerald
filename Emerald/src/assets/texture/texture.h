@@ -28,4 +28,5 @@ public:
 	inline const int32 GetWidth() const { return m_width; }
 	inline const int32 GetHeight() const { return m_height; }
 	inline byte* GetData() const { return m_data; }
+	inline const TextureParameters& GetTextureParams() { return m_params; }
 };

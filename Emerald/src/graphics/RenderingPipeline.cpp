@@ -31,7 +31,8 @@ void RenderingPipeline::Initialize(uint width, uint height, int maxLights, int l
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
 	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", m_width, m_height);
-	m_hdrTexture = m_hdrBuffer->AddColorBuffer(TextureParameters(RGBA32, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrTexture = m_hdrBuffer->AddColorBuffer("HDR", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
 	//m_hdrBrightTexture = m_hdrBuffer->AddColorBuffer(TextureParameters(RGBA16, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
 	//Bloom
@@ -45,8 +46,8 @@ void RenderingPipeline::Initialize(uint width, uint height, int maxLights, int l
 	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer(m_width, m_height));
 
-	float aspect = (float)(m_width) / m_height;
-	m_camera = NEW(FreeCam(70, aspect, 0.01f, 1000.0f));
+	m_camera = NEW(FreeCam(70, 0.01f, 1000.0f));
+
 	m_camera->m_position = Vector3(10, 5, -2);
 	m_camera->m_rotation = Vector3(0.5, Math::PI, 0);
 	//m_projectionMatrix = Matrix4::Perspective(70, aspect, 0.01f, 1000.0f);
@@ -167,18 +168,7 @@ void RenderingPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_ScreenSize", (float)GetApplication()->GetWidth(), (float)GetApplication()->GetHeight());
 
 	//m_hdrShader->Set("_Bloom", m_bloom);
-	switch (m_selectedTexture) {
-	case 0: m_hdrTexture->Bind(); break;
-		//case 1: m_hdrBrightTexture->Bind(); break;
-	case 1: m_gBuffer->m_miscTexture->Bind(); break;
-	case 2: m_gBuffer->m_colorTexture->Bind(); break;
-	case 3: m_gBuffer->m_normalTexture->Bind(); break;
-	case 4: m_gBuffer->m_positionTexture->Bind(); break;
-	case 5: m_ssaoRenderer->GetTexture()->Bind(); break;
-	case 6: m_ssaoRenderer->GetRawTexture()->Bind(); break;
-			//case 8: m_pingPongTexture[0]->Bind(); break;
-			//case 9: m_pingPongTexture[1]->Bind(); break;
-	}
+	GetFrameBufferManager()->GetSelectedTexture()->Bind();
 
 	//m_pingPongTexture[1]->Bind(1);
 	m_quad->Bind();
@@ -206,48 +196,6 @@ void RenderingPipeline::OnImGUI() {
 				ImGui::SliderFloat("Exposure", &m_exposure, 0, 5);
 				ImGui::Combo("Tonemapping", &m_selectedTonemapping, tonemapping, NUMOF(tonemapping));
 
-				ImGui::TreePop();
-				ImGui::Separator();
-			}
-			if (ImGui::TreeNode("FramebufferManager")) {
-				ImGui::TreePop();
-			}
-			if (ImGui::TreeNode("Framebuffers")) {
-
-				if (ImGui::ImageButton(m_hdrTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 0;
-				ImGui::Tooltip("Final");
-				//ImGui::SameLine();
-				//if (ImGui::ImageButton(m_hdrBrightTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 1;
-				//ImGui::Tooltip("Bright");
-
-				if (ImGui::ImageButton(m_gBuffer->m_miscTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 1;
-				ImGui::Tooltip("Misc");
-				ImGui::SameLine();
-				if (ImGui::ImageButton(m_gBuffer->m_colorTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 2;
-				ImGui::Tooltip("Color");
-
-				if (ImGui::ImageButton(m_gBuffer->m_normalTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 3;
-				ImGui::Tooltip("Normal");
-				ImGui::SameLine();
-				if (ImGui::ImageButton(m_gBuffer->m_positionTexture->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 4;
-				ImGui::Tooltip("Position");
-
-				//if (ImGui::ImageButton(m_pingPongTexture[0]->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 8;
-				//ImGui::Tooltip("Pingpong1");
-				//ImGui::SameLine();
-				//if (ImGui::ImageButton(m_pingPongTexture[1]->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 9;
-				//ImGui::Tooltip("Pingpong2");
-
-				if (m_ssaoEnabled) {
-					if (ImGui::TreeNode("SSAO")) {
-						if (ImGui::ImageButton(m_ssaoRenderer->GetTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 5;
-						ImGui::Tooltip("SSAO blurred");
-						ImGui::SameLine();
-						if (ImGui::ImageButton(m_ssaoRenderer->GetRawTexture()->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = 6;
-						ImGui::Tooltip("SSAO raw");
-						ImGui::TreePop();
-					}
-				}
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
@@ -291,4 +239,5 @@ void RenderingPipeline::OnResize(uint width, uint height) {
 	m_gBuffer->Resize(width, height);
 	m_hdrBuffer->Resize(width, height);
 	m_ssaoRenderer->Resize(width, height);
+	m_camera->UpdateProjectionMatrix();
 }

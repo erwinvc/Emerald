@@ -19,6 +19,7 @@ public:
 
 	inline int GetWidth() { return m_width; }
 	inline int GetHeight() { return m_height; }
+	inline float GetAspect() { return (float)(m_width) / m_height; }
 
 	~Window() {
 		glfwTerminate();

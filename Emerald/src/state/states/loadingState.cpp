@@ -27,11 +27,9 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "src/shader/ssaoBlur")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
-	m_batch->Add(NEW(ModelLoader("Plane", "tiles/Ground.fbx")));
-	m_batch->Add(NEW(ModelLoader("InnerCorner", "tiles/Inner Corner.fbx")));
-	m_batch->Add(NEW(ModelLoader("OuterCorner", "tiles/Outer Corner.fbx")));
-	m_batch->Add(NEW(ModelLoader("Slope", "tiles/Slope.fbx")));
-	m_batch->Add(NEW(ModelLoader("Valley", "tiles/Valley.fbx")));
+	for (int i = 0; i < 16; i++) {
+		m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("tiles/new/%d.obj", i))));
+	}
 
 	m_batch->Add(NEW(TextureLoader("Irridescence", "res/irridescence.png")));
 	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png")));

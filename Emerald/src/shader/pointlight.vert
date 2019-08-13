@@ -21,5 +21,5 @@ void main(){
 	gl_Position = pos;
 	fsPos = pos;
 	newPos = vars;
-color = col;
+	color = col;
 }

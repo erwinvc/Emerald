@@ -2,7 +2,6 @@
 
 class FileSystem {
 public:
-
 	static String ReadFile(String path) {
 		ifstream stream(path);
 		string str((istreambuf_iterator<char>(stream)), istreambuf_iterator<char>());
@@ -14,4 +13,10 @@ public:
 		struct stat buffer;
 		return (stat(path.c_str(), &buffer) == 0);
 	}
+
+	static void SaveJsonToFile(const nlohmann::json& jsonOb, const String& name);
+
+	static nlohmann::json LoadJsonFromFile(const String& name);
+
+	static void SaveStringToFile(const String& str, const String& name);
 };

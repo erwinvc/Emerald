@@ -3,12 +3,6 @@
 void TileRenderer::Initialize() {
 	m_shader = GetShaderManager()->Get("Tile");
 
-	AssetRef<Model> full = GetAssetManager()->Get<Model>("Plane");
-	AssetRef<Model> inner = GetAssetManager()->Get<Model>("InnerCorner");
-	AssetRef<Model> outer = GetAssetManager()->Get<Model>("OuterCorner");
-	AssetRef<Model> slope = GetAssetManager()->Get<Model>("Slope");
-	AssetRef<Model> valley = GetAssetManager()->Get<Model>("Valley");
-
 	AssetRef<Texture> t = GetAssetManager()->Get<Texture>("White");
 	AssetRef<Texture> n = GetAssetManager()->Get<Texture>("BricksNormal");
 
@@ -16,23 +10,18 @@ void TileRenderer::Initialize() {
 	m_material->SetAlbedo(t);
 	m_material->SetNormal(n);
 
-	full->GetMeshes()[full->GetMeshes().size() - 1]->SetMaterial(m_material);
-	inner->GetMeshes()[inner->GetMeshes().size() - 1]->SetMaterial(m_material);
-	outer->GetMeshes()[outer->GetMeshes().size() - 1]->SetMaterial(m_material);
-	slope->GetMeshes()[slope->GetMeshes().size() - 1]->SetMaterial(m_material);
-	valley->GetMeshes()[valley->GetMeshes().size() - 1]->SetMaterial(m_material);
-
 	BufferLayout layout = {
-		{ShaderDataType::Float2, "position", 5, true},
-		{ShaderDataType::Float, "transformIndex", 6, true}
-		//{ShaderDataType::Float4, "heights", 7, true},
+	{ShaderDataType::Float2, "position", 5, true},
+	{ShaderDataType::Float, "transformIndex", 6, true}
+	//{ShaderDataType::Float4, "heights", 7, true},
 	};
 
-	m_renderers[0] = NEW(InstancedRenderer2D<TileBufferData>(full->GetMeshes()[full->GetMeshes().size() - 1], layout));
-	m_renderers[1] = NEW(InstancedRenderer2D<TileBufferData>(inner->GetMeshes()[inner->GetMeshes().size() - 1], layout));
-	m_renderers[2] = NEW(InstancedRenderer2D<TileBufferData>(outer->GetMeshes()[outer->GetMeshes().size() - 1], layout));
-	m_renderers[3] = NEW(InstancedRenderer2D<TileBufferData>(slope->GetMeshes()[slope->GetMeshes().size() - 1], layout));
-	m_renderers[4] = NEW(InstancedRenderer2D<TileBufferData>(valley->GetMeshes()[valley->GetMeshes().size() - 1], layout));
+	loop(i, TILECOUNT) {
+		AssetRef<Model> model = GetAssetManager()->Get<Model>(Format("Tile[%d]", i));
+		AssetRef<Mesh> mesh = model->GetMeshes()[model->GetMeshes().size() - 1];
+		mesh->SetMaterial(m_material);
+		m_renderers[i] = NEW(InstancedRenderer2D<TileBufferData>(mesh, 65536, layout));
+	}
 
 	texIri = GetAssetManager()->Get<Texture>("Irridescence");
 	texNoise = GetAssetManager()->Get<Texture>("Noise");
@@ -65,24 +54,23 @@ void TileRenderer::Begin() {
 	m_shader->Set("scale2", m_scale2);
 	m_shader->Set("scale3", m_scale3);
 
-	for (int i = 0; i < 5; i++) {
+	loop(i, TILECOUNT) {
 		m_renderers[i]->Begin();
 	}
 }
 void TileRenderer::Submit(Tile& tile, int x, int y) {
-	int8 type = tile.m_type == -1 ? 0 : tile.m_type;
-	m_renderers[type]->Submit(TileBufferData((float)x, (float)y, tile.m_transformIndex));
+	m_renderers[tile.m_type]->Submit(TileBufferData((float)x, (float)y, tile.m_transformIndex));
 }
 //void TileRenderer::Submit(Tile& tile, Vector2& position) {
 //	m_renderers[tile.m_type]->Submit(position);
 //}
 void TileRenderer::End() {
-	for (int i = 0; i < 5; i++) {
+	loop(i, TILECOUNT) {
 		m_renderers[i]->End();
 	}
 }
 void TileRenderer::Draw() {
-	for (int i = 0; i < 5; i++) {
+	loop(i, TILECOUNT) {
 		m_renderers[i]->Draw(m_shader);
 	}
 }

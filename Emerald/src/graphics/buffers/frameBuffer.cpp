@@ -21,14 +21,14 @@ void FrameBuffer::Resize(uint width, uint height) {
 	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, m_width, m_height));
 	GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
-	m_colorAttachments = 0;
+	//m_colorAttachments = 0;
 	//GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 	//GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_dbo));
 
 	for (Texture* texture : m_textures) {
 		texture->Resize(width, m_height);
-		GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->GetHandle(), 0));
-		m_colorAttachments++;
+		//GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->GetHandle(), 0));
+		//m_colorAttachments++;
 	}
 
 	//GL(glDrawBuffers(m_colorAttachments, drawBuffers));
@@ -53,9 +53,11 @@ bool FrameBuffer::CheckStatus() {
 	} else return true;
 }
 
-AssetRef<Texture> FrameBuffer::AddColorBuffer(const TextureParameters& params) {
+AssetRef<Texture> FrameBuffer::AddColorBuffer(const String& name, const TextureParameters& params) {
 	Texture* texture = NEW(Texture(m_width, m_height, params));
 	m_textures.push_back(texture);
+	m_textureNames.push_back(name);
+
 	Bind();
 
 	GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->GetHandle(), 0));
@@ -68,4 +70,28 @@ AssetRef<Texture> FrameBuffer::AddColorBuffer(const TextureParameters& params) {
 	Unbind();
 
 	return texture;
+}
+
+void FrameBufferManager::OnImGUI() {
+	if (ImGui::BeginTabItem("Framebuffers")) {
+		ImGui::Columns(3, NULL, true);
+		vector<String> m_fboTextureNames;
+		for (FrameBuffer* fbo : m_frameBuffers) {
+			m_fboTextureNames = fbo->GetTextureNames();
+			int i = 0;
+			for (AssetRef<Texture>& tex : fbo->GetTextures()) {
+				if (ImGui::GetColumnIndex() == 0) ImGui::Separator();
+				if (ImGui::ImageButton(tex->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = tex;
+				ImGui::Tooltip(fbo->GetName().c_str());
+				ImGui::Text(Format_t("%s %s", fbo->GetName().c_str(), m_fboTextureNames[i++].c_str()));
+				ImGui::Text("%d x %d", tex->GetWidth(), tex->GetHeight());
+				ImGui::Text(tex->GetTextureParams().GetAsString().c_str());
+				ImGui::NextColumn();
+			}
+		}
+		ImGui::Columns(1);
+		ImGui::Separator();
+
+		ImGui::EndTabItem();
+	}
 }

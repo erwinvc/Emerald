@@ -1,22 +1,42 @@
 #pragma once
 
 enum TileType : int8 {
-	EMPTY = -1,
+	GROUND,
 	FULL,
-	INNER,
+	SINGLE,
+	SINGLECONNECTION,
+	SINGLECORNER,
 	OUTER,
+	SINGLESTRAIGHT,
+	T,
+	SLOPETOSINGLE1,
+	SLOPETOSINGLE2,
 	SLOPE,
-	VALLEY
+	CROSS,
+	OUTERTODOUBLE,
+	TSOLID,
+	VALLEY,
+	INNER,
 };
 
 static String TileTypeToString(TileType type) {
 	switch (type) {
-	case EMPTY: return "EMPTY";
+	case GROUND: return "GROUND";
 	case FULL: return "FULL";
-	case INNER: return "INNER";
+	case SINGLE: return "SINGLE";
+	case SINGLECONNECTION: return "SINGLECONNECTION";
+	case SINGLECORNER: return "SINGLECORNER";
 	case OUTER: return "OUTER";
+	case SINGLESTRAIGHT: return "SINGLESTRAIGHT";
+	case T: return "T";
+	case SLOPETOSINGLE1: return "SLOPETOSINGLE1";
+	case SLOPETOSINGLE2: return "SLOPETOSINGLE2";
 	case SLOPE: return "SLOPE";
+	case CROSS: return "CROSS";
+	case OUTERTODOUBLE: return "OUTERTODOUBLE";
+	case TSOLID: return "TSOLID";
 	case VALLEY: return "VALLEY";
+	case INNER: return "INNER";
 	}
 	return "NULL";
 }
@@ -26,8 +46,6 @@ enum TileTransform {
 	RIGHT,
 	DOWN,
 	LEFT,
-	LOW,
-	HIGH
 };
 static TileTransform RotateTileTransform(TileTransform transform, int times) {
 	int trans = transform;
@@ -71,14 +89,12 @@ public:
 	}
 
 	void SetEmpty() {
-		m_type = EMPTY;
-		m_transformIndex = LOW;
+		m_type = GROUND;
 	}
 
 	void SetFull() {
 		m_type = FULL;
-		m_transformIndex = HIGH;
 	}
 
-	inline bool IsRock() { return m_type != EMPTY; }
+	inline bool IsRock() { return m_type != GROUND; }
 };

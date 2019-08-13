@@ -14,7 +14,7 @@ uniform float _SpecularStrength;
 uniform sampler2D _Emission;
 uniform float _EmissionStrength;
 uniform vec4 _Boundaries;
-out vec4 geoData[4];
+out vec3 geoData[4];
 
 uniform sampler2D texture_iridescence;
 uniform sampler2D texture_noise;
@@ -71,9 +71,9 @@ void main(){
 	float xDistance2 = _Boundaries.z - fsPos.x;
 
 	//if(fsPos.x > 10 + noise(fsPos.xz)){
-	geoData[0] = vec4(specular.r, 0, 0, 0);
-	geoData[1] = vec4(diff.rgb * mix(lookup_table_color, vec3(1), scale3), 1);
-	geoData[2] = vec4(normal, 1);
-	geoData[3] = vec4(fsPos, 1);
+	geoData[0] = vec3(specular.r, 0, 0);
+	geoData[1] = diff.rgb * mix(lookup_table_color, vec3(1), scale3);
+	geoData[2] = normal;
+	geoData[3] = fsPos;
 	//}
 }

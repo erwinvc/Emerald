@@ -96,22 +96,22 @@ void Logger::ProcessMessage(QueuedMessage& message) {
 		if (splStr[0] == '~') {
 			if (splStr.length() < 2) continue;
 			switch (splStr[1]) {
-			case '0': SetTextColor(ConsoleColor::WHITE); break;
-			case '1': SetTextColor(ConsoleColor::GRAY); break;
-			case '2': SetTextColor(ConsoleColor::DARKGRAY); break;
-			case '3': SetTextColor(ConsoleColor::BLACK); break;
-			case 'R': SetTextColor(ConsoleColor::DARKRED); break;
-			case 'r': SetTextColor(ConsoleColor::RED); break;
-			case 'Y': SetTextColor(ConsoleColor::DARKYELLOW); break;
-			case 'y': SetTextColor(ConsoleColor::YELLOW); break;
-			case 'G': SetTextColor(ConsoleColor::DARKGREEN); break;
-			case 'g': SetTextColor(ConsoleColor::GREEN); break;
-			case 'M': SetTextColor(ConsoleColor::DARKMAGENTA); break;
-			case 'm': SetTextColor(ConsoleColor::MAGENTA); break;
-			case 'C': SetTextColor(ConsoleColor::DARKCYAN); break;
-			case 'c': SetTextColor(ConsoleColor::CYAN); break;
-			case 'B': SetTextColor(ConsoleColor::DARKBLUE); break;
-			case 'b': SetTextColor(ConsoleColor::BLUE); break;
+			case '0': SetTextColor((int)ConsoleColor::WHITE); break;
+			case '1': SetTextColor((int)ConsoleColor::GRAY); break;
+			case '2': SetTextColor((int)ConsoleColor::DARKGRAY); break;
+			case '3': SetTextColor((int)ConsoleColor::BLACK); break;
+			case 'R': SetTextColor((int)ConsoleColor::DARKRED); break;
+			case 'r': SetTextColor((int)ConsoleColor::RED); break;
+			case 'Y': SetTextColor((int)ConsoleColor::DARKYELLOW); break;
+			case 'y': SetTextColor((int)ConsoleColor::YELLOW); break;
+			case 'G': SetTextColor((int)ConsoleColor::DARKGREEN); break;
+			case 'g': SetTextColor((int)ConsoleColor::GREEN); break;
+			case 'M': SetTextColor((int)ConsoleColor::DARKMAGENTA); break;
+			case 'm': SetTextColor((int)ConsoleColor::MAGENTA); break;
+			case 'C': SetTextColor((int)ConsoleColor::DARKCYAN); break;
+			case 'c': SetTextColor((int)ConsoleColor::CYAN); break;
+			case 'B': SetTextColor((int)ConsoleColor::DARKBLUE); break;
+			case 'b': SetTextColor((int)ConsoleColor::BLUE); break;
 			case 'X':
 			case 'x':SetTextColor(message.m_color); break;
 			default:SetTextColor(message.m_color); break;
@@ -123,11 +123,11 @@ void Logger::ProcessMessage(QueuedMessage& message) {
 	}
 	printf("\n");
 
-	char buffer2[2048] = { 0 };
+	char buffer2[0xffff] = { 0 };
 	sprintf_s(buffer2, "%s%s %s\n", formattedTime, message.m_type.c_str(), outputString.c_str());
 	LogToFile(buffer2);
 
-	SetTextColor(ConsoleColor::WHITE);
+	SetTextColor((int)ConsoleColor::WHITE);
 }
 
 void Logger::Message(int color, const char* type, const char* fmt, ...) {
@@ -136,7 +136,7 @@ void Logger::Message(int color, const char* type, const char* fmt, ...) {
 		LOG_ERROR("[~2Logging~x] Console queue size exceeded 100. Too many messages are being sent");
 		return;
 	}
-	char buffer[2048] = { 0 };
+	char buffer[0xffff] = { 0 };
 	va_list va_alist;
 
 	va_start(va_alist, fmt);
@@ -148,7 +148,7 @@ void Logger::Message(int color, const char* type, const char* fmt, ...) {
 }
 void Logger::MessageTimed(int time, int color, const char* type, const char* fmt, ...) {
 	if (GetApplication()->GetFrameCount() % time == 0) {
-		char buffer[2048] = { 0 };
+		char buffer[0xffff] = { 0 };
 		va_list va_alist;
 		va_start(va_alist, fmt);
 		vsprintf_s(buffer, fmt, va_alist);
@@ -162,7 +162,7 @@ void Logger::MessageTimed(int time, int color, const char* type, const char* fmt
 void Logger::MessageDirect(int color, const char* type, const char* fmt, ...) {
 	if (m_stopping) return;
 	m_stopping = true;
-	char buffer[2048] = { 0 };
+	char buffer[0xffff] = { 0 };
 	va_list va_alist;
 
 	va_start(va_alist, fmt);

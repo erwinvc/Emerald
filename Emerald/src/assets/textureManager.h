@@ -9,7 +9,7 @@ public:
 		//#TODO Use texture class
 		byte bytes[] = { (byte)0, (byte)0, (byte)0, (byte)-8, (byte)-8, (byte)8, (byte)-8, (byte)-8,(byte)-8, (byte)8, (byte)-8, (byte)-8, (byte)0, (byte)0, (byte)0, (byte)-8 };
 
-		m_nullTexture = NEW(Texture(2, 2, bytes, TextureParameters(RGBA, NEAREST, REPEAT)));
+		m_nullTexture = NEW(Texture(2, 2, bytes, TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
 		LOG("[~gTexture~x] Texture manager initialized");
 	}
 	void AddTexture(String name, Texture* texture) {

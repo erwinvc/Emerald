@@ -74,7 +74,7 @@ public:
 			tile->SetEmpty();
 			//tile->m_heights = Vector4(0, 0);
 			
-			//WangTile::UpdateArea(x, y);
+			WangTile::UpdateArea(x, y);
 		}
 	}
 

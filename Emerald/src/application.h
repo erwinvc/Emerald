@@ -32,6 +32,7 @@ public:
 
 	inline int GetWidth() { return m_window->GetWidth(); }
 	inline int GetHeight() { return m_window->GetHeight(); }
+	inline float GetAspect() { return m_window->GetAspect(); }
 };
 
 static Application* GetApplication() {

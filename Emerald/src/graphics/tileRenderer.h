@@ -13,14 +13,21 @@ struct TileBufferData {
 };
 
 class TileRenderer : public Singleton<TileRenderer> {
+public:
+	static const int TILECOUNT = 16;
+
 private:
 	AssetRef<Texture> texIri;
 	AssetRef<Texture> texNoise;
 	AssetRef<Shader> m_shader;
-	InstancedRenderer2D<TileBufferData>* m_renderers[5];
+	InstancedRenderer2D<TileBufferData>* m_renderers[TILECOUNT];
 
 	TileRenderer() {}
-	~TileRenderer() {}
+	~TileRenderer() {
+		loop(i, TILECOUNT) {
+			DELETE(m_renderers[i]);
+		}
+	}
 	friend Singleton;
 
 public:

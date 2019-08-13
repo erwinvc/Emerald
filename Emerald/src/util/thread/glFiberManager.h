@@ -34,6 +34,7 @@ public:
 					SwitchToFiber((LPVOID)arguments[1]);
 				}
 			} catch (...) {
+				LOG_ERROR("[~rThreads~x] caught exception in fiber");
 				delete[] arguments;
 			}
 		}, args);

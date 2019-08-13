@@ -6,6 +6,7 @@ class FrameBufferManager;
 class FrameBuffer {
 private:
 	vector<AssetRef<Texture>> m_textures;
+	vector<String> m_textureNames;
 	String m_name;
 	uint m_colorAttachments = 0;
 	uint m_fbo = 0;
@@ -40,7 +41,7 @@ private:
 	friend FrameBufferManager;
 
 public:
-	AssetRef<Texture> AddColorBuffer(const TextureParameters& params);
+	AssetRef<Texture> AddColorBuffer(const String& name, const TextureParameters& params);
 
 	const String& GetName() { return m_name; }
 	void Bind() const {
@@ -60,10 +61,13 @@ public:
 	inline uint GetWidth() const { return m_width; }
 	inline uint GetHeight() const { return m_height; }
 	inline void SetClearColor(Color& color) { m_color = color; }
+	inline vector<AssetRef<Texture>>& GetTextures() { return m_textures; }
+	inline vector<String>& GetTextureNames() { return m_textureNames; }
 };
 
 class FrameBufferManager : public Singleton<FrameBufferManager> {
 private:
+	AssetRef<Texture> m_selectedTexture = nullptr;
 	vector<FrameBuffer*> m_frameBuffers;
 	FrameBufferManager() {}
 	~FrameBufferManager() {}
@@ -71,12 +75,12 @@ private:
 
 public:
 	AssetRef<FrameBuffer> Create(const String& name, int width, int height) {
-		//for (FrameBuffer* fbo : m_frameBuffers) {
-		//	if (fbo->GetName().compare(name) == 0) {
-		//		LOG_ERROR("[~cBuffers~x] ~rFramebuffer ~1%s~r already exists", fbo->GetName().c_str());
-		//		return AssetRef<FrameBuffer>(fbo);
-		//	}
-		//}
+		for (FrameBuffer* fbo : m_frameBuffers) {
+			if (fbo->GetName().compare(name) == 0) {
+				LOG_ERROR("[~cBuffers~x] ~rFramebuffer ~1%s~r already exists", fbo->GetName().c_str());
+				return AssetRef<FrameBuffer>(fbo);
+			}
+		}
 		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, width, height));
 		m_frameBuffers.push_back(fbo);
 		return AssetRef<FrameBuffer>(fbo);
@@ -84,6 +88,13 @@ public:
 
 	void Delete(AssetRef<FrameBuffer>& fbo) {
 		Utils::RemoveFromVector(m_frameBuffers, fbo.Get());
+	}
+
+	void OnImGUI();
+	inline AssetRef<Texture> GetSelectedTexture() { return m_selectedTexture; }
+
+	void SetSelectedTexture(AssetRef<Texture> texture) {
+		m_selectedTexture = texture;
 	}
 };
 

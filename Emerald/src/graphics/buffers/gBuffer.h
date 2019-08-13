@@ -6,7 +6,7 @@ private:
 	uint m_width, m_height;
 
 public:
-	AssetRef<Texture> m_miscTexture;
+	AssetRef<Texture> m_attributesTexture;
 	AssetRef<Texture> m_colorTexture;
 	AssetRef<Texture> m_normalTexture;
 	AssetRef<Texture> m_positionTexture;

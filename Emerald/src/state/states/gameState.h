@@ -13,7 +13,7 @@ private:
 	AssetRef<Shader> m_uiShader;
 
 	GroundRaycast m_rayCast;
-
+	Vector2I m_rayCastPos;
 public:
 	const String& GetName() override { return m_name; }
 
@@ -27,6 +27,25 @@ public:
 		if (ButtonJustDown(VK_MOUSE_MIDDLE)) {
 			GetPipeline()->GetPointLights().push_back(Pointlight(GetCamera()->m_position, 10, Color::RandomPrimary()));
 		}
+
+		if (KeyJustDown('O')) {
+			loop(x, GetWorld()->GetBoundaries().m_size.x) {
+				loop(y, GetWorld()->GetBoundaries().m_size.y) {
+					if (Math::RandomInt(0, 10) > 8) GetPipeline()->GetPointLights().push_back(Pointlight(Vector3((float)x, 1.2f, (float)y), 2, Color::RandomPrimary()));
+
+				}
+			}
+		}
+		Vector3 cast = m_rayCast.Get(GetCamera());
+		m_rayCastPos = m_rayCast.GetTile();
+
+		if (GetMouse()->ButtonDown(VK_MOUSE_LEFT)) {
+			int x = (int)((float)m_rayCastPos.x + 0.5f);
+			int y = (int)((float)m_rayCastPos.y + 0.5f);
+			Timer timer;
+			GetWorld()->BreakTile(x, y);
+			LOG("%.2fms", timer.Get());
+		}
 	}
 
 	void RenderGeometry() override {
@@ -35,15 +54,8 @@ public:
 		GetWorld()->Draw();
 		GetTileRenderer()->End();
 		GetTileRenderer()->Draw();
-		Vector3 cast = m_rayCast.Get(GetCamera());
-		Vector2I pos = m_rayCast.GetTile();
-		GetLineRenderer()->DrawRect(Rect((float)pos.x + 0.5f, (float)pos.y + 0.5f, 1.0f, 1.0f));
+		GetLineRenderer()->DrawRect(Rect((float)m_rayCastPos.x + 0.5f, (float)m_rayCastPos.y + 0.5f, 1.0f, 1.0f));
 
-		if (GetMouse()->ButtonDown(VK_MOUSE_LEFT)) {
-			int x = (int)((float)pos.x + 0.5f);
-			int y = (int)((float)pos.y + 0.5f);
-			GetWorld()->BreakTile(x, y);
-		}
 		GetLineRenderer()->DrawRect(GetWorld()->GetBoundaries());
 	}
 	void RenderUI() override {
@@ -59,5 +71,7 @@ public:
 
 	void OnEnterState() override {}
 	void OnExitState() override {}
-	void OnResize(int width, int height) override {}
+	void OnResize(int width, int height) override
+	{
+	}
 };

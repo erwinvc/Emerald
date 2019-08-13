@@ -129,6 +129,7 @@ void Application::Render() {
 			if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
 				m_pipeline->OnImGUI();
 				GetStateManager()->OnImGUI();
+				GetFrameBufferManager()->OnImGUI();
 				GetShaderManager()->OnImGUI();
 				ImGui::EndTabBar();
 			}
@@ -148,8 +149,6 @@ void Application::Render() {
 		m_window->SetWidth(width);
 		m_window->SetHeight(height);
 		m_pipeline->OnResize(width, height);
-		float aspect = (float)(width) / height;
-		GetCamera()->SetProjectionMatrix(70, aspect, 0.01f, 1000.0f);
 		//GetStateManager()->OnResize(width, height);
 		toResize = Vector2I(-1, -1);
 	}

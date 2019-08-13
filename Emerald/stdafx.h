@@ -67,6 +67,7 @@ using namespace std;
 #include "math/rect.h"
 #include "math/mathFunctions.h"
 
+
 #include "util/types.h"
 #include "util/ref.h"
 #include "util/singleton.h"
@@ -132,10 +133,6 @@ using namespace std;
 #include "graphics/renderer.h"
 #include "graphics/ssaoRenderer.h"
 
-#include "graphics/lighting/directionalLight.h"
-#include "graphics/lighting/pointlight.h"
-#include "graphics/lighting/pointlightRenderer.h"
-
 #include "input/keyboard.h"
 #include "input/mouse.h"
 
@@ -148,9 +145,13 @@ using namespace std;
 #include "assets/assetManager.h"
 
 #include "graphics/lineRenderer.h"
-#include "graphics/instancedRenderer.h"
 #include "graphics/instancedRenderer2D.h"
+#include "graphics/instancedRenderer.h"
 #include "graphics/tileRenderer.h"
+
+#include "graphics/lighting/directionalLight.h"
+#include "graphics/lighting/pointlight.h"
+#include "graphics/lighting/pointlightRenderer.h"
 
 #include "world/wangTile.h"
 #include "world/tile.h"

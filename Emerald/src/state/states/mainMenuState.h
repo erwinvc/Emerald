@@ -7,12 +7,12 @@ struct TileCombo {
 
 	TileCombo(TileType type, TileTransform transform) : m_type(type), m_transform(transform), m_set(true) {}
 
-	TileCombo() : m_type(EMPTY), m_transform(LOW), m_set(false) {}
+	TileCombo() : m_type(GROUND), m_transform(UP), m_set(false) {}
 
 	String GetAsString() {
 		if (!m_set) return "Not set";
-		if (m_type == EMPTY) {
-			return "EMPTY";
+		if (m_type == GROUND) {
+			return "GROUND";
 		} else if (m_type == FULL) {
 			return "FULL";
 		}
@@ -40,7 +40,7 @@ public:
 
 	void Initialize() override {
 		m_selectedTile = new Tile();
-
+		m_selectedTile->Set(GROUND, UP);
 		for (int i = 0; i < 8; i++) {
 			m_tiles[i] = new Tile();
 			m_tilesBools[i] = false;
@@ -50,20 +50,16 @@ public:
 	void Update(const TimeStep& time) override {
 		if (m_enableCamera)GetCamera()->Update(time);
 		if (GetKeyboard()->KeyJustDown('1')) {
-			m_selectedTile->SetEmpty();
+			int newTile = m_selectedTile->m_type + 1;
+			if (newTile > TileRenderer::TILECOUNT) newTile = 0;
+			m_selectedTile->Set(TileType(newTile), UP);
 		} else if (GetKeyboard()->KeyJustDown('R')) {
 			if (m_selectedTile->m_type != 0 && m_selectedTile->m_type != -1)
 				m_selectedTile->SetTransform(RotateTileTransform(m_selectedTile->m_transformIndex, 1));
 		} else if (GetKeyboard()->KeyJustDown('2')) {
-			m_selectedTile->SetFull();
-		} else if (GetKeyboard()->KeyJustDown('3')) {
-			m_selectedTile->SetType(INNER);
-		} else if (GetKeyboard()->KeyJustDown('4')) {
-			m_selectedTile->SetType(OUTER);
-		} else if (GetKeyboard()->KeyJustDown('5')) {
-			m_selectedTile->SetType(SLOPE);
-		} else if (GetKeyboard()->KeyJustDown('6')) {
-			m_selectedTile->SetType(VALLEY);
+			int newTile = m_selectedTile->m_type - 1;
+			if (newTile < 0) newTile = TileRenderer::TILECOUNT - 1;
+			m_selectedTile->Set(TileType(newTile), UP);
 		}
 
 		if (GetKeyboard()->KeyJustDown('N')) {
@@ -113,6 +109,7 @@ public:
 		GetTileRenderer()->End();
 		GetTileRenderer()->Draw();
 	}
+
 	void RenderUI() override {}
 	void OnImGUI() override {
 		if (ImGui::Button("Next")) {
@@ -130,9 +127,9 @@ public:
 		if (m_combos[wangIndex].m_set ? ImGui::Button("Overwrite") : ImGui::Button("Save")) {
 			m_combos[wangIndex] = TileCombo(m_selectedTile->m_type, m_selectedTile->m_transformIndex);
 			if (wangIndex != 0) {
-				m_combos[wangIndex * 4] = TileCombo(m_selectedTile->m_type, RotateTileTransform(m_selectedTile->m_transformIndex, 1));
-				m_combos[wangIndex * 4 * 4] = TileCombo(m_selectedTile->m_type, RotateTileTransform(m_selectedTile->m_transformIndex, 2));
-				m_combos[wangIndex * 4 * 4 * 4] = TileCombo(m_selectedTile->m_type, RotateTileTransform(m_selectedTile->m_transformIndex, 3));
+				m_combos[(wangIndex * 4) % 255] = TileCombo(m_selectedTile->m_type, RotateTileTransform(m_selectedTile->m_transformIndex, 1));
+				m_combos[(wangIndex * 4 * 4) % 255] = TileCombo(m_selectedTile->m_type, RotateTileTransform(m_selectedTile->m_transformIndex, 2));
+				m_combos[(wangIndex * 4 * 4 * 4) % 255] = TileCombo(m_selectedTile->m_type, RotateTileTransform(m_selectedTile->m_transformIndex, 3));
 			}
 		}
 
@@ -141,7 +138,50 @@ public:
 			for (int i = 0; i < 256; i++) {
 				jsonOb[Format_t("%d", i)] = { {"type", m_combos[i].m_type}, {"transform", m_combos[i].m_transform}, {"set", m_combos[i].m_set} };
 			}
-			JsonUtils::SaveToFile(jsonOb, "wangTiles");
+			FileSystem::SaveJsonToFile(jsonOb, "wangTiles");
+		}
+
+		if (ImGui::Button("Translate")) {
+			nlohmann::json jsonOb = FileSystem::LoadJsonFromFile("wangTiles");
+			try {
+				map<int, map<int, vector<int>>> m_values;
+				for (int i = 0; i < 256; i++) {
+					String iAsString = to_string(i);
+					if (m_values.find(jsonOb[iAsString]["type"]) == m_values.end()) {
+						auto a = map<int, vector<int>>();
+						m_values[jsonOb[iAsString]["type"]] = a;
+					}
+					map<int, vector<int>>& m_value = m_values[jsonOb[iAsString]["type"]];
+
+					if (m_value.find(jsonOb[iAsString]["transform"]) == m_value.end()) {
+						auto a = vector<int>();
+						m_value[jsonOb[iAsString]["transform"]] = a;
+					}
+					m_value[jsonOb[iAsString]["transform"]].push_back(i);
+				}
+
+				nlohmann::json jsonOb2;
+				for (auto tile = m_values.begin(); tile != m_values.end(); tile++) {
+					for (auto it2 = tile->second.begin(); it2 != tile->second.end(); it2++)
+						jsonOb2[to_string(tile->first)][to_string(it2->first)] = it2->second;
+				}
+				FileSystem::SaveJsonToFile(jsonOb2, "wangTilesTranslated");
+
+				String finalStr;
+				for (auto tile = m_values.begin(); tile != m_values.end(); tile++) {
+					for (auto transform = tile->second.begin(); transform != tile->second.end(); transform++) {
+						for (int i = 0; i < transform->second.size(); i++) {
+							if (i == transform->second.size()) finalStr += Format("case %d: tile->Set(%s, %s); break;", i, TileTypeToString(TileType(tile->first)).c_str(), TileTransformToString(TileTransform(transform->first)).c_str());
+							else finalStr += Format("case %d:", i);
+						}
+					}
+				}
+
+				FileSystem::SaveStringToFile(finalStr, "wangTilesSwitch");
+
+			} catch (nlohmann::json::parse_error& e) {
+				LOG("Failed to load translation file: %d", e.id);
+			}
 		}
 		ImGui::Checkbox("Camera enabled", &m_enableCamera);
 
@@ -156,9 +196,15 @@ public:
 
 		ImGui::Separator();
 
+		ImGui::BeginChild("Child1", ImVec2(ImGui::GetWindowContentRegionWidth(), 500), false, ImGuiWindowFlags_HorizontalScrollbar);
 		for (int i = 0; i < 256; i++) {
-			ImGui::LabelText(Format_t("%d", i), m_combos[i].GetAsString().c_str());
+			if (ImGui::Selectable(Format_t("%d %s", i, m_combos[i].GetAsString().c_str()), i == wangIndex)) {
+				wangIndex = i;
+				m_selectedTile->Set(m_combos[wangIndex].m_type, m_combos[wangIndex].m_transform);
+			}
 		}
+		ImGui::EndChild();
+
 	}
 	void Cleanup() override {}
 

@@ -109,21 +109,3 @@ namespace GLUtils {
 	void EnableBlending();
 	void DisableBlending();
 }
-
-namespace JsonUtils {
-	static void SaveToFile(const nlohmann::json& jsonOb, const String& name) {
-		String file = Format("%s.json", name.c_str());
-		ofstream i(file);
-		i << setw(4) << jsonOb;
-		i.close();
-	}
-
-	static nlohmann::json LoadFromFile(const String& name) {
-		String file = Format("%s.json", name.c_str());
-		ifstream i(file);
-		nlohmann::json jsonOb;
-		i >> jsonOb;
-		i.close();
-		return jsonOb;
-	}
-}

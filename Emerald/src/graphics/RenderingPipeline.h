@@ -51,7 +51,7 @@ public:
 		DELETE(m_ssaoRenderer);
 	}
 
-	void Initialize(uint width, uint height, int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 20);
+	void Initialize(uint width, uint height, int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 10);
 
 	void PreGeometryRender();
 	void PostGeometryRender();

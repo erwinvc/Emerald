@@ -47,8 +47,6 @@ void main(){
 	vec3 worldTangent = (selectedMatrix * vec4(vsTangents, 0.0)).xyz;
 	vec3 worldBiTangent = (selectedMatrix * vec4(vsBitangents, 0.0)).xyz;
 
-
-
 	vec3 tangent = normalize(worldTangent - dot(worldNormal, worldTangent) * worldNormal);
 	if (dot(cross(worldNormal, tangent), worldBiTangent) < 0.0f) tangent *= -1.0f;
     fsTBNMatrix = mat3(tangent, worldBiTangent, worldNormal);

@@ -45,7 +45,7 @@ void Texture::SetData(byte* data) {
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_params.GetWrap()));
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_params.GetWrap()));
 
-	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetFormat(), m_width, m_height, 0, GL_RGBA, m_params.GetType(), data));
+	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), data));
 	GL(glGenerateMipmap(GL_TEXTURE_2D));
 
 	if (m_keepData) {
@@ -87,6 +87,6 @@ void Texture::Resize(int width, int height) {
 	m_height = height;
 
 	Bind();
-	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetFormat(), m_width, m_height, 0, GL_RGBA, m_params.GetType(), nullptr));
+	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), nullptr));
 	GL(glGenerateMipmap(GL_TEXTURE_2D));
 }

@@ -15,7 +15,7 @@ Thread* ThreadManager::RegisterThread(String name, void(*func)()) {
 			LOG("[~rThreads~x] ~1%s~xthread finished", thread->GetName().c_str());
 			thread->m_finished = true;
 
-		} catch (...) { LOG_ERROR("[~rThreads~x] caught exception in ~1%s ~rthread"); }
+		} catch (...) { LOG_ERROR("[~rThreads~x] caught exception in ~1%s ~rthread", thread->m_name.c_str()); }
 		DELETE(thread);
 		DELETEARRAY(arguments);
 		return 1;
