@@ -90,10 +90,12 @@ public:
 
 	void SetEmpty() {
 		m_type = GROUND;
+		m_transformIndex = UP;
 	}
 
 	void SetFull() {
 		m_type = FULL;
+		m_transformIndex = UP;
 	}
 
 	inline bool IsRock() { return m_type != GROUND; }

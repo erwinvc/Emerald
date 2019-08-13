@@ -1,272 +1,392 @@
-	EMPTY = -1:
-	FULL:
-	INNER:
-	OUTER:
-	SLOPE:
-	VALLEY
-	
-		UP:
-	RIGHT:
-	DOWN:
-	LEFT:
-	LOW:
-	HIGH
-
-switch(a){
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
-    case 13:
-    case 14:
-    case 16:
-    case 17:
-    case 18:
-    case 19:
-    case 20:
-    case 21:
-    case 22:
-    case 24:
-    case 25:
-    case 26:
-    case 27:
-    case 32:
-    case 33:
-    case 34:
-    case 35:
-    case 36:
-    case 37:
-    case 38:
-    case 40:
-    case 41:
-    case 42:
-    case 43:
-    case 44:
-    case 45:
-    case 46:
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 56:
-    case 57:
-    case 58:
-    case 59:
-    case 64:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 88:
-    case 89:
-    case 90:
-    case 91:
-    case 96:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 128:
-    case 129:
-    case 130:
-    case 131:
-    case 132:
-    case 133:
-    case 134:
-    case 136:
-    case 137:
-    case 138:
-    case 139:
-    case 140:
-    case 141:
-    case 142:
-    case 144:
-    case 145:
-    case 146:
-    case 147:
-    case 148:
-    case 149:
-    case 150:
-    case 152:
-    case 153:
-    case 154:
-    case 155:
-    case 160:
-    case 161:
-    case 162:
-    case 163:
-    case 164:
-    case 165:
-    case 166:
-    case 168:
-    case 169:
-    case 170:
-    case 171:
-    case 172:
-    case 173:
-    case 174:
-    case 176:
-    case 177:
-    case 178:
-    case 179:
-    case 180:
-    case 181:
-    case 182:
-    case 184:
-    case 185:
-    case 186:
-    case 187:
-    case 192:
-    case 194:
-    case 196:
-    case 198:
-    case 200:
-    case 202:
-    case 204:
-    case 206:
-    case 208:
-    case 210:
-    case 212:
-    case 214:
-    case 216:
-    case 218:
-    case 224:
-    case 226:
-    case 228:
-    case 230:
-    case 232:
-    case 234:
-    case 236:
-    case 238: GetWorld()->BreakTile(pos.x, pos.y); break;
-    case 255: tile->SetFull(); break;
-    case 127: tile->Set(INNER, UP); break;
-    case 253: tile->Set(INNER, RIGHT); break;
-    case 247: tile->Set(INNER, DOWN); break;
-    case 223: tile->Set(INNER, LEFT); break;
-    case 28:
-    case 29:
-    case 30:
-    case 60:
-    case 61:
-    case 62:
-    case 92:
-    case 93:
-    case 94:
-    case 156:
-    case 157:
-    case 158:
-    case 188:
-    case 189:
-    case 190:
-    case 220:
-    case 222: tile->Set(OUTER, UP); break;
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 120:
-    case 121:
-    case 122:
-    case 123:
-    case 240:
-    case 242:
-    case 244:
-    case 246:
-    case 248:
-    case 250: tile->Set(OUTER, RIGHT); break;
-    case 193:
-    case 195:
-    case 197:
-    case 201:
-    case 203:
-    case 205:
-    case 209:
-    case 211:
-    case 213:
-    case 217:
-    case 219:
-    case 225:
-    case 227:
-    case 229:
-    case 233:
-    case 235:
-    case 237: tile->Set(OUTER, DOWN); break;
-    case 7:
-    case 15:
-    case 23:
-    case 39:
-    case 47:
-    case 55:
-    case 71:
-    case 79:
-    case 87:
-    case 103:
-    case 111:
-    case 135:
-    case 143:
-    case 151:
-    case 167:
-    case 175:
-    case 183:tile->Set(OUTER, LEFT); break;
-    case 124:
-    case 125:
-    case 126:
-    case 252:
-    case 254: tile->Set(SLOPE, UP); break;
-    case 241:
-    case 243:
-    case 245:
-    case 249:
-    case 251: tile->Set(SLOPE, RIGHT); break;
-    case 199:
-    case 207:
-    case 215:
-    case 231:
-    case 239: tile->Set(SLOPE, DOWN); break;
-    case 31:
-    case 63:
-    case 95:
-    case 159:
-    case 191: tile->Set(SLOPE, LEFT); break;
-	case 221: tile->Set(VALLEY, UP); break;
-	case 119 tile->Set(VALLEY, DOWN); break;
+{
+    "0": {
+        "0": [
+            255
+        ]
+    },
+    "10": {
+        "0": [
+            124,
+            126,
+            252,
+            254
+        ],
+        "1": [
+            241,
+            243,
+            249,
+            251
+        ],
+        "2": [
+            199,
+            207,
+            231,
+            239
+        ],
+        "3": [
+            31,
+            63,
+            159,
+            191
+        ]
+    },
+    "11": {
+        "3": [
+            85
+        ]
+    },
+    "12": {
+        "0": [
+            93
+        ],
+        "1": [
+            117
+        ],
+        "2": [
+            213
+        ],
+        "3": [
+            87
+        ]
+    },
+    "13": {
+        "0": [
+            125
+        ],
+        "1": [
+            245
+        ],
+        "2": [
+            215
+        ],
+        "3": [
+            95
+        ]
+    },
+    "14": {
+        "2": [
+            119
+        ],
+        "3": [
+            221
+        ]
+    },
+    "15": {
+        "0": [
+            127
+        ],
+        "1": [
+            253
+        ],
+        "2": [
+            247
+        ],
+        "3": [
+            223
+        ]
+    },
+    "2": {
+        "0": [
+            0,
+            2,
+            10,
+            42
+        ],
+        "1": [
+            8,
+            40,
+            168
+        ],
+        "2": [
+            32,
+            34,
+            160,
+            162
+        ],
+        "3": [
+            128,
+            130,
+            136,
+            138,
+            170
+        ]
+    },
+    "3": {
+        "0": [
+            16,
+            18,
+            24,
+            26,
+            48,
+            50,
+            56,
+            58,
+            144,
+            146,
+            152,
+            154,
+            176,
+            178,
+            184,
+            186
+        ],
+        "1": [
+            64,
+            66,
+            72,
+            74,
+            96,
+            98,
+            104,
+            106,
+            192,
+            194,
+            200,
+            202,
+            224,
+            226,
+            232,
+            234
+        ],
+        "2": [
+            1,
+            3,
+            9,
+            11,
+            33,
+            35,
+            41,
+            43,
+            129,
+            131,
+            137,
+            139,
+            161,
+            163,
+            169,
+            171
+        ],
+        "3": [
+            4,
+            6,
+            12,
+            14,
+            36,
+            38,
+            44,
+            46,
+            132,
+            134,
+            140,
+            142,
+            164,
+            166,
+            172,
+            174
+        ]
+    },
+    "4": {
+        "0": [
+            65,
+            67,
+            73,
+            75,
+            97,
+            99,
+            105,
+            107
+        ],
+        "1": [
+            5,
+            13,
+            37,
+            45,
+            133,
+            141,
+            165,
+            173
+        ],
+        "2": [
+            20,
+            22,
+            52,
+            54,
+            148,
+            150,
+            180,
+            182
+        ],
+        "3": [
+            80,
+            82,
+            88,
+            90,
+            208,
+            210,
+            216,
+            218
+        ]
+    },
+    "5": {
+        "0": [
+            28,
+            30,
+            60,
+            62,
+            156,
+            158,
+            188,
+            190
+        ],
+        "1": [
+            112,
+            114,
+            120,
+            122,
+            240,
+            242,
+            248,
+            250
+        ],
+        "2": [
+            193,
+            195,
+            201,
+            203,
+            225,
+            227,
+            233,
+            235
+        ],
+        "3": [
+            7,
+            15,
+            39,
+            47,
+            135,
+            143,
+            167,
+            175
+        ]
+    },
+    "6": {
+        "0": [
+            19,
+            25,
+            27,
+            57,
+            59,
+            153,
+            155
+        ],
+        "1": [
+            76,
+            100,
+            108,
+            110,
+            228,
+            236
+        ],
+        "2": [
+            17,
+            49,
+            51,
+            145,
+            147,
+            177,
+            179,
+            185,
+            187
+        ],
+        "3": [
+            68,
+            70,
+            78,
+            102,
+            196,
+            198,
+            204,
+            206,
+            230,
+            238
+        ]
+    },
+    "7": {
+        "0": [
+            69,
+            77,
+            101,
+            109
+        ],
+        "1": [
+            21,
+            53,
+            149,
+            181
+        ],
+        "2": [
+            84,
+            86,
+            212,
+            214
+        ],
+        "3": [
+            81,
+            83,
+            89,
+            91
+        ]
+    },
+    "8": {
+        "0": [
+            29,
+            61,
+            157,
+            189
+        ],
+        "1": [
+            116,
+            118,
+            244,
+            246
+        ],
+        "2": [
+            209,
+            211,
+            217,
+            219
+        ],
+        "3": [
+            71,
+            79,
+            103,
+            111
+        ]
+    },
+    "9": {
+        "0": [
+            23,
+            55,
+            151,
+            183
+        ],
+        "1": [
+            92,
+            94,
+            220,
+            222
+        ],
+        "2": [
+            113,
+            115,
+            121,
+            123
+        ],
+        "3": [
+            197,
+            205,
+            229,
+            237
+        ]
+    }
 }

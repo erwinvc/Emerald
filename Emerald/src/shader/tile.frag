@@ -3,7 +3,6 @@ in vec3 fsPos;
 in vec3 fsNormal;
 in vec2 fsUv;
 in mat3 fsTBNMatrix;
-in vec3 fstangent;
 in vec3 fsViewDirection;
 
 uniform sampler2D _Albedo;
@@ -22,26 +21,6 @@ uniform sampler2D texture_noise;
 uniform float scale1;
 uniform float scale2;
 uniform float scale3;
-
-float hash( vec2 a )
-{
-
-    return fract( sin( a.x * 3433.8 + a.y * 3843.98 ) * 45933.8 );
-
-}
-
-float noise( vec2 U )
-{
-    vec2 id = floor( U );
-          U = fract( U );
-    U *= U * ( 3. - 2. * U );  
-
-    vec2 A = vec2( hash(id)            , hash(id + vec2(0,1)) ),  
-         B = vec2( hash(id + vec2(1,0)), hash(id + vec2(1,1)) ),  
-         C = mix( A, B, U.x);
-
-    return mix( C.x, C.y, U.y );
-}
 
 void main(){
 	vec4 diff = texture(_Albedo, fsUv).rgba;

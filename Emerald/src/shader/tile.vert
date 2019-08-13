@@ -9,8 +9,8 @@ layout(location = 6) in float vsTransformIndex;
 //layout(location = 7) in vec4 vsHeights;
 
 out vec3 fsPos;
-out vec3 fsNormal;
 out vec2 fsUv;
+out vec3 fsNormal;
 out mat3 fsTBNMatrix;
 out vec3 fstangent;
 out vec3 fsViewDirection;
@@ -21,40 +21,32 @@ uniform mat4 _ViewMatrix;
 uniform mat4 _Transforms[6];
 
 void main(){
-	//float height = 0;
-	//
-	//if(vsPos.x > 0 && vsPos.z > 0){
-	//	height = vsHeights[0];
-	//}else if(vsPos.x > 0 && vsPos.z < 0){
-	//	height =  vsHeights[1];
-	//}else if(vsPos.x < 0 && vsPos.z < 0){
-	//	height =  vsHeights[2];
-	//}else if(vsPos.x < 0 && vsPos.z > 0){
-	//	height =  vsHeights[3];
-	//}
-	//
-	//mat4 translate1 = mat4(1.0, 0.0, 0.0, 0, 
-	//				  0.0, 1.0, 0.0, height, 
-	//				  0.0, 0.0, 1.0, 0.0,  
-	//				  0.0, 0.0, 0.0, 1.0);
+	float yDot = abs(dot(vsNormal, vec3(0, 1, 0)));
+
 
 	mat4 selectedMatrix = _Transforms[int(vsTransformIndex)];
-	
 
-	
+	if(yDot > 0.9f){
+		vec3 tangent = normalize(vsTangents - dot(vsNormal, vsTangents) * vsNormal);
+		fsTBNMatrix = mat3(tangent, vsBitangents, vsNormal);
+		fsNormal = vsNormal;
+	} else{
+		vec3 worldNormal = (selectedMatrix * vec4(vsNormal, 0.0)).xyz;
+		vec3 worldTangent = (selectedMatrix * vec4(vsTangents, 0.0)).xyz;
+		vec3 worldBiTangent = (selectedMatrix * vec4(vsBitangents, 0.0)).xyz;
+		vec3 tangent = normalize(worldTangent - dot(worldNormal, worldTangent) * worldNormal);
+		fsTBNMatrix = mat3(tangent, worldBiTangent, worldNormal);
+		fsNormal = worldNormal;
+	}
+
 	vec3 worldPos = (selectedMatrix * vec4(vsPos, 1.0)).xyz;
-	vec3 worldNormal = (selectedMatrix * vec4(vsNormal, 0.0)).xyz;
-	vec3 worldTangent = (selectedMatrix * vec4(vsTangents, 0.0)).xyz;
-	vec3 worldBiTangent = (selectedMatrix * vec4(vsBitangents, 0.0)).xyz;
-
-	vec3 tangent = normalize(worldTangent - dot(worldNormal, worldTangent) * worldNormal);
-	if (dot(cross(worldNormal, tangent), worldBiTangent) < 0.0f) tangent *= -1.0f;
-    fsTBNMatrix = mat3(tangent, worldBiTangent, worldNormal);
-
 	fsPos = vec3(worldPos.x + vsPosition.x + 0.5f, worldPos.y, worldPos.z + vsPosition.y + 0.5f);
 
-	fsNormal = worldNormal;
+
 	fsUv = vsUv;
+	if(yDot > 0.9f){
+		fsUv = fsPos.zx;
+	}
 
 	fsViewDirection = (inverse(_ViewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - fsPos;
 	gl_Position = _ProjectionMatrix * _ViewMatrix * vec4(fsPos, 1.0);

@@ -51,7 +51,7 @@ public:
 		if (m_enableCamera)GetCamera()->Update(time);
 		if (GetKeyboard()->KeyJustDown('1')) {
 			int newTile = m_selectedTile->m_type + 1;
-			if (newTile > TileRenderer::TILECOUNT) newTile = 0;
+			if (newTile > TileRenderer::TILECOUNT - 1) newTile = 0;
 			m_selectedTile->Set(TileType(newTile), UP);
 		} else if (GetKeyboard()->KeyJustDown('R')) {
 			if (m_selectedTile->m_type != 0 && m_selectedTile->m_type != -1)
@@ -171,8 +171,8 @@ public:
 				for (auto tile = m_values.begin(); tile != m_values.end(); tile++) {
 					for (auto transform = tile->second.begin(); transform != tile->second.end(); transform++) {
 						for (int i = 0; i < transform->second.size(); i++) {
-							if (i == transform->second.size()) finalStr += Format("case %d: tile->Set(%s, %s); break;", i, TileTypeToString(TileType(tile->first)).c_str(), TileTransformToString(TileTransform(transform->first)).c_str());
-							else finalStr += Format("case %d:", i);
+							if (i == transform->second.size() - 1) finalStr += Format("case %d: tile->Set(%s, %s); break;\n", transform->second[i], TileTypeToString(TileType(tile->first)).c_str(), TileTransformToString(TileTransform(transform->first)).c_str());
+							else finalStr += Format("case %d:\n", transform->second[i]);
 						}
 					}
 				}
