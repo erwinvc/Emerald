@@ -17,11 +17,9 @@ out vec4 outColor;
 //uniform vec3 uLightColor;
 
 uniform vec3 uCameraPos;
-uniform float reflectivity;
 uniform float shineDamper;
 
 uniform float _Diffuse;
-uniform float _Specular;
 
 void main() {
     float uLightRadius = newPos.w;
@@ -35,6 +33,9 @@ void main() {
 	vec3 normal = normalize(texture(_GNormal, uv).xyz);
 	vec3 position = texture(_GPosition, uv).xyz;
     
+	float specular = misc.x;
+	float lightInfluence = misc.y;
+
     vec3 lightToPosVector = position.xyz - lightPos;
     float lightDist = length(lightToPosVector);  
     vec3 l = -lightToPosVector / (lightDist);
@@ -47,11 +48,11 @@ void main() {
 
     vec3 color =
     _Diffuse * uLightColor * albedo * max(0.0, dot(normal, l)) +
-    _Specular * uLightColor * reflectivity * pow(max(0.0, dot(h, normal)), shineDamper); 
+    uLightColor * specular * pow(max(0.0, dot(h, normal)), shineDamper); 
 
     color *= ztest * attenuation;
 
-	vec3 finalColor = mix(color, albedo, misc.y);
+	vec3 finalColor = mix(color, albedo, lightInfluence);
 	outColor = vec4(finalColor, 1.0);
 
 	//float brightness = dot(outColor.rgb, vec3(0.2126, 0.7152, 0.0722));

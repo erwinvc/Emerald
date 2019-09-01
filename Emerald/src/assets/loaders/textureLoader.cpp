@@ -1,28 +1,17 @@
 #include "stdafx.h"
-#include "../stb_image.h"
 
 void TextureLoader::AsyncLoad() {
-	if (!FileSystem::DoesFileExist(m_file)) {
-		LOG_ERROR("[~gTexture~x] file at ~1%s~x does not exist!", m_file.c_str());
-		return;
-	}
-
-	int bpc;
-
-	stbi_set_flip_vertically_on_load(1);
-	m_data = stbi_load(m_file.c_str(), (int*)&m_width, (int*)&m_height, &bpc, 4);
-
-	if (bpc != 3 && bpc != 4) {
-		LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", bpc, m_file.c_str());
-		return;
-	}
-
-	m_finishedAsync = true;
+	TextureUtils::LoadTexture(m_file, m_params.GetFlipY(), [this](byte* data, uint width, uint height) {
+		m_width = width;
+		m_height = height;
+		int size = 4 * m_width * m_height;
+		m_data = new byte[size];
+		memcpy(m_data, data, size);
+	});
 }
 void TextureLoader::SyncLoad(map<String, AssetBase*>& assets) {
 	if (m_data != nullptr) {
 		assets[m_name] = NEW(Texture(m_width, m_height, m_data, m_params));
-		stbi_image_free(m_data);
 		LOG("[~gTexture~x] Loaded ~1%s", m_file.c_str());
 	} else LOG_ERROR("[~gTexture~x] Failed to load ~1%s", m_file.c_str());
 }

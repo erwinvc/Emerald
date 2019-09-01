@@ -71,9 +71,9 @@ public:
 	TileTransform m_transformIndex;
 	//Vector4 m_heights;
 
-	Tile() : m_type(FULL), m_transformIndex(UP) {}
-	Tile(TileType type) : m_type(type), m_transformIndex(UP) {}
-	Tile(int type) : m_type(TileType(type)), m_transformIndex(UP) {}
+	Tile() : m_type(FULL), m_materialID(Math::RandomInt(0, 1)), m_transformIndex(UP) {}
+	Tile(TileType type) : m_type(type), m_materialID(Math::RandomInt(0, 1)), m_transformIndex(UP) {}
+	Tile(int type) : m_type(TileType(type)), m_materialID(Math::RandomInt(0, 1)), m_transformIndex(UP) {}
 
 	void Set(TileType type, TileTransform transform) {
 		m_type = type;

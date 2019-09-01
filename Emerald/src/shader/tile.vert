@@ -6,6 +6,8 @@ layout(location = 3) in vec3 vsTangents;
 layout(location = 4) in vec3 vsBitangents;
 layout(location = 5) in vec2 vsPosition;
 layout(location = 6) in float vsTransformIndex;
+layout(location = 7) in vec3 vsStrengths;
+layout(location = 8) in float vsTextureID;
 //layout(location = 7) in vec4 vsHeights;
 
 out vec3 fsPos;
@@ -14,6 +16,8 @@ out vec3 fsNormal;
 out mat3 fsTBNMatrix;
 out vec3 fstangent;
 out vec3 fsViewDirection;
+out vec3 fsStrengths;
+out float fsTextureID;
 
 uniform mat4 _ProjectionMatrix;
 uniform mat4 _ViewMatrix;
@@ -45,9 +49,11 @@ void main(){
 
 	fsUv = vsUv;
 	if(yDot > 0.9f){
-		fsUv = fsPos.zx;
+		fsUv = vec2(fsPos.x, -fsPos.z);
 	}
 
+	fsStrengths = vsStrengths;
+	fsTextureID = vsTextureID;
 	fsViewDirection = (inverse(_ViewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - fsPos;
 	gl_Position = _ProjectionMatrix * _ViewMatrix * vec4(fsPos, 1.0);
 }

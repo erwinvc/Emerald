@@ -1,9 +1,9 @@
 #pragma once
 
-class Model : public AssetBase{
+class Model : public AssetBase {
 private:
 	vector<AssetRef<Mesh>> m_meshes;
-	vector<AssetRef<Material>> m_materials;
+	vector<AssetRef<BasicMaterial>> m_materials;
 	map<String, AssetRef<Texture>> m_textures;
 	String m_dir;
 
@@ -112,14 +112,19 @@ private:
 	void LoadModel(const String& path);
 
 public:
-	Model(vector<AssetRef<Mesh>> meshes) : m_meshes(meshes)
-	{
-		
+	Model(vector<AssetRef<Mesh>> meshes) : m_meshes(meshes) {
+
 	}
 	~Model() {}
 
 	vector<AssetRef<Mesh>> GetMeshes() { return m_meshes; }
 
+
+	void SetMaterial(AssetRef<BasicMaterial> material) {
+		for (auto& mesh : m_meshes) {
+			mesh->SetMaterial(material);
+		}
+	}
 
 	void Draw(AssetRef<Shader> shader) {
 		for (auto& mesh : m_meshes) {

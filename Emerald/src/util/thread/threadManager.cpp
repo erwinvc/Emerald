@@ -12,7 +12,7 @@ Thread* ThreadManager::RegisterThread(String name, void(*func)()) {
 			while (!thread->m_shutDown) {
 				((void(*)(void)) arguments[2])();
 			}
-			LOG("[~rThreads~x] ~1%s~xthread finished", thread->GetName().c_str());
+			LOG("[~rThreads~x] ~1%s~x thread finished", thread->GetName().c_str());
 			thread->m_finished = true;
 
 		} catch (...) { LOG_ERROR("[~rThreads~x] caught exception in ~1%s ~rthread", thread->m_name.c_str()); }

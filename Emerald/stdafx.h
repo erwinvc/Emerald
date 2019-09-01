@@ -49,6 +49,7 @@
 
 #include "vendor/noise.h"
 #include "vendor/json.h"
+#include "vendor/stb_image.h"
 
 using namespace std;
 
@@ -91,10 +92,11 @@ using namespace std;
 #define NEW(x) new (typeid(x).name()) x
 #define NEWARRAY(x, y) new (typeid(x).name()) x[y]
 #define DELETE(x) Destroy(x)
+
 #else
 #define NEW(x) new x
 #define NEWARRAY(x, y) new x[y]
-#define DELETE(x) delete x
+#define DELETE(x) if(x) delete x
 #define DELETEARRAY(x) delete[] x
 
 #endif
@@ -119,11 +121,17 @@ using namespace std;
 
 #include "assets/assetBase.h"
 #include "assets/texture/texture.h"
+#include "assets/material/material.h"
+#include "assets/material/basicMaterial.h"
+#include "assets/material/tileMaterial.h"
+#include "assets/texture/textureArray.h"
 #include "assets/texture/textureUtils.h"
+#include "assets/texture/tileTextureManager.h"
 #include "assets/texture/icon.h"
 #include "assets/loaders/assetLoader.h"
 #include "assets/loaders/customLoader.h"
 #include "assets/loaders/textureLoader.h"
+#include "assets/loaders/tileTextureLoader.h"
 #include "assets/loaders/shaderLoader.h"
 #include "assets/loaders/modelLoader.h"
 #include "assets/loaders/stateLoader.h"
@@ -138,7 +146,6 @@ using namespace std;
 
 #include "graphics/camera/camera.h"
 #include "graphics/camera/freeCam.h"
-#include "graphics/material.h"
 #include "graphics/mesh.h"
 #include "graphics/model.h"
 #include "entity/entity.h"

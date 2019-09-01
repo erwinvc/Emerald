@@ -32,7 +32,7 @@ class AssetManager : public Singleton<AssetManager> {
 	Timer m_timer;
 
 	map<String, AssetBase*> m_assets;
-	ManagedRef<AssetBatch> m_currentBatch;
+	AssetRef<AssetBatch> m_currentBatch;
 
 	const int THREADCOUNT = 4;
 	int m_currentBatchSize = 0;
@@ -50,12 +50,12 @@ class AssetManager : public Singleton<AssetManager> {
 	friend Singleton;
 
 public:
-	ManagedRef<AssetBatch> CreateBatch(const String& name) {
+	AssetRef<AssetBatch> CreateBatch(const String& name) {
 		LOG("[~yAssets~x] Asset batch ~1%s~x created", name.c_str());
 		return NEW(AssetBatch(name));
 	}
 
-	void SubmitBatch(ManagedRef<AssetBatch> batch) {
+	void SubmitBatch(AssetRef<AssetBatch> batch) {
 		LOG("[~yAssets~x] Asset batch ~1%s~x submitted", batch->m_name.c_str());
 		m_currentBatch = batch;
 		m_currentBatchSize = 0;
@@ -78,6 +78,7 @@ public:
 			}
 			m_currentBatch->m_finished = true;
 			LOG("[~yAssets~x] Finished asset batch ~1%s~x in %.2fms", m_currentBatch->m_name.c_str(), m_timer.Get());
+			DELETE(m_currentBatch.Get());
 			m_currentBatch = nullptr;
 		}
 	}
@@ -88,7 +89,9 @@ public:
 
 	template<typename T>
 	AssetRef<T> Get(const String& name) {
-		return (T*)m_assets[name];
+		T* asset = (T*)m_assets[name];
+		if (asset == nullptr) LOG_WARN("[~yAssets~x] asset ~1%s~x of type ~1%s~x not found", name.c_str(), typeid(T).name());
+		return asset;
 	}
 
 	template<typename T>

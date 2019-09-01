@@ -15,6 +15,9 @@ private:
 	RenderingPipeline* m_pipeline;
 	bool m_running;
 	bool m_ImGuiOpen = true;
+
+	HWND m_hwndHandle = 0;
+
 public:
 	Window* GetWindow() { return m_window; }
 
@@ -26,6 +29,8 @@ public:
 	void OnResize(int width, int height);
 	void Update(TimeStep time);
 	void Render();
+
+	void CapabilitiesCheck();
 
 	uint64_t GetFrameCount() { return m_frameCount; }
 	RenderingPipeline* GetPipeline() { return m_pipeline; }

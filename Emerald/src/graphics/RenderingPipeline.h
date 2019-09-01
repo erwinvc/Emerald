@@ -9,8 +9,6 @@ private:
 	AssetRef<Shader> m_directionalLightShader;
 	AssetRef<Shader> m_pointLightShader;
 	DirectionalLight m_directionalLight;
-	PointlightRenderer* m_pointlightRenderer;
-	vector<Pointlight> m_pointlights;
 
 	//SSAO
 	bool m_ssaoEnabled = false;
@@ -47,11 +45,10 @@ public:
 	RenderingPipeline() {}
 	~RenderingPipeline() {
 		DELETE(m_gBuffer);
-		DELETE(m_pointlightRenderer);
 		DELETE(m_ssaoRenderer);
 	}
 
-	void Initialize(uint width, uint height, int maxLights = PointlightRenderer::MAX_LIGHTS, int lightQuality = 10);
+	void Initialize(uint width, uint height);
 
 	void PreGeometryRender();
 	void PostGeometryRender();
@@ -63,5 +60,4 @@ public:
 	inline GBuffer* GetGBuffer() { return m_gBuffer; }
 	inline ManagedRef<Camera> GetCamera() { return m_camera; }
 	inline bool Initialized() { return m_initialized; }
-	inline vector<Pointlight>& GetPointLights() { return m_pointlights; }
 };

@@ -2,29 +2,21 @@
 #include "../stb_image.h"
 
 void Icon::Load() {
-	if (!FileSystem::DoesFileExist(m_file)) {
-		LOG_ERROR("[~gIcon~x] file at ~1%s~x does not exist!", m_file.c_str());
-		return;
-	}
+	TextureUtils::LoadTexture(m_file, 0, [this](byte* data, uint width, uint height) {
+		m_width = width;
+		m_height = height;
 
-	int bpc;
-
-	stbi_set_flip_vertically_on_load(0);
-	byte* data = stbi_load(m_file.c_str(), (int*)&m_width, (int*)&m_height, &bpc, 4);
-
-	if (((m_width % 16 + m_height % 16) != 0) || m_width != m_height) {
-		LOG_ERROR("[~gIcon~x] Icon at location ~1~r is not square or a power of 16", bpc, m_file.c_str());
-		return;
-	}
-
-	if (data) {
-		m_data = data;
-		m_icon = { (int)m_width, (int)m_height,  m_data};
-		LOG("[~gIcon~x] Loaded ~1%s", m_file.c_str());
-	} else LOG_ERROR("[~gIcon~x] Icon to load ~1%s", m_file.c_str());
-
+		if (((m_width % 16 + m_height % 16) != 0) || m_width != m_height) {
+			LOG_ERROR("[~gIcon~x] Icon at location ~1%s~r is not square or a power of 16", m_file.c_str());
+			return;
+		}
+		int size = 4 * m_width * m_height;
+		m_data = new byte[size];
+		memcpy(m_data, data, size);
+		m_icon = { (int)m_width, (int)m_height,  m_data };
+	});
 }
 
 Icon::~Icon() {
-	stbi_image_free(m_data);
+	delete[] m_data;
 }

@@ -42,3 +42,32 @@ namespace GLUtils {
 		GL(glDisable(GL_BLEND));
 	}
 }
+
+namespace TextureUtils {
+	bool LoadTexture(const String& path, bool flip, function<void(byte* data, uint width, uint height)> callback) {
+		if (!FileSystem::DoesFileExist(path)) {
+			LOG_ERROR("[~gTexture~x] file at ~1%s~x does not exist!", path.c_str());
+			return false;
+		}
+
+		int bpc;
+		int width, height;
+
+		stbi_set_flip_vertically_on_load(flip);
+		byte* data = stbi_load(path.c_str(), &width, &height, &bpc, 4);
+
+		if (bpc != 3 && bpc != 4) {
+			LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", bpc, path.c_str());
+			stbi_image_free(data);
+			return false;
+		}
+
+		if (data) {
+			LOG("[~gTexture~x] Loaded ~1%s", path.c_str());
+			callback(data, width, height);
+			stbi_image_free(data);
+			return true;
+		} else LOG_ERROR("[~gTexture~x] Failed to load ~1%s", path.c_str());
+		return false;
+	}
+}

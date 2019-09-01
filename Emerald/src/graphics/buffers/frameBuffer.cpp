@@ -40,7 +40,7 @@ void FrameBuffer::Resize(uint width, uint height) {
 FrameBuffer::~FrameBuffer() {
 	GL(glDeleteFramebuffers(1, &m_fbo));
 	for (AssetRef<Texture> texture : m_textures) {
-		DELETE(texture);
+		DELETE(texture.Get());
 	}
 	GL(glDeleteTextures(1, &m_dbo));
 }

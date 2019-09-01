@@ -6,7 +6,7 @@ static bool GLLogCall(const char* function, const char* file, int line) {
         String fileName = file;
         size_t position = fileName.find_last_of("\\");
         fileName = fileName.substr(position);
-        LOG_ERROR("[GLError] %s caused error 0x%lx in %s at line %d", function, error, fileName.c_str(), line);
+        LOG_ERROR("[GLError] %s caused error %s in %s at line %d", function, GLUtils::GLErrorToString(error).c_str(), fileName.c_str(), line);
         return false;
     }
     return true;

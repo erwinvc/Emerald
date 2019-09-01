@@ -8,11 +8,11 @@ private:
 
 public:
 	Mesh() : m_vao(nullptr), m_ibo(nullptr), m_material(nullptr) {}
-	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo, AssetRef<Material> mat) : m_vao(vao), m_ibo(ibo), m_material(mat) {}
+	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo, Material* mat) : m_vao(vao), m_ibo(ibo), m_material(mat) {}
 	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo);
 	~Mesh() {}
 	AssetRef<Material> GetMaterial() { return m_material; }
-	void SetMaterial(AssetRef<Material> mat) { m_material = mat; }
+	void SetMaterial(Material* mat) { m_material = mat; }
 
 	void Bind() {
 		m_vao->Bind();

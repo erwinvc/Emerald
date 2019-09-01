@@ -3,9 +3,9 @@
 void LoadingState::Initialize() {
 
 	GetTextureManager()->Initialize();
+	GetTileTextureManager()->Initialize();
 
 	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/Emerald_logo_no_background.png")));
-
 
 	GetShaderManager()->Create("UI", "src/shader/UI");
 	GetUIRenderer()->Initialize();
@@ -25,6 +25,8 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("HDR", "src/shader/hdr")));
 	m_batch->Add(NEW(ShaderLoader("SSAO", "src/shader/ssao")));
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "src/shader/ssaoBlur")));
+	m_batch->Add(NEW(TileTextureLoader("white", "white")));
+	//m_batch->Add(NEW(TileTextureLoader("obsidian", "obsidian")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
 	for (int i = 0; i < 16; i++) {
@@ -35,8 +37,10 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png")));
 	m_batch->Add(NEW(TextureLoader("White", "res/white.png")));
 	m_batch->Add(NEW(TextureLoader("BricksNormal", "sponza/bricksNormal.png")));
+	m_batch->Add(NEW(ModelLoader("HP", "cathedral/sibenik.obj")));
 
 	m_batch->Add(NEW(CustomLoader("Tile renderer", [] {GetTileRenderer()->Initialize(); })));
+	m_batch->Add(NEW(CustomLoader("Pointlight renderer", [] {GetPointlightRenderer()->Initialize(MeshGenerator::Sphere(10, 10), PointlightRenderer::MAX_LIGHTS); })));
 	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(GetApplication()->GetWidth(), GetApplication()->GetHeight()); })));
 
 	for (State* state : GetStateManager()->GetStates()) {
@@ -52,15 +56,13 @@ Vector2 position = Vector2(0, 0);
 Vector2 sizee = Vector2(1, 1);
 
 float progress = 0;
-
 Color color;
-
-
 
 void LoadingState::Update(const TimeStep& time) {
 	progress = Math::Ease(progress, GetAssetManager()->GetProgress(), 6);
 	color = Color::Mix(Color(0xde9c96), Color(0x96deae), progress);
 	if (m_batch->IsFinished()) {
+		GetTileTextureManager()->GenerateMipmaps();
 		GetStateManager()->SetState(GameStates::GAME);
 		GetStateManager()->RemoveState(this);
 	}

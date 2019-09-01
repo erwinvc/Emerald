@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 void ModelLoader::SyncLoad(map<String, AssetBase*>& assets) {
-	vector<AssetRef<Mesh>> meshes(m_preloadedMeshes.size());
+	vector<AssetRef<Mesh>> meshes;
 	for (PreloadedMesh& preloadedMesh : m_preloadedMeshes) {
 		ManagedRef<VertexArray> vaoModel(new VertexArray());
 		vaoModel->AddBuffer(NEW(VertexBuffer((float*)preloadedMesh.m_vertices, preloadedMesh.m_numVertices, m_layout)));

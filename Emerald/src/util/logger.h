@@ -1,8 +1,8 @@
 //#pragma once
-#define LOG( fmt, ...)					Logger::Message((int)ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
-#define LOG( fmt, ...)					Logger::Message((int)ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
-#define LOG_TIMED(time, fmt, ...)		Logger::MessageTimed(time, (int)ConsoleColor::WHITE,		" [Info]",		fmt, ##__VA_ARGS__ )
-#define LOG_ERROR( fmt, ...)			Logger::MessageDirect((int)ConsoleColor::RED,		" [Fail]",		fmt, ##__VA_ARGS__ )
+#define LOG( fmt, ...)					Logger::Message((int)ConsoleColor::WHITE,				" [Info]",		fmt, ##__VA_ARGS__ )
+#define LOG_WARN( fmt, ...)				Logger::Message((int)ConsoleColor::RED,					" [Warn]",		fmt, ##__VA_ARGS__ )
+#define LOG_TIMED(time, fmt, ...)		Logger::MessageTimed(time, (int)ConsoleColor::WHITE,	" [Info]",		fmt, ##__VA_ARGS__ )
+#define LOG_ERROR( fmt, ...)			Logger::MessageDirect((int)ConsoleColor::RED,			" [Fail]",		fmt, ##__VA_ARGS__ )
 
 class UILoggerComponent;
 

@@ -29,6 +29,7 @@ public:
 
 		m_offsetsBuffer->Bind();
 		GL(m_offsetsPtr = (T*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+		m_offsetsBuffer->Unbind();
 	}
 
 	void Submit(T& offset) {

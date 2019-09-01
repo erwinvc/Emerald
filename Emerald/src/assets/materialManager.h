@@ -3,7 +3,7 @@
 class MaterialManager : public Singleton<MaterialManager> {
 private:
 	map<String, Material*> m_materials;
-	Material* m_nullMaterial;
+	BasicMaterial* m_nullMaterial;
 
 	MaterialManager() {}
 	~MaterialManager() {}
@@ -11,14 +11,15 @@ private:
 
 public:
 	void Initialize() {
-		m_nullMaterial = NEW(Material());
+		m_nullMaterial = NEW(BasicMaterial());
 	}
 
-	AssetRef<Material> GetNullMaterial() { return m_nullMaterial; }
+	AssetRef<BasicMaterial> GetNullMaterial() { return m_nullMaterial; }
 
-	AssetRef<Material> Create(const String& name) {
-		m_materials[name] = NEW(Material());
-		return m_materials[name];
+	template<typename T>
+	AssetRef<T> Create(const String& name) {
+		m_materials[name] = NEW(T());
+		return (T*)m_materials[name];
 	}
 
 	AssetRef<Material> Get(const String& name) {

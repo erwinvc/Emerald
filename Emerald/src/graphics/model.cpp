@@ -19,7 +19,7 @@ void Model::LoadModel(const String& path) {
 	m_materials.reserve(scene->mNumMaterials);
 	m_meshes.reserve(scene->mNumMeshes);
 
-	for (int i = 0; i < (int)scene->mNumMaterials; i++) m_materials[i] = NEW(Material());
+	for (int i = 0; i < (int)scene->mNumMaterials; i++) m_materials[i] = GetMaterialManager()->GetNullMaterial();
 
 	m_dir = path.substr(0, path.find_last_of('/'));
 	if (scene->HasMaterials()) LoadMaterials(scene); 

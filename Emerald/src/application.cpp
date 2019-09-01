@@ -16,7 +16,7 @@ void Application::OnWindowClose() {
 }
 
 void Application::Initialize() {
-	glfwSetErrorCallback(ErrorCallback);
+ 	glfwSetErrorCallback(ErrorCallback);
 	if (!glfwInit()) {
 		LOG_ERROR("[GLFW] GLFW failed to initialize");
 		return;
@@ -43,12 +43,16 @@ void Application::Initialize() {
 		return;
 	}
 
+	//m_hwndHandle = glfwGetWin32Window(m_window->GetHandle());
+
 	GetGLCallbackManager()->AddOnResizeCallback(this, &Application::OnResize);
 	GetGLCallbackManager()->AddOnCloseCallback(this, &Application::OnWindowClose);
 
 	LOG("[~cGPU~x] %-26s %s", "GPU manufacturer~1", glGetString(GL_VENDOR));
 	LOG("[~cGPU~x] %-26s %s", "GPU~1", glGetString(GL_RENDERER));
 	LOG("[~cGPU~x] %-26s %s", "OpenGL version~1", glGetString(GL_VERSION));
+
+	CapabilitiesCheck();
 
 	m_pipeline = NEW(RenderingPipeline());
 
@@ -155,6 +159,16 @@ void Application::Render() {
 
 	m_window->SwapBuffers();
 	m_window->PollEvents();
+}
+
+void Application::CapabilitiesCheck() {
+	int maxSize;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
+
+	GLint max_layers;
+	glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_layers);
+
+	//MessageBox(hWnd, "id is: <int id here?>", "Msg title", MB_OK | MB_ICONQUESTION);
 }
 
 void Application::Cleanup() {

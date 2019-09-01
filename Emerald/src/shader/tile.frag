@@ -4,14 +4,13 @@ in vec3 fsNormal;
 in vec2 fsUv;
 in mat3 fsTBNMatrix;
 in vec3 fsViewDirection;
+in vec3 fsStrengths;
+in float fsTextureID;
 
-uniform sampler2D _Albedo;
-uniform sampler2D _Normal;
-uniform float _NormalStrength;
-uniform sampler2D _Specular;
-uniform float _SpecularStrength;
-uniform sampler2D _Emission;
-uniform float _EmissionStrength;
+uniform sampler2DArray _Albedo;
+uniform sampler2DArray _Normal;
+uniform sampler2DArray _Specular;
+uniform sampler2DArray _Emission;
 uniform vec4 _Boundaries;
 out vec3 geoData[4];
 
@@ -23,36 +22,37 @@ uniform float scale2;
 uniform float scale3;
 
 void main(){
-	vec4 diff = texture(_Albedo, fsUv).rgba;
+	float normalStrength = fsStrengths.x;
+	float specularStrength = fsStrengths.y;
+	float emissionStrength = fsStrengths.z;
+
+	vec4 diff = texture(_Albedo, vec3(fsUv, fsTextureID)).rgba;
 	if (diff.a < 0.2) {
 		discard;
 	}
 	
-    vec3 BumpMapNormal = texture(_Normal, fsUv).xyz;
-    BumpMapNormal = 2.0 * BumpMapNormal - vec3(1.0, 1.0, 1.0);
-    vec3 NewNormal;
+    vec3 BumpMapNormal = texture(_Normal, vec3(fsUv, fsTextureID)).xyz;
+    BumpMapNormal = 2.0 * BumpMapNormal - 1;
 
-    NewNormal = fsTBNMatrix * BumpMapNormal;
+    vec3 NewNormal = fsTBNMatrix * BumpMapNormal;
     NewNormal = normalize(NewNormal);
 
-	vec3 normal = mix(fsNormal, NewNormal, _NormalStrength);
+	vec3 finalNormal = mix(fsNormal, NewNormal, normalStrength);
 
 	vec3 nview = normalize(fsViewDirection);
-	vec3 n_reflection = normalize(reflect(nview, normal)); 
-	vec3 noise_vector = BumpMapNormal * scale1;
-	noise_vector =  mix(noise_vector, (texture(texture_noise, fsUv).xyz - vec3(0.5)) * 0.5f, scale2);
-    float inverse_dot_view = 1.0 - max(dot(normalize(normal + noise_vector), nview), 0.0);
+	vec3 nReflection = normalize(reflect(nview, finalNormal)); 
+    float inverse_dot_view = 1.0 - max(dot(normalize(finalNormal), nview), 0.0);
     vec3 lookup_table_color = texture(texture_iridescence, vec2(inverse_dot_view, 0.0)).rgb;
 
-	vec3 specular = texture(_Specular, fsUv).rgb * _SpecularStrength;
+	float specular = texture(_Specular, vec3(fsUv, fsTextureID)).a;
 
 	float xDistance = (_Boundaries.y) - fsPos.y;
 	float xDistance2 = _Boundaries.z - fsPos.x;
 
 	//if(fsPos.x > 10 + noise(fsPos.xz)){
-	geoData[0] = vec3(specular.r, 0, 0);
-	geoData[1] = diff.rgb * mix(lookup_table_color, vec3(1), scale3);
-	geoData[2] = normal;
+	geoData[0] = vec3(specular, 0, 0);
+	geoData[1] = diff.rgb * mix(vec3(1), lookup_table_color, scale3);
+	geoData[2] = finalNormal;
 	geoData[3] = fsPos;
 	//}
 }

@@ -25,13 +25,16 @@ void main()
 	vec3 position = texture(_GPosition, FSUV).xyz;
 	float ssao = texture(_SSAO, FSUV).x;
 
+	float specular = misc.x;
+	float lightInfluence = misc.y;
+
 	vec3 l = normalize(_Directional);
 	vec3 v = normalize(_CameraPosition - position);
 	vec3 h = normalize(l + v);
 
 	vec3 color = 
 	_Diffuse * albedo.xyz * max(0.0, dot(normal.xyz, l)) +
-	_Specular * pow(max(0.0, dot(h, normal)), 32.0) +
+	specular * pow(max(0.0, dot(h, normal)), 32.0) +
 	_Ambient * albedo.xyz;
 
 	vec3 finalColor = mix(color * _Color.rgb * (_SSAOEnabled ? ssao : 1), albedo, misc.y);

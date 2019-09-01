@@ -5,7 +5,7 @@ private:
 	String m_name = "Loading";
 	AssetRef<Texture> m_logo;
 	AssetRef<Texture> m_loadingTexture;
-	ManagedRef<AssetBatch> m_batch;
+	AssetRef<AssetBatch> m_batch;
 public:
 	const String& GetName() override { return m_name; }
 

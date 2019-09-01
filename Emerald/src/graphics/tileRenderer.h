@@ -5,11 +5,28 @@ class Tile;
 struct TileBufferData {
 	float m_x;
 	float m_y;
-	float m_transformIndex;
+	int m_transformIndex;
+	float m_strengthsNormal;
+	float m_strengthsSpecular;
+	float m_strengthsEmission;
+	int m_textureID;
 	//Vector4 m_heights;
 
-	TileBufferData(float x, float y, int transformIndex/*, const Vector4& heights*/) : m_x(x), m_y(y), m_transformIndex((float)transformIndex)/*, m_heights(heights)*/ {}
-	TileBufferData() : m_x(0), m_y(0), m_transformIndex(0)/*, m_heights(Vector4())*/ {}
+	TileBufferData(float x, float y, int transformIndex, float normalStrength, float specularStrength, float emissionStrength, int textureID) :
+		m_x(x), m_y(y),
+		m_transformIndex(transformIndex),
+		m_strengthsNormal(normalStrength),
+		m_strengthsSpecular(specularStrength),
+		m_strengthsEmission(emissionStrength),
+		m_textureID(textureID) {
+	}
+
+	TileBufferData() : m_x(0), m_y(0), m_transformIndex(0),
+		m_strengthsNormal(0),
+		m_strengthsSpecular(0),
+		m_strengthsEmission(0),
+		m_textureID(0) {
+	}
 };
 
 class TileRenderer : public Singleton<TileRenderer> {
@@ -40,7 +57,7 @@ public:
 	float m_scale1 = 0;
 	float m_scale2 = 0;
 	float m_scale3 = 0;
-	AssetRef<Material> m_material;
+	AssetRef<TileMaterial> m_material;
 };
 
 static TileRenderer* GetTileRenderer() { return TileRenderer::GetInstance(); }

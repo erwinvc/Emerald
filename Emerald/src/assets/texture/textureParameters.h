@@ -16,9 +16,7 @@ enum TextureFilter {
 
 enum TextureFormat {
 	RED = GL_RED,
-	GREEN = GL_GREEN,
-	BLUE = GL_BLUE,
-	ALPHA = GL_ALPHA,
+	RG = GL_RG,
 	RGBA = GL_RGBA,
 	RGB = GL_RGB,
 	RGBA32 = GL_RGBA32F,
@@ -56,9 +54,7 @@ private:
 	String FormatToString(TextureFormat format) const {
 		switch (format) {
 		case RED: return "RED";
-		case GREEN: return "GREEN";
-		case BLUE: return "BLUE";
-		case ALPHA: return "ALPHA";
+		case RG: return "RG";
 		case RGBA: return "RGBA";
 		case RGB: return "RGB";
 		case RGBA32: return "RGBA32";
@@ -85,6 +81,17 @@ private:
 		}
 		return "NULL";
 	}
+
+	int BaseInternalFormatToSizedInternalFormat(TextureFormat format) const {
+		switch (format) {
+		case RED: return GL_R8;
+		case RG: return GL_RG8;
+		case RGBA: return GL_RGBA8;
+		case RGB: return GL_RGB8;
+		}
+		return format;
+	}
+
 public:
 
 	TextureParameters(TextureFormat internalFormat = RGBA, TextureFormat format = RGBA, TextureFilter filter = LINEARMIPMAP, TextureWrap wrap = REPEAT, TextureType type = T_UNSIGNED_BYTE, bool flipY = true)
@@ -121,6 +128,9 @@ public:
 		case GL_TEXTURE_MAG_FILTER: return (m_filter == LINEAR || m_filter == LINEARMIPMAP) ? GL_LINEAR : GL_NEAREST; break;
 		}
 		return GL_LINEAR;
+	}
+	inline int GetInternalFormatSized() {
+		return BaseInternalFormatToSizedInternalFormat(m_internalFormat);
 	}
 
 	String GetAsString() const {

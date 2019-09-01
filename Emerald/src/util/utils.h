@@ -20,7 +20,7 @@ namespace Utils {
 	static void nullfunc() {}
 
 	//String
-	static vector<String> Split(String& s, String splitter) {
+	static vector<String> Split(String& s, const String splitter) {
 		size_t pos;
 		vector<String> out;
 		while ((pos = s.find(splitter)) != String::npos) {
@@ -108,4 +108,23 @@ namespace ImGui {
 namespace GLUtils {
 	void EnableBlending();
 	void DisableBlending();
+
+	static String GLErrorToString(int error) {
+		switch (error) {
+		case 0x500: return "GL_INVALID_ENUM";
+		case 0x501: return "GL_INVALID_VALUE";
+		case 0x502: return "GL_INVALID_OPERATION";
+		case 0x503: return "GL_STACK_OVERFLOW";
+		case 0x504: return "GL_STACK_UNDERFLOW";
+		case 0x505: return "GL_OUT_OF_MEMORY";
+		case 0x506: return "GL_INVALID_FRAMEBUFFER_OPERATION";
+		case 0x507: return "GL_CONTEXT_LOST";
+		case 0x5031: return "GL_TABLE_TOO_LARGE1";
+		}
+		return "";
+	}
+}
+
+namespace TextureUtils {
+	bool LoadTexture(const String& path, bool flip, function<void(byte* data, uint width, uint height)> callback);
 }

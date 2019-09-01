@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <random>
 
-void RenderingPipeline::Initialize(uint width, uint height, int maxLights, int lightQuality) {
+void RenderingPipeline::Initialize(uint width, uint height) {
 	m_width = width;
 	m_height = height;
 
@@ -55,8 +55,6 @@ void RenderingPipeline::Initialize(uint width, uint height, int maxLights, int l
 	//Shader variables
 	//m_geometryShader->Bind();
 
-	m_pointlightRenderer = NEW(PointlightRenderer(MeshGenerator::Sphere(lightQuality, lightQuality), maxLights));
-
 	m_quad = MeshGenerator::Quad();
 
 	m_initialized = true;
@@ -78,6 +76,8 @@ void RenderingPipeline::PreGeometryRender() {
 	//Draw to gBuffer
 	m_gBuffer->Bind();
 	m_gBuffer->Clear();
+
+	GetPointlightRenderer()->Begin();
 }
 
 float shineDamper = 0.001f;
@@ -125,7 +125,8 @@ void RenderingPipeline::PostGeometryRender() {
 	m_pointLightShader->Set("reflectivity", reflectivity);
 	m_pointLightShader->Set("_Diffuse", m_directionalLight.m_diffuse);
 	m_pointLightShader->Set("_Specular", m_directionalLight.m_specular);
-	m_pointlightRenderer->Draw(m_pointlights);
+	GetPointlightRenderer()->End();
+	GetPointlightRenderer()->Draw();
 
 	m_hdrBuffer->Unbind();
 
