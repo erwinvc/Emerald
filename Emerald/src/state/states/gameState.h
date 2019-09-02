@@ -51,10 +51,11 @@ public:
 			GetWorld()->BreakTile(x, y);
 		}
 
-		if (KeyJustDown('H')) {
-		}
 		if (ButtonJustDown(VK_MOUSE_MIDDLE)) {
 			m_pointlights.push_back(Pointlight(Vector3(cast.x, 1.5f, cast.z), 25, Color(1, 0.8f, 0.8f)));
+		}
+		if (KeyJustDown('H')) {
+			m_pointlights.push_back(Pointlight(Vector3(cast.x, 1.5f, cast.z), 25, Color::RandomPrimary()));
 		}
 	}
 

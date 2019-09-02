@@ -19,4 +19,11 @@ public:
 	static nlohmann::json LoadJsonFromFile(const String& name);
 
 	static void SaveStringToFile(const String& str, const String& name);
+	static void CreateFile(const String& file);
+
+	static bool CreateFileIfDoesntExist(const String& file) {
+		bool exists = DoesFileExist(file);
+		if (!exists) CreateFile(file);
+		return !exists;
+	}
 };

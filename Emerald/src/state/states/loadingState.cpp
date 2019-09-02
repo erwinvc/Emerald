@@ -25,7 +25,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("HDR", "src/shader/hdr")));
 	m_batch->Add(NEW(ShaderLoader("SSAO", "src/shader/ssao")));
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "src/shader/ssaoBlur")));
-	m_batch->Add(NEW(TileTextureLoader("white", "white")));
+	m_batch->Add(NEW(TileTextureLoader("white", "test")));
 	//m_batch->Add(NEW(TileTextureLoader("obsidian", "obsidian")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
@@ -43,6 +43,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Pointlight renderer", [] {GetPointlightRenderer()->Initialize(MeshGenerator::Sphere(10, 10), PointlightRenderer::MAX_LIGHTS); })));
 	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(GetApplication()->GetWidth(), GetApplication()->GetHeight()); })));
 
+	//m_batch->Add(NEW(CustomLoader("Tile manager", [] {GetTileManager()->Initialize(); })));
 	for (State* state : GetStateManager()->GetStates()) {
 		if (state != this) {
 			m_batch->Add(NEW(StateLoader(state)));
@@ -85,8 +86,7 @@ void LoadingState::OnImGUI() {
 	ImGui::SliderFloat2("size", (float*)&sizee, 0, 1);
 }
 
-void LoadingState::Cleanup() {
-}
+void LoadingState::Cleanup() {}
 
 void LoadingState::OnEnterState() {
 	GetAssetManager()->SubmitBatch(m_batch);

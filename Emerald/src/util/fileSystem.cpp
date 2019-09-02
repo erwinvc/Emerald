@@ -22,3 +22,8 @@ void FileSystem::SaveStringToFile(const String& str, const String& name) {
 	i << str;
 	i.close();
 }
+
+void FileSystem::CreateFile(const String& file) {
+	ofstream i(file);
+	i.close();
+}

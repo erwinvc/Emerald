@@ -18,14 +18,14 @@ public:
 		GL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, m_params.GetWrap()));
 		//GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.4));
 
-		GL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, params.GetInternalFormatSized(), m_size, m_size, m_layers));
+		GL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 5, params.GetInternalFormatSized(), m_size, m_size, m_layers));
 
-		if (GLEW_EXT_texture_filter_anisotropic) {
-			float value = 0;
-			GL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value));
-			float amount = Math::Min(8.0f, value);
-			GL(glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16));
-		} else LOG_WARN("GL_EXT_texture_filter_anisotropic not supported");
+		//if (GLEW_EXT_texture_filter_anisotropic) {
+		//	float value = 0;
+		//	GL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value));
+		//	float amount = Math::Min(8.0f, value);
+		//	GL(glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16));
+		//} else LOG_WARN("GL_EXT_texture_filter_anisotropic not supported");
 	}
 
 	int AddTexture(byte* data) {

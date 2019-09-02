@@ -55,7 +55,7 @@ public:
 	void Draw();
 
 	float m_scale1 = 0;
-	float m_scale2 = 0;
+	float m_scale2 = 5;
 	float m_scale3 = 0;
 	AssetRef<TileMaterial> m_material;
 };
