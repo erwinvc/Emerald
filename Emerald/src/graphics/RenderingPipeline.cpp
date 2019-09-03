@@ -80,7 +80,7 @@ void RenderingPipeline::PreGeometryRender() {
 	GetPointlightRenderer()->Begin();
 }
 
-float shineDamper = 0.001f;
+float shineDamper = 0.2f;
 float reflectivity = 0;
 void RenderingPipeline::PostGeometryRender() {
 	m_gBuffer->Unbind();

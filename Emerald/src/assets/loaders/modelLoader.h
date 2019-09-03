@@ -2,14 +2,6 @@
 
 class ModelLoader : public AssetLoader {
 private:
-	struct AssimpVertex {
-		Vector3 m_position;
-		Vector3 m_normal;
-		Vector2 m_uv;
-		Vector3 m_tangents;
-		Vector3 m_biTangents;
-	};
-
 	const BufferLayout m_layout = {
 		{ShaderDataType::Float3, "vsPos", 0},
 		{ShaderDataType::Float3, "vsNormal", 0},
@@ -29,7 +21,7 @@ private:
 		aiProcess_ValidateDataStructure;
 
 	struct PreloadedMesh {
-		AssimpVertex* m_vertices;
+		Vertex* m_vertices;
 		GLuint* m_indices;
 		int m_numVertices = 0;
 		int m_numIndices = 0;
@@ -43,7 +35,7 @@ private:
 
 			m_numVertices = mesh->mNumVertices;
 			m_numIndices = mesh->mNumFaces * 3;
-			m_vertices = new AssimpVertex[m_numVertices];
+			m_vertices = new Vertex[m_numVertices];
 			m_indices = new GLuint[m_numIndices];
 
 			for (uint32 i = 0; i < mesh->mNumVertices; i++) {

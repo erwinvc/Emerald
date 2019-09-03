@@ -1,15 +1,15 @@
 #pragma once
 
 class Mesh {
-private:
+protected:
 	ManagedRef<VertexArray> m_vao;
 	ManagedRef<IndexBuffer> m_ibo;
 	AssetRef<Material> m_material;
 
 public:
 	Mesh() : m_vao(nullptr), m_ibo(nullptr), m_material(nullptr) {}
-	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo, Material* mat) : m_vao(vao), m_ibo(ibo), m_material(mat) {}
-	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo);
+	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo, Material* mat) : m_vao(vao), m_ibo(ibo), m_material(mat) {}
+	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo);
 	~Mesh() {}
 	AssetRef<Material> GetMaterial() { return m_material; }
 	void SetMaterial(Material* mat) { m_material = mat; }

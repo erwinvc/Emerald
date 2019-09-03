@@ -118,6 +118,7 @@ using namespace std;
 
 #include "graphics/shaders/shader.h"
 #include "graphics/shaders/shaderManager.h"
+#include "graphics/vertex.h"
 
 #include "assets/assetBase.h"
 #include "assets/texture/texture.h"
@@ -147,6 +148,7 @@ using namespace std;
 #include "graphics/camera/camera.h"
 #include "graphics/camera/freeCam.h"
 #include "graphics/mesh.h"
+#include "graphics/customMesh.h"
 #include "graphics/model.h"
 #include "entity/entity.h"
 #include "assets/assetManager.h"

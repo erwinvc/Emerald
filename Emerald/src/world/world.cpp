@@ -2,7 +2,7 @@
 #include "world.h"
 
 void World::Draw() {
-	for(Chunk& chunk : m_chunks) {
+	for (Chunk& chunk : m_chunks) {
 		chunk.Draw();
 	}
 }

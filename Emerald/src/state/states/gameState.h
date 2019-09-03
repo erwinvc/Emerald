@@ -47,7 +47,6 @@ public:
 		m_pointlights[0].m_position.z = cast.z;
 
 		if (GetMouse()->ButtonDown(VK_MOUSE_LEFT)) {
-			Timer timer;
 			GetWorld()->BreakTile(x, y);
 		}
 
@@ -63,6 +62,7 @@ public:
 		GetPipeline()->GetGBuffer()->BindTextures();
 		GetTileRenderer()->Begin();
 		GetWorld()->Draw();
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		GetTileRenderer()->End();
 		GetTileRenderer()->Draw();
 		GetLineRenderer()->DrawRect(Rect((float)m_rayCastPos.x + 0.5f, (float)m_rayCastPos.y + 0.5f, 1.0f, 1.0f));
@@ -72,6 +72,7 @@ public:
 		}
 
 		GetLineRenderer()->DrawRect(GetWorld()->GetBoundaries());
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	void RenderUI() override {

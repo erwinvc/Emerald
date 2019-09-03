@@ -35,8 +35,8 @@ public:
 	}
 
 	void Populate() {
-		loop(y, 16) {
-			loop(x, 16) {
+		loop(y, 64) {
+			loop(x, 64) {
 				GenerateChunk(x, y);
 			}
 		}
