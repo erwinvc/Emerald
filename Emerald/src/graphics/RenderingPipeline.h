@@ -36,7 +36,7 @@ private:
 	int m_selectedTexture = 0;
 	float m_gamma = 1;
 	float m_exposure = 1;
-	int m_selectedTonemapping = 8;
+	int m_selectedTonemapping = 11;
 
 	uint m_width;
 	uint m_height;

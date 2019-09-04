@@ -80,7 +80,7 @@ void RenderingPipeline::PreGeometryRender() {
 	GetPointlightRenderer()->Begin();
 }
 
-float shineDamper = 0.2f;
+float shineDamper = 5.0f;
 float reflectivity = 0;
 void RenderingPipeline::PostGeometryRender() {
 	m_gBuffer->Unbind();
@@ -187,7 +187,7 @@ void RenderingPipeline::PostUIRender() {
 
 void RenderingPipeline::OnImGUI() {
 	if (ImGui::BeginTabItem("Pipeline")) {
-		String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard" };
+		const String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard" };
 		ImGui::DragFloat3("Directional", (float*)&m_directionalLight, 0.01f);
 		if (ImGui::CollapsingHeader("HDR")) {
 			ImGui::Checkbox("Post processing", &m_applyPostProcessing);
@@ -221,7 +221,7 @@ void RenderingPipeline::OnImGUI() {
 		if (ImGui::CollapsingHeader("Memory")) {
 			GetMemory()->OnImGui();
 		}
-		ImGui::SliderFloat("Shinedamper", &shineDamper, 0.001f, 5);
+		ImGui::SliderFloat("Shinedamper", &shineDamper, 0.001f, 10);
 		ImGui::SliderFloat("Reflectivity", &reflectivity, 0, 5);
 		ImGui::EndTabItem();
 	}

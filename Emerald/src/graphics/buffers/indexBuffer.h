@@ -11,6 +11,12 @@ public:
     void Bind();
     void Unbind();
 
+	void SetData(uint* data, uint32 count, GLenum usage = GL_STATIC_DRAW) {
+		Bind();
+		GL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint), data, usage));
+		Unbind();
+	}
+
 	void Draw(uint mode = GL_TRIANGLES) {
 		GL(glDrawElements(mode, m_count, GL_UNSIGNED_INT, NULL));
 	}

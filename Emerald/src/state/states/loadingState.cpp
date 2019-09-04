@@ -17,6 +17,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetApplication()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
+	m_batch->Add(NEW(ModelLoader("dragon", "sponza/a.fbx")));
 	m_batch->Add(NEW(ShaderLoader("Line", "src/shader/line")));
 	m_batch->Add(NEW(ShaderLoader("Geometry", "src/shader/geometry")));
 	m_batch->Add(NEW(ShaderLoader("Tile", "src/shader/tile")));

@@ -13,13 +13,18 @@ private:
 	AssetRef<Shader> m_uiShader;
 	GroundRaycast m_rayCast;
 	Vector2I m_rayCastPos;
+	AssetRef<Model> m_model;
 	//Pointlight* pl;
 	vector<Pointlight> m_pointlights;
-
+	AssetRef<Texture> texIri;
+	AssetRef<Texture> texNoise;
 public:
 	const String& GetName() override { return m_name; }
 
 	void Initialize() override {
+		texIri = GetAssetManager()->Get<Texture>("Irridescence");
+		texNoise = GetAssetManager()->Get<Texture>("Noise");
+		m_model = GetAssetManager()->Get<Model>("dragon");
 		m_geometryShader = GetShaderManager()->Get("Geometry");
 		m_uiShader = GetShaderManager()->Get("UI");
 		m_pointlights.push_back(Pointlight(GetCamera()->m_position, 25, Color::White()));
@@ -73,6 +78,19 @@ public:
 
 		GetLineRenderer()->DrawRect(GetWorld()->GetBoundaries());
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		m_geometryShader->Bind();
+		m_geometryShader->Set("texture_iridescence", 4);
+		texIri->Bind(4);
+		m_geometryShader->Set("texture_noise", 5);
+		texNoise->Bind(5);
+		m_geometryShader->Set("scale1", 0);
+		m_geometryShader->Set("scale2", 5);
+		m_geometryShader->Set("scale3", 0);
+		m_geometryShader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
+		m_geometryShader->Set("viewMatrix", GetCamera()->GetViewMatrix());
+		m_geometryShader->Set("transformationMatrix", Matrix4::Identity());
+		m_model->Draw(m_geometryShader);
 	}
 
 	void RenderUI() override {
