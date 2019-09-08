@@ -42,8 +42,8 @@ private:
 				m_vertices[i].m_position = Vector3(mesh->mVertices[i]);
 				m_vertices[i].m_normal = Vector3(mesh->mNormals[i]);
 				m_vertices[i].m_uv = Vector2(mesh[0].mTextureCoords[0][i]);
-				m_vertices[i].m_tangents = Vector3(mesh->mTangents[i]);
-				m_vertices[i].m_biTangents = Vector3(mesh->mBitangents[i]);
+				m_vertices[i].m_tangent = Vector3(mesh->mTangents[i]);
+				m_vertices[i].m_biTangent = Vector3(mesh->mBitangents[i]);
 			}
 
 			for (uint i = 0; i < mesh->mNumFaces; i++) {
@@ -52,7 +52,7 @@ private:
 					m_indices[i * 3] = mesh->mFaces[i].mIndices[0];
 					m_indices[i * 3 + 1] = mesh->mFaces[i].mIndices[1];
 					m_indices[i * 3 + 2] = mesh->mFaces[i].mIndices[2];
-				} else LOG_ERROR("[~g3DModel~x] Strange amount of faces (%d) in model ~1%s", mesh->mFaces[i].mNumIndices, name.c_str());
+				} else LOG_ERROR("[~gModel~x] Strange amount of faces (%d) in model ~1%s", mesh->mFaces[i].mNumIndices, name.c_str());
 			}
 		}
 	};
@@ -80,19 +80,19 @@ public:
 
 	void AsyncLoad() override {
 		if (!FileSystem::DoesFileExist(m_file)) {
-			LOG_ERROR("[~g3DModel~x] file at ~1%s~x does not exist!", m_file.c_str());
+			LOG_ERROR("[~gModel~x] file at ~1%s~x does not exist!", m_file.c_str());
 			return;
 		}
 
 		Timer timer;
 		Assimp::Importer importer;
 		const aiScene *scene = importer.ReadFile(m_file, ImportFlags);
-		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) LOG_ERROR("[~g3DModel~x] Failed to load ~1%s", m_name.c_str());
+		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) LOG_ERROR("[~gModel~x] Failed to load ~1%s", m_name.c_str());
 
 		m_preloadedMeshes.reserve(scene->mNumMeshes);
 		ProcessNode(scene->mRootNode, scene);
 
-		LOG("[~g3DModel~x] loaded ~1%s~x in %.2fms", m_name.c_str(), timer.Get());
+		LOG("[~gModel~x] loaded ~1%s~x in %.2fms", m_name.c_str(), timer.Get());
 	}
 	void SyncLoad(map<String, AssetBase*>& assets) override;
 

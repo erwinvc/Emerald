@@ -124,6 +124,10 @@ namespace Math {
 	}
 
 	inline int Round(float val) {
-		return (int)round(val);
+		return (int)::round(val);
+	}
+
+	inline int Floor(float val) {
+		return (int)::floor(val);
 	}
 }

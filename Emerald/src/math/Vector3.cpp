@@ -57,8 +57,8 @@ Vector3 Vector3::ZAxis() {
 }
 
 Vector3 Vector3::Rotate(float angle, Vector3& axis) {
-    Vector3 k = axis.Normalize();
-    return *this * Math::Cos(angle) + k.Cross(y)* Math::Sin(angle) + (k * k.Dot(y)) * (1.0f - Math::Cos(angle));
+	Vector3 k = axis.Normalized();
+	return *this * Math::Cos(angle) + k.Cross(y)* Math::Sin(angle) + (k * k.Dot(y)) * (1.0f - Math::Cos(angle));
 }
 
 Vector3& Vector3::Add(const Vector3& other) {
@@ -237,7 +237,15 @@ float Vector3::Magnitude() const {
 	return (float)sqrt(x * x + y * y + z * z);
 }
 
-Vector3 Vector3::Normalize() const {
+Vector3& Vector3::Normalize() {
+	float length = Magnitude();
+	x /= length;
+	y /= length;
+	z /= length;
+	return *this;
+}
+
+Vector3 Vector3::Normalized() const {
 	float length = Magnitude();
 	return Vector3(x / length, y / length, z / length);
 }

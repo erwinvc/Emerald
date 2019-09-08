@@ -2,9 +2,9 @@
 
 BasicMaterial::BasicMaterial() :
 	m_albedo(GetTextureManager()->GetNullTexture()),
-	m_normal(GetTextureManager()->GetNullTexture()),
-	m_specular(GetTextureManager()->GetNullTexture()),
-	m_emission(GetTextureManager()->GetNullTexture()) {
+	m_normal(GetTextureManager()->GetNormalTexture()),
+	m_specular(GetTextureManager()->GetWhiteTexture()),
+	m_emission(GetTextureManager()->GetWhiteTexture()) {
 }
 
 BasicMaterial::~BasicMaterial() {}

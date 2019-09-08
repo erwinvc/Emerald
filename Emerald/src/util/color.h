@@ -1,5 +1,18 @@
 #pragma once
 
+class Color8 {
+public:
+	uint8 R;
+	uint8 G;
+	uint8 B;
+	uint8 A;
+
+	Color8() : R(0), G(0), B(0), A(0) {}
+	Color8(uint8 r, uint8 g, uint8 b, uint8 a) : R(r), G(g), B(b), A(a) {}
+
+	operator uint8*() const { return (uint8*)this; }
+};
+
 class Color {
 public:
 	static Color White() { return Color(1, 1, 1); }
@@ -16,6 +29,7 @@ public:
 	static Color Cyan() { return Color(0, 1, 1); }
 
 	static Color Transparent() { return Color(0, 0, 0, 0); }
+	static Color NormalMap() { return Color(0.5f, 0.5f, 1); }
 
 	float R;
 	float G;
@@ -32,6 +46,13 @@ public:
 	Color(float val) : R(val), G(val), B(val), A(val) {}
 	Color(float r, float g, float b, float a = 1.0f) : R(r), G(g), B(b), A(a) {}
 
+	Color8 ToColor8() {
+		uint8 r = (uint8)Math::Round(R * 255);
+		uint8 g = (uint8)Math::Round(G * 255);
+		uint8 b = (uint8)Math::Round(B * 255);
+		uint8 a = (uint8)Math::Round(A * 255);
+		return Color8(r, g, b, a);
+	}
 	void Set(float r, float g, float b) {
 		R = r;
 		G = g;

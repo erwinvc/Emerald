@@ -7,7 +7,7 @@ protected:
 	AssetRef<Material> m_material;
 
 public:
-	Mesh() : m_vao(nullptr), m_ibo(nullptr), m_material(nullptr) {}
+	Mesh();
 	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo, Material* mat) : m_vao(vao), m_ibo(ibo), m_material(mat) {}
 	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo);
 	~Mesh() {}
@@ -33,6 +33,12 @@ public:
 	void Draw() {
 		Bind();
 		m_ibo->Draw();
+		//Unbind();
+	}
+
+	void Draw(uint32 count, uint mode = GL_TRIANGLES) {
+		Bind();
+		m_ibo->Draw(count, mode);
 		//Unbind();
 	}
 

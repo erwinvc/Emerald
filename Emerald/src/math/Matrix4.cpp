@@ -241,7 +241,7 @@ Matrix4 Matrix4::Perspective(float fov, float aspectRatio, float nearPlane, floa
 Matrix4 Matrix4::LookAt(const Vector3& camera, const Vector3& object, const Vector3& up) {
 	Matrix4 result = Identity();
 	Vector3 f = (object - camera).Normalize();
-	Vector3 s = f.Cross(up.Normalize());
+	Vector3 s = f.Cross(up.Normalized());
 	Vector3 u = s.Cross(f);
 
 	result.elements[0 + 0 * 4] = s.x;

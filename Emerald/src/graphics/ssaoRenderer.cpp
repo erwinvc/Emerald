@@ -14,7 +14,7 @@ SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_text
 
 	for (int i = 0; i < KERNELCOUNT; ++i) {
 		Vector3 sample(Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f));
-		sample = sample.Normalize() * Math::RandomFloat(1.0f);
+		sample = sample.Normalized() * Math::RandomFloat(1.0f);
 		float scale = float(i) / KERNELCOUNT;
 
 		scale = Math::Lerp(0.1f, 1.0f, scale * scale);

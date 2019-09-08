@@ -112,9 +112,8 @@ private:
 	void LoadModel(const String& path);
 
 public:
-	Model(vector<AssetRef<Mesh>> meshes) : m_meshes(meshes) {
-
-	}
+	Model(vector<AssetRef<Mesh>> meshes) : m_meshes(meshes) {}
+	Model(AssetRef<Mesh> mesh) : m_meshes({mesh}) {}
 	~Model() {}
 
 	vector<AssetRef<Mesh>> GetMeshes() { return m_meshes; }

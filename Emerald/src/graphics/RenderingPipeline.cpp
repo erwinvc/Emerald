@@ -78,11 +78,15 @@ void RenderingPipeline::PreGeometryRender() {
 	m_gBuffer->Clear();
 
 	GetPointlightRenderer()->Begin();
+
+	if (m_wireFrame) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 }
 
 float shineDamper = 5.0f;
 float reflectivity = 0;
 void RenderingPipeline::PostGeometryRender() {
+	if (m_wireFrame) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+
 	m_gBuffer->Unbind();
 
 	GL(glDisable(GL_DEPTH_TEST));
@@ -221,6 +225,8 @@ void RenderingPipeline::OnImGUI() {
 		if (ImGui::CollapsingHeader("Memory")) {
 			GetMemory()->OnImGui();
 		}
+
+		if (ImGui::Checkbox("Wireframe", &m_wireFrame)) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)); 
 		ImGui::SliderFloat("Shinedamper", &shineDamper, 0.001f, 10);
 		ImGui::SliderFloat("Reflectivity", &reflectivity, 0, 5);
 		ImGui::EndTabItem();

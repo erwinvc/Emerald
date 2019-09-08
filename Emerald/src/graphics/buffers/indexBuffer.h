@@ -4,7 +4,7 @@ private:
     GLuint m_bufferID;
     GLuint m_count;
 public:
-    IndexBuffer(uint* data, GLuint count);
+    IndexBuffer(uint* data, uint32 count);
     ~IndexBuffer();
     inline GLuint GetCount() { return m_count; }
 
@@ -12,6 +12,7 @@ public:
     void Unbind();
 
 	void SetData(uint* data, uint32 count, GLenum usage = GL_STATIC_DRAW) {
+		m_count = count;
 		Bind();
 		GL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint), data, usage));
 		Unbind();

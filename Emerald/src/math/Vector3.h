@@ -76,6 +76,7 @@ struct Vector3 {
     float Dot(const Vector3& other) const;
 
     float Magnitude() const;
-    Vector3 Normalize() const;
+	Vector3& Normalize();
+	Vector3 Normalized() const;
     float Distance(const Vector3& other) const;
 };

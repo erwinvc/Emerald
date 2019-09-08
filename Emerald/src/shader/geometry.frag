@@ -45,10 +45,10 @@ void main(){
     float inverse_dot_view = 1.0 - max(dot(normalize(normal + noise_vector), nview), 0.0);
     vec3 lookup_table_color = texture(texture_iridescence, vec2(inverse_dot_view, 0.0)).rgb;
 
-	vec3 specular = texture(_Specular, fsUv).rgb * _SpecularStrength;
+	float specular = texture(_Specular, fsUv).a;
 
-	geoData[0] = vec3(specular.r, 0, 0);
-	geoData[1] = diff.rgb * mix(lookup_table_color, vec3(1), scale3);
+	geoData[0] = vec3(specular, 0, 0);
+	geoData[1] = diff.rgb * mix(vec3(1), lookup_table_color, scale3);
 	geoData[2] = normal;
 	geoData[3] = fsPos;
 }

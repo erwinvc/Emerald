@@ -65,7 +65,7 @@ void LoadingState::Update(const TimeStep& time) {
 	color = Color::Mix(Color(0xde9c96), Color(0x96deae), progress);
 	if (m_batch->IsFinished()) {
 		GetTileTextureManager()->GenerateMipmaps();
-		GetStateManager()->SetState(GameStates::GAME);
+		GetStateManager()->SetState(GameStates::LOADINGWORLD);
 		GetStateManager()->RemoveState(this);
 	}
 }

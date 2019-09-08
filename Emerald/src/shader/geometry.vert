@@ -22,8 +22,9 @@ uniform sampler2D texture_noise;
 void main()
 {
 	vec3 tangent = normalize(vsTangents - dot(vsNormal, vsTangents) * vsNormal);
-	if (dot(cross(vsNormal, tangent), vsBitangents) < 0.0f) tangent *= -1.0f;
-    tbnMatrix = mat3(tangent, vsBitangents, vsNormal);
+	//if (dot(cross(vsNormal, tangent), vsBitangents) < 0.0f) tangent *= -1.0f;
+	vec3 biTangent = cross(vsNormal, tangent);
+    tbnMatrix = mat3(tangent, biTangent, vsNormal);
 
 	//mat3 scale = mat3(
 	//0.01f, 0, 0, 0, 0.01f, 0, 0, 0, 0.01f

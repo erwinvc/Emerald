@@ -3,6 +3,7 @@
 class RenderingPipeline {
 private:
 	bool m_initialized = false;
+	bool m_wireFrame = false;
 
 	//Deferred
 	GBuffer* m_gBuffer;

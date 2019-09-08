@@ -34,7 +34,7 @@ Vector3 GroundRaycast::GetGroundPosition(float height) {
 	Vector3 rayStart = GetCamera()->m_position;
 	Vector3 rayEnd = GetCamera()->m_position + ray;
 	Vector3 delta = rayEnd.Subtract(rayStart);
-	Vector3 deltaNormal = delta.Normalize();
+	delta.Normalize();
 
 	Vector3 rayToPlaneDelta = Vector3(0.0f, height, 0.0f).Subtract(rayStart);
 

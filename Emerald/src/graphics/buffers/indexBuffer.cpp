@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 
-IndexBuffer::IndexBuffer(uint* data, GLuint count) : m_count(count) {
+IndexBuffer::IndexBuffer(uint* data, uint32 count) : m_count(count) {
 	GL(glGenBuffers(1, &m_bufferID));
 	SetData(data, count);
 }
