@@ -10,8 +10,8 @@ public:
 	Model* model;
 	Vertex* vertices;
 	uint* indices;
-	int size = 16 * 2;
-	int layers = 16 * 2;
+	int planeSizeX = 16 * 2;
+	int planeSizeY = 16 * 2;
 	vector<Pointlight> m_pointlights;
 	float m_scale1 = 0;
 	float m_scale2 = 0;
@@ -19,6 +19,7 @@ public:
 	AssetRef<Texture> texIri;
 	AssetRef<Texture> texNoise;
 	AssetRef<Texture> texWhite;
+	Vector2I m_rayCastPos;
 	uint indexCount = 0;
 	int count = 0;
 	GroundRaycast rayCast;
@@ -37,6 +38,7 @@ public:
 		m_shader = GetShaderManager()->Get("Geometry");
 		model = GetAssetManager()->Get<Model>("dragon");
 		//model->SetMaterial(mat);
+		m_pointlights.push_back(Pointlight(GetCamera()->m_position, 25, Color::White()));
 
 		sphereMesh = MeshGenerator::Sphere(20, 20);
 		sphere = NEW(Model(sphereMesh));
@@ -44,61 +46,57 @@ public:
 		entity = NEW(Entity(sphere));
 		entity->m_scale = Vector3(0.05f, 0.05f, 0.05f);
 
-		int vertPerLayer = (size + 1);
-		int vertCount = vertPerLayer * 2 * layers;
-		indexCount = size * 2 * 3 * layers;
-		vertices = new Vertex[vertCount];
 
-		for (int i = 0; i < vertCount; i++) {
-			vertices[i] = Vertex();
-		}
+		int layerVertexCount = (planeSizeX + 1);
+		int totalVertexCount = layerVertexCount * 2 * planeSizeY;
+		indexCount = planeSizeX * 2 * 3 * planeSizeY;
+		count = indexCount;
+		vertices = new Vertex[totalVertexCount];
+		indices = new uint[indexCount];
 
-		float segmentSize = Math::TWO_PI / (vertPerLayer - 1);
-		for (int height = 0; height < layers; height++) {
-			int vertOffset = height * vertPerLayer;
-			int vertOffsetPlusOne = (height + 1) * vertPerLayer;
-			for (int x = 0; x < vertPerLayer; x++) {
-				float size = (float)x / 2;
-				float y = (float)height / 2;
-				vertices[x + vertOffset].m_position = Vector3(size, 1, y);
-				vertices[x + vertOffsetPlusOne].m_position = Vector3(size, 1, y + 0.125f);
-				vertices[x + vertOffset].m_uv = Vector2(size, y);
-				vertices[x + vertOffsetPlusOne].m_uv = Vector2(size, y + 0.125f);
+		for (int y = 0; y < planeSizeY; y++) {
+			int totalLayerVertexCount = y * layerVertexCount;
+			int totalLayerVertexCountPlusOne = (y + 1) * layerVertexCount;
+			for (int x = 0; x < layerVertexCount; x++) {
+				float relativeX = (float)x / 2;
+				float relativeY = (float)y / 2;
+				vertices[x + totalLayerVertexCount].m_position = Vector3(relativeX, 1, relativeY);
+				vertices[x + totalLayerVertexCountPlusOne].m_position = Vector3(relativeX, 1, relativeY + 0.125f);
+				vertices[x + totalLayerVertexCount].m_uv = Vector2(relativeX, relativeY);
+				vertices[x + totalLayerVertexCountPlusOne].m_uv = Vector2(relativeX, relativeY + 0.125f);
 			}
 		}
 
-		indices = new uint[indexCount];
-
 		int index = 0;
+		for (int y = 0; y < planeSizeY; y++) {
+			int layerSize = y * layerVertexCount;
 
-		for (int height = 0; height < layers; height++) {
-			int layerSize = height * (size + 1);
+			for (int i = 0; i < planeSizeX; i++) {
+				if ((i + y) % 2 == 0) {
+					indices[index++] = layerVertexCount + i + 1 + layerSize; //4
+					indices[index++] = i + layerSize;						 //1
+					indices[index++] = layerVertexCount + i + layerSize;	 //3
 
-			for (int i = 0; i < size; i++) {
-				if ((i + height) % 2 == 0) {
-					indices[index++] = i + layerSize;					 //1
-					indices[index++] = vertPerLayer + i + layerSize;     //3
-					indices[index++] = i + 1 + layerSize;				 //2
-
-					indices[index++] = i + 1 + layerSize;				 //2
-					indices[index++] = vertPerLayer + i + layerSize;	 //3
-					indices[index++] = vertPerLayer + i + 1 + layerSize; //4
+					indices[index++] = i + 1 + layerSize;					 //2
+					indices[index++] = i + layerSize;						 //1
+					indices[index++] = layerVertexCount + i + 1 + layerSize; //4
 				} else {
-					indices[index++] = vertPerLayer + i + 1 + layerSize; //4
-					indices[index++] = i + layerSize;					 //1
-					indices[index++] = vertPerLayer + i + layerSize;	 //3
+					indices[index++] = i + layerSize;						 //1
+					indices[index++] = layerVertexCount + i + layerSize;	 //3
+					indices[index++] = i + 1 + layerSize;					 //2
 
-					indices[index++] = i + 1 + layerSize;				 //2
-					indices[index++] = i + layerSize;					 //1
-					indices[index++] = vertPerLayer + i + 1 + layerSize; //4
+					indices[index++] = i + 1 + layerSize;					 //2
+					indices[index++] = layerVertexCount + i + layerSize;	 //3
+					indices[index++] = layerVertexCount + i + 1 + layerSize; //4
 				}
 			}
 		}
 
 		mesh = new CustomMesh();
-		mesh->SetVertices(vertices, vertCount);
-		mesh->SetIndices(indices, indexCount);
 		mesh->SetMaterial(mat);
+
+		mesh->SetVertices(vertices, totalVertexCount);
+		mesh->SetIndices(indices, indexCount);
 
 		mesh->CalculateNormals();
 		mesh->UploadMeshData();
@@ -111,25 +109,46 @@ public:
 		}
 
 		Vector3 cast = rayCast.GetGroundPosition(GetCamera());
+		m_rayCastPos = rayCast.GetTile();
+
+		m_pointlights[0].m_position.x = cast.x;
+		m_pointlights[0].m_position.y = 1.2f;
+		m_pointlights[0].m_position.z = cast.z;
 
 		Vector3 groundPos = rayCast.GetGroundPosition();
-		groundPos.x = Math::Round(groundPos.x * 2) / 2.0f;
+		groundPos.x = Math::Round(groundPos.x + 0.5f);
 		groundPos.y = 1;
-		groundPos.z = Math::Round(groundPos.z * 2) / 2.0f;
+		groundPos.z = Math::Round(groundPos.z + 0.5f);
 
 		entity->m_position.x = groundPos.x;
 		entity->m_position.y = 1.0f;
 		entity->m_position.z = groundPos.z;
 
-		int index = (groundPos.x * 2) + ((groundPos.z * 2) * (size + 1));
+		int layerVertexCount = planeSizeY + 1;
+		int index1 = (groundPos.x * 2) + ((groundPos.z * 2) * layerVertexCount);
+		int index2 = index1 - 1;
+		int index3 = index1 - 2;
+
+		int index11 = index1 - layerVertexCount;
+		int index12 = index2 - layerVertexCount;
+		int index13 = index3 - layerVertexCount;
+
+		int index21 = index11 - layerVertexCount;
+		int index22 = index12 - layerVertexCount;
+		int index23 = index13 - layerVertexCount;
 
 		if (ButtonDown(VK_MOUSE_LEFT)) {
-			Vertex* vertex = mesh->GetVertex(index);
-			if (vertex) {
-				vertex->m_position.y = 0;
-				mesh->CalculateNormals();
-				mesh->UploadMeshData();
-			}
+			if (Vertex* vertex = mesh->GetVertex(index1)) vertex->m_position.y = 0;
+			if (Vertex* vertex = mesh->GetVertex(index2)) vertex->m_position.y = 0;
+			if (Vertex* vertex = mesh->GetVertex(index3)) vertex->m_position.y = 0;
+			if (Vertex* vertex = mesh->GetVertex(index11)) vertex->m_position.y = 0;
+			if (Vertex* vertex = mesh->GetVertex(index12)) vertex->m_position.y = 0;
+			if (Vertex* vertex = mesh->GetVertex(index13)) vertex->m_position.y = 0;
+			if (Vertex* vertex = mesh->GetVertex(index21)) vertex->m_position.y = 0;
+			if (Vertex* vertex = mesh->GetVertex(index22)) vertex->m_position.y = 0;
+			if (Vertex* vertex = mesh->GetVertex(index23)) vertex->m_position.y = 0;
+			mesh->CalculateNormals();
+			mesh->UploadMeshData();
 		}
 	}
 	void RenderGeometry() override {
@@ -154,7 +173,9 @@ public:
 		mesh->Draw(count);
 		entity->Draw(m_shader);
 		//model->Draw(m_shader);
-		GetLineRenderer()->Submit(0, 0, 0, 1, 0, 0);
+		//GetLineRenderer()->Submit(0, 0, 0, 1, 0, 0);
+		GetLineRenderer()->DrawRect(Rect((float)m_rayCastPos.x + 0.5f, (float)m_rayCastPos.y + 0.5f, 1.0f, 1.0f));
+
 	}
 	void RenderUI() override {}
 	void OnImGUI() override {

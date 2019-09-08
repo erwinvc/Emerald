@@ -4,6 +4,7 @@ uniform sampler2D _GMisc;
 uniform sampler2D _GAlbedo;
 uniform sampler2D _GNormal;
 uniform sampler2D _GPosition;
+uniform sampler2D _SSAO;
 
 in vec4 fsPos;
 in vec4 newPos;
@@ -18,6 +19,7 @@ out vec4 outColor;
 
 uniform vec3 uCameraPos;
 uniform float shineDamper;
+uniform bool _SSAOEnabled;
 
 uniform float _Diffuse;
 
@@ -32,7 +34,8 @@ void main() {
 	vec3 albedo = texture(_GAlbedo, uv).xyz;
 	vec3 normal = normalize(texture(_GNormal, uv).xyz);
 	vec3 position = texture(_GPosition, uv).xyz;
-    
+    float ssao = texture(_SSAO, uv).x;
+
 	float specular = misc.x;
 	float lightInfluence = misc.y;
 
@@ -53,7 +56,7 @@ void main() {
     color *= ztest * attenuation;
 
 	vec3 finalColor = mix(color, albedo, lightInfluence);
-	outColor = vec4(finalColor, 1.0);
+	outColor = vec4(finalColor * (_SSAOEnabled ? ssao : 1), 1.0);
 
 	//float brightness = dot(outColor.rgb, vec3(0.2126, 0.7152, 0.0722));
 	//float brightness = (outColor.r + outColor.g + outColor.b);

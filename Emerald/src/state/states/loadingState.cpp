@@ -7,7 +7,7 @@ void LoadingState::Initialize() {
 
 	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/Emerald_logo_no_background.png")));
 
-	GetShaderManager()->Create("UI", "src/shader/UI");
+	GetShaderManager()->Create("UI", "res/shader/UI");
 	GetUIRenderer()->Initialize();
 
 	m_batch = GetAssetManager()->CreateBatch("Main Assets");
@@ -17,15 +17,15 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetApplication()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
-	m_batch->Add(NEW(ModelLoader("dragon", "sponza/a.fbx")));
-	m_batch->Add(NEW(ShaderLoader("Line", "src/shader/line")));
-	m_batch->Add(NEW(ShaderLoader("Geometry", "src/shader/geometry")));
-	m_batch->Add(NEW(ShaderLoader("Tile", "src/shader/tile")));
-	m_batch->Add(NEW(ShaderLoader("Directional", "src/shader/directional")));
-	m_batch->Add(NEW(ShaderLoader("Pointlight", "src/shader/pointlight")));
-	m_batch->Add(NEW(ShaderLoader("HDR", "src/shader/hdr")));
-	m_batch->Add(NEW(ShaderLoader("SSAO", "src/shader/ssao")));
-	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "src/shader/ssaoBlur")));
+	//m_batch->Add(NEW(ModelLoader("dragon", "sponza/a.fbx")));
+	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
+	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry")));
+	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
+	m_batch->Add(NEW(ShaderLoader("Directional", "res/shader/directional")));
+	m_batch->Add(NEW(ShaderLoader("Pointlight", "res/shader/pointlight")));
+	m_batch->Add(NEW(ShaderLoader("HDR", "res/shader/hdr")));
+	m_batch->Add(NEW(ShaderLoader("SSAO", "res/shader/ssao")));
+	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "res/shader/ssaoBlur")));
 	m_batch->Add(NEW(TileTextureLoader("white", "test")));
 	//m_batch->Add(NEW(TileTextureLoader("obsidian", "obsidian")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
@@ -37,8 +37,8 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(TextureLoader("Irridescence", "res/irridescence.png")));
 	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png")));
 	m_batch->Add(NEW(TextureLoader("White", "res/white.png")));
-	m_batch->Add(NEW(TextureLoader("BricksNormal", "sponza/bricksNormal.png")));
-	m_batch->Add(NEW(ModelLoader("HP", "cathedral/sibenik.obj")));
+	m_batch->Add(NEW(TextureLoader("BricksNormal", "res/bricksNormal.png")));
+	//m_batch->Add(NEW(ModelLoader("HP", "cathedral/sibenik.obj")));
 
 	m_batch->Add(NEW(CustomLoader("Tile renderer", [] {GetTileRenderer()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Pointlight renderer", [] {GetPointlightRenderer()->Initialize(MeshGenerator::Sphere(10, 10), PointlightRenderer::MAX_LIGHTS); })));

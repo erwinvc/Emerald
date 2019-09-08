@@ -23,6 +23,7 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 	m_pointLightShader->Set("_GAlbedo", 1);
 	m_pointLightShader->Set("_GNormal", 2);
 	m_pointLightShader->Set("_GPosition", 3);
+	m_pointLightShader->Set("_SSAO", 4);
 
 	//m_gaussianShader = GetShaderManager()->Get("Gaussian");
 	//m_gaussianShader->Bind();
@@ -129,6 +130,8 @@ void RenderingPipeline::PostGeometryRender() {
 	m_pointLightShader->Set("reflectivity", reflectivity);
 	m_pointLightShader->Set("_Diffuse", m_directionalLight.m_diffuse);
 	m_pointLightShader->Set("_Specular", m_directionalLight.m_specular);
+	m_pointLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
+
 	GetPointlightRenderer()->End();
 	GetPointlightRenderer()->Draw();
 

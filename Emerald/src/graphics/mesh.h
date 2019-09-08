@@ -10,7 +10,7 @@ public:
 	Mesh();
 	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo, Material* mat) : m_vao(vao), m_ibo(ibo), m_material(mat) {}
 	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo);
-	~Mesh() {}
+	virtual ~Mesh() {}
 	AssetRef<Material> GetMaterial() { return m_material; }
 	void SetMaterial(Material* mat) { m_material = mat; }
 

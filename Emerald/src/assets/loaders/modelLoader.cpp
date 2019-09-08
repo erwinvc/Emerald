@@ -2,6 +2,7 @@
 
 void ModelLoader::SyncLoad(map<String, AssetBase*>& assets) {
 	vector<AssetRef<Mesh>> meshes;
+	meshes.reserve(m_preloadedMeshes.size());
 	for (PreloadedMesh& preloadedMesh : m_preloadedMeshes) {
 		ManagedRef<VertexArray> vaoModel(new VertexArray());
 		vaoModel->AddBuffer(NEW(VertexBuffer((float*)preloadedMesh.m_vertices, preloadedMesh.m_numVertices, m_layout)));

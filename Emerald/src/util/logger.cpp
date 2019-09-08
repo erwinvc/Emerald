@@ -189,7 +189,7 @@ void Logger::ForceEmptyQueue() {
 /*Print the message to a logging file*/
 void Logger::LogToFile(const char * buff) {
 	// #Dirty add proper path
-	const auto fileName = "D:/Development/C++/Emerald/log.log";
+	const auto fileName = "log.log";
 	ofstream logFile;
 	logFile.open(fileName, ios_base::app);
 	if (m_firstEntry) {
