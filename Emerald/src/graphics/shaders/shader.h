@@ -36,6 +36,37 @@ private:
 		return shader;
 	}
 
+	GLuint Load2() {
+		String vertexFile = m_file + ".vert";
+		String fragFile = m_file + ".frag";
+		String te = m_file + ".tese";
+		String tc = m_file + ".tesc";
+		GL(uint program = glCreateProgram());
+		uint vertex = LoadShader(vertexFile, GL_VERTEX_SHADER);
+		uint fragment = LoadShader(fragFile, GL_FRAGMENT_SHADER);
+		uint tee = LoadShader(te, GL_TESS_EVALUATION_SHADER);
+		uint tcc = LoadShader(tc, GL_TESS_CONTROL_SHADER);
+
+
+		if (vertex == -1 || fragment == -1 || tee == -1 || tcc == -1) {
+			GL(glDeleteProgram(program));
+			return -1;
+		}
+
+		GL(glAttachShader(program, vertex));
+		GL(glAttachShader(program, fragment));
+		GL(glAttachShader(program, tee));
+		GL(glAttachShader(program, tcc));
+		GL(glLinkProgram(program));
+		GL(glValidateProgram(program));
+
+		GL(glDeleteShader(vertex));
+		GL(glDeleteShader(fragment));
+		GL(glDeleteShader(tee));
+		GL(glDeleteShader(tcc));
+		return program;
+	}
+
 	GLuint Load(bool reload = false) {
 		String vertexFile = m_file + ".vert";
 		String fragFile = m_file + ".frag";
@@ -77,7 +108,9 @@ private:
 	}
 
 	Shader(const String& name, const String& file, bool hasGeometry = false) : m_shaderID(0), m_hasGeometry(hasGeometry), m_name(name), m_file(file) {
-		m_shaderID = Load();
+		if (hasGeometry) {
+			m_shaderID = Load2();
+		} else m_shaderID = Load();
 		RegisterUniforms();
 	}
 

@@ -7,7 +7,7 @@ void LoadingState::Initialize() {
 
 	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/Emerald_logo_no_background.png")));
 
-	GetShaderManager()->Create("UI", "res/shader/UI");
+	GetShaderManager()->Create("UI", "res/shader/UI", false);
 	GetUIRenderer()->Initialize();
 
 	m_batch = GetAssetManager()->CreateBatch("Main Assets");
@@ -17,9 +17,9 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetApplication()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
-	//m_batch->Add(NEW(ModelLoader("dragon", "sponza/a.fbx")));
+	m_batch->Add(NEW(ModelLoader("dragon", "sponza/a.fbx")));
 	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
-	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry")));
+	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry", true)));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
 	m_batch->Add(NEW(ShaderLoader("Directional", "res/shader/directional")));
 	m_batch->Add(NEW(ShaderLoader("Pointlight", "res/shader/pointlight")));

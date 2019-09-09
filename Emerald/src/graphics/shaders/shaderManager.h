@@ -10,12 +10,12 @@ private:
 
 public:
 
-	AssetRef<Shader> Create(const String& name, const String& file) {
+	AssetRef<Shader> Create(const String& name, const String& file, bool test) {
 		if (m_shaders[name]) {
 			LOG("[~bShaders~x] ~1%s ~rshader has already been created", name.c_str());
 			return m_shaders[name];
 		}
-		AssetRef<Shader> shader = NEW(Shader(name, file));
+		AssetRef<Shader> shader = NEW(Shader(name, file, test));
 		m_shaders[name] = shader;
 		m_shadersVector.push_back(shader);
 		return shader;

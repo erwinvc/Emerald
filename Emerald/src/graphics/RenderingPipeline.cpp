@@ -67,6 +67,11 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 //}
 
 void RenderingPipeline::PreGeometryRender() {
+	GLint MaxPatchVertices = 0;
+	glGetIntegerv(GL_MAX_PATCH_VERTICES, &MaxPatchVertices);
+	LOG("Max supported patch vertices %d\n", MaxPatchVertices);
+	glPatchParameteri(GL_PATCH_VERTICES, 3);
+
 	GL(glEnable(GL_DEPTH_TEST));
 	GL(glDepthMask(true));
 	GL(glDisable(GL_BLEND));

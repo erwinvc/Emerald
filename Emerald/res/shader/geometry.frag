@@ -2,9 +2,9 @@
 in vec3 fsPos;
 in vec3 fsNormal;
 in vec2 fsUv;
-in mat3 tbnMatrix;
+in mat3 fsTBNMatrix;
 in vec3 fstangent;
-in vec3 v_view_direction;
+in vec3 fsViewDirection;
 
 uniform sampler2D _Albedo;
 uniform sampler2D _Normal;
@@ -33,12 +33,12 @@ void main(){
     BumpMapNormal = 2.0 * BumpMapNormal - vec3(1.0, 1.0, 1.0);
     vec3 NewNormal;
 
-    NewNormal = tbnMatrix * BumpMapNormal;
+    NewNormal = fsTBNMatrix * BumpMapNormal;
     NewNormal = normalize(NewNormal);
 
 	vec3 normal = mix(fsNormal, NewNormal, _NormalStrength);
 
-	vec3 nview = normalize(v_view_direction);
+	vec3 nview = normalize(fsViewDirection);
 	vec3 n_reflection = normalize(reflect(nview, normal)); 
 	vec3 noise_vector = BumpMapNormal * scale1;
 	noise_vector =  mix(noise_vector, (texture(texture_noise, fsUv).xyz - vec3(0.5)) * 0.5f, scale2);

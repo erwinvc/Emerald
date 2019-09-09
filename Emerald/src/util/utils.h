@@ -78,6 +78,8 @@ namespace GLUtils {
 		case GL_VERTEX_SHADER: return upperCase ? "Vertex" : "vertex";
 		case GL_GEOMETRY_SHADER: return upperCase ? "Geometry" : "geometry";
 		case GL_FRAGMENT_SHADER: return upperCase ? "Fragment" : "fragment";
+		case GL_TESS_EVALUATION_SHADER: return upperCase ? "Tessellation evaluation" : "tessellation evaluation";
+		case GL_TESS_CONTROL_SHADER: return upperCase ? "Tessellation control" : "tessellation control";
 		}
 		return "NULL";
 	}

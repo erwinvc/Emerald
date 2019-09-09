@@ -26,6 +26,12 @@ public:
 	Entity* entity;
 	Model* sphere;
 	Mesh* sphereMesh;
+
+	float t1 = 100;
+	float t2 = 1.8f;
+	float t3 = 0.3f;
+	float t4 = 2;
+
 	void Initialize() override {
 		AssetRef<BasicMaterial> mat = GetMaterialManager()->Create<BasicMaterial>("test");
 		AssetRef<BasicMaterial> mat2 = GetMaterialManager()->Create<BasicMaterial>("test2");
@@ -37,7 +43,7 @@ public:
 		mat2->SetAlbedo(texIri);
 		m_shader = GetShaderManager()->Get("Geometry");
 		model = GetAssetManager()->Get<Model>("dragon");
-		//model->SetMaterial(mat);
+		model->SetMaterial(mat);
 		m_pointlights.push_back(Pointlight(GetCamera()->m_position, 25, Color::White()));
 
 		sphereMesh = MeshGenerator::Sphere(20, 20);
@@ -138,18 +144,23 @@ public:
 		int index23 = index13 - layerVertexCount;
 
 		if (ButtonDown(VK_MOUSE_LEFT)) {
-			if (Vertex* vertex = mesh->GetVertex(index1)) vertex->m_position.y = 0;
-			if (Vertex* vertex = mesh->GetVertex(index2)) vertex->m_position.y = 0;
-			if (Vertex* vertex = mesh->GetVertex(index3)) vertex->m_position.y = 0;
-			if (Vertex* vertex = mesh->GetVertex(index11)) vertex->m_position.y = 0;
-			if (Vertex* vertex = mesh->GetVertex(index12)) vertex->m_position.y = 0;
-			if (Vertex* vertex = mesh->GetVertex(index13)) vertex->m_position.y = 0;
-			if (Vertex* vertex = mesh->GetVertex(index21)) vertex->m_position.y = 0;
-			if (Vertex* vertex = mesh->GetVertex(index22)) vertex->m_position.y = 0;
-			if (Vertex* vertex = mesh->GetVertex(index23)) vertex->m_position.y = 0;
+			if (Vertex* vertex = mesh->GetVertex(index1)) lower(vertex);
+			if (Vertex* vertex = mesh->GetVertex(index2)) lower(vertex);
+			if (Vertex* vertex = mesh->GetVertex(index3)) lower(vertex);
+			if (Vertex* vertex = mesh->GetVertex(index11))lower(vertex);
+			if (Vertex* vertex = mesh->GetVertex(index12))lower(vertex);
+			if (Vertex* vertex = mesh->GetVertex(index13))lower(vertex);
+			if (Vertex* vertex = mesh->GetVertex(index21))lower(vertex);
+			if (Vertex* vertex = mesh->GetVertex(index22))lower(vertex);
+			if (Vertex* vertex = mesh->GetVertex(index23))lower(vertex);
 			mesh->CalculateNormals();
 			mesh->UploadMeshData();
 		}
+	}
+
+	void lower(Vertex* v) {
+		v->m_position.y -= 0.02f;
+		if (v->m_position.y < 0) v->m_position.y = 0;
 	}
 	void RenderGeometry() override {
 		loop(i, m_pointlights.size()) {
@@ -167,10 +178,15 @@ public:
 		m_shader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
 		m_shader->Set("viewMatrix", GetCamera()->GetViewMatrix());
 		m_shader->Set("transformationMatrix", Matrix4::Identity());
+		m_shader->Set("cameraPosition", GetCamera()->m_position);
+		m_shader->Set("t1", (float)t1);
+		m_shader->Set("t2", (float)t2);
+		m_shader->Set("t3", (float)t3);
+		m_shader->Set("t4", (float)t4);
 
 		GetMaterialManager()->GetNullMaterial()->Bind(m_shader);
 		mesh->GetMaterial()->Bind(m_shader);
-		mesh->Draw(count);
+		mesh->Draw(count, GL_PATCHES);
 		entity->Draw(m_shader);
 		//model->Draw(m_shader);
 		//GetLineRenderer()->Submit(0, 0, 0, 1, 0, 0);
@@ -182,6 +198,10 @@ public:
 		ImGui::SliderFloat("scale1", &m_scale1, -5, 5);
 		ImGui::SliderFloat("scale2", &m_scale2, -5, 5);
 		ImGui::SliderFloat("scale3", &m_scale3, 0, 1);
+		ImGui::SliderFloat("t1", &t1, 0, 100);
+		ImGui::SliderFloat("t2", &t2, 0, 10);
+		ImGui::SliderFloat("t3", &t3, 0, 2);
+		ImGui::SliderFloat("t4", &t4, 0, 16);
 		ImGui::DragInt("count", &count, 1, 0, indexCount);
 	}
 	void Cleanup() override {}
