@@ -168,12 +168,6 @@ vec3 GTAToneMapping(vec3 color)
 	return color;
 }
 
-vec3 vignette(vec3 color, vec3 color2, float a, float b) {
-    float len = length(fsUv - 0.5);
-    float sstep = smoothstep(a, b, len);
-	return mix(color, color2, sstep);
-}
-
 vec3 tonemap_aces(vec3 color) {
 	float a = 2.51f;
 	float b = 0.03f;
@@ -217,7 +211,7 @@ vec3 ACESFitted(vec3 color)
 	return clamp(color, vec3(0.0), vec3(1.0));
 }
 
-vec3 Standard(vec3 color){
+vec3 Cherno(vec3 color){
 	float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
 	float mappedLuminance = (luminance * (1.0 + luminance / (1.0 * 1.0))) / (1.0 + luminance);
 
@@ -229,31 +223,41 @@ vec3 Standard(vec3 color){
 	return pow(mappedColor, vec3(1.0/_Gamma));
 }
 
+vec3 Standard(vec3 color) {
+    vec3 mapped = vec3(1.0) - exp(-color);
+    return pow(mapped, vec3(1.0 / _Gamma));
+}
+
+vec3 Vignette(vec3 color, vec3 color2, float a, float b) {
+    float len = length(fsUv - 0.5);
+    float sstep = smoothstep(a, b, len);
+	return mix(color, color2, sstep);
+}
+
 void main(){
 	vec3 color = texture(_HDRBuffer, fsUv).rgb * _Exposure;
-	if(_FXAA) color = computeFxaa();
+	if(_FXAA) color = computeFxaa() * _Exposure;
 
 	if(_ApplyPostProcessing == 0) {
 		out_color = vec4(color, 1.0);
 		return;
 	}
 
-	vec3 toneMapped = color;
-
 	switch(_Tonemapping){
-		case 0: toneMapped = linearToneMapping(color); break;
-		case 1: toneMapped = simpleReinhardToneMapping(color); break;
-		case 2: toneMapped = lumaBasedReinhardToneMapping(color); break;
-		case 3: toneMapped = whitePreservingLumaBasedReinhardToneMapping(color); break;
-		case 4: toneMapped = RomBinDaHouseToneMapping(color); break;
-		case 5: toneMapped = filmicToneMapping(color); break;
-		case 6: toneMapped = Uncharted2ToneMapping(color); break;
-		case 7: toneMapped = GTAToneMapping(color); break;
-		case 8: toneMapped = tonemap_aces(color); break;
-		case 9: toneMapped = toonTonemap(color); break;
-		case 10: toneMapped = ACESFitted(color); break;
-		case 11: toneMapped = Standard(color); break;
+		case 0: color = linearToneMapping(color); break;
+		case 1: color = simpleReinhardToneMapping(color); break;
+		case 2: color = lumaBasedReinhardToneMapping(color); break;
+		case 3: color = whitePreservingLumaBasedReinhardToneMapping(color); break;
+		case 4: color = RomBinDaHouseToneMapping(color); break;
+		case 5: color = filmicToneMapping(color); break;
+		case 6: color = Uncharted2ToneMapping(color); break;
+		case 7: color = GTAToneMapping(color); break;
+		case 8: color = tonemap_aces(color); break;
+		case 9: color = toonTonemap(color); break;
+		case 10: color = ACESFitted(color); break;
+		case 11: color = Standard(color); break;
+		case 12: color = Cherno(color); break;
 	}
 
-	out_color = vec4(vignette(toneMapped, vec3(0), 0.3, 0.8), 1);
+	out_color = vec4(Vignette(color, vec3(0), 0.3, 0.8), 1);
 }

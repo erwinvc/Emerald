@@ -16,10 +16,10 @@ public:
 	}
 	virtual ~Entity() {}
 
-	void Draw(AssetRef<Shader> shader) {
+	void Draw(AssetRef<Shader> shader, uint mode = GL_TRIANGLES) {
 		Matrix4 transform = Matrix4::TRS(m_position, m_rotation, m_scale);
-		shader->Set("transformationMatrix", transform);
-		m_model->Draw(shader);
+		shader->Set("_TransformationMatrix", transform);
+		m_model->Draw(shader, mode);
 	}
 
 	void OnImGui() {

@@ -123,11 +123,11 @@ namespace Math {
 		return value + (value < easeTo ? Abs(value - easeTo) / multiplier : -Abs(value - easeTo) / multiplier);
 	}
 
-	inline int Round(float val) {
-		return (int)::round(val);
+	inline float Round(float val) {
+		return ::round(val);
 	}
 
-	inline int Floor(float val) {
-		return (int)::floor(val);
+	inline float Floor(float val) {
+		return ::floor(val);
 	}
 }

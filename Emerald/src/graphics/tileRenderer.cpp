@@ -43,13 +43,12 @@ void TileRenderer::Begin() {
 	m_shader->Set("_Boundaries", GetWorld()->GetBoundaries().GetCornerPositions());
 	m_shader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
 	m_shader->Set("_ProjectionMatrix", GetCamera()->GetProjectionMatrix());
-	m_shader->Set("texture_iridescence", 4);
+	m_shader->Set("_Iridescence", 4);
 	texIri->Bind(4);
-	m_shader->Set("texture_noise", 5);
-	texNoise->Bind(5);
+
 	m_shader->Set("scale1", m_scale1);
 	m_shader->Set("scale2", m_scale2);
-	m_shader->Set("scale3", m_scale3);
+	m_shader->Set("_IridescenceStrength", m_scale3);
 
 	loop(i, TILECOUNT) {
 		m_renderers[i]->Begin();

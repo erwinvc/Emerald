@@ -17,25 +17,25 @@ public:
 	}
 
 	void AsyncLoad() {
-		TextureUtils::LoadTexture(Format("tiles/%s_albedo.png", m_name.c_str()), 1, [this](byte* data, uint width, uint height) {
+		TextureUtils::LoadTexture(Format("res/tiles/%s_albedo.png", m_name.c_str()), 1, [this](byte* data, uint width, uint height) {
 			int size = 4 * width * height;
 			m_albedo = new byte[size];
 			memcpy(m_albedo, data, size);
 		});
 
-		TextureUtils::LoadTexture(Format("tiles/%s_normal.png", m_name.c_str()), 1, [this](byte* data, uint width, uint height) {
+		TextureUtils::LoadTexture(Format("res/tiles/%s_normal.png", m_name.c_str()), 1, [this](byte* data, uint width, uint height) {
 			int size = 4 * width * height;
 			m_normal = new byte[size];
 			memcpy(m_normal, data, size);
 		});
 
-		TextureUtils::LoadTexture(Format("tiles/%s_specular.png", m_name.c_str()), 1, [this](byte* data, uint width, uint height) {
+		TextureUtils::LoadTexture(Format("res/tiles/%s_specular.png", m_name.c_str()), 1, [this](byte* data, uint width, uint height) {
 			int size = 4 * width * height;
 			m_specular = new byte[size];
 			memcpy(m_specular, data, size);
 		});
 
-		TextureUtils::LoadTexture(Format("tiles/%s_emission.png", m_name.c_str()), 1, [this](byte* data, uint width, uint height) {
+		TextureUtils::LoadTexture(Format("res/tiles/%s_emission.png", m_name.c_str()), 1, [this](byte* data, uint width, uint height) {
 			int size = 4 * width * height;
 			m_emission = new byte[size];
 			memcpy(m_emission, data, size);

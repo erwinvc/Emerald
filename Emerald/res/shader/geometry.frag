@@ -1,10 +1,14 @@
-#version 330
-in vec3 fsPos;
-in vec3 fsNormal;
-in vec2 fsUv;
-in mat3 fsTBNMatrix;
-in vec3 fstangent;
-in vec3 fsViewDirection;
+#version 430 core
+
+struct Data {
+	vec3 pos;
+	vec3 normal;
+	vec2 uv;
+	mat3 TBNMatrix;
+	vec3 viewDirection;
+};
+
+in Data fsData;
 
 uniform sampler2D _Albedo;
 uniform sampler2D _Normal;
@@ -14,41 +18,30 @@ uniform float _SpecularStrength;
 uniform sampler2D _Emission;
 uniform float _EmissionStrength;
 
+uniform sampler2D _Iridescence;
+uniform float _IridescenceStrength;
+
 out vec3 geoData[4];
 
-uniform sampler2D texture_iridescence;
-uniform sampler2D texture_noise;
-
-uniform float scale1;
-uniform float scale2;
-uniform float scale3;
-
 void main(){
-	vec4 diff = texture(_Albedo, fsUv).rgba;
-	if (diff.a < 0.2) {
-		discard;
-	}
+	vec4 albedo = texture(_Albedo, fsData.uv).rgba;
+	if (albedo.a < 0.2) discard;
 	
-    vec3 BumpMapNormal = texture(_Normal, fsUv).xyz;
-    BumpMapNormal = 2.0 * BumpMapNormal - vec3(1.0, 1.0, 1.0);
-    vec3 NewNormal;
+    vec3 textureNormal = (texture(_Normal, fsData.uv).xyz * 2.0f) - 1.0f;
+    vec3 normal = normalize(fsData.TBNMatrix * textureNormal);
+	vec3 finalNormal = mix(fsData.normal, normal, _NormalStrength);
 
-    NewNormal = fsTBNMatrix * BumpMapNormal;
-    NewNormal = normalize(NewNormal);
+	vec3 nView = normalize(fsData.viewDirection);
+	vec3 nReflection = normalize(reflect(nView, finalNormal)); 
+    float inverseDotView = 1.0 - max(dot(normalize(finalNormal), nView), 0.0);
+    vec3 iridescence = texture(_Iridescence, vec2(inverseDotView, 0.0)).rgb;
 
-	vec3 normal = mix(fsNormal, NewNormal, _NormalStrength);
-
-	vec3 nview = normalize(fsViewDirection);
-	vec3 n_reflection = normalize(reflect(nview, normal)); 
-	vec3 noise_vector = BumpMapNormal * scale1;
-	noise_vector =  mix(noise_vector, (texture(texture_noise, fsUv).xyz - vec3(0.5)) * 0.5f, scale2);
-    float inverse_dot_view = 1.0 - max(dot(normalize(normal + noise_vector), nview), 0.0);
-    vec3 lookup_table_color = texture(texture_iridescence, vec2(inverse_dot_view, 0.0)).rgb;
-
-	float specular = texture(_Specular, fsUv).a;
+	float specular = texture(_Specular, fsData.uv).a;
 
 	geoData[0] = vec3(specular, 0, 0);
-	geoData[1] = diff.rgb * mix(vec3(1), lookup_table_color, scale3);
-	geoData[2] = normal;
-	geoData[3] = fsPos;
+	geoData[1] = albedo.rgb * mix(vec3(1), iridescence, _IridescenceStrength);
+	geoData[2] = finalNormal;
+	geoData[3] = fsData.pos;
 }
+
+

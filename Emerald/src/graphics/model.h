@@ -125,14 +125,14 @@ public:
 		}
 	}
 
-	void Draw(AssetRef<Shader> shader) {
+	void Draw(AssetRef<Shader> shader, uint mode = GL_TRIANGLES) {
 		for (auto& mesh : m_meshes) {
 			mesh->GetMaterial()->Bind(shader);
-			mesh->Draw();
+			mesh->Draw(mode);
 		}
 	}
 
-	void Draw(AssetRef<Shader> shader, int index) {
+	void DrawIndex(AssetRef<Shader> shader, int index) {
 		m_meshes[index]->GetMaterial()->Bind(shader);
 		m_meshes[index]->Draw();
 

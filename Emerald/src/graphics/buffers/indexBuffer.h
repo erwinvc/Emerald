@@ -18,10 +18,10 @@ public:
 		Unbind();
 	}
 
-	void Draw(uint mode = GL_TRIANGLES) {
+	void Draw(uint mode) {
 		GL(glDrawElements(mode, m_count, GL_UNSIGNED_INT, NULL));
 	}
-    void Draw(uint32 count, uint mode = GL_TRIANGLES) {
+    void Draw(uint32 count, uint mode) {
         GL(glDrawElements(mode, count, GL_UNSIGNED_INT, NULL));
     }
     void DrawInstanced(uint32 amount, uint mode = GL_TRIANGLES) {

@@ -2,45 +2,51 @@
 
 layout (vertices = 3) out;
 
-in vec3 csPos[];
-in vec3 csNormal[];
-in vec2 csUv[];
-in mat3 csTBNMatrix[];
-in vec3 cstangent[];
-in vec3 csViewDirection[];
+struct Data {
+	vec3 pos;
+	vec3 normal;
+	vec2 uv;
+	mat3 TBNMatrix;
+	vec3 viewDirection;
+};
 
-out vec3 esPos[];
-out vec3 esNormal[];
-out vec2 esUv[];
-out mat3 esTBNMatrix[];
-out vec3 estangent[];
-out vec3 esViewDirection[];
+in Data csData[];
+out Data esData[];
 
-uniform vec3 cameraPosition;
+out float termIJ[];
+out float termJK[];
+out float termIK[];
 
-uniform float t1 = 4;
-uniform float t2 = 2;
-uniform float t3 = 2;
-uniform float t4 = 2;
+uniform vec3 _CameraPosition;
+
+uniform float _TessellationFactor = 4;
+uniform float _TessellationSlope = 2;
+uniform float _TessellationShift = 2;
 
 float LodFactor(float dist){
-	float tl = max(0.0, t1/pow(dist, t2) + t3);
-	return tl;
+	return max(0.0, _TessellationFactor/pow(dist, _TessellationSlope) + _TessellationShift);
+}
+
+float Phong(int i, vec3 q){
+	vec3 q_minus_p = q - gl_in[i].gl_Position.xyz;
+	return q[gl_InvocationID] - dot(q_minus_p, csData[i].normal)  * csData[i].normal[gl_InvocationID];
 }
 
 void main(void) {
-	esPos[gl_InvocationID] = csPos[gl_InvocationID];
-	esNormal[gl_InvocationID] = csNormal[gl_InvocationID];
-	esUv[gl_InvocationID] = csUv[gl_InvocationID];
-	esTBNMatrix[gl_InvocationID] = csTBNMatrix[gl_InvocationID];
-	estangent[gl_InvocationID] = cstangent[gl_InvocationID];
-	esViewDirection[gl_InvocationID] = csViewDirection[gl_InvocationID];
+	esData[gl_InvocationID].pos           = csData[gl_InvocationID].pos;
+	esData[gl_InvocationID].normal        = csData[gl_InvocationID].normal;
+	esData[gl_InvocationID].uv            = csData[gl_InvocationID].uv;
+	esData[gl_InvocationID].TBNMatrix     = csData[gl_InvocationID].TBNMatrix;
+	esData[gl_InvocationID].viewDirection = csData[gl_InvocationID].viewDirection;
+
+	termIJ[gl_InvocationID] = Phong(0, gl_in[1].gl_Position.xyz) + Phong(1, gl_in[0].gl_Position.xyz);
+	termJK[gl_InvocationID] = Phong(1, gl_in[2].gl_Position.xyz) + Phong(2, gl_in[1].gl_Position.xyz);
+	termIK[gl_InvocationID] = Phong(2, gl_in[0].gl_Position.xyz) + Phong(0, gl_in[2].gl_Position.xyz);
 
 	if (gl_InvocationID == 0) {
+		vec3 faceMidPoint = vec3(gl_in[0].gl_Position + gl_in[1].gl_Position + gl_in[2].gl_Position) /3;
 
-		vec3 abMid = vec3(gl_in[0].gl_Position + gl_in[1].gl_Position + gl_in[2].gl_Position) /3;
-
-		float ds = distance(abMid, cameraPosition);
+		float ds = distance(faceMidPoint, _CameraPosition);
 		gl_TessLevelInner[0] = mix(1, gl_MaxTessGenLevel, LodFactor(ds));
 		gl_TessLevelOuter[0] = mix(1, gl_MaxTessGenLevel, LodFactor(ds));
 		gl_TessLevelOuter[1] = mix(1, gl_MaxTessGenLevel, LodFactor(ds));
@@ -49,3 +55,4 @@ void main(void) {
 
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 }
+

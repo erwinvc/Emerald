@@ -30,13 +30,13 @@ public:
 		//Unbind();
 	}
 
-	void Draw() {
+	void Draw(uint mode = GL_TRIANGLES) {
 		Bind();
-		m_ibo->Draw();
+		m_ibo->Draw(mode);
 		//Unbind();
 	}
 
-	void Draw(uint32 count, uint mode = GL_TRIANGLES) {
+	void DrawCount(uint32 count, uint mode = GL_TRIANGLES) {
 		Bind();
 		m_ibo->Draw(count, mode);
 		//Unbind();

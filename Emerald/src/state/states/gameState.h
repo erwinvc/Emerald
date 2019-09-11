@@ -32,13 +32,13 @@ public:
 	void Update(const TimeStep& time) override {
 		GetCamera()->Update(time);
 
-		//if (KeyJustDown('O')) {
-		//	loop(x, GetWorld()->GetBoundaries().m_size.x) {
-		//		loop(y, GetWorld()->GetBoundaries().m_size.y) {
-		//			if (Math::RandomInt(0, 10) > 8) m_pointlights.push_back(Pointlight(Vector3((float)x, 1.2f, (float)y), 2, Color::RandomPrimary()));
-		//		}
-		//	}
-		//}
+		if (KeyJustDown('O')) {
+			loop(x, GetWorld()->GetBoundaries().m_size.x) {
+				loop(y, GetWorld()->GetBoundaries().m_size.y) {
+					if (Math::RandomInt(0, 10) > 8) m_pointlights.push_back(Pointlight(Vector3((float)x, 1.2f, (float)y), 2, Color::RandomPrimary()));
+				}
+			}
+		}
 		Vector3 cast = m_rayCast.GetGroundPosition(GetCamera());
 		m_rayCastPos = m_rayCast.GetTile();
 
@@ -78,16 +78,14 @@ public:
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		m_geometryShader->Bind();
-		m_geometryShader->Set("texture_iridescence", 4);
+		m_geometryShader->Set("_Iridescence", 4);
 		texIri->Bind(4);
-		m_geometryShader->Set("texture_noise", 5);
-		texNoise->Bind(5);
 		m_geometryShader->Set("scale1", 0);
 		m_geometryShader->Set("scale2", 5);
-		m_geometryShader->Set("scale3", 0);
-		m_geometryShader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
-		m_geometryShader->Set("viewMatrix", GetCamera()->GetViewMatrix());
-		m_geometryShader->Set("transformationMatrix", Matrix4::Identity());
+		m_geometryShader->Set("_IridescenceStrength", 0);
+		m_geometryShader->Set("_ProjectionMatrix", GetCamera()->GetProjectionMatrix());
+		m_geometryShader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
+		m_geometryShader->Set("_TransformationMatrix", Matrix4::Identity());
 	}
 
 	void RenderUI() override {
@@ -96,7 +94,7 @@ public:
 	void OnImGUI() override {
 		ImGui::SliderFloat("scale1", &GetTileRenderer()->m_scale1, -5, 5);
 		ImGui::SliderFloat("scale2", &GetTileRenderer()->m_scale2, -5, 5);
-		ImGui::SliderFloat("scale3", &GetTileRenderer()->m_scale3, 0, 1);
+		ImGui::SliderFloat("_IridescenceStrength", &GetTileRenderer()->m_scale3, 0, 1);
 		//ImGui::SliderFloat("Normal", &GetTileRenderer()->m_material->m_normalStrength, 0, 10);
 	}
 	void Cleanup() override;

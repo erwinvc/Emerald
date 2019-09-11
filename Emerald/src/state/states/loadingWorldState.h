@@ -7,7 +7,6 @@ public:
 	const String& GetName() override { return m_name; }
 	AssetRef<Shader> m_shader;
 	CustomMesh* mesh;
-	Model* model;
 	Vertex* vertices;
 	uint* indices;
 	int planeSizeX = 16 * 2;
@@ -15,7 +14,7 @@ public:
 	vector<Pointlight> m_pointlights;
 	float m_scale1 = 0;
 	float m_scale2 = 0;
-	float m_scale3 = 0;
+	float iridescenceStrength = 0;
 	AssetRef<Texture> texIri;
 	AssetRef<Texture> texNoise;
 	AssetRef<Texture> texWhite;
@@ -26,24 +25,26 @@ public:
 	Entity* entity;
 	Model* sphere;
 	Mesh* sphereMesh;
+	Model* turtleModel;
+	Entity* turtle;
 
-	float t1 = 100;
-	float t2 = 1.8f;
-	float t3 = 0.3f;
+	float t1 = 3.35f;
+	float t2 = 3.7f;
+	float t3 = 0.0f;
 	float t4 = 2;
-
+	AssetRef<BasicMaterial> m_material;
 	void Initialize() override {
-		AssetRef<BasicMaterial> mat = GetMaterialManager()->Create<BasicMaterial>("test");
+		m_material = GetMaterialManager()->Create<BasicMaterial>("test");
 		AssetRef<BasicMaterial> mat2 = GetMaterialManager()->Create<BasicMaterial>("test2");
 		texIri = GetAssetManager()->Get<Texture>("Irridescence");
 		texNoise = GetAssetManager()->Get<Texture>("Noise");
 		texWhite = GetAssetManager()->Get<Texture>("White");
-		mat->SetAlbedo(texWhite);
-		mat->SetNormal(GetAssetManager()->Get<Texture>("BricksNormal"));
+		m_material->SetAlbedo(texWhite);
+		m_material->SetNormal(GetAssetManager()->Get<Texture>("BricksNormal"));
 		mat2->SetAlbedo(texIri);
 		m_shader = GetShaderManager()->Get("Geometry");
-		model = GetAssetManager()->Get<Model>("dragon");
-		model->SetMaterial(mat);
+		turtleModel = GetAssetManager()->Get<Model>("dragon");
+		turtleModel->SetMaterial(m_material);
 		m_pointlights.push_back(Pointlight(GetCamera()->m_position, 25, Color::White()));
 
 		sphereMesh = MeshGenerator::Sphere(20, 20);
@@ -51,7 +52,12 @@ public:
 		sphere->SetMaterial(mat2);
 		entity = NEW(Entity(sphere));
 		entity->m_scale = Vector3(0.05f, 0.05f, 0.05f);
-
+		turtle = NEW(Entity(turtleModel));
+		turtle->m_position.x += 8;
+		turtle->m_position.z += 20;
+		turtle->m_position.y += 5;
+		turtle->m_rotation.y += Math::PI;
+		turtle->m_scale *= 25;
 
 		int layerVertexCount = (planeSizeX + 1);
 		int totalVertexCount = layerVertexCount * 2 * planeSizeY;
@@ -99,7 +105,7 @@ public:
 		}
 
 		mesh = new CustomMesh();
-		mesh->SetMaterial(mat);
+		mesh->SetMaterial(m_material);
 
 		mesh->SetVertices(vertices, totalVertexCount);
 		mesh->SetIndices(indices, indexCount);
@@ -168,40 +174,33 @@ public:
 		}
 
 		m_shader->Bind();
-		m_shader->Set("texture_iridescence", 4);
+		m_shader->Set("_Iridescence", 4);
 		texIri->Bind(4);
-		m_shader->Set("texture_noise", 5);
-		texNoise->Bind(5);
-		m_shader->Set("scale1", m_scale1);
-		m_shader->Set("scale2", m_scale2);
-		m_shader->Set("scale3", m_scale3);
-		m_shader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
-		m_shader->Set("viewMatrix", GetCamera()->GetViewMatrix());
-		m_shader->Set("transformationMatrix", Matrix4::Identity());
-		m_shader->Set("cameraPosition", GetCamera()->m_position);
-		m_shader->Set("t1", (float)t1);
-		m_shader->Set("t2", (float)t2);
-		m_shader->Set("t3", (float)t3);
-		m_shader->Set("t4", (float)t4);
+		m_shader->Set("_IridescenceStrength", iridescenceStrength);
+		m_shader->Set("_ProjectionMatrix", GetCamera()->GetProjectionMatrix());
+		m_shader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
+		m_shader->Set("_TransformationMatrix", Matrix4::Identity());
+		m_shader->Set("_CameraPosition", GetCamera()->m_position);
+		m_shader->Set("_TessellationFactor", (float)t1);
+		m_shader->Set("_TessellationSlope", (float)t2);
+		m_shader->Set("_TessellationShift", (float)t3);
+		m_shader->Set("_TessellationAlpha", (float)t4);
 
 		GetMaterialManager()->GetNullMaterial()->Bind(m_shader);
 		mesh->GetMaterial()->Bind(m_shader);
-		mesh->Draw(count, GL_PATCHES);
-		entity->Draw(m_shader);
-		//model->Draw(m_shader);
-		//GetLineRenderer()->Submit(0, 0, 0, 1, 0, 0);
+		mesh->DrawCount(count, GL_PATCHES);
+		turtle->Draw(m_shader, GL_PATCHES);
 		GetLineRenderer()->DrawRect(Rect((float)m_rayCastPos.x + 0.5f, (float)m_rayCastPos.y + 0.5f, 1.0f, 1.0f));
 
 	}
 	void RenderUI() override {}
 	void OnImGUI() override {
-		ImGui::SliderFloat("scale1", &m_scale1, -5, 5);
-		ImGui::SliderFloat("scale2", &m_scale2, -5, 5);
-		ImGui::SliderFloat("scale3", &m_scale3, 0, 1);
-		ImGui::SliderFloat("t1", &t1, 0, 100);
-		ImGui::SliderFloat("t2", &t2, 0, 10);
-		ImGui::SliderFloat("t3", &t3, 0, 2);
-		ImGui::SliderFloat("t4", &t4, 0, 16);
+		ImGui::SliderFloat("IridescenceStrength", &iridescenceStrength, 0, 1);
+		ImGui::SliderFloat("NormalStrength", &m_material->m_normalStrength, -10, 10);
+		ImGui::SliderFloat("tessellationFactor", &t1, 0, 20);
+		ImGui::SliderFloat("tessellationSlope", &t2, 0, 10);
+		ImGui::SliderFloat("tessellationShift", &t3, 0, 0.1f);
+		ImGui::SliderFloat("tessellationAlpha", &t4, 0, 16);
 		ImGui::DragInt("count", &count, 1, 0, indexCount);
 	}
 	void Cleanup() override {}

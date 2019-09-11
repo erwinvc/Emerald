@@ -17,7 +17,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetApplication()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
-	m_batch->Add(NEW(ModelLoader("dragon", "sponza/a.fbx")));
+	m_batch->Add(NEW(ModelLoader("dragon", "res/turtle.fbx")));
 	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
 	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry", true)));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
@@ -31,7 +31,7 @@ void LoadingState::Initialize() {
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
 	for (int i = 0; i < 16; i++) {
-		m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("tiles/new/%d.obj", i))));
+		m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("res/tiles/new/%d.obj", i))));
 	}
 
 	m_batch->Add(NEW(TextureLoader("Irridescence", "res/irridescence.png")));

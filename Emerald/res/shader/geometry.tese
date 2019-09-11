@@ -1,47 +1,60 @@
 #version 430 core
 layout (triangles, fractional_odd_spacing, ccw) in;
 
-in vec3 esPos[];
-in vec3 esNormal[];
-in vec2 esUv[];
-in mat3 esTBNMatrix[];
-in vec3 estangent[];
-in vec3 esViewDirection[];
+struct Data {
+	vec3 pos;
+	vec3 normal;
+	vec2 uv;
+	mat3 TBNMatrix;
+	vec3 viewDirection;
+};
 
-out vec3 fsPos;
-out vec3 fsNormal;
-out vec2 fsUv;
-out mat3 fsTBNMatrix;
-out vec3 fstangent;
-out vec3 fsViewDirection;
+in Data esData[];
+out Data fsData;
 
-uniform mat4 transformationMatrix;
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
+uniform mat4 _ProjectionMatrix;
+uniform mat4 _ViewMatrix;
+uniform float _TessellationAlpha;
 
-vec2 interpolate2D(vec2 v0, vec2 v1, vec2 v2)
-{
+in float termIJ[];
+in float termJK[];
+in float termIK[];
+
+vec2 interpolateVec2(vec2 v0, vec2 v1, vec2 v2){
     return vec2(gl_TessCoord.x) * v0 + vec2(gl_TessCoord.y) * v1 + vec2(gl_TessCoord.z) * v2;
 }
 
-vec3 interpolate3D(vec3 v0, vec3 v1, vec3 v2)
-{
+vec3 interpolateVec3(vec3 v0, vec3 v1, vec3 v2){
     return vec3(gl_TessCoord.x) * v0 + vec3(gl_TessCoord.y) * v1 + vec3(gl_TessCoord.z) * v2;
 } 
 
-mat3 interpolateMat3(mat3 v0, mat3 v1, mat3 v2)
-{
+mat3 interpolateMat3(mat3 v0, mat3 v1, mat3 v2){
     return mat3(gl_TessCoord.x) * v0 + mat3(gl_TessCoord.y) * v1 + mat3(gl_TessCoord.z) * v2;
 } 
 
 void main(void){ 
 
-	fsPos = interpolate3D(esPos[0], esPos[1], esPos[2]);
-	fsNormal = interpolate3D(esNormal[0], esNormal[1], esNormal[2]);
-	fsUv = interpolate2D(esUv[0], esUv[1], esUv[2]);
-	fsTBNMatrix = interpolateMat3(esTBNMatrix[0], esTBNMatrix[1], esTBNMatrix[2]);
-	fstangent = interpolate3D(estangent[0], estangent[1], estangent[2]);
-	fsViewDirection = interpolate3D(esViewDirection[0], esViewDirection[1], esViewDirection[2]);
+	fsData.pos				= interpolateVec3(esData[0].pos, esData[1].pos, esData[2].pos);
+	fsData.normal			= interpolateVec3(esData[0].normal, esData[1].normal, esData[2].normal);
+	fsData.uv				= interpolateVec2(esData[0].uv, esData[1].uv, esData[2].uv);
+	fsData.TBNMatrix		= interpolateMat3(esData[0].TBNMatrix, esData[1].TBNMatrix, esData[2].TBNMatrix);
+	fsData.viewDirection	= interpolateVec3(esData[0].viewDirection, esData[1].viewDirection, esData[2].viewDirection);
 
-	gl_Position= projectionMatrix * viewMatrix *transformationMatrix * (gl_TessCoord.x*gl_in[0].gl_Position+gl_TessCoord.y*gl_in[1].gl_Position+gl_TessCoord.z*gl_in[2].gl_Position);
+	vec3 barPos = gl_TessCoord[0]*gl_in[0].gl_Position.xyz + gl_TessCoord[1]*gl_in[1].gl_Position.xyz + gl_TessCoord[2]*gl_in[2].gl_Position.xyz;
+	vec3 termIJ = vec3(termIJ[0], termIJ[1], termIJ[2]);
+	vec3 termJK = vec3(termJK[0], termJK[1], termJK[2]);
+	vec3 termIK = vec3(termIK[0], termIK[1], termIK[2]);
+
+	vec3 tc1 = gl_TessCoord;
+	vec3 tc2 = tc1*tc1;
+	vec3 phongPos   = tc2[0]*gl_in[0].gl_Position.xyz
+	                + tc2[1]*gl_in[1].gl_Position.xyz
+	                + tc2[2]*gl_in[2].gl_Position.xyz
+	                + tc1[0]*tc1[1]*termIJ
+	                + tc1[1]*tc1[2]*termJK
+	                + tc1[2]*tc1[0]*termIK;
+
+					vec3 finalPos = (1.0 -_TessellationAlpha) * barPos + _TessellationAlpha * phongPos;
+
+	gl_Position  = _ProjectionMatrix * _ViewMatrix * vec4(finalPos,1.0);
 }
