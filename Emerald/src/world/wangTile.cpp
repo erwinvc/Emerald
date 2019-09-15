@@ -15,7 +15,7 @@ void WangTile::UpdateArea(int x, int z) {
 	for (int i = 0; i < 8; i++) {
 		Vector2I pos = Vector2I(x, z) + m_positionOffsets[i];
 		Tile* tile = GetWorld()->GetTile(pos);
-		if (tile && tile->IsRock()) UpdateTile(pos, tile);
+		if (tile && tile->IsSolid()) UpdateTile(pos, tile);
 	}
 }
 
@@ -23,7 +23,7 @@ void WangTile::UpdateTile(Vector2I& pos, Tile* tile) {
 	int index = 0;
 	for (int i = 0; i < 8; i++) {
 		Tile* surroundingTile = GetWorld()->GetTile(pos + m_positionOffsets[i]);
-		if (surroundingTile != nullptr && surroundingTile->IsRock()) index += 1 << i;
+		if (surroundingTile != nullptr && surroundingTile->IsSolid()) index += 1 << i;
 	}
 
 	switch (index) {

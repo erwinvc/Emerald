@@ -41,10 +41,10 @@ void InstancedRenderer::End() {
 	m_started = false;
 	m_ended = true;
 }
-void InstancedRenderer::Draw() {
+void InstancedRenderer::Draw(uint mode) {
 	ASSERT(m_ended, "Call Renderer::End before calling Renderer::Draw");
 	m_mesh->Bind();
 	//glDrawElementsInstanced(GL_TRIANGLES, m_numindices, GL_UNSIGNED_INT, 0, m_amount);
-	m_mesh->DrawInstanced(m_amount);
+	m_mesh->DrawInstanced(m_amount, mode);
 }
 

@@ -1,12 +1,16 @@
 #include "stdafx.h"
 
 void TextureLoader::AsyncLoad() {
-	TextureUtils::LoadTexture(m_file, m_params.GetFlipY(), [this](byte* data, uint width, uint height) {
-		m_width = width;
-		m_height = height;
-		int size = 4 * m_width * m_height;
+	TextureUtils::LoadTexture(m_file, m_params.GetFlipY(), [this](const LoadedTexture& data) {
+		m_channelCount = data.m_channelCount;
+		m_width = data.m_width;
+		m_height = data.m_height;
+		int size = m_height * m_width * 4;
 		m_data = new byte[size];
-		memcpy(m_data, data, size);
+		memcpy(m_data, data.m_data, size);
+
+		//m_params.SetFormatFromChannelCount(data.m_channelCount);
+		//m_params.SetFormat(RGBA);
 	});
 }
 void TextureLoader::SyncLoad(map<String, AssetBase*>& assets) {

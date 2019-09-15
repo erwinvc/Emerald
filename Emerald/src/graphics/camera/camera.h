@@ -44,7 +44,7 @@ public:
 	inline float GetFar() { return m_farPlane; }
 
 
-	void OnImGui() {
+	virtual void OnImGui() {
 		ImGui::InputFloat3("Position", (float*)&m_position);
 		ImGui::InputFloat3("Rotation", (float*)&m_rotation);
 	}

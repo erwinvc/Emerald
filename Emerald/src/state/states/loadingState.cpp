@@ -15,6 +15,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("ImGui", [] {GetImGuiManager()->Initialize(GetApplication()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Mouse", [] {GetMouse()->Initialize(GetApplication()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetApplication()->GetWindow()); })));
+	m_batch->Add(NEW(CustomLoader("Thread pool", [] {GetThreadPool()->Initialize(3); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
 	m_batch->Add(NEW(ModelLoader("dragon", "res/turtle.fbx")));
@@ -27,13 +28,17 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("SSAO", "res/shader/ssao")));
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "res/shader/ssaoBlur")));
 	m_batch->Add(NEW(TileTextureLoader("white", "test")));
-	//m_batch->Add(NEW(TileTextureLoader("obsidian", "obsidian")));
+	m_batch->Add(NEW(TileTextureLoader("Obsidian", "obsidian")));
+	m_batch->Add(NEW(TileTextureLoader("Cliff", "cliff")));
+	m_batch->Add(NEW(TileTextureLoader("Blue", "blue")));
+	m_batch->Add(NEW(TileTextureLoader("Concrete", "concrete")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
 	for (int i = 0; i < 16; i++) {
 		m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("res/tiles/new/%d.obj", i))));
 	}
 
+	m_batch->Add(NEW(TextureLoader("Sphere", "res/bricksNormal.png")));
 	m_batch->Add(NEW(TextureLoader("Irridescence", "res/irridescence.png")));
 	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png")));
 	m_batch->Add(NEW(TextureLoader("White", "res/white.png")));
@@ -61,11 +66,11 @@ float progress = 0;
 Color color;
 
 void LoadingState::Update(const TimeStep& time) {
-	progress = Math::Ease(progress, GetAssetManager()->GetProgress(), 6);
+	progress = Math::Ease(progress, GetAssetManager()->GetProgress(), 25);
 	color = Color::Mix(Color(0xde9c96), Color(0x96deae), progress);
-	if (m_batch->IsFinished()) {
+	if (m_batch->IsFinished() && progress >= GetAssetManager()->GetProgress() - 0.01f) {
 		GetTileTextureManager()->GenerateMipmaps();
-		GetStateManager()->SetState(GameStates::LOADINGWORLD);
+		GetStateManager()->SetState(GameStates::GAME);
 		GetStateManager()->RemoveState(this);
 	}
 }

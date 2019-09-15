@@ -66,14 +66,21 @@ static String TileTransformToString(TileTransform transform) {
 
 class Tile {
 public:
+	Vector2I m_position;
+	const TileDefinition* m_definition;
 	TileType m_type;
-	byte m_materialID;
 	TileTransform m_transformIndex;
-	//Vector4 m_heights;
+	vector<Tile*> m_tiles;
 
-	Tile() : m_type(FULL), m_materialID(Math::RandomInt(0, 1)), m_transformIndex(UP) {}
-	Tile(TileType type) : m_type(type), m_materialID(Math::RandomInt(0, 1)), m_transformIndex(UP) {}
-	Tile(int type) : m_type(TileType(type)), m_materialID(Math::RandomInt(0, 1)), m_transformIndex(UP) {}
+	Tile() : m_position(Vector2I()), m_definition(&TileDefinition::SOLID), m_type(FULL), m_transformIndex(UP) {}
+	Tile(Vector2I& pos) : m_position(pos), m_definition(&TileDefinition::SOLID), m_type(FULL), m_transformIndex(UP) {}
+	Tile(const TileDefinition* definition, Vector2I& pos) : m_position(pos), m_definition(definition), m_type(FULL), m_transformIndex(UP) {}
+	//Tile(TileType type) : m_definition(definition), m_type(type), m_transformIndex(UP) {}
+	//Tile(int type) : m_definition(definition), m_type(TileType(type)), m_transformIndex(UP) {}
+
+	void SetDefinition(const TileDefinition* definition) {
+		m_definition = definition;
+	}
 
 	void Set(TileType type, TileTransform transform) {
 		m_type = type;
@@ -98,5 +105,5 @@ public:
 		m_transformIndex = UP;
 	}
 
-	inline bool IsRock() { return m_type != GROUND; }
+	inline bool IsSolid() { return m_type != GROUND; }
 };

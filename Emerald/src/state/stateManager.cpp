@@ -6,6 +6,7 @@ State* GameStates::MENU = nullptr;
 State* GameStates::LOADINGWORLD = nullptr;
 State* GameStates::GAME = nullptr;
 State* GameStates::MAINMENU = nullptr;
+State* GameStates::LUDO = nullptr;
 
 void StateManager::RegisterStates() {
 	GameStates::LOADING = RegisterState<LoadingState>();
@@ -13,6 +14,7 @@ void StateManager::RegisterStates() {
 	GameStates::LOADINGWORLD = RegisterState<LoadingWorldState>();
 	GameStates::GAME = RegisterState<GameState>();
 	GameStates::MAINMENU = RegisterState<MainMenuState>();
+	GameStates::LUDO = RegisterState<LudoState>();
 
 	GameStates::LOADING->Initialize();
 	m_currentState = GameStates::LOADING;

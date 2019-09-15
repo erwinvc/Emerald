@@ -32,6 +32,7 @@ public:
 	float t2 = 3.7f;
 	float t3 = 0.0f;
 	float t4 = 2;
+
 	AssetRef<BasicMaterial> m_material;
 	void Initialize() override {
 		m_material = GetMaterialManager()->Create<BasicMaterial>("test");
@@ -190,7 +191,7 @@ public:
 		mesh->GetMaterial()->Bind(m_shader);
 		mesh->DrawCount(count, GL_PATCHES);
 		turtle->Draw(m_shader, GL_PATCHES);
-		GetLineRenderer()->DrawRect(Rect((float)m_rayCastPos.x + 0.5f, (float)m_rayCastPos.y + 0.5f, 1.0f, 1.0f));
+		GetLineRenderer()->DrawRect(Rect((float)m_rayCastPos.x + 0.5f, (float)m_rayCastPos.y + 0.5f, 1.0f, 1.0f), Color::Red());
 
 	}
 	void RenderUI() override {}

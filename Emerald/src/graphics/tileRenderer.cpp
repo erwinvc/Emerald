@@ -55,7 +55,7 @@ void TileRenderer::Begin() {
 	}
 }
 void TileRenderer::Submit(Tile& tile, int x, int y) {
-	m_renderers[tile.m_type]->Submit(TileBufferData((float)x, (float)y, tile.m_transformIndex, m_scale2, 1, 1, 0));
+	m_renderers[tile.m_type]->Submit(TileBufferData((float)x, (float)y, tile.m_transformIndex, m_scale2, 1, 1, tile.m_definition->GetMaterialID()));
 }
 //void TileRenderer::Submit(Tile& tile, Vector2& position) {
 //	m_renderers[tile.m_type]->Submit(position);

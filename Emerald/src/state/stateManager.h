@@ -7,6 +7,7 @@ public:
 	static State* LOADINGWORLD;
 	static State* GAME;
 	static State* MAINMENU;
+	static State* LUDO;
 };
 
 class StateManager : public Singleton<StateManager > {
@@ -60,7 +61,7 @@ public:
 		static_assert(is_base_of<State, T>::value, "type parameter of this class must derive from State");
 		for (State* state : m_states) {
 			if (typeid(state) == typeid(T)) {
-				LOG_ERROR("[~mGameState~x] ~1%s~x already registered", state->GetName().c_str());
+				LOG_ERROR("[~mGameState~x] already registered ~1%s~x", state->GetName().c_str());
 				return (T*)state;
 			}
 		}

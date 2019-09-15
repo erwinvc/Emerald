@@ -9,7 +9,6 @@ private:
 	GBuffer* m_gBuffer;
 	AssetRef<Shader> m_directionalLightShader;
 	AssetRef<Shader> m_pointLightShader;
-	DirectionalLight m_directionalLight;
 
 	//SSAO
 	bool m_ssaoEnabled = false;
@@ -43,6 +42,10 @@ private:
 	uint m_height;
 	//bool m_bloom = true;
 public:
+	DirectionalLight m_directionalLight;
+
+	float roughness = 0;
+	float metallic = 0;
 	RenderingPipeline() {}
 	~RenderingPipeline() {
 		DELETE(m_gBuffer);

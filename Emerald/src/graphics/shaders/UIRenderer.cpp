@@ -38,6 +38,9 @@ void UIRenderer::RenderTexture(uint texture, Vector2& origin, Vector2& position,
 	glBindTexture(GL_TEXTURE_2D, texture);
 	m_shader->Set("_Texture", 0);
 	m_shader->Set("_Color", color);
+
+	Matrix4 projection = Matrix4::Orthographic(0, GetApplication()->GetWidth(), 0, GetApplication()->GetHeight(), -1.0f, 1.0f);
+	m_shader->Set("projectionMatrix", projection);
 	m_shader->Set("transformationMatrix", CreateMatrix(origin, rot, position, size, flipX, flipY));
 	m_quad->Draw();
 }

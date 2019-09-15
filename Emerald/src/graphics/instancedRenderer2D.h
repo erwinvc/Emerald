@@ -10,7 +10,7 @@ private:
 	ManagedRef<VertexBuffer> m_offsetsBuffer = nullptr;
 	int m_amount = 0;
 	T* m_offsets = nullptr;
-	T* m_offsetsPtr = nullptr;
+	T* m_buffer = nullptr;
 	BufferLayout m_layout;
 
 	void Initialize() {
@@ -28,13 +28,13 @@ public:
 		m_started = true;
 
 		m_offsetsBuffer->Bind();
-		GL(m_offsetsPtr = (T*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+		GL(m_buffer = (T*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
 		m_offsetsBuffer->Unbind();
 	}
 
 	void Submit(T& offset) {
-		*m_offsetsPtr = offset;
-		m_offsetsPtr++;
+		*m_buffer = offset;
+		m_buffer++;
 		m_amount++;
 	}
 
@@ -64,15 +64,15 @@ public:
 		m_ended = true;
 	}
 
-	void Draw(AssetRef<Shader> shader) {
+	void Draw(AssetRef<Shader> shader, uint mode = GL_TRIANGLES) {
 		ASSERT(m_ended, "Call InstancedRenderer2D::End before calling InstancedRenderer2D::Draw");
 		m_mesh->GetMaterial()->Bind(shader);
-		m_mesh->DrawInstanced(m_amount);
+		m_mesh->DrawInstanced(m_amount, mode);
 	}
 
-	void Draw() {
+	void Draw(uint mode = GL_TRIANGLES) {
 		ASSERT(m_ended, "Call InstancedRenderer2D::End before calling InstancedRenderer2D::Draw");
-		m_mesh->DrawInstanced(m_amount);
+		m_mesh->DrawInstanced(m_amount, mode);
 	}
 
 	InstancedRenderer2D(AssetRef<Mesh> mesh, int maxObjects, const BufferLayout& layout) : m_started(false), m_ended(true), m_maxObjects(maxObjects), m_layout(layout), m_mesh(mesh) { Initialize(); }

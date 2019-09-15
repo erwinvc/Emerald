@@ -32,19 +32,35 @@ namespace Utils {
 		return out;
 	}
 
-	static String_t GetShortFilename(const char* filename) {
-		const char* lastSlash = strrchr(filename, '/');
-		if (lastSlash == nullptr) {
-			lastSlash = strrchr(filename, '\\');
+	static String RotateString90(const String& toRotate, int x, int y) {
+		int size = (x*y);
+
+		String* strs = new String[y];
+		for (int i = 0; i < size; i++) {
+			strs[i / y].push_back(toRotate[i]);
 		}
-		String_t shortFilename = lastSlash != nullptr ? lastSlash + 1 : filename;
-		return shortFilename;
+
+		String rotated;
+		for (size_t i = 0; i < size; i++) {
+			String newRow;
+			for (int j = y - 1; j >= 0; j--) {
+				newRow.push_back(strs[j][i]);
+			}
+			rotated.append(newRow);
+		}
+
+		delete[] strs;
+		return rotated;
 	}
 
-	static string ReplaceString(string subject, const string& search,
+	String FlipStringHorizontal(const String& toRotate, int x, int y);
+	String FlipStringVertical(const String& toRotate, int x, int y);
+
+
+	static String ReplaceString(String subject, const String& search,
 		const string& replace) {
 		size_t pos = 0;
-		while ((pos = subject.find(search, pos)) != string::npos) {
+		while ((pos = subject.find(search, pos)) != String::npos) {
 			subject.replace(pos, search.length(), replace);
 			pos += replace.length();
 		}
@@ -127,6 +143,14 @@ namespace GLUtils {
 	}
 }
 
+struct LoadedTexture {
+	byte* m_data;
+	uint m_width;
+	uint m_height;
+	int m_channelCount;
+	int m_size;
+};
+
 namespace TextureUtils {
-	bool LoadTexture(const String& path, bool flip, function<void(byte* data, uint width, uint height)> callback);
+	bool LoadTexture(const String& path, bool flip, function<void(const LoadedTexture& data)> callback);
 }

@@ -12,7 +12,7 @@ Thread* ThreadManager::RegisterThread(String name, void(*func)()) {
 			while (!thread->m_shutDown) {
 				((void(*)(void)) arguments[2])();
 			}
-			LOG("[~rThreads~x] ~1%s~x thread finished", thread->GetName().c_str());
+			LOG("[~rThreads~x] shut down ~1%s~x thread", thread->GetName().c_str());
 			thread->m_finished = true;
 
 		} catch (...) { LOG_ERROR("[~rThreads~x] caught exception in ~1%s ~rthread", thread->m_name.c_str()); }
@@ -24,11 +24,12 @@ Thread* ThreadManager::RegisterThread(String name, void(*func)()) {
 	unique_lock<mutex> lock(m_lock);
 	m_threads.push_back(c_thread);
 
-	LOG("[~rThreads~x] ~1%s ~xthread registered", name.c_str());
+	LOG("[~rThreads~x] registered ~1%s ~xthread ", name.c_str());
 	return c_thread;
 }
 
 void ThreadManager::Cleanup() {
+	GetThreadPool()->Shutdown();
 	for (Thread* thread : m_threads) {
 		thread->Shutdown();
 	}

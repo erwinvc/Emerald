@@ -5,14 +5,15 @@ Texture::Texture(int32 width, int32 height, byte* data, TextureParameters params
 }
 
 Texture::Texture(int32 width, int32 height, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path(""), m_data(nullptr), m_keepData(keepData) {
-	SetData(NULL);
+	SetData(nullptr);
 }
 
 Texture::Texture(const String& path, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(0), m_height(0), m_path(path), m_data(nullptr), m_keepData(keepData) {
-	TextureUtils::LoadTexture(m_path, params.GetFlipY(), [this](byte* data, uint width, uint height) {
-		SetData(data);
-		m_width = width;
-		m_height = height;
+	TextureUtils::LoadTexture(m_path, params.GetFlipY(), [this](const LoadedTexture& data) {
+		SetData(data.m_data);
+		m_width = data.m_width;
+		m_height = data.m_height;
+		m_params.SetFormatFromChannelCount(data.m_channelCount);
 	});
 }
 
@@ -28,9 +29,9 @@ void Texture::SetData(byte* data) {
 
 	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), data));
 	GL(glGenerateMipmap(GL_TEXTURE_2D));
+	int size = m_width * m_height * m_params.GetChannelCount();
 
 	if (m_keepData && data != nullptr) {
-		int size = 4 * m_width * m_height;
 		m_data = new byte[size];
 		memcpy(m_data, data, size);
 	}

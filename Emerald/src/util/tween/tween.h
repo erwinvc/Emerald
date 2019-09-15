@@ -74,13 +74,15 @@ public:
 		Tween** slot = GetTweenManager()->GetEmptySpot();
 		if (slot == nullptr) LOG_ERROR("[~gTweens~x] no free tween slots available");
 		*slot = NEW(TweenValue<T>(&value, goal, duration));
-		return Ref<Tween>(*slot);
+		return ManagedRef<Tween>(*slot);
 	}
 
 	Tween* SetEase(Ease ease) {
 		m_ease = ease;
 		return this;
 	}
+
+	void Kill();
 
 	~Tween();
 };

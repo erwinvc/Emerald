@@ -68,12 +68,16 @@ public:
 		return GetTile(pos.x, pos.y);
 	}
 
+	void Reset() {
+		for (Chunk& chunk : m_chunks) chunk.Reset();
+	}
+
 	void BreakTile(int x, int y) {
 		Tile* tile = GetTile(x, y);
 		if (tile) {
 			tile->SetEmpty();
 			//tile->m_heights = Vector4(0, 0);
-			
+
 			WangTile::UpdateArea(x, y);
 		}
 	}

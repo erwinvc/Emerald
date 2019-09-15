@@ -103,7 +103,7 @@ public:
 		for (int i = 0; i < 8; i++) {
 			Vector2I pos = m_positionOffsets[i];
 			Rect r((float)pos.x + 0.5f, (float)pos.y + 0.5f, 1.0f, 1.0f);
-			GetLineRenderer()->DrawRect(r);
+			GetLineRenderer()->DrawRect(r, Color::Red());
 			RenderTile(i, pos.x, pos.y);
 		}
 		GetTileRenderer()->End();

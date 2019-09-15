@@ -24,7 +24,6 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 	m_pointLightShader->Set("_GNormal", 2);
 	m_pointLightShader->Set("_GPosition", 3);
 	m_pointLightShader->Set("_SSAO", 4);
-
 	//m_gaussianShader = GetShaderManager()->Get("Gaussian");
 	//m_gaussianShader->Bind();
 	//m_gaussianShader->Set("_Bright", 0);
@@ -82,11 +81,14 @@ void RenderingPipeline::PreGeometryRender() {
 
 	GetPointlightRenderer()->Begin();
 
-	if (m_wireFrame) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+	if (m_wireFrame) {
+		GL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+		LOG("a");
+	}
 }
 
-float shineDamper = 5.0f;
-float reflectivity = 0;
+float roughness = 1;
+float metalic = 0;
 void RenderingPipeline::PostGeometryRender() {
 	if (m_wireFrame) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 
@@ -107,13 +109,19 @@ void RenderingPipeline::PostGeometryRender() {
 	m_ssaoRenderer->GetTexture()->Bind(4);
 
 	m_directionalLightShader->Set("_Color", m_directionalLight.m_color);
-	m_directionalLightShader->Set("_Directional", m_directionalLight.m_direction);
-	m_directionalLightShader->Set("_CameraPosition", m_camera->m_position);
-	m_directionalLightShader->Set("_Diffuse", m_directionalLight.m_diffuse);
-	m_directionalLightShader->Set("_Specular", m_directionalLight.m_specular);
-	m_directionalLightShader->Set("_Ambient", m_directionalLight.m_ambient);
-	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
 
+	Matrix4 mat = Matrix4::Identity();
+	mat *= Matrix4::Rotate(m_directionalLight.m_direction.x, Vector3::XAxis());
+	mat *= Matrix4::Rotate(m_directionalLight.m_direction.y, Vector3::YAxis());
+	mat *= Matrix4::Rotate(m_directionalLight.m_direction.z, Vector3::ZAxis());
+	Vector3 a = mat * Vector3::Up();
+	a.Normalize();
+
+	m_directionalLightShader->Set("_Directional", a);
+	m_directionalLightShader->Set("_CameraPosition", m_camera->m_position);
+	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
+	m_directionalLightShader->Set("_Roughness", roughness);
+	m_directionalLightShader->Set("_Metallic", metallic);
 	m_quad->Bind();
 	m_quad->Draw();
 
@@ -128,11 +136,9 @@ void RenderingPipeline::PostGeometryRender() {
 	m_pointLightShader->Set("projectionMatrix", m_camera->GetProjectionMatrix());
 	m_pointLightShader->Set("viewMatrix", m_camera->GetViewMatrix());
 	m_pointLightShader->Set("uCameraPos", m_camera->m_position);
-	m_pointLightShader->Set("shineDamper", shineDamper);
-	m_pointLightShader->Set("reflectivity", reflectivity);
-	m_pointLightShader->Set("_Diffuse", m_directionalLight.m_diffuse);
-	m_pointLightShader->Set("_Specular", m_directionalLight.m_specular);
 	m_pointLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
+	m_pointLightShader->Set("_Roughness", roughness);
+	m_pointLightShader->Set("_Metallic", metallic);
 
 	GetPointlightRenderer()->End();
 	GetPointlightRenderer()->Draw();
@@ -232,8 +238,8 @@ void RenderingPipeline::OnImGUI() {
 		}
 
 		if (ImGui::Checkbox("Wireframe", &m_wireFrame)) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)); 
-		ImGui::SliderFloat("Shinedamper", &shineDamper, 0.001f, 10);
-		ImGui::SliderFloat("Reflectivity", &reflectivity, 0, 5);
+		ImGui::SliderFloat("Roughness", &roughness, 0, 1);
+		ImGui::SliderFloat("Metallic", &metallic, 0, 1);
 		ImGui::EndTabItem();
 	}
 	//ImGui::Checkbox("Bloom", &m_bloom);

@@ -27,16 +27,16 @@ void main(){
 		discard;
 	}
 	
-    vec3 textureNormal = (texture(_Normal, vec3(fsUv, fsTextureID)).xyz * 2.0f) - 1.0f;
-    vec3 normal = normalize(fsTBNMatrix * textureNormal);
-	vec3 finalNormal = mix(fsNormal, normal, normalStrength);
+    vec3 tangentNormal = (texture(_Normal, vec3(fsUv, fsTextureID)).xyz * 2.0f) - 1.0f;
+    vec3 worldNormal = normalize(fsTBNMatrix * tangentNormal);
+	vec3 finalNormal = mix(fsNormal, worldNormal, normalStrength);
 
 	vec3 nView = normalize(fsViewDirection);
 	vec3 nReflection = normalize(reflect(nView, finalNormal)); 
     float inverseDotView = 1.0 - max(dot(normalize(finalNormal), nView), 0.0);
     vec3 iridescence = texture(_Iridescence, vec2(inverseDotView, 0.0)).rgb;
 
-	float specular = texture(_Specular, vec3(fsUv, fsTextureID)).a;
+	float specular = texture(_Specular, vec3(fsUv, fsTextureID)).r;
 
 	geoData[0] = vec3(specular, 0, 0);
 	geoData[1] = albedo.rgb * mix(vec3(1), iridescence, _IridescenceStrength);

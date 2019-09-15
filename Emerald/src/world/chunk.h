@@ -9,24 +9,16 @@ private:
 public:
 	void Populate() {
 		if (m_populated) return;
-		//siv::PerlinNoise noise;
+		Reset();
+		m_populated = true;
+	}
+
+	void Reset() {
 		loop(y, 16) {
 			loop(x, 16) {
-				m_tiles[y][x] = Tile();
-				//float dx1 = (((float)m_position.x * 16) + (float)x + 0.5f) / 8;
-				//float dx2 = (((float)m_position.x * 16) + (float)x - 0.5f) / 8;
-				//float dy1 = (((float)m_position.y * 16) + (float)y + 0.5f) / 8;
-				//float dy2 = (((float)m_position.y * 16) + (float)y - 0.5f) / 8;
-				//Vector4 heights(
-				//	(float)noise.noise(dx1, dy1),
-				//	(float)noise.noise(dx1, dy2),
-				//	(float)noise.noise(dx2, dy2),
-				//	(float)noise.noise(dx2, dy1)
-				//);
-				//m_tiles[y][x].m_heights = heights;
+				m_tiles[y][x] = Tile(&TileDefinition::SOLID, Vector2I(x, y) + m_position * 16);
 			}
 		}
-		m_populated = true;
 	}
 
 	Tile* GetTile(int x, int y) {

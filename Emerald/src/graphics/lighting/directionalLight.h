@@ -3,15 +3,18 @@
 class DirectionalLight {
 public:
     Color m_color = Color::White();
-    Vector3 m_direction = Vector3(-0.7f, 0.3f, 0.1f);
-    float m_ambient = 0.2f;
-    float m_diffuse = 0.7f;
-    float m_specular = 0.4f;
+    Vector3 m_direction = Vector3(0.3f, 0.0f, 0.3f);
 
     void OnImGui() {
-        ImGui::DragFloat("Specular", &m_specular, 0.01f, 0, 1);
-        ImGui::DragFloat("Ambient", &m_ambient, 0.01f, 0, 1);
-        ImGui::DragFloat("Diffuse", &m_diffuse, 0.01f, 0, 1);
-        ImGui::ColorEdit3("Directional", (float*)&m_color);
+		if (ImGui::InputFloat3("Direction###1", (float*)&m_direction, -Math::PI, Math::PI));
+		if (ImGui::SliderFloat3("Direction###2", (float*)&m_direction, -Math::PI, Math::PI));
+		Matrix4 mat = Matrix4::Identity();
+		mat *= Matrix4::Rotate(m_direction.x, Vector3::XAxis());
+		mat *= Matrix4::Rotate(m_direction.y, Vector3::YAxis());
+		mat *= Matrix4::Rotate(m_direction.z, Vector3::ZAxis());
+		Vector3 a = mat * Vector3::Up();
+		a.Normalize();
+		ImGui::LabelText("euler", "%.3f %.3f %.3f", a.x, a.y, a.z);
+        ImGui::ColorEdit3("Color", (float*)&m_color);
     }
 };

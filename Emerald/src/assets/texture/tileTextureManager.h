@@ -33,9 +33,9 @@ public:
 		int i2 = m_normalArray->AddTexture(normal);
 		int i3 = m_specularArray->AddTexture(specular);
 		int i4 = m_emissionArray->AddTexture(emission);
-		if (i1 == i2 == i3 == i4) {
+		if (i1 == (i2, i3, i4)) {
 			m_textureIndices[name] = i1;
-		} else LOG_ERROR("[~gTexture~x] Texture array registration index mismatch!");
+		} else LOG_ERROR("[~gTexture~x] Texture array registration index mismatch! %d %d %d %d", i1, i2, i3, i4);
 	}
 
 	int GetIndex(const String& name) {

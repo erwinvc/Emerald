@@ -26,4 +26,14 @@ public:
 		if (!exists) CreateFile(file);
 		return !exists;
 	}
+
+	static String_t GetShortFilename(const char* filename) {
+		const char* lastSlash = strrchr(filename, '/');
+		if (lastSlash == nullptr) {
+			lastSlash = strrchr(filename, '\\');
+		}
+		String_t shortFilename = lastSlash != nullptr ? lastSlash + 1 : filename;
+		return shortFilename;
+	}
+
 };

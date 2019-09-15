@@ -18,7 +18,6 @@ public:
 			DELETE(loader);
 	}
 
-
 	template<class T>
 	void Add(T* loader) {
 		if (m_started) LOG_ERROR("[~yAssets~x] Asset batch ~1%s~r already started");
@@ -90,7 +89,7 @@ public:
 	template<typename T>
 	AssetRef<T> Get(const String& name) {
 		T* asset = (T*)m_assets[name];
-		if (asset == nullptr) LOG_WARN("[~yAssets~x] asset ~1%s~x of type ~1%s~x not found", name.c_str(), typeid(T).name());
+		//if (asset == nullptr) LOG_WARN("[~yAssets~x] asset ~1%s~x of type ~1%s~x not found", name.c_str(), typeid(T).name());
 		return asset;
 	}
 

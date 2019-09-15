@@ -30,7 +30,6 @@ enum TextureType {
 	T_FLOAT = 0x1406,
 };
 
-
 class TextureParameters final {
 private:
 	TextureFormat m_internalFormat;
@@ -96,20 +95,7 @@ public:
 
 	TextureParameters(TextureFormat internalFormat = RGBA, TextureFormat format = RGBA, TextureFilter filter = LINEARMIPMAP, TextureWrap wrap = REPEAT, TextureType type = T_UNSIGNED_BYTE, bool flipY = true)
 		: m_internalFormat(internalFormat), m_format(format), m_filter(filter), m_wrap(wrap), m_type(type), m_flipY(flipY) {
-	};
-
-
-	//TextureParameters(TextureFilter filter = LINEAR, TextureWrap wrap = CLAMP, TextureType type = T_UNSIGNED_BYTE)
-	//    : m_format(RGBA), m_filter(filter), m_wrap(wrap), m_type(type) {
-	//}
-	//
-	//TextureParameters(TextureWrap wrap = CLAMP, TextureType type = T_UNSIGNED_BYTE)
-	//    : m_format(RGBA), m_filter(LINEAR), m_wrap(wrap), m_type(type) {
-	//}
-	//
-	//TextureParameters(TextureType type = T_UNSIGNED_BYTE)
-	//    : m_format(RGBA), m_filter(LINEAR), m_wrap(CLAMP), m_type(type) {
-	//}
+	}
 
 	inline bool GetFlipY() const { return m_flipY; }
 	inline int GetInternalFormat() const { return m_internalFormat; }
@@ -132,6 +118,31 @@ public:
 	inline int GetInternalFormatSized() {
 		return BaseInternalFormatToSizedInternalFormat(m_internalFormat);
 	}
+
+	void SetFormat(TextureFormat format) {
+		m_format = format;
+		m_internalFormat = format;
+	}
+
+	void SetFormatFromChannelCount(int count) {
+		switch (count) {
+		case 1: SetFormat(RED); break;
+		case 2: SetFormat(RG); break;
+		case 3: SetFormat(RGB); break;
+		case 4: SetFormat(RGBA); break;
+		}
+	}
+
+	int GetChannelCount() {
+		switch (m_format) {
+		case RED: return 1;
+		case RG: return 2;
+		case RGB: return 3;
+		case RGBA: return 4;
+		}
+		return 0;
+	}
+
 
 	String GetAsString() const {
 		return Format("%s %s %s %s %s", FormatToString(m_internalFormat).c_str(), FormatToString(m_format).c_str(), FilterToString(m_filter), WrapToString(m_wrap), TypeToString(m_type));
