@@ -70,8 +70,3 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_fboBlur->Unbind();
 	GL(glFrontFace(GL_CCW));
 }
-
-void SSAORenderer::Resize(uint width, uint height) {
-	m_fbo->Resize(width, height);
-	m_fboBlur->Resize(width, height);
-}

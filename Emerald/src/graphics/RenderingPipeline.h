@@ -19,14 +19,14 @@ private:
 	bool m_FXAA = true;
 	AssetRef<FrameBuffer> m_hdrBuffer;
 	AssetRef<Texture> m_hdrTexture;
-	//AssetRef<Texture> m_hdrBrightTexture;
+	AssetRef<Texture> m_hdrBrightTexture;
 	AssetRef<Shader> m_hdrShader;
 	AssetRef<Mesh> m_quad;
 
 	//Bloom
-	//Ref<Shader> m_gaussianShader;
-	//Ref<FrameBuffer> m_pingPongFBO[2];
-	//Ref<Texture> m_pingPongTexture[2];
+	AssetRef<Shader> m_gaussianShader;
+	AssetRef<FrameBuffer> m_pingPongFBO[2];
+	AssetRef<Texture> m_pingPongTexture[2];
 
 	ManagedRef<Camera> m_camera;
 	Matrix4 m_orthoMatrix;
@@ -40,7 +40,10 @@ private:
 
 	uint m_width;
 	uint m_height;
-	//bool m_bloom = true;
+	bool m_bloom = true;
+	float m_bloomFactor = 1.0f;
+	float m_bloomMultiplier = 1.0f;
+	float m_chromatic = 0;
 public:
 	DirectionalLight m_directionalLight;
 

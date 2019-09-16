@@ -24,24 +24,22 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 	m_pointLightShader->Set("_GNormal", 2);
 	m_pointLightShader->Set("_GPosition", 3);
 	m_pointLightShader->Set("_SSAO", 4);
-	//m_gaussianShader = GetShaderManager()->Get("Gaussian");
-	//m_gaussianShader->Bind();
-	//m_gaussianShader->Set("_Bright", 0);
+	m_gaussianShader = GetShaderManager()->Get("Gaussian");
+	m_gaussianShader->Bind();
+	m_gaussianShader->Set("_Bright", 0);
 
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
 	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", m_width, m_height);
 	m_hdrTexture = m_hdrBuffer->AddColorBuffer("HDR", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
-	//m_hdrBrightTexture = m_hdrBuffer->AddColorBuffer(TextureParameters(RGBA16, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrBrightTexture = m_hdrBuffer->AddColorBuffer("HDRBloom", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
 	//Bloom
-	//m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", 1920, 1080);
-	//m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", 1920, 1080);
-	//m_pingPongTexture[0] = NEW(Texture(1920, 1080, TextureParameters(RGBA16, LINEAR, CLAMP_TO_EDGE, T_FLOAT)));
-	//m_pingPongTexture[1] = NEW(Texture(1920, 1080, TextureParameters(RGBA16, LINEAR, CLAMP_TO_EDGE, T_FLOAT)));
-	//m_pingPongFBO[0]->AddColorBuffer(m_pingPongTexture[0]);
-	//m_pingPongFBO[1]->AddColorBuffer(m_pingPongTexture[1]);
+	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", 1920, 1080);
+	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", 1920, 1080);
+	m_pingPongTexture[0] = m_pingPongFBO[0]->AddColorBuffer("PingPong1", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_pingPongTexture[1] = m_pingPongFBO[1]->AddColorBuffer("PingPong1", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
 	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer(m_width, m_height));
@@ -83,7 +81,6 @@ void RenderingPipeline::PreGeometryRender() {
 
 	if (m_wireFrame) {
 		GL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
-		LOG("a");
 	}
 }
 
@@ -122,6 +119,7 @@ void RenderingPipeline::PostGeometryRender() {
 	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
 	m_directionalLightShader->Set("_Roughness", roughness);
 	m_directionalLightShader->Set("_Metallic", metallic);
+	m_directionalLightShader->Set("_BloomFactor", m_bloomFactor);
 	m_quad->Bind();
 	m_quad->Draw();
 
@@ -139,54 +137,52 @@ void RenderingPipeline::PostGeometryRender() {
 	m_pointLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
 	m_pointLightShader->Set("_Roughness", roughness);
 	m_pointLightShader->Set("_Metallic", metallic);
-
+	m_pointLightShader->Set("_BloomFactor", m_bloomFactor);
 	GetPointlightRenderer()->End();
 	GetPointlightRenderer()->Draw();
 
 	m_hdrBuffer->Unbind();
 
 	//Draw to screen
-	GL(glDisable(GL_BLEND));
+	GL(glDisable(GL_BLEND));	
 
-	//bool horizontal = true, first_iteration = true;
-	//int amount = 10;
-	//m_gaussianShader->Bind();
-	//m_pingPongFBO[0]->Bind();
-	//m_pingPongFBO[0]->Clear();
-	//m_pingPongFBO[1]->Bind();
-	//m_pingPongFBO[1]->Clear();
+	bool horizontal = true, first_iteration = true;
+	int amount = 4;
+	m_gaussianShader->Bind();
+	m_pingPongFBO[0]->Bind();
+	m_pingPongFBO[0]->Clear();
+	m_pingPongFBO[1]->Bind();
+	m_pingPongFBO[1]->Clear();
 
-	//0 = fbo1;
-	//1 = fbo2;
-
-	//for (int i = 0; i < amount; i++) {
-	//	m_pingPongFBO[horizontal]->Bind();
-	//
-	//	m_gaussianShader->Set("horizontal", horizontal);
-	//
-	//	if (first_iteration) m_hdrBrightTexture->Bind();
-	//	else m_pingPongTexture[!horizontal]->Bind();
-	//	m_quad->Draw();
-	//	horizontal = !horizontal;
-	//	if (first_iteration)
-	//		first_iteration = false;
-	//}
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	for (int i = 0; i < amount; i++) {
+		m_pingPongFBO[horizontal]->Bind();
+	
+		m_gaussianShader->Set("horizontal", horizontal);
+	
+		if (first_iteration) m_hdrBrightTexture->Bind();
+		else m_pingPongTexture[!horizontal]->Bind();
+		m_quad->Draw();
+		horizontal = !horizontal;
+		if (first_iteration)
+			first_iteration = false;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	m_hdrShader->Bind();
 	m_hdrShader->Set("_HDRBuffer", 0);
-	//m_hdrShader->Set("_HDRBloom", 1);
+	m_hdrShader->Set("_HDRBloom", 1);
+	m_hdrShader->Set("_BloomMultiplier", m_bloomMultiplier);
 	m_hdrShader->Set("_ApplyPostProcessing", m_applyPostProcessing);
 	m_hdrShader->Set("_FXAA", m_FXAA);
 	m_hdrShader->Set("_Gamma", m_gamma);
 	m_hdrShader->Set("_Exposure", m_exposure);
 	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
 	m_hdrShader->Set("_ScreenSize", (float)GetApplication()->GetWidth(), (float)GetApplication()->GetHeight());
-
-	//m_hdrShader->Set("_Bloom", m_bloom);
+	m_hdrShader->Set("_Chromatic", m_chromatic);
+	m_hdrShader->Set("_Bloom", m_bloom);
 	GetFrameBufferManager()->GetSelectedTexture()->Bind();
 
-	//m_pingPongTexture[1]->Bind(1);
+	m_pingPongTexture[1]->Bind(1);
 	m_quad->Bind();
 	m_quad->Draw();
 	m_hdrShader->Unbind();
@@ -242,10 +238,10 @@ void RenderingPipeline::OnImGUI() {
 		ImGui::SliderFloat("Metallic", &metallic, 0, 1);
 		ImGui::EndTabItem();
 	}
-	//ImGui::Checkbox("Bloom", &m_bloom);
-
-
-	//ImGui::SliderFloat("shineDamper", &a1, 0, 64);
+	ImGui::Checkbox("Bloom", &m_bloom);
+	ImGui::SliderFloat("Bloom factor", &m_bloomFactor, 0, 2.0f);
+	ImGui::SliderFloat("Bloom multiplier", &m_bloomMultiplier, 0, 5.0f);
+	ImGui::SliderFloat("Chromatic", &m_chromatic, -0.01, 0.01f);
 }
 
 
@@ -254,8 +250,8 @@ void RenderingPipeline::OnResize(uint width, uint height) {
 	if (!m_initialized) return;
 	m_width = width;
 	m_height = height;
-	m_gBuffer->Resize(width, height);
-	m_hdrBuffer->Resize(width, height);
-	m_ssaoRenderer->Resize(width, height);
+	//m_gBuffer->Resize(width, height);
+	// m_hdrBuffer->Resize(width, height);
+	//m_ssaoRenderer->Resize(width, height);
 	m_camera->UpdateProjectionMatrix();
 }

@@ -10,7 +10,7 @@ in vec4 fsPos;
 in vec4 newPos;
 in vec4 color;
 
-out vec4 outColor;
+out vec4 outColor[2];
 //out vec4 outBright;
 
 //uniform float uLightRadius;
@@ -20,7 +20,7 @@ out vec4 outColor;
 uniform vec3 uCameraPos;
 uniform float shineDamper;
 uniform bool _SSAOEnabled;
-
+uniform float _BloomFactor;
 uniform float _Diffuse;
 
 const float PI = 3.14159265359;
@@ -106,7 +106,7 @@ void main(){
 
     float NdotL = max(dot(N, L), 0.0);        
 
-    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
+    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL * (_SSAOEnabled ? ssao : 1);
 
 	vec3 ambient = vec3(0.03) * albedo;
 	vec3 color = ambient + Lo;
@@ -116,7 +116,8 @@ void main(){
     float at = 1.0 - d;
 
 	color *= ztest * at;
-	outColor = vec4(mix(color, albedo, lightInfluence), 1.0);
+	outColor[0] = vec4(mix(color, albedo, lightInfluence), 1.0);
+	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);
 }
 
 //void main3() {

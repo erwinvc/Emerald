@@ -162,7 +162,8 @@ void Application::Render() {
 		m_window->SetWidth(width);
 		m_window->SetHeight(height);
 		m_pipeline->OnResize(width, height);
-		//GetStateManager()->OnResize(width, height);
+		GetFrameBufferManager()->OnResize(width, height);
+		GetStateManager()->OnResize(width, height);
 		toResize = Vector2I(-1, -1);
 	}
 

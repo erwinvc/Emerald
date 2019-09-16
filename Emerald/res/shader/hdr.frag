@@ -4,13 +4,16 @@ out vec4 out_color;
 in vec2 fsUv;
 
 uniform sampler2D _HDRBuffer;
+uniform sampler2D _HDRBloom;
+uniform float _BloomMultiplier;
+uniform bool _Bloom;
 uniform int _ApplyPostProcessing;
 uniform float _Gamma;
 uniform bool _FXAA;
 uniform float _Exposure;
 uniform int _Tonemapping;
 uniform vec2 _ScreenSize;
-
+uniform float _Chromatic;
 //void main()
 //{             
 //    const float gamma = 1;
@@ -235,13 +238,25 @@ vec3 Vignette(vec3 color, vec3 color2, float a, float b) {
 }
 
 void main(){
-	vec3 color = texture(_HDRBuffer, fsUv).rgb * _Exposure;
-	if(_FXAA) color = computeFxaa() * _Exposure;
+	vec3 color = texture(_HDRBuffer, fsUv).rgb;
+	if(_FXAA) color = computeFxaa();
+
+
+	float o1 = -_Chromatic;
+	float o2 = 0.0f;
+	float o3 = _Chromatic;
+	float rbloomColor = texture2D(_HDRBloom, fsUv + o1 * (fsUv - 0.5f)).r;  
+    float gbloomColor = texture2D(_HDRBloom, fsUv + o2 * (fsUv - 0.5f)).g;
+    float bbloomColor = texture2D(_HDRBloom, fsUv + o3 * (fsUv - 0.5f)).b;  
+	//vec3 bloomColor = texture(_HDRBloom, fsUv).rgb * _BloomMultiplier;
+    if(_Bloom) color += vec3(rbloomColor, gbloomColor, bbloomColor)* _BloomMultiplier;
 
 	if(_ApplyPostProcessing == 0) {
 		out_color = vec4(color, 1.0);
 		return;
 	}
+
+	color *= _Exposure;
 
 	switch(_Tonemapping){
 		case 0: color = linearToneMapping(color); break;

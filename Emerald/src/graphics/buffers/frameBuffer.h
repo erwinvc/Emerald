@@ -39,6 +39,7 @@ private:
 	bool CheckStatus();
 
 	friend FrameBufferManager;
+	void Resize(uint width, uint height);
 
 public:
 	AssetRef<Texture> AddColorBuffer(const String& name, const TextureParameters& params);
@@ -56,7 +57,6 @@ public:
 		GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	}
 
-	void Resize(uint width, uint height);
 
 	inline uint GetWidth() const { return m_width; }
 	inline uint GetHeight() const { return m_height; }
@@ -95,6 +95,10 @@ public:
 
 	void SetSelectedTexture(AssetRef<Texture> texture) {
 		m_selectedTexture = texture;
+	}
+
+	void OnResize(uint width, uint height) {
+		for (FrameBuffer* fbo : m_frameBuffers) fbo->Resize(width, height);
 	}
 };
 

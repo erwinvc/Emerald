@@ -24,7 +24,6 @@ public:
 	~SSAORenderer();
 
 	void Render(GBuffer* gBuffer);
-	void Resize(uint width, uint height);
 
 	AssetRef<Texture> GetTexture() { return m_textureBlur; }
 	AssetRef<Texture> GetRawTexture() { return m_texture; }

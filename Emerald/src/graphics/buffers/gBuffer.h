@@ -29,9 +29,9 @@ public:
 		m_fbo->Unbind();
 	}
 
-	void Resize(uint width, uint height) {
-		m_fbo->Resize(width, height);
-	}
+	//void Resize(uint width, uint height) {
+	//	m_fbo->Resize(width, height);
+	//}
 
 	AssetRef<FrameBuffer> GetFBO() const { return m_fbo; }
 };

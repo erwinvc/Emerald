@@ -1,7 +1,7 @@
 #version 330
 in vec2 fsUV;
 
-out vec4 outColor;
+out vec4 outColor[2];
 
 uniform sampler2D _GMisc;
 uniform sampler2D _GAlbedo;
@@ -57,10 +57,9 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-uniform float _Roughness;
-//uniform float _Metallic;
+//uniform float _Roughness;
 uniform float _Metallic = 0;
-
+uniform float _BloomFactor;
 void main(){
 	vec3 misc = texture(_GMisc, fsUV).xyz;
 	vec3 albedo = texture(_GAlbedo, fsUV).xyz;
@@ -91,13 +90,14 @@ void main(){
 
     float NdotL = max(dot(N, L), 0.0); 
 
-    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
+    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL * (_SSAOEnabled ? ssao : 1);
 
 	vec3 ambient = vec3(0.03) * albedo;
 	vec3 color = ambient + Lo;
 
 
-	outColor = vec4(mix(color, albedo, lightInfluence), 1.0);
+	outColor[0] = vec4(mix(color, albedo, lightInfluence), 1.0);
+	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);
 }
 
 //void main()

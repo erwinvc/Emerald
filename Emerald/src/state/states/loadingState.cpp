@@ -27,6 +27,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("HDR", "res/shader/hdr")));
 	m_batch->Add(NEW(ShaderLoader("SSAO", "res/shader/ssao")));
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "res/shader/ssaoBlur")));
+	m_batch->Add(NEW(ShaderLoader("Gaussian", "res/shader/gaussian")));
 	m_batch->Add(NEW(TileTextureLoader("white", "test")));
 	m_batch->Add(NEW(TileTextureLoader("Obsidian", "obsidian")));
 	m_batch->Add(NEW(TileTextureLoader("Cliff", "cliff")));
