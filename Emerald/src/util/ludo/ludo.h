@@ -8,7 +8,6 @@ public:
 	String m_toFind[6];
 	vector<array<String, 6>> m_toReplace;
 
-	template<typename... Args>
 	Grammar(int x, int y, const String& toFind, initializer_list<String> toReplace) : m_x(x), m_y(y) {
 		int size = x * y;
 		if (toFind.size() != size) LOG_ERROR("Grammar string length doesn't match!");
@@ -64,7 +63,7 @@ private:
 		Tile* m_tempTile;
 		AGrammar(Grammar* g, Vector2I& pos, int index, Tile* tempTile) : m_grammar(g), m_position(pos), m_index(index), m_tempTile(tempTile) {}
 	};
-	bool DoIteration(Recipe& recipe) {
+	bool DoGrammar(Recipe& recipe) {
 		vector<AGrammar> coll;
 		for (int y = 0; y < MAX_Y; y++) {
 			for (int x = 0; x < MAX_X; x++) {
@@ -129,21 +128,23 @@ public:
 
 	void Iterate() {
 		GetThreadPool()->DoJob([&] {
-			DoIteration(m_recipes[0]);
+			DoGrammar(m_recipes[0]);
 		});
 	}
 
-	void Execute(int max) {
-		GetThreadPool()->DoJob([this, max] {
+	void Execute() {
+		GetThreadPool()->DoJob([this] {
 			for (int i = 0; i < m_recipes.size(); i++) {
+
 				int maxExecutions = m_recipes[i].m_maxExecutions;
-				maxExecutions = maxExecutions == -1 ? 1000 : maxExecutions;
+				maxExecutions = maxExecutions == -1 ? 10000 : maxExecutions;
+
 				m_recipes[i].m_callback();
 				for (int j = 0; j < maxExecutions; j++) {
 					if (!DoCode(m_recipes[i])) break;
 				}
 				for (int j = 0; j < maxExecutions; j++) {
-					if (!DoIteration(m_recipes[i])) break;
+					if (!DoGrammar(m_recipes[i])) break;
 				}
 			}
 		});
