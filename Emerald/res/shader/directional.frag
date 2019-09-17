@@ -1,7 +1,7 @@
 #version 330
 in vec2 fsUV;
 
-out vec4 outColor[2];
+out vec3 outColor[2];
 
 uniform sampler2D _GMisc;
 uniform sampler2D _GAlbedo;
@@ -93,10 +93,10 @@ void main(){
     vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL * (_SSAOEnabled ? ssao : 1);
 
 	vec3 ambient = vec3(0.03) * albedo;
-	vec3 color = ambient + Lo;
+	vec3 color = Lo;
 
 
-	outColor[0] = vec4(mix(color, albedo, lightInfluence), 1.0);
+	outColor[0] = vec3(mix(color, albedo, lightInfluence));
 	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);
 }
 

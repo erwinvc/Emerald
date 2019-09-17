@@ -28,23 +28,32 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 	m_gaussianShader->Bind();
 	m_gaussianShader->Set("_Bright", 0);
 
+	m_emissionShader = GetShaderManager()->Get("Emission");
+	m_emissionShader->Bind();
+	m_emissionShader->Set("_GMisc", 0);
+	m_emissionShader->Set("_GAlbedo", 1);
+	m_emissionShader->Set("_GNormal", 2);
+	m_emissionShader->Set("_GPosition", 3);
+
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
 	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", m_width, m_height);
-	m_hdrTexture = m_hdrBuffer->AddColorBuffer("HDR", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrTexture = m_hdrBuffer->AddColorBuffer("HDR", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
-	m_hdrBrightTexture = m_hdrBuffer->AddColorBuffer("HDRBloom", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrBrightTexture = m_hdrBuffer->AddColorBuffer("HDRBloom", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
 	//Bloom
 	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", 1920, 1080);
 	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", 1920, 1080);
-	m_pingPongTexture[0] = m_pingPongFBO[0]->AddColorBuffer("PingPong1", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
-	m_pingPongTexture[1] = m_pingPongFBO[1]->AddColorBuffer("PingPong1", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_pingPongTexture[0] = m_pingPongFBO[0]->AddColorBuffer("PingPong1", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_pingPongTexture[1] = m_pingPongFBO[1]->AddColorBuffer("PingPong1", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
 	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer(m_width, m_height));
 
-	m_camera = NEW(FreeCam(70, 0.01f, 1000.0f));
+	m_freeCam = NEW(FreeCam(70, 0.01f, 1000.0f));
+	m_firstPersonCamera = NEW(FirstPersonCam(70, 0.01f, 1000.0f));
+	m_camera = m_freeCam;
 
 	m_camera->m_position = Vector3(10, 5, -2);
 	m_camera->m_rotation = Vector3(0.5, Math::PI, 0);
@@ -99,12 +108,21 @@ void RenderingPipeline::PostGeometryRender() {
 	m_hdrBuffer->Bind();
 	m_hdrBuffer->Clear();
 
+	GL(glEnable(GL_BLEND));
+	GL(glBlendFunc(GL_ONE, GL_ONE));
+
+	//Emission
+	m_gBuffer->BindTextures();
+	m_emissionShader->Bind();
+	m_emissionShader->Set("_BloomFactor", m_bloomFactor);
+	m_quad->Bind();
+	m_quad->Draw();
+
 	//Draw directional light
 	m_directionalLightShader->Bind();
 
 	m_gBuffer->BindTextures();
 	m_ssaoRenderer->GetTexture()->Bind(4);
-
 	m_directionalLightShader->Set("_Color", m_directionalLight.m_color);
 
 	Matrix4 mat = Matrix4::Identity();
@@ -123,8 +141,6 @@ void RenderingPipeline::PostGeometryRender() {
 	m_quad->Bind();
 	m_quad->Draw();
 
-	GL(glEnable(GL_BLEND));
-	GL(glBlendFunc(GL_ONE, GL_ONE));
 	GL(glFrontFace(GL_CW));
 
 	//Draw pointlights
@@ -144,10 +160,10 @@ void RenderingPipeline::PostGeometryRender() {
 	m_hdrBuffer->Unbind();
 
 	//Draw to screen
-	GL(glDisable(GL_BLEND));	
+	GL(glDisable(GL_BLEND));
 
 	bool horizontal = true, first_iteration = true;
-	int amount = 4;
+	int amount = 8;
 	m_gaussianShader->Bind();
 	m_pingPongFBO[0]->Bind();
 	m_pingPongFBO[0]->Clear();
@@ -156,9 +172,9 @@ void RenderingPipeline::PostGeometryRender() {
 
 	for (int i = 0; i < amount; i++) {
 		m_pingPongFBO[horizontal]->Bind();
-	
+
 		m_gaussianShader->Set("horizontal", horizontal);
-	
+
 		if (first_iteration) m_hdrBrightTexture->Bind();
 		else m_pingPongTexture[!horizontal]->Bind();
 		m_quad->Draw();
@@ -206,6 +222,7 @@ void RenderingPipeline::OnImGUI() {
 			if (ImGui::TreeNode("Tonemapping")) {
 				ImGui::SliderFloat("Gamma", &m_gamma, 0, 5);
 				ImGui::SliderFloat("Exposure", &m_exposure, 0, 5);
+
 				ImGui::Combo("Tonemapping", &m_selectedTonemapping, tonemapping, NUMOF(tonemapping));
 
 				ImGui::TreePop();
@@ -226,6 +243,13 @@ void RenderingPipeline::OnImGUI() {
 		}
 
 		if (ImGui::CollapsingHeader("Camera")) {
+			const String_t cameras[] = { "Freecam", "First person" };
+			if (ImGui::Combo("Camera type", &m_selectedCamera, cameras, NUMOF(cameras))) {
+				switch (m_selectedCamera) {
+				case 0: m_camera = m_freeCam;
+				case 1: m_camera = m_firstPersonCamera;
+				}
+			}
 			m_camera->OnImGui();
 		}
 
@@ -233,7 +257,7 @@ void RenderingPipeline::OnImGUI() {
 			GetMemory()->OnImGui();
 		}
 
-		if (ImGui::Checkbox("Wireframe", &m_wireFrame)) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)); 
+		if (ImGui::Checkbox("Wireframe", &m_wireFrame)) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 		ImGui::SliderFloat("Roughness", &roughness, 0, 1);
 		ImGui::SliderFloat("Metallic", &metallic, 0, 1);
 		ImGui::EndTabItem();

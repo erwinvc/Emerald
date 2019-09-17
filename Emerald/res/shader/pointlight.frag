@@ -10,7 +10,7 @@ in vec4 fsPos;
 in vec4 newPos;
 in vec4 color;
 
-out vec4 outColor[2];
+out vec3 outColor[2];
 //out vec4 outBright;
 
 //uniform float uLightRadius;
@@ -116,7 +116,7 @@ void main(){
     float at = 1.0 - d;
 
 	color *= ztest * at;
-	outColor[0] = vec4(mix(color, albedo, lightInfluence), 1.0);
+	outColor[0] = vec3(mix(color, albedo, lightInfluence));
 	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);
 }
 

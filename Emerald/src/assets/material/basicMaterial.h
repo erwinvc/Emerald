@@ -36,7 +36,7 @@ public:
 		shader->Set("_Specular", 2);
 		shader->Set("_SpecularStrength", m_specularStrength);
 		shader->Set("_Emission", 3);
-		shader->Set("_EmissionStrength", m_specularStrength);
+		shader->Set("_EmissionStrength", m_emissionStrength);
 		m_albedo->Bind(0);
 		m_normal->Bind(1);
 		m_specular->Bind(2);

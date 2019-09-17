@@ -8,12 +8,8 @@ public:
 	Vector3 m_rotation;
 	Vector3 m_scale;
 
-	Entity() {}
-	Entity(AssetRef<Model> model) : m_model(model) {
-		m_position = Vector3(0, 0, -1);
-		m_rotation = Vector3();
-		m_scale = 0.2f;
-	}
+	Entity() : m_position(Vector3(0, 0, 0)), m_rotation(Vector3(0, 0, 0)), m_scale(Vector3(1, 1, 1)) {}
+	Entity(AssetRef<Model> model) : m_position(Vector3(0, 0, 0)), m_rotation(Vector3(0, 0, 0)), m_scale(Vector3(1, 1, 1)), m_model(model) {}
 	virtual ~Entity() {}
 
 	void Draw(AssetRef<Shader> shader, uint mode = GL_TRIANGLES) {

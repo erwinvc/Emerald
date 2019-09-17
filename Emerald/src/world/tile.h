@@ -71,6 +71,7 @@ public:
 	TileType m_type;
 	TileTransform m_transformIndex;
 	vector<Tile*> m_tiles;
+	Tile* m_parent = nullptr;
 
 	Tile() : m_position(Vector2I()), m_definition(&TileDefinition::SOLID), m_type(FULL), m_transformIndex(UP) {}
 	Tile(Vector2I& pos) : m_position(pos), m_definition(&TileDefinition::SOLID), m_type(FULL), m_transformIndex(UP) {}

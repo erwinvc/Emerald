@@ -44,4 +44,6 @@ struct Vector2I {
     bool operator<=(const Vector2I& other) const;
     bool operator>(const Vector2I& other) const;
     bool operator>=(const Vector2I& other) const;
+
+	float Distance(const Vector2I& other) const;
 };

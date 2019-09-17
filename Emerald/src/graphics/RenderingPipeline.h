@@ -9,9 +9,10 @@ private:
 	GBuffer* m_gBuffer;
 	AssetRef<Shader> m_directionalLightShader;
 	AssetRef<Shader> m_pointLightShader;
+	AssetRef<Shader> m_emissionShader;
 
 	//SSAO
-	bool m_ssaoEnabled = false;
+	bool m_ssaoEnabled = true;
 	SSAORenderer* m_ssaoRenderer;
 
 	//HDR
@@ -28,7 +29,11 @@ private:
 	AssetRef<FrameBuffer> m_pingPongFBO[2];
 	AssetRef<Texture> m_pingPongTexture[2];
 
+	ManagedRef<Camera> m_firstPersonCamera;
+	ManagedRef<Camera> m_freeCam;
 	ManagedRef<Camera> m_camera;
+	int m_selectedCamera = 0;
+
 	Matrix4 m_orthoMatrix;
 	Matrix4 m_perspectiveMatrix;
 	bool m_perspective = true;

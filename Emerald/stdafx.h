@@ -180,6 +180,7 @@ using namespace std;
 #include "graphics/RenderingPipeline.h"
 #include "application.h"
 
+#include "util/ludo/aStar.h"
 #include "util/ludo/ludo.h"
 
 #include "state/state.h"

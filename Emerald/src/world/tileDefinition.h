@@ -20,4 +20,6 @@ public:
 	static TileDefinition ROOM;
 	static TileDefinition HOOK;
 	static TileDefinition LOCK;
+	static TileDefinition KEY;
+	static TileDefinition LAMP;
 };
