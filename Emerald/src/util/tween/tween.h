@@ -65,17 +65,20 @@ String_t g_easeStrings[] = {
 class Tween {
 protected:
 	Ease m_ease = Ease::LINEAR;
-
+	function<void()> m_onComplete = [] {};
 public:
 	virtual void Update(const TimeStep& time) = 0;
 
 	template<typename T>
-	static ManagedRef<Tween> To(T& value, T goal, float duration) {
-		Tween** slot = GetTweenManager()->GetEmptySpot();
-		if (slot == nullptr) LOG_ERROR("[~gTweens~x] no free tween slots available");
-		*slot = NEW(TweenValue<T>(&value, goal, duration));
-		return ManagedRef<Tween>(*slot);
+	static AssetRef<Tween> To(T& value, T goal, float duration) {
+		//Tween** slot = GetTweenManager()->GetEmptySpot();
+		//if (slot == nullptr) LOG_ERROR("[~gTweens~x] no free tween slots available");
+		Tween* tween = NEW(TweenValue<T>(&value, goal, duration));
+		GetTweenManager()->AddTween(tween);
+		return AssetRef<Tween>(tween);
 	}
+
+	void SetOnComplete(function<void()> onComplete) { m_onComplete = onComplete; }
 
 	Tween* SetEase(Ease ease) {
 		m_ease = ease;
@@ -189,6 +192,7 @@ public:
 
 		if (m_time >= m_duration) {
 			*m_value = m_goal;
+			m_onComplete();
 			GetTweenManager()->Delete(this);
 		}
 	}
@@ -197,31 +201,20 @@ public:
 
 class TweenManager : public Singleton<TweenManager> {
 private:
-	Tween* m_tweens[10] = { nullptr };
+	vector<Tween*> m_tweens;
+	//Tween* m_tweens[10] = { nullptr };
 
 	TweenManager() {}
-	~TweenManager() {
-		for (int i = 0; i < 10; i++) {
-			if (m_tweens[i] != nullptr) {
-				DELETE(m_tweens[i]);
-				m_tweens[i] = nullptr;
-			}
-		}
-	}
+	~TweenManager() {}
 
-	Tween** GetEmptySpot() {
-		for (int i = 0; i < 10; i++) {
-			if (m_tweens[i] == nullptr) return &m_tweens[i];
-		}
-		return nullptr;
+	void AddTween(Tween* tween) {
+		m_tweens.push_back(tween);
 	}
 
 	void Delete(Tween* tween) {
-		for (int i = 0; i < 10; i++) {
-			if (m_tweens[i] == tween) {
-				DELETE(m_tweens[i]);
-				m_tweens[i] = nullptr;
-			}
+		if (Utils::VectorContains(m_tweens, tween)) {
+			Utils::RemoveFromVector(m_tweens, tween);
+			delete tween;
 		}
 	}
 	friend Tween;
@@ -229,10 +222,8 @@ private:
 	friend Singleton;
 public:
 	void Update(const TimeStep& time) {
-		for (int i = 0; i < 10; i++) {
-			if (m_tweens[i] != nullptr) {
-				m_tweens[i]->Update(time);
-			}
+		for (int i = 0; i < m_tweens.size(); i++) {
+			m_tweens[i]->Update(time);
 		}
 	}
 };

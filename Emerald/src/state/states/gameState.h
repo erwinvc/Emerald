@@ -2,6 +2,11 @@
 struct Collectible {
 	Entity* m_entity;
 	Pointlight m_pointLight;
+	bool m_removed = false;
+
+	inline bool operator==(const Collectible& node) {
+		return m_entity == node.m_entity;
+	}
 };
 
 class GameState : public State {
@@ -24,10 +29,14 @@ private:
 	vector<Collectible> m_keys;
 	AssetRef<BasicMaterial> mat2;
 	bool drawDebugLines = false;
+	Player player;
+	int keys = 0;
+	Pointlight playerLight;
 public:
 	const String& GetName() override { return m_name; }
 
 	void Initialize() override {
+		playerLight = Pointlight(Vector3(0, 0, 0), 3, Color::White());
 		texIri = GetAssetManager()->Get<Texture>("Irridescence");
 		texNoise = GetAssetManager()->Get<Texture>("Noise");
 		m_geometryShader = GetShaderManager()->Get("Geometry");
@@ -73,7 +82,7 @@ public:
 			for (int i = 0; i < tile->m_tiles.size(); i++) {
 				if (tile->m_tiles[i]->IsSolid()) {
 					Utils::RemoveFromVector(tile->m_tiles, tile->m_tiles[i]);
-					Sleep(5);
+					//Sleep(15);
 				}
 			}
 		});
@@ -137,7 +146,7 @@ public:
 				e->m_position.x = tile->m_position.x + 0.5f;
 				e->m_position.z = tile->m_position.y + 0.5f;
 				m_lamps.push_back(e);
-				Sleep(10);
+				//Sleep(15);
 			}
 		});
 
@@ -150,7 +159,7 @@ public:
 				e->m_position.y = 0.5f;
 				e->m_position.z = tile->m_position.y + 0.5f;
 				m_keys.push_back({ e, Pointlight(Vector3(tile->m_position.x + 0.5f, 1.5f, tile->m_position.y + 0.5f), 3, (Color::Red()) * 2) });
-				Sleep(10);
+				//Sleep(15);
 			}
 		});
 
@@ -171,22 +180,35 @@ public:
 	}
 
 	void Update(const TimeStep& time) override {
+		if (GetPipeline()->m_selectedCamera == 1) {
+			player.Move(time);
+			playerLight.m_position = player.body.m_position;
+			playerLight.m_position.y += 0.5f;
+		}
+
+		vector<Tile*>& surroundingTiles = player.GetTiles();
+		for (Tile* tile : surroundingTiles) {
+			if (tile->m_definition == &TileDefinition::LOCK && keys > 0) {
+				keys--;
+				GetWorld()->BreakTile(tile->m_position.x, tile->m_position.y);
+			}
+		}
 		GetCamera()->Update(time);
 
-		if (KeyJustDown('O')) {
-			for (int x = -20; x < 20; x++) {
-				for (int y = -20; y < 20; y++) {
-					for (int z = -2; z < 20; z++) {
-						if (Math::RandomInt(0, 10) > 8) m_pointlights.push_back(Pointlight(Vector3((float)x, (float)y, (float)z), 5, Color::RandomPrimary()));
-					}
-				}
-			}
-			//loop(x, GetWorld()->GetBoundaries().m_size.x) {
-			//	loop(y, GetWorld()->GetBoundaries().m_size.y) {
-			//		if (Math::RandomInt(0, 10) > 8) m_pointlights.push_back(Pointlight(Vector3((float)x, 1.2f, (float)y), 2, Color::RandomPrimary()));
-			//	}
-			//}
-		}
+		//if (KeyJustDown('O')) {
+		//	for (int x = -20; x < 20; x++) {
+		//		for (int y = -20; y < 20; y++) {
+		//			for (int z = -2; z < 20; z++) {
+		//				if (Math::RandomInt(0, 10) > 8) m_pointlights.push_back(Pointlight(Vector3((float)x, (float)y, (float)z), 5, Color::RandomPrimary()));
+		//			}
+		//		}
+		//	}
+		//	//loop(x, GetWorld()->GetBoundaries().m_size.x) {
+		//	//	loop(y, GetWorld()->GetBoundaries().m_size.y) {
+		//	//		if (Math::RandomInt(0, 10) > 8) m_pointlights.push_back(Pointlight(Vector3((float)x, 1.2f, (float)y), 2, Color::RandomPrimary()));
+		//	//	}
+		//	//}
+		//}
 
 		static float sinVal = 0;
 		sinVal += 0.001f * time.GetMills();
@@ -196,6 +218,17 @@ public:
 			coll.m_entity->m_rotation.y = 0.2f * sinVal;
 			coll.m_entity->m_rotation.z = 0.5f * sinVal;
 			coll.m_pointLight.m_position.y = (Math::Sin(sinVal) / 4) + (Math::Cos(sinVal) / 16) + 0.5f;
+
+			if (!coll.m_removed && coll.m_entity->m_position.Distance(player.body.m_position) < 1.5f) {
+				coll.m_removed = true;
+				Tween* tween = Tween::To(coll.m_entity->m_scale, Vector3(0.01f, 0.01f, 0.01f), 1000);
+				tween->SetEase(Ease::INELASTIC);
+				tween->SetOnComplete([&] {
+					delete coll.m_entity;
+					Utils::RemoveFromVector(m_keys, coll);
+				});
+				keys++;
+			}
 		}
 
 		//Vector3 cast = m_rayCast.GetGroundPosition(GetCamera());
@@ -221,6 +254,7 @@ public:
 	}
 
 	void RenderGeometry() override {
+		//player.DebugDraw();
 		GetPipeline()->GetGBuffer()->BindTextures();
 		GetTileRenderer()->Begin();
 		GetWorld()->Draw();
@@ -254,6 +288,8 @@ public:
 		for (Collectible& coll : m_keys) {
 			GetPointlightRenderer()->Submit(coll.m_pointLight);
 		}
+
+		GetPointlightRenderer()->Submit(playerLight);
 
 		m_geometryShader->Bind();
 		m_geometryShader->Set("_Iridescence", 4);

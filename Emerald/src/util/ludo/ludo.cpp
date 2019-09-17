@@ -48,4 +48,5 @@ void Ludo::ApplyGrammar(int x, int y, Grammar& grammar, int grammarRotation, Til
 			}
 		}
 	}
+	//Sleep(5);
 }

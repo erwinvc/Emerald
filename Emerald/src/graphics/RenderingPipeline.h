@@ -29,10 +29,9 @@ private:
 	AssetRef<FrameBuffer> m_pingPongFBO[2];
 	AssetRef<Texture> m_pingPongTexture[2];
 
-	ManagedRef<Camera> m_firstPersonCamera;
-	ManagedRef<Camera> m_freeCam;
-	ManagedRef<Camera> m_camera;
-	int m_selectedCamera = 0;
+	AssetRef<FirstPersonCam> m_firstPersonCamera;
+	AssetRef<FreeCam> m_freeCam;
+	Camera* m_camera;
 
 	Matrix4 m_orthoMatrix;
 	Matrix4 m_perspectiveMatrix;
@@ -48,9 +47,10 @@ private:
 	bool m_bloom = true;
 	float m_bloomFactor = 1.0f;
 	float m_bloomMultiplier = 1.0f;
-	float m_chromatic = 0;
 public:
 	DirectionalLight m_directionalLight;
+	int m_selectedCamera = 0;
+	float m_chromatic = 0;
 
 	float roughness = 0;
 	float metallic = 0;
@@ -70,6 +70,6 @@ public:
 	void OnResize(uint width, uint height);
 
 	inline GBuffer* GetGBuffer() { return m_gBuffer; }
-	inline ManagedRef<Camera> GetCamera() { return m_camera; }
+	inline AssetRef<Camera> GetCamera() { return m_camera; }
 	inline bool Initialized() { return m_initialized; }
 };

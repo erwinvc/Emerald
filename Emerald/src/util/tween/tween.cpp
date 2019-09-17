@@ -1,9 +1,9 @@
 #include "stdafx.h"
 
 Tween::~Tween() {
-	GetTweenManager()->Delete(this);
+	//GetTweenManager()->Delete(this);
 }
 
 void Tween::Kill() {
-	GetTweenManager()->Delete(this);
+	//GetTweenManager()->Delete(this);
 }

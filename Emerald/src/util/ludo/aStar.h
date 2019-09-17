@@ -63,7 +63,7 @@ public:
 			Utils::RemoveFromVector(openList, current);
 			closedList.push_back(current);
 
-			Sleep(1);
+			//Sleep(1);
 			for (int i = 0; i < 9; i++) {
 				if (i == 4 || i == 0 || i == 2 || i == 6 || i == 8) continue;
 				int x = current->m_tile->m_position.x;
@@ -125,7 +125,7 @@ public:
 			Utils::RemoveFromVector(openList, current);
 			closedList.push_back(current);
 
-			Sleep(1);
+			//Sleep(1);
 			for (int i = 0; i < 9; i++) {
 				if (i == 4 || i == 0 || i == 2 || i == 6 || i == 8) continue;
 				int x = current->m_tile->m_position.x;

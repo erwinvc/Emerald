@@ -51,10 +51,12 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer(m_width, m_height));
 
-	m_freeCam = NEW(FreeCam(70, 0.01f, 1000.0f));
-	m_firstPersonCamera = NEW(FirstPersonCam(70, 0.01f, 1000.0f));
+	m_freeCam = NEW(FreeCam(70, 0.001f, 1000.0f));
+	m_firstPersonCamera = NEW(FirstPersonCam(70, 0.001f, 1000.0f));
 	m_camera = m_freeCam;
 
+	m_firstPersonCamera->m_position = Vector3(14, 0, -2);
+	m_firstPersonCamera->m_rotation = Vector3(0, Math::PI, 0);
 	m_camera->m_position = Vector3(10, 5, -2);
 	m_camera->m_rotation = Vector3(0.5, Math::PI, 0);
 	//m_projectionMatrix = Matrix4::Perspective(70, aspect, 0.01f, 1000.0f);
@@ -243,12 +245,14 @@ void RenderingPipeline::OnImGUI() {
 		}
 
 		if (ImGui::CollapsingHeader("Camera")) {
-			const String_t cameras[] = { "Freecam", "First person" };
-			if (ImGui::Combo("Camera type", &m_selectedCamera, cameras, NUMOF(cameras))) {
-				switch (m_selectedCamera) {
-				case 0: m_camera = m_freeCam;
-				case 1: m_camera = m_firstPersonCamera;
-				}
+			if (ImGui::Button("Freecam")) {
+				m_camera = m_freeCam;
+				m_selectedCamera = 0;
+				glfwSetInputMode(GetApplication()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			}
+			if (ImGui::Button("First person")) {
+				m_camera = m_firstPersonCamera;
+				m_selectedCamera = 1;
 			}
 			m_camera->OnImGui();
 		}

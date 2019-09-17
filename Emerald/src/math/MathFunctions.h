@@ -98,6 +98,11 @@ namespace Math {
 		return val <= max && val >= min;
 	}
 
+	template<typename T>
+	inline bool Within(T valMin, T valMax, T min, T max) {
+		return valMin < max && valMax > min;
+	}
+
 	inline float RandomFloat(float min, float max) {
 		float r = (float)rand() / (float)RAND_MAX;
 		return r * (max - min) + min;

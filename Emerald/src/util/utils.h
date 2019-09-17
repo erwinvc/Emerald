@@ -80,8 +80,8 @@ namespace Utils {
 	}
 
 	template<typename T>
-	static void VectorContains(vector<T>& vec, const T& obj) {
-		return vec.find(obj) != vec.end();
+	static bool VectorContains(vector<T>& vec, const T& obj) {
+		return find(vec.begin(), vec.end(), obj) != vec.end();
 	}
 
 	//Math?

@@ -5,6 +5,13 @@ void GLCallbackManager::Initialize(Window* window) {
 
     Timer t;
 
+	glfwSetWindowFocusCallback(window->GetHandle(), [](GLFWwindow* wnd, int focussed) {
+		GLCallbackManager* callbackManager = (GLCallbackManager*)glfwGetWindowUserPointer(wnd);
+		for (auto& callback : callbackManager->m_onFocusCallbacks) {
+			callback(focussed);
+		}
+	});
+
     glfwSetWindowSizeCallback(window->GetHandle(), [](GLFWwindow* wnd, int width, int height) {
         GLCallbackManager* callbackManager = (GLCallbackManager*)glfwGetWindowUserPointer(wnd);
         for (auto& callback : callbackManager->m_onResizeCallbacks) {

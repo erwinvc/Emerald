@@ -121,7 +121,7 @@ public:
 			m_pointlights.push_back(Pointlight(Vector3(GetCamera()->m_position.x, GetCamera()->m_position.y, GetCamera()->m_position.z), 25, Color(1, 0.8f, 0.8f)));
 		}
 
-		Vector3 cast = rayCast.GetGroundPosition(GetCamera());
+		Vector3 cast = rayCast.GetGroundPosition(1.0f);
 		m_rayCastPos = rayCast.GetTile();
 
 		m_pointlights[0].m_position.x = cast.x;

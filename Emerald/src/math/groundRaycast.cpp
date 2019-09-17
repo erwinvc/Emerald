@@ -1,10 +1,10 @@
 #include "stdafx.h"
 
-Vector3 GroundRaycast::Get(ManagedRef<Camera> camera) {
+Vector3 GroundRaycast::Get(AssetRef<Camera> camera) {
 	return CalculateMouseRay(camera);
 }
 
-Vector3 GroundRaycast::CalculateMouseRay(ManagedRef<Camera> camera) {
+Vector3 GroundRaycast::CalculateMouseRay(AssetRef<Camera> camera) {
 	float mouseX = GetMouse()->GetPosition().x;
 	float mouseY = GetMouse()->GetPosition().y;
 	Vector2 normalizedCoords = GetNormalizedDeviceCoords(mouseX, mouseY);
@@ -18,12 +18,12 @@ Vector2 GroundRaycast::GetNormalizedDeviceCoords(float mouseX, float mouseY) {
 	float y = ((2.0f * mouseY) / GetApplication()->GetWindow()->GetHeight()) - 1.0f;
 	return Vector2(x, -1.0f * y);
 }
-Vector4 GroundRaycast::ToEyeCoords(Vector4& clipCoords, ManagedRef<Camera> camera) {
+Vector4 GroundRaycast::ToEyeCoords(Vector4& clipCoords, AssetRef<Camera> camera) {
 	Matrix4 invertedProjection = Matrix4::Invert(camera->GetProjectionMatrix());
 	Vector4 eyeCoords = invertedProjection * clipCoords;
 	return Vector4(eyeCoords.x, eyeCoords.y, -1.0f, 0.0f);
 }
-Vector3 GroundRaycast::ToWorldCoords(Vector4& eyeCoords, ManagedRef<Camera> camera) {
+Vector3 GroundRaycast::ToWorldCoords(Vector4& eyeCoords, AssetRef<Camera> camera) {
 	Matrix4 invertedView = Matrix4::Invert(camera->GetViewMatrix());
 	Vector4 rayWorld = invertedView * eyeCoords;
 	Vector3 mouseRay = Vector3(rayWorld.x, rayWorld.y, rayWorld.z);

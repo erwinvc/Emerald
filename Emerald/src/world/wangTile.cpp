@@ -11,6 +11,18 @@ const Vector2I WangTile::m_positionOffsets[8] = {
 		{1, 1}	 //Northwest
 };
 
+const Vector2I WangTile::m_positionOffsetsComplete[9] = {
+		{0, 0},
+		{0, 1},  //North
+		{-1, 1}, //NorthEase
+		{-1, 0}, //East
+		{-1, -1},//SouthEast
+		{0, -1}, //South
+		{1, -1}, //SouthWest
+		{1, 0},	 //West
+		{1, 1}	 //Northwest
+};
+
 void WangTile::UpdateArea(int x, int z) {
 	for (int i = 0; i < 8; i++) {
 		Vector2I pos = Vector2I(x, z) + m_positionOffsets[i];
