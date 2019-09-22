@@ -9,8 +9,6 @@ public:
 
 	const String& GetName() { return m_name; }
 
-	//bool IsAsyncLoaded() { return m_finishedAsync; }
-
 	virtual void AsyncLoad() = 0;
 	virtual void SyncLoad(map<String, AssetBase*>& assets) = 0;
 

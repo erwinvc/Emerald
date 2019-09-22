@@ -153,6 +153,8 @@ using namespace std;
 #include "graphics/customMesh.h"
 #include "graphics/model.h"
 #include "entity/entity.h"
+#include "assets/assetBatch.h"
+#include "assets/basicAssetBatch.h"
 #include "assets/assetManager.h"
 
 #include "graphics/instancedRenderer2D.h"

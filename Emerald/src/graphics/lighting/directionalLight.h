@@ -6,8 +6,8 @@ public:
     Vector3 m_direction = Vector3(0.3f, 0.0f, 0.3f);
 
     void OnImGui() {
-		if (ImGui::InputFloat3("Direction###1", (float*)&m_direction, -Math::PI, Math::PI));
-		if (ImGui::SliderFloat3("Direction###2", (float*)&m_direction, -Math::PI, Math::PI));
+		ImGui::InputFloat3("Direction###1", (float*)&m_direction, -Math::PI, Math::PI);
+		ImGui::SliderFloat3("Direction###2", (float*)&m_direction, -Math::PI, Math::PI);
 		Matrix4 mat = Matrix4::Identity();
 		mat *= Matrix4::Rotate(m_direction.x, Vector3::XAxis());
 		mat *= Matrix4::Rotate(m_direction.y, Vector3::YAxis());

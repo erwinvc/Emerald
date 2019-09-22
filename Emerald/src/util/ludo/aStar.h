@@ -83,8 +83,8 @@ public:
 				if (at == nullptr) continue;
 				if (at->IsSolid()) continue;
 
-				double gCost = current->m_gCost + current->m_tile->m_position.Distance(at->m_position);
-				double hCost = at->m_position.Distance(goal->m_position);
+				float gCost = current->m_gCost + current->m_tile->m_position.Distance(at->m_position);
+				float hCost = at->m_position.Distance(goal->m_position);
 				Node* node = new Node(at, current, gCost, hCost);
 				allNodes.push_back(node);
 				if (TileInVec(closedList, at) && gCost >= node->m_gCost) continue;
@@ -152,8 +152,8 @@ public:
 				}
 				if (at->IsSolid()) continue;
 
-				double gCost = current->m_gCost + current->m_tile->m_position.Distance(at->m_position);
-				double hCost = at->m_position.Distance(goal->m_position);
+				float gCost = current->m_gCost + current->m_tile->m_position.Distance(at->m_position);
+				float hCost = at->m_position.Distance(goal->m_position);
 				Node* node = new Node(at, current, gCost, hCost);
 				allNodes.push_back(node);
 				if (TileInVec(closedList, at) && gCost >= node->m_gCost) continue;
