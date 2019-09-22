@@ -10,7 +10,7 @@ private:
 
 	BasicAssetBatch(const String& name) : AssetBatch(name) {}
 
-	//friend AssetManager;
+	friend class AssetManager;
 public:
 	~BasicAssetBatch() override {
 		for (AssetLoader* loader : m_queue)

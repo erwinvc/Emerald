@@ -22,7 +22,7 @@ class AssetManager : public Singleton<AssetManager> {
 public:
 
 	template<typename T>
-	AssetRef<T> CreateBatch(const String& name) {
+	AssetRef<AssetBatch> CreateBatch(const String& name) {
 		//TODO register batches
 		LOG("[~yAssets~x] Asset batch ~1%s~x created", name.c_str());
 		return NEW(T(name));

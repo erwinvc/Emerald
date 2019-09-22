@@ -10,7 +10,7 @@ void LoadingState::Initialize() {
 	GetShaderManager()->Create("UI", "res/shader/UI", false);
 	GetUIRenderer()->Initialize();
 
-	m_batch = GetAssetManager()->CreateBatch("Main Assets");
+	m_batch = GetAssetManager()->CreateBatch<BasicAssetBatch>("Main Assets");
 
 	m_batch->Add(NEW(CustomLoader("ImGui", [] {GetImGuiManager()->Initialize(GetApplication()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Mouse", [] {GetMouse()->Initialize(GetApplication()->GetWindow()); })));
