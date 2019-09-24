@@ -1,5 +1,31 @@
 #pragma once
 
+struct DrawableLine {
+	Vector3 x1 = Vector3(0);
+	Vector3 x2 = Vector3(0);
+	float amount = 0;
+	float duration = 0;
+	bool enabled = false;
+};
+
+static DrawableLine** drawableLines;
+
+static void DrawLine(Vector3 x1, Vector3 x2, float amount) {
+	DrawableLine* linea;
+	for (int i = 0; i < 128; i++) {
+		DrawableLine* line = drawableLines[i];
+		if (!line->enabled) {
+			line->enabled = true;
+			line->x1 = x1;
+			linea = line;
+			line->x2 = x2;
+			line->amount = amount;
+			line->duration = 100000;
+			break;
+		}
+	}
+}
+
 struct Topology {
 	int count;
 	int layers;
@@ -42,7 +68,7 @@ public:
 			double passingValue = previousLayer[n].m_outputValue * previousLayer[n].m_outputWeights[m_myIndex].weight;
 			sum += passingValue;
 			neuron.m_outputWeights[m_myIndex].passingValue = passingValue;
-
+			DrawLine(m_entity->m_position, neuron.m_entity->m_position, 100);
 		}
 
 		m_outputValue = transferFunction(sum);
@@ -94,10 +120,9 @@ public:
 		for (auto& c : m_outputWeights) {
 			float value = renderType ? c.weight : c.passingValue;
 			Color color(0, 0, 0, 1);
-			if (c.deltaWeight < 0) color.B = -value;
+			if (c.weight < 0) color.B = -value;
 			else color.R = value;
-
-			float x2 = Math::Clamp((float)c.deltaWeight, 0.0f, 1.0f);
+		
 			GetLineRenderer()->Submit(m_entity->m_position, c.neuron->m_entity->m_position, color);
 		}
 	}
@@ -176,13 +201,13 @@ public:
 	}
 
 	void Import() {
-		try{
-		nlohmann::json jsonOb = FileSystem::LoadJsonFromFile("neuralNetwork");
-		for (int i = 0; i < m_layers.size() - 1; i++) {
-			for (int j = 0; j < m_layers[i].size(); j++) {
-				m_layers[i][j].Import(jsonOb[to_string(i)][to_string(j)]);
+		try {
+			nlohmann::json jsonOb = FileSystem::LoadJsonFromFile("neuralNetwork");
+			for (int i = 0; i < m_layers.size() - 1; i++) {
+				for (int j = 0; j < m_layers[i].size(); j++) {
+					m_layers[i][j].Import(jsonOb[to_string(i)][to_string(j)]);
+				}
 			}
-		}
 		} catch (...) {}
 	}
 	void feedForward(const vector<double>& inputValues) {
@@ -265,7 +290,7 @@ class MenuState : public State {
 private:
 	String m_name = "Menu";
 	AssetRef<Shader> m_shader;
-	vector<Topology> topology = { {64, 8}, {64, 8}, {16, 4}, {3, 1} };
+	vector<Topology> topology = { {64, 8}, {64, 8}, {64, 8}, {3, 1} };
 	NeuralNetwork* m_network;
 	bool renderType = false;
 	vector<Pointlight> m_pointLights;
@@ -281,7 +306,10 @@ public:
 
 	void Initialize() override {
 		for (int i = 0; i < 64; i++) m_inputValues.push_back(1.0);
-
+		drawableLines = new DrawableLine*[128];
+		for (int i = 0; i < 128; i++) {
+			drawableLines[i] = new DrawableLine();
+		}
 		cast = new GroundRaycast();
 		int sizeX = 8;
 		int sizeY = 8;
@@ -363,7 +391,15 @@ public:
 			}
 			m_network->feedForward(m_inputValues);
 		}
-
+		for (int i = 0; i < 128; i++) {
+			if (drawableLines[i]->enabled) {
+				DrawableLine* line = drawableLines[i];
+				line->duration -= time.GetMills();
+				if (line->duration <= 0) {
+					line->enabled = false;
+				}
+			}
+		}
 	}
 	void RenderGeometry() override {
 		m_shader->Bind();
@@ -485,6 +521,15 @@ public:
 		//ImGui::LabelText("Output", "%f", outputs[0]);
 		//ImGui::LabelText("Expected output", "%d", a ^ b);
 		//ImGui::LabelText("Correct answer?", "%s", (Math::Round(outputs[0]) == a ^ b ? "Yes!" : "No..."));
+
+		for (int i = 0; i < 128; i++) {
+			if (drawableLines[i]->enabled) {
+				DrawableLine* line = drawableLines[i];
+				Color color = Color(line->amount * line->duration / 1000);
+				color.A = 1.0;
+				GetLineRenderer()->Submit(line->x1, line->x2, color);
+			}
+		}
 	}
 
 	//void BackPropNumber(NeuralNetwork* net, int num) {
