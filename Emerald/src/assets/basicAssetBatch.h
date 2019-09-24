@@ -41,5 +41,5 @@ public:
 	}
 	bool IsFinished() override { return m_finished; }
 
-	float GetProgress() override { return 1; }
+	float GetProgress() override { return (float)m_currentBatchProgress / (float)m_currentBatchSize; }
 };

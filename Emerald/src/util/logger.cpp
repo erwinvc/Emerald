@@ -147,7 +147,7 @@ void Logger::Message(int color, const char* type, const char* fmt, ...) {
 	AddToQueue(color, buffer, type, time(nullptr));
 }
 void Logger::MessageTimed(int time, int color, const char* type, const char* fmt, ...) {
-	if (GetApplication()->GetFrameCount() % time == 0) {
+	if (GetApp()->GetFrameCount() % time == 0) {
 		char buffer[0xffff] = { 0 };
 		va_list va_alist;
 		va_start(va_alist, fmt);
@@ -155,7 +155,7 @@ void Logger::MessageTimed(int time, int color, const char* type, const char* fmt
 		va_end(va_alist);
 
 		String str = buffer;
-		str += to_string(GetApplication()->GetFrameCount());
+		str += to_string(GetApp()->GetFrameCount());
 		Message(color, type, str.c_str());
 	}
 }

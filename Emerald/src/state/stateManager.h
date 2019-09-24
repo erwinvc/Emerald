@@ -4,10 +4,9 @@ class GameStates {
 public:
 	static State* LOADING;
 	static State* MENU;
-	static State* LOADINGWORLD;
 	static State* GAME;
-	static State* MAINMENU;
-	static State* LUDO;
+	static State* PAUSE;
+	static State* GAMEOVER;
 };
 
 class StateManager : public Singleton<StateManager > {

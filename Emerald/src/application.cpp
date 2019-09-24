@@ -70,7 +70,7 @@ void Application::Initialize() {
 	GetStateManager()->RegisterStates();
 
 	GetGLFiberManager()->Initialize();
-	GetGLFiberManager()->AddFiber("Main", [] {GetApplication()->Run(); });
+	GetGLFiberManager()->AddFiber("Main", [] {GetApp()->Run(); });
 	GetGLFiberManager()->AddFiber("AssetManager", [] {GetAssetManager()->Update(); });
 
 	m_window->Show();

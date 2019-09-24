@@ -54,7 +54,7 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_shader->Set("_Power", m_power);
 	m_shader->Set("_Projection", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("_View", GetCamera()->GetViewMatrix());
-	m_shader->Set("_NoiseScale", GetApplication()->GetWindow()->GetWidth() / 4, GetApplication()->GetWindow()->GetHeight() / 4);
+	m_shader->Set("_NoiseScale", GetApp()->GetWindow()->GetWidth() / 4, GetApp()->GetWindow()->GetHeight() / 4);
 
 	gBuffer->m_positionTexture->Bind(0);
 	gBuffer->m_normalTexture->Bind(1);

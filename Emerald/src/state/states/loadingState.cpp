@@ -3,18 +3,17 @@
 void LoadingState::Initialize() {
 
 	GetTextureManager()->Initialize();
-	GetTileTextureManager()->Initialize();
 
-	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/Emerald_logo_no_background.png")));
+	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/logo.png"), TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
 
 	GetShaderManager()->Create("UI", "res/shader/UI", false);
 	GetUIRenderer()->Initialize();
 
 	m_batch = GetAssetManager()->CreateBatch<BasicAssetBatch>("Main Assets");
 
-	m_batch->Add(NEW(CustomLoader("ImGui", [] {GetImGuiManager()->Initialize(GetApplication()->GetWindow()); })));
-	m_batch->Add(NEW(CustomLoader("Mouse", [] {GetMouse()->Initialize(GetApplication()->GetWindow()); })));
-	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetApplication()->GetWindow()); })));
+	m_batch->Add(NEW(CustomLoader("ImGui", [] {GetImGuiManager()->Initialize(GetApp()->GetWindow()); })));
+	m_batch->Add(NEW(CustomLoader("Mouse", [] {GetMouse()->Initialize(GetApp()->GetWindow()); })));
+	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetApp()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Thread pool", [] {GetThreadPool()->Initialize(3); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
@@ -32,12 +31,6 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "res/shader/ssaoBlur")));
 	m_batch->Add(NEW(ShaderLoader("Gaussian", "res/shader/gaussian")));
 	m_batch->Add(NEW(ShaderLoader("Emission", "res/shader/emission")));
-	m_batch->Add(NEW(TileTextureLoader("white", "test")));
-	m_batch->Add(NEW(TileTextureLoader("Obsidian", "obsidian")));
-	m_batch->Add(NEW(TileTextureLoader("Cliff", "cliff")));
-	m_batch->Add(NEW(TileTextureLoader("Blue", "blue")));
-	m_batch->Add(NEW(TileTextureLoader("Concrete", "concrete")));
-	m_batch->Add(NEW(TileTextureLoader("Metal", "metal")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
 	for (int i = 0; i < 16; i++) {
@@ -58,7 +51,7 @@ void LoadingState::Initialize() {
 
 	m_batch->Add(NEW(CustomLoader("Tile renderer", [] {GetTileRenderer()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Pointlight renderer", [] {GetPointlightRenderer()->Initialize(MeshGenerator::Sphere(10, 10), PointlightRenderer::MAX_LIGHTS); })));
-	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(GetApplication()->GetWidth(), GetApplication()->GetHeight()); })));
+	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(GetApp()->GetWidth(), GetApp()->GetHeight()); })));
 
 	//m_batch->Add(NEW(CustomLoader("Tile manager", [] {GetTileManager()->Initialize(); })));
 	for (State* state : GetStateManager()->GetStates()) {
@@ -68,39 +61,24 @@ void LoadingState::Initialize() {
 	}
 }
 
-Vector2 origin = Vector2(0, 0);
-float rot = 0;
-Vector2 position = Vector2(0, 0);
-Vector2 sizee = Vector2(1, 1);
-
-float progress = 0;
-Color color;
-
 void LoadingState::Update(const TimeStep& time) {
-	progress = Math::Ease(progress, GetAssetManager()->GetProgress(), 25);
-	color = Color::Mix(Color(0xde9c96), Color(0x96deae), progress);
-	if (m_batch->IsFinished() && progress >= GetAssetManager()->GetProgress() - 0.01f) {
-		GetTileTextureManager()->GenerateMipmaps();
-		GetStateManager()->SetState(GameStates::GAME);
-		GetStateManager()->RemoveState(this);
-	}
+	//if (m_batch->IsFinished() && progress >= GetAssetManager()->GetProgress() - 0.01f) {
+	//	GetStateManager()->SetState(GameStates::GAME);
+	//	GetStateManager()->RemoveState(this);
+	//}
 }
 void LoadingState::RenderGeometry() {}
 
 void LoadingState::RenderUI() {
-	GetUIRenderer()->Rect(Origin::CENTER, Vector2(0, 0), Vector2(1, 1));
-	GetUIRenderer()->Rect(Origin::LEFT, Vector2(0.498f, 0.0f), Vector2(0.502f, 0.022f), Color::Black());
-	GetUIRenderer()->Rect(Origin::LEFT, Vector2(0.5f, 0.0f), Vector2(progress* 0.5f, 0.02f), color);
+	float progress = GetAssetManager()->GetProgress();
+	Color color = Color::Mix(Color(0xFF0029), Color(0x007AFF), progress);
+	GetUIRenderer()->Rect(Origin::CENTER, GetApp()->GetWidth() / 2, GetApp()->GetHeight() / 2, GetApp()->GetWidth(), GetApp()->GetHeight(), Color::Black());
+	GetUIRenderer()->Rect(Origin::LEFT, Vector2(0.248f * GetApp()->GetWidth(), GetApp()->GetHeight()/2), Vector2(0.502f * GetApp()->GetWidth(), 0.022f * GetApp()->GetHeight()), Color::White());
+	GetUIRenderer()->Rect(Origin::LEFT, Vector2(0.25f * GetApp()->GetWidth(), GetApp()->GetHeight() / 2), Vector2(progress * 0.5f * GetApp()->GetWidth(), 0.02f  * GetApp()->GetHeight()), color);
 
-	//GetUIRenderer()->RenderTexture(m_logo, Origin::CENTER, position, sizee);
+	GetUIRenderer()->RenderTexture(m_logo, Origin::CENTER, GetApp()->GetWidth() / 2, GetApp()->GetHeight() * 0.85f, 0.4095f * GetApp()->GetWidth(), 0.0945f * GetApp()->GetWidth());
 }
 void LoadingState::OnImGUI() {
-	ImGui::SliderFloat("Progress", &progress, 0, 1);
-
-	ImGui::SliderFloat2("origin", (float*)&origin, -1, 1);
-	ImGui::SliderFloat("rot", (float*)&rot, 0, Math::PI);
-	ImGui::SliderFloat2("position", (float*)&position, 0, 1);
-	ImGui::SliderFloat2("size", (float*)&sizee, 0, 1);
 }
 
 void LoadingState::Cleanup() {}

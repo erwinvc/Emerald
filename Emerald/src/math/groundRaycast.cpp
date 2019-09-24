@@ -14,8 +14,8 @@ Vector3 GroundRaycast::CalculateMouseRay(AssetRef<Camera> camera) {
 	return worldRay;
 }
 Vector2 GroundRaycast::GetNormalizedDeviceCoords(float mouseX, float mouseY) {
-	float x = ((2.0f * mouseX) / GetApplication()->GetWindow()->GetWidth()) - 1.0f;
-	float y = ((2.0f * mouseY) / GetApplication()->GetWindow()->GetHeight()) - 1.0f;
+	float x = ((2.0f * mouseX) / GetApp()->GetWindow()->GetWidth()) - 1.0f;
+	float y = ((2.0f * mouseY) / GetApp()->GetWindow()->GetHeight()) - 1.0f;
 	return Vector2(x, -1.0f * y);
 }
 Vector4 GroundRaycast::ToEyeCoords(Vector4& clipCoords, AssetRef<Camera> camera) {

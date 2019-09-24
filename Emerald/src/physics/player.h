@@ -34,10 +34,10 @@ public:
 
 		GetCamera()->m_position = Vector3(body.m_position.x, body.m_position.y + 0.9f, body.m_position.z);
 
-		if (GetApplication()->GetWindow()->GetFocussed()) {
-			glfwSetInputMode(GetApplication()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		if (GetApp()->GetWindow()->GetFocussed()) {
+			glfwSetInputMode(GetApp()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		} else {
-			glfwSetInputMode(GetApplication()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetInputMode(GetApp()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 
 		m_surroundingTiles.clear();

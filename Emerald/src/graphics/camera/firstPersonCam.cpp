@@ -17,7 +17,7 @@ void FirstPersonCam::Update(const TimeStep& time) {
 	//	m_rotation.y -= GetMouse()->GetDelta().x * 0.005f;
 	//	m_rotation.x = Math::Clamp(m_rotation.x - GetMouse()->GetDelta().y * 0.005f, -Math::HALF_PI, Math::HALF_PI);
 	//}
-	if (GetApplication()->GetWindow()->GetFocussed()) {
+	if (GetApp()->GetWindow()->GetFocussed()) {
 		if (!ImGui::GetIO().WantCaptureKeyboard) {
 			float speed = movementSpeed * time.GetSeconds();
 

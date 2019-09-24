@@ -195,7 +195,7 @@ void RenderingPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_Gamma", m_gamma);
 	m_hdrShader->Set("_Exposure", m_exposure);
 	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
-	m_hdrShader->Set("_ScreenSize", (float)GetApplication()->GetWidth(), (float)GetApplication()->GetHeight());
+	m_hdrShader->Set("_ScreenSize", (float)GetApp()->GetWidth(), (float)GetApp()->GetHeight());
 	m_hdrShader->Set("_Chromatic", m_chromatic);
 	m_hdrShader->Set("_Bloom", m_bloom);
 	GetFrameBufferManager()->GetSelectedTexture()->Bind();
@@ -248,7 +248,7 @@ void RenderingPipeline::OnImGUI() {
 			if (ImGui::Button("Freecam")) {
 				m_camera = m_freeCam;
 				m_selectedCamera = 0;
-				glfwSetInputMode(GetApplication()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				glfwSetInputMode(GetApp()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
 			if (ImGui::Button("First person")) {
 				m_camera = m_firstPersonCamera;
