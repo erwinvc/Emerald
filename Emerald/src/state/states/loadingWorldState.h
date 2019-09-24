@@ -27,6 +27,7 @@ public:
 	Mesh* sphereMesh;
 	Model* turtleModel;
 	Entity* turtle;
+	Model* meshModel;
 
 	float t1 = 3.35f;
 	float t2 = 3.7f;
@@ -106,13 +107,15 @@ public:
 		}
 
 		mesh = new CustomMesh();
-		mesh->SetMaterial(m_material);
 
 		mesh->SetVertices(vertices, totalVertexCount);
 		mesh->SetIndices(indices, indexCount);
 
 		mesh->CalculateNormals();
 		mesh->UploadMeshData();
+
+		meshModel = NEW(Model(mesh));
+		meshModel->SetMaterial(m_material);
 	}
 	void Update(const TimeStep& time) override {
 		GetCamera()->Update(time);
@@ -188,8 +191,7 @@ public:
 		m_shader->Set("_TessellationAlpha", (float)t4);
 
 		GetMaterialManager()->GetNullMaterial()->Bind(m_shader);
-		mesh->GetMaterial()->Bind(m_shader);
-		mesh->DrawCount(count, GL_PATCHES);
+		meshModel->DrawCount(m_shader, count, GL_PATCHES);
 		turtle->Draw(m_shader, GL_PATCHES);
 		GetLineRenderer()->DrawRect(Rect((float)m_rayCastPos.x + 0.5f, (float)m_rayCastPos.y + 0.5f, 1.0f, 1.0f), Color::Red());
 

@@ -8,7 +8,6 @@ private:
 	AssetRef<Texture> m_normal;
 	AssetRef<Texture> m_specular;
 	AssetRef<Texture> m_emission;
-
 protected:
 	friend class MaterialManager;
 	~BasicMaterial();
@@ -18,6 +17,7 @@ public:
 	float m_normalStrength = 1;
 	float m_specularStrength = 1;
 	float m_emissionStrength = 1;
+	Color m_color = Color::Transparent();
 
 	AssetRef<BasicMaterial> SetAlbedo(AssetRef<Texture> albedo) { if (albedo.Get() != nullptr) m_albedo = albedo; return this; }
 	AssetRef<BasicMaterial> SetNormal(AssetRef<Texture> normal) { if (normal.Get() != nullptr) { m_normalStrength = 1; m_normal = normal; } return this; }
@@ -37,6 +37,7 @@ public:
 		shader->Set("_SpecularStrength", m_specularStrength);
 		shader->Set("_Emission", 3);
 		shader->Set("_EmissionStrength", m_emissionStrength);
+		shader->Set("_Color", m_color);
 		m_albedo->Bind(0);
 		m_normal->Bind(1);
 		m_specular->Bind(2);

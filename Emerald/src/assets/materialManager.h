@@ -22,6 +22,11 @@ public:
 		return (T*)m_materials[name];
 	}
 
+	template<typename T>
+	AssetRef<T> CreateUnsafe() {
+		return NEW(T());
+	}
+
 	AssetRef<Material> Get(const String& name) {
 		return m_materials[name];
 	}

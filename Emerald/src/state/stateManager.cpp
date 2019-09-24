@@ -11,10 +11,10 @@ State* GameStates::LUDO = nullptr;
 void StateManager::RegisterStates() {
 	GameStates::LOADING = RegisterState<LoadingState>();
 	GameStates::MENU = RegisterState<MenuState>();
-	GameStates::LOADINGWORLD = RegisterState<LoadingWorldState>();
-	GameStates::GAME = RegisterState<GameState>();
-	GameStates::MAINMENU = RegisterState<MainMenuState>();
-	GameStates::LUDO = RegisterState<LudoState>();
+	//GameStates::LOADINGWORLD = RegisterState<LoadingWorldState>();
+	//GameStates::GAME = RegisterState<GameState>();
+	//GameStates::MAINMENU = RegisterState<MainMenuState>();
+	//GameStates::LUDO = RegisterState<LudoState>();
 
 	GameStates::LOADING->Initialize();
 	m_currentState = GameStates::LOADING;

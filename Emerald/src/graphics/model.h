@@ -96,4 +96,11 @@ public:
 		m_meshes[index]->GetMaterial()->Bind(shader);
 		m_meshes[index]->Draw();
 	}
+
+	void DrawCount(AssetRef<Shader> shader, uint count, uint mode = GL_TRIANGLES) {
+		for (auto& mesh : m_meshes) {
+			mesh->GetMaterial()->Bind(shader);
+			mesh->DrawCount(count, mode);
+		}
+	}
 };
