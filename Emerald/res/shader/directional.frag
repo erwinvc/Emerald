@@ -90,10 +90,10 @@ void main(){
 
     float NdotL = max(dot(N, L), 0.0); 
 
-    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL * (_SSAOEnabled ? ssao : 1);
+    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL * (_SSAOEnabled ? ssao : 1);;
 
 	vec3 ambient = vec3(0.03) * albedo;
-	vec3 color = Lo;
+	vec3 color = ambient + Lo;
 
 
 	outColor[0] = vec3(mix(color, albedo, lightInfluence));

@@ -26,6 +26,15 @@ public:
 	void Submit(float x1, float y1, float z1, float x2, float y2, float z2, Color& color);
 	void End();
 	void Draw();
+
+	void DrawRectZ(const Rect& rect, Color& color, float y = 1.01f) {
+		Vector4 c = rect.GetCornerPositions();
+		Submit(c.x, c.y, y, c.z, c.y, y, color);
+		Submit(c.z, c.y, y, c.z, c.w, y, color);
+		Submit(c.z, c.w, y, c.x, c.w, y, color);
+		Submit(c.x, c.w, y, c.x, c.y, y, color);
+	}
+
 	void DrawRect(const Rect& rect, Color& color, float y = 1.01f) {
 		Vector4 c = rect.GetCornerPositions();
 		Submit(c.x, y, c.y, c.z, y, c.y, color);

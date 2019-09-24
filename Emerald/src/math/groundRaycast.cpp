@@ -48,6 +48,25 @@ Vector3 GroundRaycast::GetGroundPosition(float height) {
 	return delta.Multiply(k).Add(rayStart);
 }
 
+Vector3 GroundRaycast::GetZ(float height) {
+	Vector3& ray = Get(GetCamera());
+	Vector3 rayStart = GetCamera()->m_position;
+	Vector3 rayEnd = GetCamera()->m_position + ray;
+	Vector3 delta = rayEnd.Subtract(rayStart);
+	delta.Normalize();
+
+	Vector3 rayToPlaneDelta = Vector3(0.0f, 0.0f, height).Subtract(rayStart);
+
+	float ratio = rayToPlaneDelta.Dot(Vector3::ZAxis());
+	Vector3 proj = Vector3::Up().Multiply(ratio);
+
+	auto wp = rayToPlaneDelta.Dot(Vector3::ZAxis());
+	auto vp = delta.Dot(Vector3::ZAxis());
+	auto k = wp / vp;
+
+	return delta.Multiply(k).Add(rayStart);
+}
+
 Vector2I GroundRaycast::GetTile() {
 	Vector3 pos = GetGroundPosition();
 	return { (int)pos.x, (int)pos.z };

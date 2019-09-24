@@ -125,7 +125,7 @@ void RenderingPipeline::PostGeometryRender() {
 
 	m_gBuffer->BindTextures();
 	m_ssaoRenderer->GetTexture()->Bind(4);
-	m_directionalLightShader->Set("_Color", m_directionalLight.m_color);
+	m_directionalLightShader->Set("_Color", m_directionalLight.m_color * m_directionalLight.m_multiplier);
 
 	Matrix4 mat = Matrix4::Identity();
 	mat *= Matrix4::Rotate(m_directionalLight.m_direction.x, Vector3::XAxis());

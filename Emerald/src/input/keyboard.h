@@ -7,6 +7,17 @@
 #define LALT 342
 #define RETURN 257
 
+#define VK_0 0x30
+#define VK_1 0x31
+#define VK_2 0x32
+#define VK_3 0x33
+#define VK_4 0x34
+#define VK_5 0x35
+#define VK_6 0x36
+#define VK_7 0x37
+#define VK_8 0x38
+#define VK_9 0x39
+
 class Keyboard : public Singleton<Keyboard> {
 private:
 	int m_lastKey;

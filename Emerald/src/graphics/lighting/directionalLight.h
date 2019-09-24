@@ -2,10 +2,12 @@
 
 class DirectionalLight {
 public:
+	float m_multiplier = 1.0;
     Color m_color = Color::White();
     Vector3 m_direction = Vector3(0.3f, 0.0f, 0.3f);
 
     void OnImGui() {
+		ImGui::SliderFloat("Multiplier###1", (float*)&m_multiplier, 0, 10);
 		ImGui::InputFloat3("Direction###1", (float*)&m_direction, -Math::PI, Math::PI);
 		ImGui::SliderFloat3("Direction###2", (float*)&m_direction, -Math::PI, Math::PI);
 		Matrix4 mat = Matrix4::Identity();

@@ -18,8 +18,9 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Thread pool", [] {GetThreadPool()->Initialize(3); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
-	m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
+	//m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
 	m_batch->Add(NEW(ModelLoader("Sphere", "res/sphere.obj")));
+	m_batch->Add(NEW(ModelLoader("Box", "res/box.obj")));
 
 	m_batch->Add(NEW(ModelLoader("dragon", "res/turtle.fbx")));
 	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
@@ -32,31 +33,32 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "res/shader/ssaoBlur")));
 	m_batch->Add(NEW(ShaderLoader("Gaussian", "res/shader/gaussian")));
 	m_batch->Add(NEW(ShaderLoader("Emission", "res/shader/emission")));
-	m_batch->Add(NEW(TileTextureLoader("white", "test")));
-	m_batch->Add(NEW(TileTextureLoader("Obsidian", "obsidian")));
-	m_batch->Add(NEW(TileTextureLoader("Cliff", "cliff")));
-	m_batch->Add(NEW(TileTextureLoader("Blue", "blue")));
-	m_batch->Add(NEW(TileTextureLoader("Concrete", "concrete")));
-	m_batch->Add(NEW(TileTextureLoader("Metal", "metal")));
+	//m_batch->Add(NEW(TileTextureLoader("white", "test")));
+	//m_batch->Add(NEW(TileTextureLoader("Obsidian", "obsidian")));
+	//m_batch->Add(NEW(TileTextureLoader("Cliff", "cliff")));
+	//m_batch->Add(NEW(TileTextureLoader("Blue", "blue")));
+	//m_batch->Add(NEW(TileTextureLoader("Concrete", "concrete")));
+	//m_batch->Add(NEW(TileTextureLoader("Metal", "metal")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
-	for (int i = 0; i < 16; i++) {
-		m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("res/tiles/new/%d.obj", i))));
-	}
-
-	m_batch->Add(NEW(TextureLoader("Irridescence", "res/irridescence.png")));
-	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png")));
+	//for (int i = 0; i < 16; i++) {
+	//	m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("res/tiles/new/%d.obj", i))));
+	//}
+	//
+	//m_batch->Add(NEW(TextureLoader("Irridescence", "res/irridescence.png")));
+	//m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png")));
 	m_batch->Add(NEW(TextureLoader("White", "res/white.png")));
-	m_batch->Add(NEW(TextureLoader("BricksNormal", "res/bricksNormal.png")));
-	m_batch->Add(NEW(TextureLoader("Concrete", "res/tiles/concrete_albedo.png")));
+	//m_batch->Add(NEW(TextureLoader("BricksNormal", "res/bricksNormal.png")));
+	//m_batch->Add(NEW(TextureLoader("Concrete", "res/tiles/concrete_albedo.png")));
 	m_batch->Add(NEW(TextureLoader("ConcreteSpec", "res/tiles/concrete_specular.png")));
-	m_batch->Add(NEW(TextureLoader("SphereAlbedo", "res/sphere_albedo.png")));
-	m_batch->Add(NEW(TextureLoader("SphereNormal", "res/sphere_normal.png")));
-	m_batch->Add(NEW(TextureLoader("SphereSpec", "res/sphere_specular.png")));
-	m_batch->Add(NEW(TextureLoader("SphereEmission", "res/sphere_emission.png")));
+	m_batch->Add(NEW(TextureLoader("Spec", "res/spec.png")));
+	//m_batch->Add(NEW(TextureLoader("SphereAlbedo", "res/sphere_albedo.png")));
+	//m_batch->Add(NEW(TextureLoader("SphereNormal", "res/sphere_normal.png")));
+	//m_batch->Add(NEW(TextureLoader("SphereSpec", "res/sphere_specular.png")));
+	//m_batch->Add(NEW(TextureLoader("SphereEmission", "res/sphere_emission.png")));
 	//m_batch->Add(NEW(ModelLoader("HP", "cathedral/sibenik.obj")));
 
-	m_batch->Add(NEW(CustomLoader("Tile renderer", [] {GetTileRenderer()->Initialize(); })));
+	//m_batch->Add(NEW(CustomLoader("Tile renderer", [] {GetTileRenderer()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Pointlight renderer", [] {GetPointlightRenderer()->Initialize(MeshGenerator::Sphere(10, 10), PointlightRenderer::MAX_LIGHTS); })));
 	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(GetApplication()->GetWidth(), GetApplication()->GetHeight()); })));
 
