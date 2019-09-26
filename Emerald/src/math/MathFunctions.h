@@ -27,6 +27,10 @@ namespace Math {
 		return val <= 0.0f ? 0.0f - val : val;
 	}
 
+	inline double Abs(double val) {
+		return val <= 0.0 ? 0.0 - val : val;
+	}
+
 	inline float Sin(float angle) {
 		return (float)::sin(angle);
 	}

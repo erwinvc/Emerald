@@ -8,11 +8,18 @@ struct DrawableLine {
 	bool enabled = false;
 };
 
-static DrawableLine** drawableLines;
+static float eta = 0.0001f;
+static float alpha = 0.0f;
 
+static float halfGridSize = 14;
+static int gridSize = 28;
+static int totalGridSize = 28 * 28;
+static DrawableLine** drawableLines;
+static int drawableCount = 4096;
+static int lineRendererIndex = 0;
 static void DrawLine(Vector3 x1, Vector3 x2, float amount) {
 	DrawableLine* linea;
-	for (int i = 0; i < 128; i++) {
+	for (int i = 0; i < drawableCount; i++) {
 		DrawableLine* line = drawableLines[i];
 		if (!line->enabled) {
 			line->enabled = true;
@@ -20,7 +27,7 @@ static void DrawLine(Vector3 x1, Vector3 x2, float amount) {
 			linea = line;
 			line->x2 = x2;
 			line->amount = amount;
-			line->duration = 100000;
+			line->duration = 1000;
 			break;
 		}
 	}
@@ -35,7 +42,7 @@ class Neuron;
 
 struct Connection {
 	double weight;
-	double deltaWeight;
+	double deltaWeight = 0;
 	Neuron* neuron;
 	double passingValue = 1;
 };
@@ -68,7 +75,11 @@ public:
 			double passingValue = previousLayer[n].m_outputValue * previousLayer[n].m_outputWeights[m_myIndex].weight;
 			sum += passingValue;
 			neuron.m_outputWeights[m_myIndex].passingValue = passingValue;
-			DrawLine(m_entity->m_position, neuron.m_entity->m_position, 100);
+			//if (passingValue > 0) {
+			//	if (lineRendererIndex++ % 111 == 0) {
+			//		DrawLine(m_entity->m_position, neuron.m_entity->m_position, passingValue);
+			//	}
+			//}
 		}
 
 		m_outputValue = transferFunction(sum);
@@ -110,9 +121,11 @@ public:
 	}
 
 	void Draw(AssetRef<Shader>& shader, bool renderType) {
+		float value = renderType ? m_gradient : m_outputValue;
+
 		Color color(0, 0, 0, 1);
-		if (m_outputValue < 0) color.B = -m_outputValue;
-		else color.R = m_outputValue;
+		if (m_outputValue < 0) color.B = -value;
+		else color.R = value;
 
 		m_material->m_color = color;
 		m_entity->Draw(shader, GL_PATCHES);
@@ -122,8 +135,9 @@ public:
 			Color color(0, 0, 0, 1);
 			if (c.weight < 0) color.B = -value;
 			else color.R = value;
-		
-			GetLineRenderer()->Submit(m_entity->m_position, c.neuron->m_entity->m_position, color);
+			if (lineRendererIndex++ % 111 == 0) {
+				GetLineRenderer()->Submit(m_entity->m_position, c.neuron->m_entity->m_position, color);
+			}
 		}
 	}
 
@@ -148,8 +162,7 @@ public:
 private:
 	double m_outputValue;
 	double m_gradient;
-	double eta = 0.15;
-	double alpha = 0.5;
+
 	uint m_myIndex;
 	vector<Connection> m_outputWeights;
 	AssetRef<Entity> m_entity;
@@ -165,17 +178,28 @@ private:
 
 class NeuralNetwork {
 public:
+	double m_recentAverageError;
+
 	NeuralNetwork(const vector<Topology>& topology) {
 		uint numLayers = topology.size();
-		for (int layerNum = 0; layerNum < numLayers; ++layerNum) {
+		for (int layerNum = 0; layerNum < numLayers; layerNum++) {
 			m_layers.push_back(vector<Neuron>());
 			uint numOutputs = layerNum == topology.size() - 1 ? 0 : topology[layerNum + 1].count;
-			for (int neuronNum = 0; neuronNum <= topology[layerNum].count; ++neuronNum) {
+			for (int neuronNum = 0; neuronNum <= topology[layerNum].count; neuronNum++) {
 				Topology topo = topology[layerNum];
 				float xPos = ((int)((float)neuronNum / topo.layers)) - (((float)topo.count / topo.layers) / 2);
 				int layerSizeX = topo.layers;
 				float yPos = (neuronNum % topo.layers) - ((float)layerSizeX / 2);
-				m_layers[layerNum].push_back(Neuron(numOutputs, neuronNum, xPos, yPos, layerNum * 3 + 0.75f));
+
+				//float randomZ = Math::RandomFloat(10, (numLayers - 2) * 50);
+				//float randomY = Math::RandomFloat(-gridSize * 2, gridSize * 2);
+				//float randomX = Math::RandomFloat(-gridSize * 2, gridSize * 2);
+				//
+				//if (layerNum == 0 || layerNum == numLayers - 1)
+				m_layers[layerNum].push_back(Neuron(numOutputs, neuronNum, yPos, xPos, layerNum * 10 + 0.75f));
+				//else
+				//	m_layers[layerNum].push_back(Neuron(numOutputs, neuronNum, randomX, randomY, randomZ));
+
 			}
 			m_layers.back().back().setOutputValue(1.0);
 		}
@@ -212,11 +236,11 @@ public:
 	}
 	void feedForward(const vector<double>& inputValues) {
 		if (inputValues.size() != m_layers[0].size() - 1) LOG_ERROR("Inconsistent input values!");
-		for (uint i = 0; i < inputValues.size(); ++i) {
+		for (uint i = 0; i < inputValues.size(); i++) {
 			m_layers[0][i].setOutputValue(inputValues[i]);
 		}
 
-		for (uint layerNum = 1; layerNum < m_layers.size(); ++layerNum) {
+		for (uint layerNum = 1; layerNum < m_layers.size(); layerNum++) {
 			vector<Neuron>& previousLayer = m_layers[layerNum - 1];
 			for (uint n = 0; n < m_layers[layerNum].size() - 1; ++n) {
 				m_layers[layerNum][n].feedForward(previousLayer);
@@ -224,6 +248,8 @@ public:
 		}
 	}
 	void backProp(const vector<double>& targetValues) {
+		if (targetValues.size() != m_layers.back().size() - 1) LOG_ERROR("Inconsistent target values!");
+
 		vector<Neuron>& outputLayer = m_layers.back();
 		m_error = 0.0;
 
@@ -266,6 +292,7 @@ public:
 	}
 
 	void Draw(AssetRef<Shader>& shader, bool renderType) {
+
 		for (auto& layer : m_layers) {
 			for (int i = 0; i < layer.size() - 1; i++) {
 				layer[i].Draw(shader, renderType);
@@ -276,21 +303,27 @@ public:
 private:
 	vector<vector<Neuron>> m_layers;
 	double m_error;
-	double m_recentAverageError;
-	double m_recentAverageSmoothingFactor;
+	double m_recentAverageSmoothingFactor = 30;
 };
 
 static vector<vector<double>> outputValues;
+
+struct Number {
+	int number;
+	vector<double> data;
+};
 
 struct Pixel {
 	AssetRef<Entity> m_entity;
 	bool m_enabled;
 };
+
 class MenuState : public State {
 private:
+
 	String m_name = "Menu";
 	AssetRef<Shader> m_shader;
-	vector<Topology> topology = { {64, 8}, {64, 8}, {64, 8}, {3, 1} };
+	vector<Topology> topology = { {totalGridSize, gridSize}, {529, 23}, {256, 16}, {121, 11}, {10, 1} };
 	NeuralNetwork* m_network;
 	bool renderType = false;
 	vector<Pointlight> m_pointLights;
@@ -300,28 +333,28 @@ private:
 	bool down = false;
 	bool downState;
 	vector<double> m_inputValues;
-
+	void LoadNumbers();
+	vector<Number> m_numbers;
 public:
 	const String& GetName() override { return m_name; }
 
 	void Initialize() override {
-		for (int i = 0; i < 64; i++) m_inputValues.push_back(1.0);
-		drawableLines = new DrawableLine*[128];
-		for (int i = 0; i < 128; i++) {
+		LoadNumbers();
+		for (int i = 0; i < totalGridSize; i++) m_inputValues.push_back(1.0);
+		drawableLines = new DrawableLine*[drawableCount];
+		for (int i = 0; i < drawableCount; i++) {
 			drawableLines[i] = new DrawableLine();
 		}
 		cast = new GroundRaycast();
-		int sizeX = 8;
-		int sizeY = 8;
-		loop(y, sizeY) {
-			loop(x, sizeX) {
+		loop(y, gridSize) {
+			loop(x, gridSize) {
 				Entity* e = NEW(Entity(NEW(Model(GetAssetManager()->Get<Model>("Box")->GetMeshes()[0]->Copy()))));
 				BasicMaterial* mat = GetMaterialManager()->CreateUnsafe<BasicMaterial>();
 				mat->SetAlbedo(GetTextureManager()->GetWhiteTexture());
 				mat->SetEmission(GetTextureManager()->GetWhiteTexture());
 				mat->m_emissionStrength = 1;
-				e->m_position = Vector3(x - ((float)sizeX / 2), y - ((float)sizeY / 2), 0);
-				e->m_scale = Vector3(0.50f);
+				e->m_position = Vector3(x - halfGridSize, y - halfGridSize, 0);
+				e->m_scale = Vector3(0.5f);
 				e->m_model->SetMaterial(mat);
 				m_cubes.push_back({ e, true });
 			}
@@ -333,8 +366,8 @@ public:
 
 		m_network = NEW(NeuralNetwork(topology));
 
-		GetCamera()->m_position = Vector3(1.0f, 1.5f, 3.5f);
-		GetCamera()->m_rotation = Vector3(0.0f, Math::TWO_PI, 0.0f);
+		GetCamera()->m_position = Vector3(0.0f, 0.0f, -30.0f);
+		GetCamera()->m_rotation = Vector3(0, Math::PI, 0.0f);
 		GetPipeline()->m_directionalLight.m_direction = Vector3(Math::HALF_PI, 0.0f, 0.0f);
 	}
 	void Update(const TimeStep& time) override {
@@ -350,20 +383,20 @@ public:
 		//if (KeyJustDown(VK_8)) BackPropNumber(m_network, 8);
 		//if (KeyJustDown(VK_9)) BackPropNumber(m_network, 9);
 
-		if (KeyJustDown(VK_1)) BackPropTriangle(m_network);
-		if (KeyJustDown(VK_2)) BackPropCross(m_network);
-		if (KeyJustDown(VK_3)) BackPropCircle(m_network);
+		//if (KeyJustDown(VK_1)) BackPropTriangle(m_network);
+		//if (KeyJustDown(VK_2)) BackPropCross(m_network);
+		//if (KeyJustDown(VK_3)) BackPropCircle(m_network);
 
 		GetCamera()->Update(time);
 		cast->Get(GetCamera());
 		m_rayCastPos = cast->GetZ(-0.75f);
 
 		if (ButtonDown(VK_MOUSE_LEFT)) {
-			if (Math::Within(m_rayCastPos.x, -4.5f, 3.5f)) {
-				if (Math::Within(m_rayCastPos.y, -4.5f, 3.5f)) {
+			if (Math::Within(m_rayCastPos.x, -halfGridSize - 0.5f, halfGridSize - 0.5f)) {
+				if (Math::Within(m_rayCastPos.y, -halfGridSize - 0.5f, halfGridSize - 0.5f)) {
 					int posX = (m_rayCastPos.x + 0.5f - (m_rayCastPos.x < 0 ? 1 : 0));
 					int posY = (m_rayCastPos.y + 0.5f - (m_rayCastPos.y < 0 ? 1 : 0));
-					int index = ((posY + 4) * 8) + (posX + 4);
+					int index = ((posY + halfGridSize) * gridSize) + (posX + halfGridSize);
 					if (Math::Within(index, 0, (int)m_cubes.size())) {
 						Pixel& pixel = m_cubes[index];
 						BasicMaterial* mat = (BasicMaterial*)pixel.m_entity->m_model->GetMeshes()[0]->GetMaterial().Get();
@@ -377,7 +410,7 @@ public:
 							mat->m_color = Color::Black();
 							m_inputValues[index] = 0.0;
 						}
-						m_network->feedForward(m_inputValues);
+						GetThreadPool()->DoJob([&] {m_network->feedForward(m_inputValues); });
 					}
 				}
 			}
@@ -387,21 +420,35 @@ public:
 				BasicMaterial* mat = (BasicMaterial*)pixel.m_entity->m_model->GetMeshes()[0]->GetMaterial().Get();
 				mat->m_color = Color::White();
 				pixel.m_enabled = true;
-				for (int i = 0; i < 64; i++) m_inputValues[i] = 1.0;
 			}
+			for (int i = 0; i < totalGridSize; i++) m_inputValues[i] = 1.0;
 			m_network->feedForward(m_inputValues);
 		}
-		for (int i = 0; i < 128; i++) {
-			if (drawableLines[i]->enabled) {
-				DrawableLine* line = drawableLines[i];
-				line->duration -= time.GetMills();
-				if (line->duration <= 0) {
-					line->enabled = false;
-				}
-			}
+		//for (int i = 0; i < drawableCount; i++) {
+		//	if (drawableLines[i]->enabled) {
+		//		DrawableLine* line = drawableLines[i];
+		//		line->duration -= time.GetMills();
+		//		if (line->duration <= 0) {
+		//			line->enabled = false;
+		//		}
+		//	}
+		//}
+	}
+
+	void SetPixel(int index, bool state) {
+		Pixel& pixel = m_cubes[index];
+		BasicMaterial* mat = (BasicMaterial*)pixel.m_entity->m_model->GetMeshes()[0]->GetMaterial().Get();
+		pixel.m_enabled = state;
+		if (pixel.m_enabled) {
+			mat->m_color = Color::White();
+			m_inputValues[index] = 1.0;
+		} else {
+			mat->m_color = Color::Black();
+			m_inputValues[index] = 0.0;
 		}
 	}
 	void RenderGeometry() override {
+		lineRendererIndex = 0;
 		m_shader->Bind();
 		m_shader->Set("_Iridescence", 4);
 		m_shader->Set("_IridescenceStrength", 0);
@@ -417,49 +464,118 @@ public:
 		for (auto& cube : m_cubes) cube.m_entity->Draw(m_shader, GL_PATCHES);
 		for (auto& light : m_pointLights) GetPointlightRenderer()->Submit(light);
 
-		if (Math::Within(m_rayCastPos.x, -4.5f, 3.5f)) {
-			if (Math::Within(m_rayCastPos.y, -4.5f, 3.5f)) {
+		if (Math::Within(m_rayCastPos.x, -halfGridSize - 0.5f, halfGridSize - 0.5f)) {
+			if (Math::Within(m_rayCastPos.y, -halfGridSize - 0.5f, halfGridSize - 0.5f)) {
 				int posX = (m_rayCastPos.x + 0.5f - (m_rayCastPos.x < 0 ? 1 : 0));
 				int posY = (m_rayCastPos.y + 0.5f - (m_rayCastPos.y < 0 ? 1 : 0));
 				GetLineRenderer()->DrawRectZ(Rect(posX, posY, 1, 1), Color::Red(), -0.76f);
 			}
 		}
 
+		//for (int i = 0; i < drawableCount; i++) {
+		//	if (drawableLines[i]->enabled) {
+		//		DrawableLine* line = drawableLines[i];
+		//		Color color = Color(line->amount * line->duration / 1000);
+		//		color.A = 1.0;
+		//		GetLineRenderer()->Submit(line->x1, line->x2, color);
+		//	}
+		//}
+
 	}
 	void RenderUI() override {}
 	int a = 0;
 	int b = 0;
 	void OnImGUI() override {
+		ImGui::Text("ETA - overall net learning rate\n0.0 - slow learner\n0.2 - medium learner\n1.0 - reckless learner\nalpha - momentum\n0.0 - no momentum\n0.5 - moderate momentum");
+		ImGui::InputFloat("eta##1", &eta, 0.0f, 2.0f, "%.5f");
+		ImGui::SliderFloat("eta##2", &eta, 0.0f, 0.1f, "%.5f");
+		ImGui::SliderFloat("alpha", &alpha, 0.0f, 1.0f);
 		ImGui::Checkbox("Show connection weights", &renderType);
+
+		ImGui::Separator();
+
+		static int iindex = 0;
+		static int theNumber = 0;
+		if (ImGui::SliderInt("Number from database", &iindex, 0, 60000 - 1)) {
+			for (int i = 0; i < totalGridSize; i++) {
+				SetPixel(i, m_numbers[iindex].data[i] == 1.0);
+			}
+			theNumber = m_numbers[iindex].number;
+		}
+		ImGui::LabelText("Number: ", "%d", theNumber);
+		if (ImGui::Button("Test this input!")) {
+			m_network->feedForward(m_inputValues);
+		}
 
 		vector<double> results;
 		m_network->getResults(results);
 		auto it = max_element(results.begin(), results.end());
 		int index = distance(results.begin(), it);
-		String s = "";
-		if (index == 0) s = "Triangle";
-		else if (index == 1) s = "Cross";
-		else if (index == 2) s = "Circle";
-		ImGui::LabelText("Expected shape:", "%s", s.c_str());
+		ImGui::LabelText("Guessed input:", "%d", index);
 
-		if (ImGui::Button("This is a triangle!")) {
-			BackPropTriangle(m_network);
+		ImGui::Separator();
+
+		static bool training = true;
+		static int progress = 0;
+		static bool disabled = false;
+		static float averageTimePerTraining = 0;
+		static int epoch = 0;
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, disabled);
+		if (ImGui::Button("StartTraining")) {
+			disabled = true;
+			training = true;
+			progress = 0;
+			epoch = 0;
+			GetThreadPool()->DoJob([&] {
+				float avg[10] = { 0 };
+				int avgIndex = 0;
+				float avgSum = 0;
+				while (training) {
+					epoch++;
+					for (int x = 0; x < 60000; x++) {
+						if (!training) break;
+						Timer timer;
+						for (int i = 0; i < totalGridSize; i++) {
+							SetPixel(i, m_numbers[x].data[i] == 1.0);
+						}
+						theNumber = m_numbers[x].number;
+						m_network->feedForward(m_numbers[x].data);
+						BackPropNumber(m_network, m_numbers[x].number);
+						progress++;
+
+						//Average
+						float time = timer.Get();
+						avgSum -= avg[avgIndex];
+						avgSum += time;
+						avg[avgIndex++] = time;
+						if (avgIndex >= 10) avgIndex = 0;
+						averageTimePerTraining = avgSum / 10;
+					}
+				}
+				disabled = false;
+			});
+
+		}
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, false);
+		if (ImGui::Button("StopTraining")) {
+			training = false;
 		}
 
-		if (ImGui::Button("This is a cross!")) {
-			BackPropCross(m_network);
-		}
+		ImGui::LabelText("Epoch", "%d", epoch);
+		ImGui::LabelText("Recent average error", "%f", m_network->m_recentAverageError);
+		ImGui::LabelText("Trainings per second", "%d", (int)(1000.0f / averageTimePerTraining));
 
-		if (ImGui::Button("This is a circle!")) {
-			BackPropCircle(m_network);
-		}
+		ImGui::LabelText("Progress: ", "%d", progress);
+		ImGui::ProgressBar((float)progress / 60000);
 
+		ImGui::Separator();
 		if (ImGui::Button("Export")) {
 			m_network->Export();
 		}
 		if (ImGui::Button("Import")) {
 			m_network->Import();
 		}
+
 		//if (ImGui::Button("This is a 0!")) {
 		//	BackPropNumber(m_network, 0);
 		//}
@@ -521,22 +637,13 @@ public:
 		//ImGui::LabelText("Output", "%f", outputs[0]);
 		//ImGui::LabelText("Expected output", "%d", a ^ b);
 		//ImGui::LabelText("Correct answer?", "%s", (Math::Round(outputs[0]) == a ^ b ? "Yes!" : "No..."));
-
-		for (int i = 0; i < 128; i++) {
-			if (drawableLines[i]->enabled) {
-				DrawableLine* line = drawableLines[i];
-				Color color = Color(line->amount * line->duration / 1000);
-				color.A = 1.0;
-				GetLineRenderer()->Submit(line->x1, line->x2, color);
-			}
-		}
 	}
 
-	//void BackPropNumber(NeuralNetwork* net, int num) {
-	//	vector<double> result = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-	//	result[num] = 1.0;
-	//	net->backProp(result);
-	//}
+	void BackPropNumber(NeuralNetwork* net, int num) {
+		vector<double> result = { -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0 };
+		result[num] = 1.0;
+		net->backProp(result);
+	}
 
 	void BackPropTriangle(NeuralNetwork* net) {
 		vector<double> result = { 0, 0, 1 };

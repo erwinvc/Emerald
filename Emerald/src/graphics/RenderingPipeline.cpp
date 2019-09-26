@@ -98,6 +98,7 @@ void RenderingPipeline::PreGeometryRender() {
 float roughness = 1;
 float metalic = 0;
 void RenderingPipeline::PostGeometryRender() {
+	GetLineRenderer()->Draw();
 	if (m_wireFrame) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 
 	m_gBuffer->Unbind();
@@ -204,6 +205,8 @@ void RenderingPipeline::PostGeometryRender() {
 	m_quad->Bind();
 	m_quad->Draw();
 	m_hdrShader->Unbind();
+
+
 }
 
 void RenderingPipeline::PreUIRender() {
@@ -230,6 +233,10 @@ void RenderingPipeline::OnImGUI() {
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
+			ImGui::Checkbox("Bloom", &m_bloom);
+			ImGui::SliderFloat("Bloom factor", &m_bloomFactor, 0, 2.0f);
+			ImGui::SliderFloat("Bloom multiplier", &m_bloomMultiplier, 0, 5.0f);
+			ImGui::SliderFloat("Chromatic", &m_chromatic, -0.01, 0.01f);
 		}
 		if (ImGui::CollapsingHeader("Scene")) {
 			if (ImGui::TreeNode("Lighting")) {
@@ -266,10 +273,6 @@ void RenderingPipeline::OnImGUI() {
 		ImGui::SliderFloat("Metallic", &metallic, 0, 1);
 		ImGui::EndTabItem();
 	}
-	ImGui::Checkbox("Bloom", &m_bloom);
-	ImGui::SliderFloat("Bloom factor", &m_bloomFactor, 0, 2.0f);
-	ImGui::SliderFloat("Bloom multiplier", &m_bloomMultiplier, 0, 5.0f);
-	ImGui::SliderFloat("Chromatic", &m_chromatic, -0.01, 0.01f);
 }
 
 

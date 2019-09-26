@@ -5,8 +5,7 @@ FrameBuffer::FrameBuffer(String name, uint width, uint height, Color& clearColor
 	GL(glGenRenderbuffers(1, &m_dbo));
 
 	GL(glBindRenderbuffer(GL_RENDERBUFFER, m_dbo));
-	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, m_width, m_height));
-	GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_width, m_height));
 
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 	GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_dbo));
@@ -18,23 +17,14 @@ void FrameBuffer::Resize(uint width, uint height) {
 	m_height = height;
 
 	GL(glBindRenderbuffer(GL_RENDERBUFFER, m_dbo));
-	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, m_width, m_height));
+	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_width, m_height));
 	GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-
-	//m_colorAttachments = 0;
-	//GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
-	//GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_dbo));
 
 	for (Texture* texture : m_textures) {
 		texture->Resize(width, m_height);
-		//GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->GetHandle(), 0));
-		//m_colorAttachments++;
 	}
 
-	//GL(glDrawBuffers(m_colorAttachments, drawBuffers));
-
 	if (CheckStatus()) LOG("[~cBuffers~x] Created ~1%s~x framebuffer", m_name.c_str());
-
 }
 
 FrameBuffer::~FrameBuffer() {

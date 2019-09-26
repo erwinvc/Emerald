@@ -60,6 +60,7 @@ public:
 
 	inline uint GetWidth() const { return m_width; }
 	inline uint GetHeight() const { return m_height; }
+	inline uint GetHandle() const { return m_fbo; }
 	inline void SetClearColor(Color& color) { m_color = color; }
 	inline vector<AssetRef<Texture>>& GetTextures() { return m_textures; }
 	inline vector<String>& GetTextureNames() { return m_textureNames; }

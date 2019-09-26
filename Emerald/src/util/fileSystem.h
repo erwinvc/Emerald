@@ -2,6 +2,13 @@
 
 class FileSystem {
 public:
+
+	static vector<byte> ReadFileBinary(const String& path) {
+		ifstream stream(path, std::ios::binary);
+		vector<byte> buffer(istreambuf_iterator<char>(stream), {});
+		return buffer;
+	}
+
 	static String ReadFile(String path) {
 		ifstream stream(path);
 		string str((istreambuf_iterator<char>(stream)), istreambuf_iterator<char>());

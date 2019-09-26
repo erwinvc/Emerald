@@ -118,42 +118,6 @@ void Application::Update(TimeStep time) {
 	GetStateManager()->Update(time);
 	GetTweenManager()->Update(time);
 	GetShaderManager()->Update(time);
-}
-
-void Application::Render() {
-	m_window->ClearColor(Color(0, 0, 0, 1));
-
-	if (m_pipeline->Initialized()) {
-		m_pipeline->PreGeometryRender();
-
-		GetLineRenderer()->Begin();
-		GetStateManager()->RenderGeometry();
-		GetLineRenderer()->End();
-		GetLineRenderer()->Draw();
-
-		m_pipeline->PostGeometryRender();
-
-		m_pipeline->PreUIRender();
-		GetStateManager()->RenderUI();
-		m_pipeline->PostUIRender();
-
-		GetImGuiManager()->Begin();
-		if (ImGui::Begin("Emerald###Window", &m_ImGuiOpen, ImVec2(576, 680), -1)) {
-			if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
-				m_pipeline->OnImGUI();
-				GetStateManager()->OnImGUI();
-				GetFrameBufferManager()->OnImGUI();
-				GetShaderManager()->OnImGUI();
-				ImGui::EndTabBar();
-			}
-			ImGui::End();
-		}
-		GetImGuiManager()->End();
-	} else {
-		GLUtils::EnableBlending();
-		GetStateManager()->RenderUI();
-		GLUtils::DisableBlending();
-	}
 
 	if (toResize.x != -1) {
 		uint width = toResize.x;
@@ -166,8 +130,44 @@ void Application::Render() {
 		GetStateManager()->OnResize(width, height);
 		toResize = Vector2I(-1, -1);
 	}
+}
 
-	m_window->SwapBuffers();
+void Application::Render() {
+	if (m_window->GetWidth() != 0 && m_window->GetHeight() != 0) {
+		m_window->ClearColor(Color(0, 0, 0, 1));
+
+		if (m_pipeline->Initialized()) {
+			m_pipeline->PreGeometryRender();
+
+			GetLineRenderer()->Begin();
+			GetStateManager()->RenderGeometry();
+			GetLineRenderer()->End();
+
+			m_pipeline->PostGeometryRender();
+
+			m_pipeline->PreUIRender();
+			GetStateManager()->RenderUI();
+			m_pipeline->PostUIRender();
+
+			GetImGuiManager()->Begin();
+			if (ImGui::Begin("Emerald###Window", &m_ImGuiOpen, ImVec2(576, 680), -1)) {
+				if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
+					m_pipeline->OnImGUI();
+					GetStateManager()->OnImGUI();
+					GetFrameBufferManager()->OnImGUI();
+					GetShaderManager()->OnImGUI();
+					ImGui::EndTabBar();
+				}
+				ImGui::End();
+			}
+			GetImGuiManager()->End();
+		} else {
+			GLUtils::EnableBlending();
+			GetStateManager()->RenderUI();
+			GLUtils::DisableBlending();
+		}
+		m_window->SwapBuffers();
+	}
 	m_window->PollEvents();
 }
 
