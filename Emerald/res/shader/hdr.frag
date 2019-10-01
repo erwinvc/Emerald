@@ -88,8 +88,7 @@ vec3 computeFxaa()
 
 vec3 linearToneMapping(vec3 color)
 {
-	float exposure = 1.;
-	color = clamp(exposure * color, 0., 1.);
+	color = clamp(color, 0., 1.);
 	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
@@ -237,10 +236,20 @@ vec3 Vignette(vec3 color, vec3 color2, float a, float b) {
 	return mix(color, color2, sstep);
 }
 
+vec3 ToGreyScale(vec3 colorIn)
+{
+	float grey = colorIn.r * 0.299 + colorIn.g * 0.587 + colorIn.b * 0.114;
+	return vec3(grey, grey, grey);
+}
+
 void main(){
 	vec3 color = texture(_HDRBuffer, fsUv).rgb;
-	if(_FXAA) color = computeFxaa();
 
+	if(_ApplyPostProcessing == 0) {
+		out_color = vec4(color, 1.0);
+		return;
+	}
+	if(_FXAA) color = computeFxaa();
 
 	float o1 = -_Chromatic;
 	float o2 = 0.0f;
@@ -250,11 +259,6 @@ void main(){
     float bbloomColor = texture2D(_HDRBloom, fsUv + o3 * (fsUv - 0.5f)).b;  
 	//vec3 bloomColor = texture(_HDRBloom, fsUv).rgb * _BloomMultiplier;
     if(_Bloom) color += vec3(rbloomColor, gbloomColor, bbloomColor)* _BloomMultiplier;
-
-	if(_ApplyPostProcessing == 0) {
-		out_color = vec4(color, 1.0);
-		return;
-	}
 
 	color *= _Exposure;
 
@@ -273,6 +277,8 @@ void main(){
 		case 11: color = Standard(color); break;
 		case 12: color = Cherno(color); break;
 	}
+
+	color = ToGreyScale(color);
 
 	out_color = vec4(Vignette(color, vec3(0), 0.3, 0.8), 1);
 }

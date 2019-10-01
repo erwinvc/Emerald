@@ -8,7 +8,10 @@ struct DrawableLine {
 	bool enabled = false;
 };
 
-static float eta = 0.0001f;
+static double beta1 = 0.9;
+static double beta2 = 0.999;
+static double epsilon = 0.000001f;
+static float eta = 0.5f;
 static float alpha = 0.0f;
 
 static float halfGridSize = 14;
@@ -102,14 +105,24 @@ public:
 		m_gradient = dow * Neuron::transferFunctionDerivative(m_outputValue);
 	}
 
-	void updateInputWeights(vector<Neuron>& prevLayer) {
+	void updateInputWeights(vector<Neuron>& prevLayer, int epoch) {
 		for (uint n = 0; n < prevLayer.size(); ++n) {
 			Neuron& neuron = prevLayer[n];
 			double oldDeltaWeight = neuron.m_outputWeights[m_myIndex].deltaWeight;
-
 			double newDeltaWeight = eta * neuron.getOutputValue() * m_gradient + alpha * oldDeltaWeight;
 			neuron.m_outputWeights[m_myIndex].deltaWeight = newDeltaWeight;
 			neuron.m_outputWeights[m_myIndex].weight += newDeltaWeight;
+
+			//Neuron& neuron = prevLayer[n];
+			//double oldDeltaWeight = neuron.m_outputWeights[m_myIndex].deltaWeight;
+			//vdw = beta1 * vdw + (1 - beta1) * neuron.getOutputValue();
+			//sdw = beta2 * sdw + (1 - beta2) * Math::Pow(neuron.getOutputValue(), 2);
+			//double vdw_corrected = vdw / (1 - Math::Pow(beta1, epoch + 1));
+			//double sdw_corrected = sdw / (1 - Math::Pow(beta2, epoch + 1));
+			//double value = oldDeltaWeight + eta * (vdw_corrected / (Math::Sqrt(sdw_corrected) + epsilon));
+			//double newDeltaWeight = value * m_gradient + alpha * oldDeltaWeight;
+			//neuron.m_outputWeights[m_myIndex].deltaWeight = newDeltaWeight;
+			//neuron.m_outputWeights[m_myIndex].weight += newDeltaWeight;
 		}
 	}
 
@@ -136,7 +149,7 @@ public:
 			if (c.weight < 0) color.B = -value;
 			else color.R = value;
 			if (lineRendererIndex++ % 111 == 0) {
-				GetLineRenderer()->Submit(m_entity->m_position, c.neuron->m_entity->m_position, color);
+			GetLineRenderer()->Submit(m_entity->m_position, c.neuron->m_entity->m_position, color);
 			}
 		}
 	}
@@ -162,6 +175,8 @@ public:
 private:
 	double m_outputValue;
 	double m_gradient;
+	double vdw = 0;
+	double sdw = 0;
 
 	uint m_myIndex;
 	vector<Connection> m_outputWeights;
@@ -178,7 +193,7 @@ private:
 
 class NeuralNetwork {
 public:
-	double m_recentAverageError;
+	double m_recentAverageError = 1;
 
 	NeuralNetwork(const vector<Topology>& topology) {
 		uint numLayers = topology.size();
@@ -247,7 +262,7 @@ public:
 			}
 		}
 	}
-	void backProp(const vector<double>& targetValues) {
+	void backProp(const vector<double>& targetValues, int epoch) {
 		if (targetValues.size() != m_layers.back().size() - 1) LOG_ERROR("Inconsistent target values!");
 
 		vector<Neuron>& outputLayer = m_layers.back();
@@ -280,7 +295,7 @@ public:
 			vector<Neuron>& previousLayer = m_layers[layerNum - 1];
 
 			for (uint n = 0; n < layer.size() - 1; ++n) {
-				layer[n].updateInputWeights(previousLayer);
+				layer[n].updateInputWeights(previousLayer, epoch);
 			}
 		}
 	}
@@ -303,7 +318,7 @@ public:
 private:
 	vector<vector<Neuron>> m_layers;
 	double m_error;
-	double m_recentAverageSmoothingFactor = 30;
+	double m_recentAverageSmoothingFactor = 60;
 };
 
 static vector<vector<double>> outputValues;
@@ -318,12 +333,18 @@ struct Pixel {
 	bool m_enabled;
 };
 
+struct Step {
+	float trigger;
+	float value;
+};
+
+
 class MenuState : public State {
 private:
 
 	String m_name = "Menu";
 	AssetRef<Shader> m_shader;
-	vector<Topology> topology = { {totalGridSize, gridSize}, {529, 23}, {256, 16}, {121, 11}, {10, 1} };
+	vector<Topology> topology = { {totalGridSize, gridSize}, {totalGridSize, gridSize}, {totalGridSize, gridSize}, {10, 1} };
 	NeuralNetwork* m_network;
 	bool renderType = false;
 	vector<Pointlight> m_pointLights;
@@ -335,6 +356,7 @@ private:
 	vector<double> m_inputValues;
 	void LoadNumbers();
 	vector<Number> m_numbers;
+	vector<Step> steps = { {1.0f, 0.2f}, {0.8f, 0.1f}, {0.5f, 0.05f}, {0.4f, 0.01f}, {0.3f, 0.005f}, {0.2f, 0.001f}, {0.1f, 0.0001f}, {0.05f, 0.00001f} };
 public:
 	const String& GetName() override { return m_name; }
 
@@ -370,7 +392,14 @@ public:
 		GetCamera()->m_rotation = Vector3(0, Math::PI, 0.0f);
 		GetPipeline()->m_directionalLight.m_direction = Vector3(Math::HALF_PI, 0.0f, 0.0f);
 	}
+
+	float avgArray[1000] = { 1 };
 	void Update(const TimeStep& time) override {
+		static int TIMER;
+		Utils::DoTimedFunction(&TIMER, 1000, [&] {
+			memmove(avgArray, avgArray + 1, sizeof(float)*(1000 - 1));
+			avgArray[1000 - 1] = m_network->m_recentAverageError;
+		});
 
 		//if (KeyJustDown(VK_0)) BackPropNumber(m_network, 0);
 		//if (KeyJustDown(VK_1)) BackPropNumber(m_network, 1);
@@ -520,6 +549,8 @@ public:
 		static bool disabled = false;
 		static float averageTimePerTraining = 0;
 		static int epoch = 0;
+		static int stepIndex = 0;
+
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, disabled);
 		if (ImGui::Button("StartTraining")) {
 			disabled = true;
@@ -530,17 +561,25 @@ public:
 				float avg[10] = { 0 };
 				int avgIndex = 0;
 				float avgSum = 0;
+				stepIndex = 0;
 				while (training) {
 					epoch++;
-					for (int x = 0; x < 60000; x++) {
+					for (int x = 0; x < 20000; x++) {
 						if (!training) break;
 						Timer timer;
+
+						if (stepIndex < steps.size()) {
+							if (m_network->m_recentAverageError < steps[stepIndex].trigger) {
+								eta = steps[stepIndex].value;
+								stepIndex++;
+							}
+						}
 						for (int i = 0; i < totalGridSize; i++) {
 							SetPixel(i, m_numbers[x].data[i] == 1.0);
 						}
 						theNumber = m_numbers[x].number;
 						m_network->feedForward(m_numbers[x].data);
-						BackPropNumber(m_network, m_numbers[x].number);
+						BackPropNumber(m_network, m_numbers[x].number, epoch);
 						progress++;
 
 						//Average
@@ -561,8 +600,12 @@ public:
 			training = false;
 		}
 
+		ImGui::LabelText("Stepindex", "%d %f %f", stepIndex, steps[stepIndex].trigger, steps[stepIndex].value);
 		ImGui::LabelText("Epoch", "%d", epoch);
 		ImGui::LabelText("Recent average error", "%f", m_network->m_recentAverageError);
+
+
+		ImGui::PlotLines("Average error", avgArray, 1000, 0, "", FLT_MAX, FLT_MAX, ImVec2(0, 80));
 		ImGui::LabelText("Trainings per second", "%d", (int)(1000.0f / averageTimePerTraining));
 
 		ImGui::LabelText("Progress: ", "%d", progress);
@@ -639,26 +682,26 @@ public:
 		//ImGui::LabelText("Correct answer?", "%s", (Math::Round(outputs[0]) == a ^ b ? "Yes!" : "No..."));
 	}
 
-	void BackPropNumber(NeuralNetwork* net, int num) {
+	void BackPropNumber(NeuralNetwork* net, int num, int epoch) {
 		vector<double> result = { -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0 };
 		result[num] = 1.0;
-		net->backProp(result);
+		net->backProp(result, epoch);
 	}
 
-	void BackPropTriangle(NeuralNetwork* net) {
-		vector<double> result = { 0, 0, 1 };
-		net->backProp(result);
-	}
-
-	void BackPropCross(NeuralNetwork* net) {
-		vector<double> result = { 0, 1, 0 };
-		net->backProp(result);
-	}
-
-	void BackPropCircle(NeuralNetwork* net) {
-		vector<double> result = { 1, 0, 1 };
-		net->backProp(result);
-	}
+	//void BackPropTriangle(NeuralNetwork* net) {
+	//	vector<double> result = { 0, 0, 1 };
+	//	net->backProp(result);
+	//}
+	//
+	//void BackPropCross(NeuralNetwork* net) {
+	//	vector<double> result = { 0, 1, 0 };
+	//	net->backProp(result);
+	//}
+	//
+	//void BackPropCircle(NeuralNetwork* net) {
+	//	vector<double> result = { 1, 0, 1 };
+	//	net->backProp(result);
+	//}
 
 	void Cleanup() override {}
 

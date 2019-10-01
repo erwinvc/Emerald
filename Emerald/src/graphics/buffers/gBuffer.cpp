@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 GBuffer::GBuffer(uint width, uint height) : m_fbo(0), m_width(width), m_height(height) {
-	m_fbo = GetFrameBufferManager()->Create("GBuffer", m_width, m_height);
+	m_fbo = GetFrameBufferManager()->Create("GBuffer", FBOScale::FULL);
 	m_fbo->Bind();
 
 	m_attributesTexture = m_fbo->AddColorBuffer("Attributes", TextureParameters(RGB, RGB, NEAREST, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));

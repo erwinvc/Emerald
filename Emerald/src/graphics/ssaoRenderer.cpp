@@ -4,8 +4,8 @@ SSAORenderer::~SSAORenderer() {
 
 SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_textureBlur(nullptr), m_noiseTexture(nullptr), m_shader(nullptr), m_shaderBlur(nullptr), m_quad(nullptr) {
 
-	m_fbo = GetFrameBufferManager()->Create("SSAO", width, height);
-	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", width, height);
+	m_fbo = GetFrameBufferManager()->Create("SSAO", FBOScale::QUARTER);
+	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", FBOScale::QUARTER);
 	m_texture = m_fbo->AddColorBuffer("SSAO", TextureParameters(RED, RGB, NEAREST, REPEAT, T_FLOAT));
 	m_textureBlur = m_fboBlur->AddColorBuffer("SSAOBlur", TextureParameters(RED, RGB, NEAREST, REPEAT, T_FLOAT));
 

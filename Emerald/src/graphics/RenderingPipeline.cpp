@@ -37,14 +37,14 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
-	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", m_width, m_height);
+	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", FBOScale::FULL);
 	m_hdrTexture = m_hdrBuffer->AddColorBuffer("HDR", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
 	m_hdrBrightTexture = m_hdrBuffer->AddColorBuffer("HDRBloom", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
 	//Bloom
-	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", 1920, 1080);
-	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", 1920, 1080);
+	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", FBOScale::QUARTER);
+	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", FBOScale::QUARTER);
 	m_pingPongTexture[0] = m_pingPongFBO[0]->AddColorBuffer("PingPong1", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 	m_pingPongTexture[1] = m_pingPongFBO[1]->AddColorBuffer("PingPong1", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
@@ -185,7 +185,9 @@ void RenderingPipeline::PostGeometryRender() {
 		if (first_iteration)
 			first_iteration = false;
 	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	GetFrameBufferManager()->BindDefaultFBO();
+
 
 	m_hdrShader->Bind();
 	m_hdrShader->Set("_HDRBuffer", 0);
@@ -205,7 +207,10 @@ void RenderingPipeline::PostGeometryRender() {
 	m_quad->Bind();
 	m_quad->Draw();
 	m_hdrShader->Unbind();
-
+	//GL(glEnable(GL_BLEND));
+	//GL(glBlendFunc(GL_ONE, GL_ONE));
+	//GetLineRenderer()->Draw();
+	//GL(glDisable(GL_BLEND));
 
 }
 
