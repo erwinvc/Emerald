@@ -15,7 +15,8 @@ out Data fsData;
 uniform mat4 _ProjectionMatrix;
 uniform mat4 _ViewMatrix;
 uniform float _TessellationAlpha;
-
+uniform sampler2D _Height;
+uniform float _HeightStrength;
 in float termIJ[];
 in float termJK[];
 in float termIK[];
@@ -56,5 +57,8 @@ void main(void){
 
 					vec3 finalPos = (1.0 -_TessellationAlpha) * barPos + _TessellationAlpha * phongPos;
 
+
+	vec3 tessellation = fsData.normal * texture(_Height, fsData.uv).x * _HeightStrength;
+	finalPos += tessellation;
 	gl_Position  = _ProjectionMatrix * _ViewMatrix * vec4(finalPos,1.0);
 }

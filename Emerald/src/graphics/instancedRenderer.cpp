@@ -8,7 +8,7 @@ void InstancedRenderer::Initialize() {
 	m_offsets = NEWARRAY(Vector3, MAX_OBJECTS);
 
 	BufferLayout layout = {
-		{ShaderDataType::Float3, "offsets", 4}
+		{VertexBufferDataType::Float3, "offsets", 4}
 	};
 
 	m_offsetsBuffer = NEW(VertexBuffer((float*)m_offsets, MAX_OBJECTS, layout, GL_DYNAMIC_DRAW));

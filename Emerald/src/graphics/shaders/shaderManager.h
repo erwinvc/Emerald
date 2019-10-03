@@ -10,12 +10,12 @@ private:
 
 public:
 
-	AssetRef<Shader> Create(const String& name, const String& file, bool test) {
+	AssetRef<Shader> Create(const String& name, const String& file, bool hasGeometry = false, bool hasTessellation = false) {
 		if (m_shaders[name]) {
 			LOG("[~bShaders~x] ~1%s ~rshader has already been created", name.c_str());
 			return m_shaders[name];
 		}
-		AssetRef<Shader> shader = NEW(Shader(name, file, test));
+		AssetRef<Shader> shader = NEW(Shader(name, file, hasGeometry, hasTessellation));
 		m_shaders[name] = shader;
 		m_shadersVector.push_back(shader);
 		return shader;
@@ -31,14 +31,20 @@ public:
 
 	void OnImGUI() {
 		if (ImGui::BeginTabItem("Shaders")) {
-			int i = 0;
-			for (AssetRef<Shader>& shader : m_shadersVector) {
-				ImGui::Text(shader->m_name.c_str());
-				if (ImGui::Button(Format_t("Reload##%d", i++))) {
-					shader->Reload();
+			static int currentlySelectedShader = 0;
+			if (ImGui::BeginCombo("Shader", m_shadersVector[currentlySelectedShader]->m_name.c_str())) {
+				for (int n = 0; n < m_shadersVector.size(); n++) {
+					bool is_selected = (currentlySelectedShader == n);
+					if (ImGui::Selectable(m_shadersVector[n]->m_name.c_str(), is_selected))
+						currentlySelectedShader = n;
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
 				}
-				ImGui::Separator();
+				ImGui::EndCombo();
 			}
+
+			ImGui::Separator();
+			m_shadersVector[currentlySelectedShader]->OnImGUI();
 			ImGui::EndTabItem();
 		}
 	}

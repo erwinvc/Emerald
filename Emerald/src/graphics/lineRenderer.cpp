@@ -7,9 +7,9 @@ void LineRenderer::Initialize() {
 	//m_lines = new Vector3[MAX_OBJECTS * 2];
 
 	BufferLayout layout = {
-		{ShaderDataType::Float3, "vsBegin", 0, true},
-		{ShaderDataType::Float3, "vsEnd", 1, true},
-		{ShaderDataType::Float4, "vsColor", 2, true}
+		{VertexBufferDataType::Float3, "vsBegin", 0, true},
+		{VertexBufferDataType::Float3, "vsEnd", 1, true},
+		{VertexBufferDataType::Float4, "vsColor", 2, true}
 	};
 
 	ManagedRef<VertexArray> vao(NEW(VertexArray()));

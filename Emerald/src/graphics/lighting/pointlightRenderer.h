@@ -15,8 +15,8 @@ public:
 		if (maxLights > MAX_LIGHTS)LOG_ERROR("[Rendering] Too many lights. Engine max is 32768");
 
 		BufferLayout layout = {
-		{ShaderDataType::Float4, "vars", 5, true},
-		{ShaderDataType::Float4, "col", 6, true}
+		{VertexBufferDataType::Float4, "vars", 5, true},
+		{VertexBufferDataType::Float4, "col", 6, true}
 		};
 
 		m_renderer = NEW(InstancedRenderer2D<Pointlight>(mesh, MAX_LIGHTS, layout));

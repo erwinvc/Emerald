@@ -1,12 +1,17 @@
 #include "stdafx.h"
 
-FrameBuffer::FrameBuffer(String name, uint width, uint height, Color& clearColor) : m_name(name), m_width(width), m_height(height), m_color(clearColor) {
+FrameBuffer::FrameBuffer(String name, FBOScale scale, Color& clearColor) : m_name(name), m_width(0), m_height(0), m_color(clearColor) {
+	m_scale = scale;
+	m_realWidth = GetApp()->GetWindow()->GetWidth();
+	m_realHeight = GetApp()->GetWindow()->GetHeight();
+	m_width = FBOScaleToFloat(m_scale) * m_realWidth;
+	m_height = FBOScaleToFloat(m_scale) * m_realHeight;
+
 	GL(glGenFramebuffers(1, &m_fbo));
 	GL(glGenRenderbuffers(1, &m_dbo));
 
 	GL(glBindRenderbuffer(GL_RENDERBUFFER, m_dbo));
-	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, m_width, m_height));
-	GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_width, m_height));
 
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 	GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_dbo));
@@ -14,27 +19,19 @@ FrameBuffer::FrameBuffer(String name, uint width, uint height, Color& clearColor
 }
 
 void FrameBuffer::Resize(uint width, uint height) {
-	m_width = width;
-	m_height = height;
-
+	m_realWidth = width;
+	m_realHeight = height;
+	m_width = FBOScaleToFloat(m_scale) * m_realWidth;
+	m_height = FBOScaleToFloat(m_scale) * m_realHeight;
 	GL(glBindRenderbuffer(GL_RENDERBUFFER, m_dbo));
-	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, m_width, m_height));
+	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_width, m_height));
 	GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
-	//m_colorAttachments = 0;
-	//GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
-	//GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_dbo));
-
 	for (Texture* texture : m_textures) {
-		texture->Resize(width, m_height);
-		//GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->GetHandle(), 0));
-		//m_colorAttachments++;
+		texture->Resize(m_width, m_height);
 	}
 
-	//GL(glDrawBuffers(m_colorAttachments, drawBuffers));
-
-	if (CheckStatus()) LOG("[~cBuffers~x] Created ~1%s~x framebuffer", m_name.c_str());
-
+	CheckStatus();
 }
 
 FrameBuffer::~FrameBuffer() {
@@ -74,24 +71,40 @@ AssetRef<Texture> FrameBuffer::AddColorBuffer(const String& name, const TextureP
 
 void FrameBufferManager::OnImGUI() {
 	if (ImGui::BeginTabItem("Framebuffers")) {
-		ImGui::Columns(3, NULL, true);
+		ImGui::Columns(3, NULL, false);
 		vector<String> m_fboTextureNames;
+		int index = 0;
 		for (FrameBuffer* fbo : m_frameBuffers) {
+			ImGui::Separator();
+			ImGui::Text("%s", fbo->GetName().c_str());
+			//if (ImGui::ColorPicker3("Color", (float*)&fbo->m_color)) {
+			//	fbo->SetClearColor(fbo->m_color);
+			//}
 			m_fboTextureNames = fbo->GetTextureNames();
+
+			int selected = (int)fbo->GetScale();
+			static String_t scales[] = { "Full", "Half", "Quarter", "One Fifth" };
+			if (ImGui::Combo(Format_t("Scale##%d", index++), &selected, scales, NUMOF(scales))) fbo->SetScale(FBOScale(selected));
 			int i = 0;
 			for (AssetRef<Texture>& tex : fbo->GetTextures()) {
-				if (ImGui::GetColumnIndex() == 0) ImGui::Separator();
+				ImGui::NextColumn();
+				if (ImGui::GetColumnIndex() == 0) ImGui::NextColumn();
 				if (ImGui::ImageButton(tex->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = tex;
 				ImGui::Tooltip(fbo->GetName().c_str());
-				ImGui::Text(Format_t("%s %s", fbo->GetName().c_str(), m_fboTextureNames[i++].c_str()));
+				ImGui::Text("%s", m_fboTextureNames[i++].c_str());
 				ImGui::Text("%d x %d", tex->GetWidth(), tex->GetHeight());
 				ImGui::Text(tex->GetTextureParams().GetAsString().c_str());
-				ImGui::NextColumn();
 			}
+			while (ImGui::GetColumnIndex() > 0) ImGui::NextColumn();
 		}
 		ImGui::Columns(1);
 		ImGui::Separator();
 
 		ImGui::EndTabItem();
 	}
+}
+
+void FrameBufferManager::BindDefaultFBO() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GL(glViewport(0, 0, GetApp()->GetWidth(), GetApp()->GetHeight()));
 }

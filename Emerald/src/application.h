@@ -35,8 +35,8 @@ public:
 	uint64_t GetFrameCount() { return m_frameCount; }
 	RenderingPipeline* GetPipeline() { return m_pipeline; }
 
-	inline float GetWidth() { return (float)m_window->GetWidth(); }
-	inline float GetHeight() { return (float)m_window->GetHeight(); }
+	inline float GetWidth() { return m_window->GetWidth(); }
+	inline float GetHeight() { return m_window->GetHeight(); }
 	inline float GetAspect() { return m_window->GetAspect(); }
 };
 

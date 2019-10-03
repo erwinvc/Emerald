@@ -1,10 +1,10 @@
 #include "stdafx.h"
 
 VertexArray::VertexArray() {
-    glGenVertexArrays(1, &m_arrayID);
+    GL(glGenVertexArrays(1, &m_arrayID));
 }
 VertexArray::~VertexArray() {
-    glDeleteVertexArrays(1, &m_arrayID);
+    GL(glDeleteVertexArrays(1, &m_arrayID));
 }
 
 void VertexArray::AddBuffer(ManagedRef<VertexBuffer> buffer) {
@@ -22,14 +22,14 @@ void VertexArray::AddBuffer(ManagedRef<VertexBuffer> buffer) {
 }
 
 void VertexArray::Bind() {
-    glBindVertexArray(m_arrayID);
+    GL(glBindVertexArray(m_arrayID));
 	//for (auto& buffer : m_buffers) {
 	//    buffer->Bind();
 	//}
 }
 
 void VertexArray::Unbind() {
-    glBindVertexArray(0);
+    GL(glBindVertexArray(0));
     //for (auto& buffer : m_buffers) {
     //    buffer->Unbind();
     //}

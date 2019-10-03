@@ -5,7 +5,6 @@ class AssetManager : public Singleton<AssetManager> {
 
 	map<String, AssetBase*> m_assets;
 	AssetRef<AssetBatch> m_currentBatch;
-
 	const int THREADCOUNT = 4;
 
 	AssetManager() {

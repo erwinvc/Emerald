@@ -7,6 +7,7 @@ private:
 	AssetRef<Texture> m_albedo;
 	AssetRef<Texture> m_normal;
 	AssetRef<Texture> m_specular;
+	AssetRef<Texture> m_metallic;
 	AssetRef<Texture> m_emission;
 
 protected:
@@ -17,16 +18,19 @@ protected:
 public:
 	float m_normalStrength = 1;
 	float m_specularStrength = 1;
+	float m_metallicStrength = 1;
 	float m_emissionStrength = 1;
 
 	AssetRef<BasicMaterial> SetAlbedo(AssetRef<Texture> albedo) { if (albedo.Get() != nullptr) m_albedo = albedo; return this; }
 	AssetRef<BasicMaterial> SetNormal(AssetRef<Texture> normal) { if (normal.Get() != nullptr) { m_normalStrength = 1; m_normal = normal; } return this; }
 	AssetRef<BasicMaterial> SetSpecular(AssetRef<Texture> specular) { if (specular.Get() != nullptr) { m_specularStrength = 1; m_specular = specular; } return this; }
+	AssetRef<BasicMaterial> SetMetallic(AssetRef<Texture> metallic) { if (metallic.Get() != nullptr) { m_metallicStrength = 1; m_metallic = metallic; } return this; }
 	AssetRef<BasicMaterial> SetEmission(AssetRef<Texture> emission) { if (emission.Get() != nullptr) { m_emissionStrength = 1; m_emission = emission; } return this; }
 
 	AssetRef<Texture> GetAlbedo() { return m_albedo; }
 	AssetRef<Texture> GetNormal() { return m_normal; }
-	AssetRef<Texture> GetSpecular() { return m_normal; }
+	AssetRef<Texture> GetSpecular() { return m_specular; }
+	AssetRef<Texture> GetMetallic() { return m_metallic; }
 	AssetRef<Texture> GetEmission() { return m_emission; }
 
 	void Bind(AssetRef<Shader> shader) override {
@@ -35,18 +39,21 @@ public:
 		shader->Set("_NormalStrength", m_normalStrength);
 		shader->Set("_Specular", 2);
 		shader->Set("_SpecularStrength", m_specularStrength);
-		shader->Set("_Emission", 3);
+		shader->Set("_Metallic", 3);
+		shader->Set("_MetallicStrength", m_metallicStrength);
+		shader->Set("_Emission", 4);
 		shader->Set("_EmissionStrength", m_emissionStrength);
 		m_albedo->Bind(0);
 		m_normal->Bind(1);
 		m_specular->Bind(2);
-		m_emission->Bind(3);
+		m_metallic->Bind(3);
+		m_emission->Bind(4);
 	}
 
-	void Unbind() override {
-		m_albedo->Unbind(0);
-		m_normal->Unbind(1);
-		m_specular->Unbind(2);
-		m_emission->Unbind(3);
-	}
+	//void Unbind() override {
+	//	m_albedo->Unbind(0);
+	//	m_normal->Unbind(1);
+	//	m_specular->Unbind(2);
+	//	m_emission->Unbind(3);
+	//}
 };

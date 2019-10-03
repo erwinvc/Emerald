@@ -4,10 +4,10 @@ SSAORenderer::~SSAORenderer() {
 
 SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_textureBlur(nullptr), m_noiseTexture(nullptr), m_shader(nullptr), m_shaderBlur(nullptr), m_quad(nullptr) {
 
-	m_fbo = GetFrameBufferManager()->Create("SSAO", width, height);
-	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", width, height);
-	m_texture = m_fbo->AddColorBuffer("SSAO", TextureParameters(RED, RGB, NEAREST, REPEAT, T_FLOAT));
-	m_textureBlur = m_fboBlur->AddColorBuffer("SSAOBlur", TextureParameters(RED, RGB, NEAREST, REPEAT, T_FLOAT));
+	m_fbo = GetFrameBufferManager()->Create("SSAO", FBOScale::QUARTER);
+	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", FBOScale::QUARTER);
+	m_texture = m_fbo->AddColorBuffer("SSAO", TextureParameters(RED, RGB, LINEAR, REPEAT, T_FLOAT));
+	m_textureBlur = m_fboBlur->AddColorBuffer("SSAOBlur", TextureParameters(RED, RGB, LINEAR, REPEAT, T_FLOAT));
 
 	m_shader = GetShaderManager()->Get("SSAO");
 	m_shaderBlur = GetShaderManager()->Get("SSAOBlur");
@@ -54,7 +54,7 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_shader->Set("_Power", m_power);
 	m_shader->Set("_Projection", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("_View", GetCamera()->GetViewMatrix());
-	m_shader->Set("_NoiseScale", GetApp()->GetWindow()->GetWidth() / 4, GetApp()->GetWindow()->GetHeight() / 4);
+	m_shader->Set("_NoiseScale", Vector2(GetApp()->GetWidth() / 4, GetApp()->GetHeight() / 4));
 
 	gBuffer->m_positionTexture->Bind(0);
 	gBuffer->m_normalTexture->Bind(1);

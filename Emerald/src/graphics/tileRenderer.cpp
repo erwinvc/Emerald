@@ -9,10 +9,10 @@ void TileRenderer::Initialize() {
 	m_material = GetMaterialManager()->Create<TileMaterial>("Tile");
 
 	BufferLayout layout = {
-	{ShaderDataType::Float2, "position", 5, true},
-	{ShaderDataType::Int, "transformIndex", 6, true},
-	{ShaderDataType::Float3, "vsStrengths", 7, true},
-	{ShaderDataType::Int, "vsTextureID", 8, true}
+	{VertexBufferDataType::Float2, "position", 5, true},
+	{VertexBufferDataType::Int, "transformIndex", 6, true},
+	{VertexBufferDataType::Float3, "vsStrengths", 7, true},
+	{VertexBufferDataType::Int, "vsTextureID", 8, true}
 	};
 
 	loop(i, TILECOUNT) {
@@ -33,9 +33,11 @@ void TileRenderer::Initialize() {
 	};
 
 	m_shader->Bind();
-	for (int i = 0; i < NUMOF(transforms); i++) {
-		m_shader->Set(Format_t("_Transforms[%d]", i), transforms[i]);
-	}
+	//for (int i = 0; i < NUMOF(transforms); i++) {
+	//	m_shader->Set(Format_t("_Transforms[%d]", i), transforms[i]);
+	//}
+	m_shader->Set("_Transforms", transforms);
+
 }
 
 void TileRenderer::Begin() {

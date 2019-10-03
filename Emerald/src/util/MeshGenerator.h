@@ -40,7 +40,7 @@ namespace MeshGenerator {
 		ManagedRef<IndexBuffer> ibo(new IndexBuffer(indices.data(), indices.size()));
 
 		BufferLayout layout = {
-			{ShaderDataType::Float3, "position", 0} };
+			{VertexBufferDataType::Float3, "position", 0} };
 		vao->AddBuffer(NEW(VertexBuffer(positions.data(), positions.size() / 3, layout)));
 		vao->ApplyLayouts();
 		return NEW(Mesh(vao, ibo));
@@ -69,8 +69,8 @@ namespace MeshGenerator {
 		ManagedRef<IndexBuffer> ibo(new IndexBuffer(indices, NUMOF(indices)));
 
 		BufferLayout layout = {
-			{ShaderDataType::Float3, "position", 0},
-			{ShaderDataType::Float2, "uv", 1}
+			{VertexBufferDataType::Float3, "position", 0},
+			{VertexBufferDataType::Float2, "uv", 1}
 		};
 		vao->AddBuffer(NEW(VertexBuffer(vertices, NUMOF(vertices), layout)));
 		vao->ApplyLayouts();

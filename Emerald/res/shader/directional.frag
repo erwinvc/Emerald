@@ -58,19 +58,20 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 }
 
 //uniform float _Roughness;
-uniform float _Metallic = 0;
+//uniform float _Metallic = 0;
 uniform float _BloomFactor;
 void main(){
-	vec3 misc = texture(_GMisc, fsUV).xyz;
-	vec3 albedo = texture(_GAlbedo, fsUV).xyz;
-	vec3 N = normalize(texture(_GNormal, fsUV).xyz);
-	vec3 position = texture(_GPosition, fsUV).xyz;
+	vec4 misc = texture(_GMisc, fsUV);
+	vec3 albedo = texture(_GAlbedo, fsUV).rgb;
+	vec3 N = normalize(texture(_GNormal, fsUV).rgb);
+	vec3 position = texture(_GPosition, fsUV).rgb;
 	float ssao = texture(_SSAO, fsUV).x;
 	float roughness = max(misc.x, 0.05);
-	float lightInfluence = misc.y;
+	float metallic = misc.y;
+	float lightInfluence = misc.w;
 
 	vec3 F0 = vec3(0.04); 
-	F0 = mix(F0, albedo, _Metallic);
+	F0 = mix(F0, albedo, metallic);
 
 	vec3 V = normalize(_CameraPosition - position);
     vec3 L = normalize(_Directional);
@@ -86,13 +87,13 @@ void main(){
     vec3 specular = nominator / denominator;
     
     vec3 kD = vec3(1.0) - F;
-    kD *= 1.0 - _Metallic;	  
+    kD *= 1.0 - metallic;	  
 
     float NdotL = max(dot(N, L), 0.0); 
 
     vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL * (_SSAOEnabled ? ssao : 1);
 
-	vec3 ambient = vec3(0.03) * albedo;
+	vec3 ambient = vec3(0.3) * albedo;
 	vec3 color = Lo;
 
 

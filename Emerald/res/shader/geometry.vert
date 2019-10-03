@@ -24,7 +24,7 @@ void main(){
 
 	csData.pos =(_TransformationMatrix * vec4(vsPos, 1.0)).xyz;
 	csData.normal = (_TransformationMatrix * vec4(vsNormal, 0.0)).xyz;
-	csData.uv = vsUv;
+	csData.uv = vec2(vsUv.x, -vsUv.y);
 
 	csData.viewDirection = (inverse(_ViewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - csData.pos;
 	gl_Position = vec4(csData.pos, 1.0);

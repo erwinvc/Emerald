@@ -21,7 +21,7 @@ out float fsTextureID;
 uniform mat4 _ProjectionMatrix;
 uniform mat4 _ViewMatrix;
 
-uniform mat4 _Transforms[6];
+uniform mat4 _Transforms[4];
 
 void main(){
 	float yDot = abs(dot(vsNormal, vec3(0, 1, 0)));

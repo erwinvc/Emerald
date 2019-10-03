@@ -1,4 +1,5 @@
 #pragma once
+#include "camera.h"
 
 class FirstPersonCam : public Camera {
 private:

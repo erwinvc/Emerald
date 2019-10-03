@@ -10,6 +10,6 @@ void TileMaterial::Bind(AssetRef<Shader> shader) {
 	GetTileTextureManager()->GetSpecular()->Bind(2);
 	GetTileTextureManager()->GetEmission()->Bind(3);
 }
-void TileMaterial::Unbind() {
-	GetTileTextureManager()->GetAlbedo()->Unbind();
-}
+//void TileMaterial::Unbind() {
+//	GetTileTextureManager()->GetAlbedo()->Unbind();
+//}

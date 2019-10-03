@@ -67,21 +67,22 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 }
 
 //uniform float _Roughness;
-uniform float _Metallic;
+//uniform float _Metallic;
 
 void main(){
 	float uLightRadius = newPos.w;
 	vec2 uv = (fsPos.xy / fsPos.w) * 0.5 + 0.5;
-	vec3 misc = texture(_GMisc, uv).xyz;
+	vec4 misc = texture(_GMisc, uv);
 	vec3 albedo = texture(_GAlbedo, uv).xyz;
 	vec3 N = normalize(texture(_GNormal, uv).xyz);
 	vec3 position = texture(_GPosition, uv).xyz;
 	float ssao = texture(_SSAO, uv).x;
 	float roughness = max(misc.x, 0.05);
-	float lightInfluence = misc.y;
+	float metallic = misc.y;
+	float lightInfluence = misc.w;
 
 	vec3 F0 = vec3(0.04); 
-	F0 = mix(F0, albedo, _Metallic);
+	F0 = mix(F0, albedo, metallic);
 
 	vec3 V = normalize(uCameraPos - position);
 	vec3 lightPos = newPos.xyz;
@@ -102,7 +103,7 @@ void main(){
     vec3 specular = nominator / denominator;
     
     vec3 kD = vec3(1.0) - F;
-    kD *= 1.0 - _Metallic;	  
+    kD *= 1.0 - metallic;	  
 
     float NdotL = max(dot(N, L), 0.0);        
 

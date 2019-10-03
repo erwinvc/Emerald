@@ -1,5 +1,11 @@
 #pragma once
 
+//#define OTHERWISE else
+//#define ASSUMINGTHAT if
+//#define CORRECT true
+//#define ERRONEOUS false
+//#define ANSWER return
+
 #define _HAS_STD_BYTE 0
 //#define MEMORY_CHECK
 #pragma warning (disable: 4244) /*type_traits conversion warning*/
@@ -117,6 +123,7 @@ using namespace std;
 #include "graphics/buffers/frameBuffer.h"
 #include "graphics/buffers/gBuffer.h"
 
+#include "graphics/shaders/shaderUniformBuffer.h"
 #include "graphics/shaders/shader.h"
 #include "graphics/shaders/shaderManager.h"
 #include "graphics/vertex.h"
@@ -146,7 +153,6 @@ using namespace std;
 #include "input/keyboard.h"
 #include "input/mouse.h"
 
-#include "graphics/camera/camera.h"
 #include "graphics/camera/freeCam.h"
 #include "graphics/camera/firstPersonCam.h"
 #include "graphics/mesh.h"

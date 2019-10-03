@@ -37,16 +37,16 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
-	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", m_width, m_height);
-	m_hdrTexture = m_hdrBuffer->AddColorBuffer("HDR", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", FBOScale::FULL);
+	m_hdrTexture = m_hdrBuffer->AddColorBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
-	m_hdrBrightTexture = m_hdrBuffer->AddColorBuffer("HDRBloom", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrBrightTexture = m_hdrBuffer->AddColorBuffer("HDRBloom", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 
 	//Bloom
-	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", 1920, 1080);
-	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", 1920, 1080);
-	m_pingPongTexture[0] = m_pingPongFBO[0]->AddColorBuffer("PingPong1", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
-	m_pingPongTexture[1] = m_pingPongFBO[1]->AddColorBuffer("PingPong1", TextureParameters(RGB16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", FBOScale::ONEFIFTH);
+	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", FBOScale::ONEFIFTH);
+	m_pingPongTexture[0] = m_pingPongFBO[0]->AddColorBuffer("PingPong1", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_pingPongTexture[1] = m_pingPongFBO[1]->AddColorBuffer("PingPong1", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer(m_width, m_height));
@@ -125,16 +125,8 @@ void RenderingPipeline::PostGeometryRender() {
 
 	m_gBuffer->BindTextures();
 	m_ssaoRenderer->GetTexture()->Bind(4);
-	m_directionalLightShader->Set("_Color", m_directionalLight.m_color);
-
-	Matrix4 mat = Matrix4::Identity();
-	mat *= Matrix4::Rotate(m_directionalLight.m_direction.x, Vector3::XAxis());
-	mat *= Matrix4::Rotate(m_directionalLight.m_direction.y, Vector3::YAxis());
-	mat *= Matrix4::Rotate(m_directionalLight.m_direction.z, Vector3::ZAxis());
-	Vector3 a = mat * Vector3::Up();
-	a.Normalize();
-
-	m_directionalLightShader->Set("_Directional", a);
+	m_directionalLightShader->Set("_Color", m_directionalLight.GetColor());
+	m_directionalLightShader->Set("_Directional", m_directionalLight.GetDirection());
 	m_directionalLightShader->Set("_CameraPosition", m_camera->m_position);
 	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
 	m_directionalLightShader->Set("_Roughness", roughness);
@@ -184,7 +176,8 @@ void RenderingPipeline::PostGeometryRender() {
 		if (first_iteration)
 			first_iteration = false;
 	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	GetFrameBufferManager()->BindDefaultFBO();
 
 	m_hdrShader->Bind();
 	m_hdrShader->Set("_HDRBuffer", 0);
@@ -195,7 +188,7 @@ void RenderingPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_Gamma", m_gamma);
 	m_hdrShader->Set("_Exposure", m_exposure);
 	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
-	m_hdrShader->Set("_ScreenSize", (float)GetApp()->GetWidth(), (float)GetApp()->GetHeight());
+	m_hdrShader->Set("_ScreenSize", Vector2(GetApp()->GetWidth(), GetApp()->GetHeight()));
 	m_hdrShader->Set("_Chromatic", m_chromatic);
 	m_hdrShader->Set("_Bloom", m_bloom);
 	GetFrameBufferManager()->GetSelectedTexture()->Bind();
@@ -221,12 +214,20 @@ void RenderingPipeline::OnImGUI() {
 		if (ImGui::CollapsingHeader("HDR")) {
 			ImGui::Checkbox("Post processing", &m_applyPostProcessing);
 			ImGui::Checkbox("FXAA", &m_FXAA);
+
+			if (ImGui::TreeNode("Bloom##1")) {
+				ImGui::Checkbox("Bloom##2", &m_bloom);
+				ImGui::SliderFloat("Bloom factor", &m_bloomFactor, 0, 2.0f);
+				ImGui::SliderFloat("Bloom multiplier", &m_bloomMultiplier, 0, 5.0f);
+				ImGui::SliderFloat("Chromatic", &m_chromatic, -0.01, 0.01f);
+				ImGui::TreePop();
+				ImGui::Separator();
+			}
+
 			if (ImGui::TreeNode("Tonemapping")) {
 				ImGui::SliderFloat("Gamma", &m_gamma, 0, 5);
 				ImGui::SliderFloat("Exposure", &m_exposure, 0, 5);
-
 				ImGui::Combo("Tonemapping", &m_selectedTonemapping, tonemapping, NUMOF(tonemapping));
-
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
@@ -266,10 +267,6 @@ void RenderingPipeline::OnImGUI() {
 		ImGui::SliderFloat("Metallic", &metallic, 0, 1);
 		ImGui::EndTabItem();
 	}
-	ImGui::Checkbox("Bloom", &m_bloom);
-	ImGui::SliderFloat("Bloom factor", &m_bloomFactor, 0, 2.0f);
-	ImGui::SliderFloat("Bloom multiplier", &m_bloomMultiplier, 0, 5.0f);
-	ImGui::SliderFloat("Chromatic", &m_chromatic, -0.01, 0.01f);
 }
 
 

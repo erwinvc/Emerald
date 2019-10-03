@@ -3,18 +3,18 @@
 class ShaderLoader : public AssetLoader {
 private:
 	String m_file;
-	bool m_a;
+	bool m_hasGeometry;
+	bool m_hasTessellation;
+
 public:
-	ShaderLoader(const String& name, const String& file, bool a = false) : AssetLoader(name, true), m_file(file), m_a(a) {}
+	ShaderLoader(const String& name, const String& file, bool hasGeometry = false, bool hasTessellation = false) : AssetLoader(name, true), m_file(file), m_hasGeometry(hasGeometry), m_hasTessellation(hasTessellation) {}
 
 	void AsyncLoad() override {
 
 	}
 
 	void SyncLoad(map<String, AssetBase*>& assets) override {
-		if (m_a) {
-			GetShaderManager()->Create(m_name, m_file, true);
-		} else GetShaderManager()->Create(m_name, m_file, false);
+		GetShaderManager()->Create(m_name, m_file, m_hasGeometry, m_hasTessellation);
 	}
 
 	float GetProgress() override {

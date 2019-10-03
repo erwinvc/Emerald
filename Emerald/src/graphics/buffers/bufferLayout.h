@@ -2,7 +2,7 @@
 
 class VertexArray;
 
-enum class ShaderDataType {
+enum class VertexBufferDataType {
 	None = 0,
 	Bool,
 	Float,
@@ -15,40 +15,40 @@ enum class ShaderDataType {
 	Int4
 };
 
-static uint32 ShaderDataTypeSize(ShaderDataType type) {
+static uint32 VertexBufferDataTypeToSize(VertexBufferDataType type) {
 	switch (type) {
-	case ShaderDataType::Bool: return 1;
-	case ShaderDataType::Float: return 4;
-	case ShaderDataType::Float2: return 4 * 2;
-	case ShaderDataType::Float3: return 4 * 3;
-	case ShaderDataType::Float4: return 4 * 4;
-	case ShaderDataType::Int: return 4;
-	case ShaderDataType::Int2: return 4 * 2;
-	case ShaderDataType::Int3: return 4 * 3;
-	case ShaderDataType::Int4: return 4 * 4;
+	case VertexBufferDataType::Bool: return 1;
+	case VertexBufferDataType::Float: return 4;
+	case VertexBufferDataType::Float2: return 4 * 2;
+	case VertexBufferDataType::Float3: return 4 * 3;
+	case VertexBufferDataType::Float4: return 4 * 4;
+	case VertexBufferDataType::Int: return 4;
+	case VertexBufferDataType::Int2: return 4 * 2;
+	case VertexBufferDataType::Int3: return 4 * 3;
+	case VertexBufferDataType::Int4: return 4 * 4;
 	}
-	LOG_ERROR("[~bShaders~x] Unknow ShaderDataType!");
+	LOG_ERROR("[~cBuffers~x] Unknow VertexBufferDataType!");
 	return 0;
 }
 
-static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type) {
+static GLenum VertexBufferDataTypeToOpenGLBaseType(VertexBufferDataType type) {
 	switch (type) {
-	case ShaderDataType::Bool: return GL_BOOL;
-	case ShaderDataType::Float:
-	case ShaderDataType::Float2:
-	case ShaderDataType::Float3:
-	case ShaderDataType::Float4: return GL_FLOAT;
-	case ShaderDataType::Int:
-	case ShaderDataType::Int2:
-	case ShaderDataType::Int3:
-	case ShaderDataType::Int4: return GL_INT;
+	case VertexBufferDataType::Bool: return GL_BOOL;
+	case VertexBufferDataType::Float:
+	case VertexBufferDataType::Float2:
+	case VertexBufferDataType::Float3:
+	case VertexBufferDataType::Float4: return GL_FLOAT;
+	case VertexBufferDataType::Int:
+	case VertexBufferDataType::Int2:
+	case VertexBufferDataType::Int3:
+	case VertexBufferDataType::Int4: return GL_INT;
 	}
-	LOG_ERROR("[~bShaders~x] Unknow ShaderDataType!");
+	LOG_ERROR("[~cBuffers~x] Unknow VertexBufferDataType!");
 	return 0;
 }
 struct BufferElement {
 	String m_name;
-	ShaderDataType m_type;
+	VertexBufferDataType m_type;
 	uint32 m_size;
 	uint32 m_offset;
 	uint32 m_bufferIndex;
@@ -56,21 +56,21 @@ struct BufferElement {
 	bool m_normalized;
 
 	BufferElement() {}
-	BufferElement(ShaderDataType type, const String& name, uint32 bufferIndex, bool divisor = false) : m_name(name), m_type(type), m_size(ShaderDataTypeSize(type)), m_offset(0), m_bufferIndex(bufferIndex), m_divisor(divisor), m_normalized(false) {}
+	BufferElement(VertexBufferDataType type, const String& name, uint32 bufferIndex, bool divisor = false) : m_name(name), m_type(type), m_size(VertexBufferDataTypeToSize(type)), m_offset(0), m_bufferIndex(bufferIndex), m_divisor(divisor), m_normalized(false) {}
 
 	uint32 GetComponentCount() const {
 		switch (m_type) {
-		case ShaderDataType::Bool: return 1;
-		case ShaderDataType::Float: return 1;
-		case ShaderDataType::Float2: return 2;
-		case ShaderDataType::Float3: return 3;
-		case ShaderDataType::Float4: return 4;
-		case ShaderDataType::Int: return 1;
-		case ShaderDataType::Int2: return 2;
-		case ShaderDataType::Int3: return 3;
-		case ShaderDataType::Int4: return 4;
+		case VertexBufferDataType::Bool: return 1;
+		case VertexBufferDataType::Float: return 1;
+		case VertexBufferDataType::Float2: return 2;
+		case VertexBufferDataType::Float3: return 3;
+		case VertexBufferDataType::Float4: return 4;
+		case VertexBufferDataType::Int: return 1;
+		case VertexBufferDataType::Int2: return 2;
+		case VertexBufferDataType::Int3: return 3;
+		case VertexBufferDataType::Int4: return 4;
 		}
-		LOG_ERROR("[~bShaders~x] Unknow ShaderDataType!");
+		LOG_ERROR("[~cBuffers~x] Unknow VertexBufferDataType!");
 		return 0;
 	}
 };
@@ -85,7 +85,7 @@ public:
 
 	uint32 GetTotalComponentCountSize() {
 		uint32 count = 0;
-		for (BufferElement& element : m_elements) count += element.GetComponentCount() * sizeof(ShaderDataTypeToOpenGLBaseType(element.m_type));
+		for (BufferElement& element : m_elements) count += element.GetComponentCount() * sizeof(VertexBufferDataTypeToOpenGLBaseType(element.m_type));
 		return count;
 	}
 	void Apply(uint32 attributeIndex);

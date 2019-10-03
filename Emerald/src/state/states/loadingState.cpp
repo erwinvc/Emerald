@@ -6,7 +6,7 @@ void LoadingState::Initialize() {
 
 	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/logo.png"), TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
 
-	GetShaderManager()->Create("UI", "res/shader/UI", false);
+	GetShaderManager()->Create("UI", "res/shader/UI");
 	GetUIRenderer()->Initialize();
 
 	m_batch = GetAssetManager()->CreateBatch<BasicAssetBatch>("Main Assets");
@@ -19,10 +19,11 @@ void LoadingState::Initialize() {
 
 	m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
 	m_batch->Add(NEW(ModelLoader("Sphere", "res/sphere.obj")));
+	m_batch->Add(NEW(ModelLoader("Cube", "res/cube.obj")));
 
 	m_batch->Add(NEW(ModelLoader("dragon", "res/turtle.fbx")));
 	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
-	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry", true)));
+	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry", false, true)));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
 	m_batch->Add(NEW(ShaderLoader("Directional", "res/shader/directional")));
 	m_batch->Add(NEW(ShaderLoader("Pointlight", "res/shader/pointlight")));
@@ -47,6 +48,11 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(TextureLoader("SphereNormal", "res/sphere_normal.png")));
 	m_batch->Add(NEW(TextureLoader("SphereSpec", "res/sphere_specular.png")));
 	m_batch->Add(NEW(TextureLoader("SphereEmission", "res/sphere_emission.png")));
+	m_batch->Add(NEW(TextureLoader("RustAlbedo", "res/rust/rust_albedo.png")));
+	m_batch->Add(NEW(TextureLoader("RustHeight", "res/rust/rust_height.png")));
+	m_batch->Add(NEW(TextureLoader("RustMetallic", "res/rust/rust_metallic.png")));
+	m_batch->Add(NEW(TextureLoader("RustRoughness", "res/rust/rust_roughness.png")));
+	m_batch->Add(NEW(TextureLoader("RustNormal", "res/rust/rust_normal.png")));
 	//m_batch->Add(NEW(ModelLoader("HP", "cathedral/sibenik.obj")));
 
 	m_batch->Add(NEW(CustomLoader("Tile renderer", [] {GetTileRenderer()->Initialize(); })));
@@ -62,10 +68,10 @@ void LoadingState::Initialize() {
 }
 
 void LoadingState::Update(const TimeStep& time) {
-	//if (m_batch->IsFinished() && progress >= GetAssetManager()->GetProgress() - 0.01f) {
-	//	GetStateManager()->SetState(GameStates::GAME);
-	//	GetStateManager()->RemoveState(this);
-	//}
+	if (m_batch->IsFinished() && GetAssetManager()->GetProgress() >= GetAssetManager()->GetProgress() - 0.01f) {
+		GetStateManager()->SetState(GameStates::GAME);
+		GetStateManager()->RemoveState(this);
+	}
 }
 void LoadingState::RenderGeometry() {}
 

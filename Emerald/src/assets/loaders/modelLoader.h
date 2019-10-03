@@ -3,11 +3,11 @@
 class ModelLoader : public AssetLoader {
 private:
 	const BufferLayout m_layout = {
-		{ShaderDataType::Float3, "vsPos", 0},
-		{ShaderDataType::Float3, "vsNormal", 0},
-		{ShaderDataType::Float2, "vsUv", 0},
-		{ShaderDataType::Float3, "vsTangents", 0},
-		{ShaderDataType::Float3, "vsBitangents", 0}
+		{VertexBufferDataType::Float3, "vsPos", 0},
+		{VertexBufferDataType::Float3, "vsNormal", 0},
+		{VertexBufferDataType::Float2, "vsUv", 0},
+		{VertexBufferDataType::Float3, "vsTangents", 0},
+		{VertexBufferDataType::Float3, "vsBitangents", 0}
 	};
 
 	const unsigned int ImportFlags =
