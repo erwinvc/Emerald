@@ -1,22 +1,24 @@
 #pragma once
 
-class TileTextureManager : public Singleton<TileTextureManager> {
+class TileMaterialManager : public Singleton<TileMaterialManager> {
 private:
 	static const uint TEXTURESIZE = 128;
 	static const uint LAYERCOUNT = 128;
 	TextureArray* m_albedoArray;
 	TextureArray* m_normalArray;
-	TextureArray* m_specularArray;
+	TextureArray* m_roughnessArray;
+	TextureArray* m_metallicArray;
 	TextureArray* m_emissionArray;
 
 	map<String, int> m_textureIndices;
 
 	friend Singleton;
-	TileTextureManager() {}
-	~TileTextureManager() {
+	TileMaterialManager() {}
+	~TileMaterialManager() {
 		DELETE(m_albedoArray);
 		DELETE(m_normalArray);
-		DELETE(m_specularArray);
+		DELETE(m_roughnessArray);
+		DELETE(m_metallicArray);
 		DELETE(m_emissionArray);
 	}
 public:
@@ -24,21 +26,23 @@ public:
 	void Initialize() {
 		m_albedoArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
 		m_normalArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
-		m_specularArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
+		m_roughnessArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
+		m_metallicArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
 		m_emissionArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
 	}
 
-	void AddTexture(const String& name, byte* albedo, byte* normal, byte* specular, byte* emission) {
+	void AddTexture(const String& name, byte* albedo, byte* normal, byte* roughness, byte* metallic, byte* emission) {
 		int i1 = m_albedoArray->AddTexture(albedo);
 		int i2 = m_normalArray->AddTexture(normal);
-		int i3 = m_specularArray->AddTexture(specular);
-		int i4 = m_emissionArray->AddTexture(emission);
-		if (i1 == (i2, i3, i4)) {
+		int i3 = m_roughnessArray->AddTexture(roughness);
+		int i4 = m_roughnessArray->AddTexture(metallic);
+		int i5 = m_emissionArray->AddTexture(emission);
+		if (i1 == (i2, i3, i4, i5)) {
 			m_textureIndices[name] = i1;
 		} else LOG_ERROR("[~gTexture~x] Texture array registration index mismatch! %d %d %d %d", i1, i2, i3, i4);
 	}
 
-	int GetIndex(const String& name) {
+	int Get(const String& name) {
 		auto found = m_textureIndices.find(name);
 		if (found != m_textureIndices.end()) {
 			return m_textureIndices[name];
@@ -50,14 +54,23 @@ public:
 	void GenerateMipmaps() {
 		m_albedoArray->GenerateMipmaps();
 		m_normalArray->GenerateMipmaps();
-		m_specularArray->GenerateMipmaps();
+		m_roughnessArray->GenerateMipmaps();
+		m_metallicArray->GenerateMipmaps();
 		m_emissionArray->GenerateMipmaps();
 	}
 
+	void Bind() {
+		m_albedoArray->Bind(0);
+		m_normalArray->Bind(1);
+		m_roughnessArray->Bind(2);
+		m_metallicArray->Bind(3);
+		m_emissionArray->Bind(4);
+	}
 	const TextureArray* GetAlbedo() { return m_albedoArray; }
 	const TextureArray* GetNormal() { return m_normalArray; }
-	const TextureArray* GetSpecular() { return m_specularArray; }
+	const TextureArray* GetRoughness() { return m_roughnessArray; }
+	const TextureArray* GetMetallic() { return m_metallicArray; }
 	const TextureArray* GetEmission() { return m_emissionArray; }
 };
 
-static TileTextureManager* GetTileTextureManager() { return TileTextureManager::GetInstance(); }
+static TileMaterialManager* GetTileMaterialManager() { return TileMaterialManager::GetInstance(); }

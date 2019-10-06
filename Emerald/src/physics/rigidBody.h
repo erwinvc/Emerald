@@ -16,11 +16,11 @@ public:
 		m_velocity.y -= gravity;
 		m_velocity *= 0.8f;
 
-		for (Tile* tile : surroundingTiles) {
-			if (tile->IsSolid()) {
-				m_rects.push_back(Rect((float)tile->m_position.x + 0.5f, (float)tile->m_position.y + 0.5f, 1.0f, 1.0f));
-			}
-		}
+		//for (Tile* tile : surroundingTiles) {
+		//	if (tile->IsSolid()) {
+		//		m_rects.push_back(Rect((float)tile->m_position.x + 0.5f, (float)tile->m_position.y + 0.5f, 1.0f, 1.0f));
+		//	}
+		//}
 		Move(m_rects, m_velocity);
 	}
 

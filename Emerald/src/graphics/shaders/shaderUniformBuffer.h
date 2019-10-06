@@ -25,10 +25,12 @@ private:
 	uint m_offset;
 	uint m_location;
 
+
 	ShaderUniformType m_type;
 
 public:
 	bool m_locked = false;
+	bool m_firstUpload = true;
 
 	ShaderUniform(const String& name, ShaderUniformType type, uint size, uint index, uint offset, uint count, uint location)
 		: m_name(name), m_size(size), m_index(index), m_offset(offset), m_type(type), m_count(count), m_location(location) {
@@ -81,8 +83,10 @@ private:
 		return ShaderUniformType();
 	}
 
-	void SetUniformLocal(uint offset, void* value, uint size) {
+	bool SetUniformLocal(uint offset, void* value, uint size) {
+		bool same = memcmp(m_data + offset, value, size) == 0;
 		memcpy(m_data + offset, value, size);
+		return same;
 	}
 
 	void SetUniformGL(ShaderUniform& uniform) {
@@ -129,14 +133,17 @@ public:
 
 	void Allocate() {
 		m_data = new byte[m_offset];
+		for (int i = 0; i < m_offset; i++) {
+			m_data[i] = 1;
+		}
 		m_allocated = true;
 
-		auto it = m_uniforms.begin();
-		while (it != m_uniforms.end()) {
-			ShaderUniform& uniform = it->second;
-			//LOG("%s: %d, %d, %d", uniform.GetName().c_str(), uniform.GetOffset(), uniform.GetSize(), uniform.GetCount());
-			it++;
-		}
+		//auto it = m_uniforms.begin();
+		//while (it != m_uniforms.end()) {
+		//	ShaderUniform& uniform = it->second;
+		//	//LOG("%s: %d, %d, %d", uniform.GetName().c_str(), uniform.GetOffset(), uniform.GetSize(), uniform.GetCount());
+		//	it++;
+		//}
 	}
 
 	void DeAllocate() {
@@ -160,8 +167,10 @@ public:
 		uint expectedSize = uniform.GetSize() * uniform.GetCount();
 		ASSERT(valueSize == expectedSize, "[~bShaders~x] ~1%s~x data size mismatch. Got ~1%d~x out of ~1%d~x bytes. Does the name match the uniform?", name, valueSize, expectedSize);
 
-		SetUniformLocal(uniform.GetOffset(), (void*)&value, size);
-		SetUniformGL(uniform);
+		if (!SetUniformLocal(uniform.GetOffset(), (void*)&value, size) || uniform.m_firstUpload) {
+			SetUniformGL(uniform);
+			uniform.m_firstUpload = false;
+		}
 	}
 
 	void RegisterUniforms(ShaderProgram* shaderProgram);
@@ -178,7 +187,7 @@ public:
 			ImGui::SameLine();
 			switch (uniform.GetType()) {
 				case ShaderUniformType::INT: if (ImGui::InputInt(uniform.GetName().c_str(), (int*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;
-				case ShaderUniformType::FLOAT: if (ImGui::SliderFloat(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()], 0, 1)) { SetUniformGL(uniform, true); } break;
+				case ShaderUniformType::FLOAT: if (ImGui::SliderFloat(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()], 0, 1)) { SetUniformGL(uniform); } break;
 				case ShaderUniformType::VEC2: if (ImGui::InputFloat2(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;
 				case ShaderUniformType::VEC3: if (ImGui::InputFloat3(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;
 				case ShaderUniformType::VEC4: if (ImGui::InputFloat4(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;

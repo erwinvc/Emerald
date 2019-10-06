@@ -17,6 +17,10 @@ private:
 	bool m_ImGuiOpen = true;
 
 	HWND m_hwndHandle = 0;
+	AsyncQueue<function<void()>> m_queue;
+
+
+	void HandleQueue();
 
 public:
 	Window* GetWindow() { return m_window; }
@@ -31,7 +35,9 @@ public:
 	void Render();
 
 	void CapabilitiesCheck();
-
+	void QueueTask(function<void()> task) {
+		m_queue.Add(task);
+	}
 	uint64_t GetFrameCount() { return m_frameCount; }
 	RenderingPipeline* GetPipeline() { return m_pipeline; }
 

@@ -4,16 +4,17 @@ class Camera;
 
 class GroundRaycast {
 public:
-	Vector3 Get(AssetRef<Camera> camera);
-
-	Vector3 GetGroundPosition(float height = 1);
-	Vector2I GetTile();
+	static Vector3 GetMousePosition();
+	static Vector3 GetScreenPosition(Vector2 position);
+	static Vector3 GetGroundPosition(Vector3& ray, float height = 1);
+	static Vector2I GetTile();
 
 private:
-	Vector3 CalculateMouseRay(AssetRef<Camera>  camera);
-	Vector2 GetNormalizedDeviceCoords(float mouseX, float mouseY);
-	Vector4 ToEyeCoords(Vector4& clipCoords, AssetRef<Camera> camera);
-	Vector3 ToWorldCoords(Vector4& eyeCoords, AssetRef<Camera> camera);
+	static Vector3 CalculateMouseRay();
+	static Vector3 CalculateScreenRay(Vector2 position);
+	static Vector2 GetNormalizedDeviceCoords(float mouseX, float mouseY);
+	static Vector4 ToEyeCoords(Vector4& clipCoords, AssetRef<Camera> camera);
+	static Vector3 ToWorldCoords(Vector4& eyeCoords, AssetRef<Camera> camera);
 
 	//Tile search(Vector3 ray, float distance, Tile[][] objects) {
 	//	if (distance > RAY_RANGE) return null;

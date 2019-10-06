@@ -134,6 +134,11 @@ vec3 filmicToneMapping(vec3 color)
 	return color;
 }
 
+vec3 Uncharted2Tonemap(vec3 x, float A, float B, float C, float D, float E, float F, float W)
+{
+   return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+}
+
 vec3 Uncharted2ToneMapping(vec3 color)
 {
 	float A = 0.15;
@@ -143,11 +148,11 @@ vec3 Uncharted2ToneMapping(vec3 color)
 	float E = 0.02;
 	float F = 0.30;
 	float W = 11.2;
-	float exposure = 2.;
-	color *= exposure;
+	//float exposure = 2.;
+	//color *= exposure;
 	color = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
 	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
-	color /= white;
+	color *= white;
 	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
@@ -161,11 +166,11 @@ vec3 GTAToneMapping(vec3 color)
 	float E = 0.01;
 	float F = 0.30;
 	float W = 4.0;
-	float exposure = 2.0;
-	color *= exposure;
+	//float exposure = 2.0;
+	//color *= exposure;
 	color = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
 	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
-	color /= white;
+	color *= white;
 	color = pow(color, vec3(1.0f / _Gamma));
 	return color;
 }
@@ -280,6 +285,5 @@ void main(){
 	}
 
 	//color = ToGreyScale(color);
-
 	out_color = vec4(Vignette(color, vec3(0), 0.3, 0.8), 1);
 }

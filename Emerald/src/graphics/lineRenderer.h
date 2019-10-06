@@ -11,7 +11,7 @@ private:
 		Line() : m_begin(), m_end(), m_color() {}
 	};
 
-	InstancedRenderer2D<Line>* m_renderer;
+	InstancedRenderer<Line>* m_renderer;
 	const uint MAX_OBJECTS = 4096 * 128;
 	AssetRef<Shader> m_shader;
 	void Initialize();

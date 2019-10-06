@@ -82,6 +82,7 @@ using namespace std;
 #include "util/memory.h"
 #include "util/fileSystem.h"
 #include "util/utils.h"
+#include "util/asyncQueue.h"
 #include "util/thread/threadManager.h"
 #include "util/thread/threadPool.h"
 #include "util/logger.h"
@@ -135,7 +136,7 @@ using namespace std;
 #include "assets/material/tileMaterial.h"
 #include "assets/texture/textureArray.h"
 #include "assets/texture/textureUtils.h"
-#include "assets/texture/tileTextureManager.h"
+#include "assets/texture/tileMaterialManager.h"
 #include "assets/texture/icon.h"
 #include "assets/loaders/assetLoader.h"
 #include "assets/loaders/customLoader.h"
@@ -162,8 +163,8 @@ using namespace std;
 #include "assets/assetBatch.h"
 #include "assets/basicAssetBatch.h"
 #include "assets/assetManager.h"
+#include "assets/assetWatcher.h"
 
-#include "graphics/instancedRenderer2D.h"
 #include "graphics/instancedRenderer.h"
 #include "graphics/lineRenderer.h"
 #include "graphics/tileRenderer.h"
@@ -172,14 +173,11 @@ using namespace std;
 #include "graphics/lighting/pointlight.h"
 #include "graphics/lighting/pointlightRenderer.h"
 
-#include "world/wangTile.h"
-#include "world/tileDefinition.h"
-#include "world/tile.h"
-#include "world/tileManager.h"
-#include "world/chunk.h"
-#include "world/world.h"
-
 #include "util/meshGenerator.h"
+
+#include "world/tile.h"
+#include "world/tileGrid.h"
+#include "world/world.h"
 
 #include "assets/materialManager.h"
 #include "assets/textureManager.h"
@@ -192,7 +190,6 @@ using namespace std;
 #include "physics/player.h"
 
 #include "util/ludo/aStar.h"
-#include "util/ludo/ludo.h"
 
 #include "state/state.h"
 #include "state/stateManager.h"

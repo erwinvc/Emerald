@@ -138,7 +138,7 @@ private:
 		return false;
 	}
 
-	ShaderProgram* Load(bool reload = false) {
+	ShaderProgram* Load() {
 		ShaderProgram* shaderProgram = new ShaderProgram();
 		shaderProgram->CreateProgram();
 
@@ -213,11 +213,5 @@ public:
 		m_shaderProgram->Unbind();
 	}
 
-	void OnImGUI() {
-		Bind();
-		if (ImGui::Button(Format_t("Reload##%s", m_name.c_str()))) {
-			Reload();
-		}
-		m_uniformBuffer.OnImGUI();
-	}
+	void OnImGUI();
 };

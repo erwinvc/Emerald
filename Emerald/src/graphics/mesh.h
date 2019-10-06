@@ -42,6 +42,10 @@ public:
 		//Unbind();
 	}
 
+	AssetRef<Mesh> Copy() {
+		return new Mesh(m_vao, m_ibo, m_material);
+	}
+
 	inline ManagedRef<VertexArray> GetVAO() { return m_vao; }
 	inline ManagedRef<IndexBuffer> GetIBO() { return m_ibo; }
 };

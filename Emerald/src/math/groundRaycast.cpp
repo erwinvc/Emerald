@@ -1,10 +1,24 @@
 #include "stdafx.h"
 
-Vector3 GroundRaycast::Get(AssetRef<Camera> camera) {
-	return CalculateMouseRay(camera);
+Vector3 GroundRaycast::GetMousePosition() {
+	return CalculateMouseRay();
 }
 
-Vector3 GroundRaycast::CalculateMouseRay(AssetRef<Camera> camera) {
+Vector3 GroundRaycast::GetScreenPosition(Vector2 position) {
+	position.x = (position.x * 2.0f) - 1.0f;
+	position.y = -1.0f * ((position.y * 2.0f) - 1.0f);
+	return CalculateScreenRay(position);
+}
+
+Vector3 GroundRaycast::CalculateScreenRay(Vector2 position) {
+	Camera* camera = GetCamera();
+	Vector4 clipCoords = Vector4(position.x, position.y, -1.0f, -1.0f);
+	Vector4 eyeCoords = ToEyeCoords(clipCoords, camera);
+	Vector3 worldRay = ToWorldCoords(eyeCoords, camera);
+	return worldRay;
+}
+Vector3 GroundRaycast::CalculateMouseRay() {
+	Camera* camera = GetCamera();
 	float mouseX = GetMouse()->GetPosition().x;
 	float mouseY = GetMouse()->GetPosition().y;
 	Vector2 normalizedCoords = GetNormalizedDeviceCoords(mouseX, mouseY);
@@ -29,8 +43,7 @@ Vector3 GroundRaycast::ToWorldCoords(Vector4& eyeCoords, AssetRef<Camera> camera
 	Vector3 mouseRay = Vector3(rayWorld.x, rayWorld.y, rayWorld.z);
 	return mouseRay.Normalize();
 }
-Vector3 GroundRaycast::GetGroundPosition(float height) {
-	Vector3& ray = Get(GetCamera());
+Vector3 GroundRaycast::GetGroundPosition(Vector3& ray, float height) {
 	Vector3 rayStart = GetCamera()->m_position;
 	Vector3 rayEnd = GetCamera()->m_position + ray;
 	Vector3 delta = rayEnd.Subtract(rayStart);
@@ -49,6 +62,7 @@ Vector3 GroundRaycast::GetGroundPosition(float height) {
 }
 
 Vector2I GroundRaycast::GetTile() {
-	Vector3 pos = GetGroundPosition();
+	Vector3& ray = GetMousePosition();
+	Vector3& pos = GetGroundPosition(ray);
 	return { (int)pos.x, (int)pos.z };
 }

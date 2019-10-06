@@ -2,47 +2,37 @@
 
 class GameState : public State {
 private:
+	World* m_world;
 	String m_name = "Game";
-	AssetRef<Texture> m_texture;
-	Vector2 m_pos;
-	Vector2 m_origin = Origin::CENTER;
-	Vector2 m_scale = Vector2(100, 100);
-	Model* m_cube;
 	AssetRef<Shader> m_geometryShader;
 	Texture* texIri;
-	BasicMaterial* mat;
-	Pointlight pl;
-	Texture* m_height;
-	float rotation = 0;
-	float heighStrength = 0;
-	float r1 = 1;
-	float r2 = 1;
-	float r3 = 1;
-	float r4 = 1;
+	AssetRef<Model> m_model;
+	AssetRef<Model> m_turtle;
+	Entity* m_entities[4];
+	Entity* m_turtleEntity;
 public:
 	const String& GetName() override { return m_name; }
 	void Initialize() override {
-		m_texture = GetAssetManager()->Get<Texture>("White");
-		m_cube = GetAssetManager()->Get<Model>("Cube");
-		mat = GetMaterialManager()->Create<BasicMaterial>("Cube");
-		mat->SetAlbedo(GetAssetManager()->Get<Texture>("RustAlbedo"));
-		mat->SetNormal(GetAssetManager()->Get<Texture>("RustNormal"));
-		mat->SetSpecular(GetAssetManager()->Get<Texture>("RustRoughness"));
-		mat->SetMetallic(GetAssetManager()->Get<Texture>("RustMetallic"));
-		m_cube->SetMaterial(mat);
-		m_height = GetAssetManager()->Get<Texture>("RustHeight");
 		texIri = GetAssetManager()->Get<Texture>("Irridescence");
 		m_geometryShader = GetShaderManager()->Get("Geometry");
-		pl = Pointlight(Vector3(0, 1.25f, 0), 10, Color::Blue());
+
+		m_world = new World();
+		m_model = GetAssetManager()->Get<Model>("Sphere");
+		m_turtle = GetAssetManager()->Get<Model>("Turtle");
+		m_turtleEntity = new Entity(m_turtle);
+		BasicMaterial* mat = GetMaterialManager()->Create<BasicMaterial>("Test");
+		mat->SetAlbedo(texIri);
+		mat->SetSpecular(GetTextureManager()->GetBlackTexture());
+		m_model->SetMaterial(mat);
+		for (int i = 0; i < 4; i++) {
+			m_entities[i] = new Entity(m_model);
+		}
 	}
 
 
 	void Update(const TimeStep& time) override {
 		GetCamera()->Update(time);
-		static float sinVal = 0;
-		sinVal += time * 0.0005f;
-		pl.m_position.x = Math::Sin(rotation);
-		pl.m_position.z = Math::Cos(rotation);
+		m_world->Update(time);
 	}
 	void RenderGeometry() override {
 		m_geometryShader->Bind();
@@ -53,37 +43,31 @@ public:
 		m_geometryShader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
 		m_geometryShader->Set("_TransformationMatrix", Matrix4::Identity());
 		m_geometryShader->Set("_CameraPosition", GetCamera()->m_position);
-		m_geometryShader->Set("_TessellationFactor", (float)r1);
-		m_geometryShader->Set("_TessellationSlope", (float)r2);
-		m_geometryShader->Set("_TessellationShift", (float)r3);
-		m_geometryShader->Set("_TessellationAlpha", (float)r4);
-		m_geometryShader->Set("_HeightStrength", (float)heighStrength);
-		m_geometryShader->Set("_Height", 6);
-		m_height->Bind(6);
-		m_cube->Draw(m_geometryShader, GL_PATCHES);
 
-		GetPointlightRenderer()->Submit(pl);
+		m_world->RenderGeometry();
+
+		CornerRayPositions positions = Camera::GetCornerRays();
+		m_entities[0]->m_position = positions.c1;
+		m_entities[1]->m_position = positions.c2;
+		m_entities[2]->m_position = positions.c3;
+		m_entities[3]->m_position = positions.c4;
+
+		for (int i = 0; i < 4; i++) {
+			m_entities[i]->Draw(m_geometryShader, GL_PATCHES);
+		}
+
+		m_turtleEntity->Draw(m_geometryShader, GL_PATCHES);
 	}
 
 	void RenderUI() override {
-		GetUIRenderer()->RenderTexture(m_texture, m_origin, m_pos, m_scale);
 	}
 
 	void OnImGUI() override {
-		ImGui::SliderFloat("Specular", &mat->m_specularStrength, 0, 1);
-		ImGui::SliderFloat("Metallic", &mat->m_metallicStrength, 0, 1);
-		ImGui::SliderFloat("Emission", &mat->m_emissionStrength, 0, 1);
-		ImGui::SliderFloat("Normal", &mat->m_normalStrength, -5, 5);
-		ImGui::SliderFloat("Rotation", &rotation, 0, Math::TWO_PI);
-		ImGui::SliderFloat("Height strength", &heighStrength, 0, 1);
-
-		ImGui::SliderFloat("TessellationFactor", &r1, 0, 10);
-		ImGui::SliderFloat("TessellationSlope", &r2, 0, 10);
-		ImGui::SliderFloat("TessellationShift", &r3, 0, 10);
-		ImGui::SliderFloat("TessellationAlpha", &r4, 0, 1);
 	}
 
-	void Cleanup() override;
+	void Cleanup() override {
+		delete m_world;
+	}
 	void OnEnterState() override {}
 	void OnExitState() override {}
 	void OnResize(int width, int height) override {}

@@ -42,9 +42,9 @@ public:
 
 		m_surroundingTiles.clear();
 		for (int i = 0; i < 8; i++) {
-			Vector2I dir = WangTile::m_positionOffsetsComplete[i];
-			Tile* tile = GetWorld()->GetTile(Math::Round(body.m_position.x) + dir.x, Math::Round(body.m_position.z) + dir.y);
-			if (tile) m_surroundingTiles.push_back(tile);
+			//Vector2I dir = WangTile::m_positionOffsetsComplete[i];
+			//Tile* tile = GetWorld()->GetTile(Math::Round(body.m_position.x) + dir.x, Math::Round(body.m_position.z) + dir.y);
+			//if (tile) m_surroundingTiles.push_back(tile);
 		}
 	}
 

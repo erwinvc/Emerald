@@ -2,7 +2,7 @@
 
 class PointlightRenderer : public Singleton<PointlightRenderer> {
 private:
-	InstancedRenderer2D<Pointlight>* m_renderer;
+	InstancedRenderer<Pointlight>* m_renderer;
 	PointlightRenderer() {}
 	~PointlightRenderer() {
 		DELETE(m_renderer);
@@ -19,7 +19,7 @@ public:
 		{VertexBufferDataType::Float4, "col", 6, true}
 		};
 
-		m_renderer = NEW(InstancedRenderer2D<Pointlight>(mesh, MAX_LIGHTS, layout));
+		m_renderer = NEW(InstancedRenderer<Pointlight>(mesh, MAX_LIGHTS, layout));
 	}
 	void Begin();
 	void End();

@@ -17,21 +17,13 @@ void ThreadPool::DoJob(std::function <void(void)> func) {
 		LOG_ERROR("[~rThreads~x] Thread pool has not yet been initialized");
 		return;
 	}
-	std::unique_lock <std::mutex> l(m_lock);
-	m_jobs.emplace(std::move(func));
-	m_conditionVariable.notify_one();
+	m_queue.Add(func);
 }
 
 void ThreadPool::ThreadEntry() {
 	function <void(void)> job;
 	while (1) {
-		{
-			std::unique_lock <mutex> lock(m_lock);
-			while (!m_shutdown && m_jobs.empty()) m_conditionVariable.wait(lock);
-			if (m_jobs.empty())return;
-			job = std::move(m_jobs.front());
-			m_jobs.pop();
-		}
+		if(!m_queue.WaitForGet(job)) return;
 		job();
 	}
 }

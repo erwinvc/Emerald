@@ -1,5 +1,12 @@
 #pragma once
 
+struct CornerRayPositions {
+	Vector3 c1;
+	Vector3 c2;
+	Vector3 c3;
+	Vector3 c4;
+};
+
 class Camera {
 private:
 	Matrix4 m_projectionMatrix;
@@ -47,5 +54,18 @@ public:
 	virtual void OnImGui() {
 		ImGui::InputFloat3("Position", (float*)&m_position);
 		ImGui::InputFloat3("Rotation", (float*)&m_rotation);
+	}
+
+	static CornerRayPositions GetCornerRays() {
+		Vector3& ray1 = GroundRaycast::GetScreenPosition(Vector2(0.0f, 0.0f));
+		Vector3& ray2 = GroundRaycast::GetScreenPosition(Vector2(1.0f, 0.0f));
+		Vector3& ray3 = GroundRaycast::GetScreenPosition(Vector2(1.0f, 1.0f));
+		Vector3& ray4 = GroundRaycast::GetScreenPosition(Vector2(0.0f, 1.0f));
+		CornerRayPositions positions;
+		positions.c1 = GroundRaycast::GetGroundPosition(ray1, 0);
+		positions.c2 = GroundRaycast::GetGroundPosition(ray2, 0);
+		positions.c3 = GroundRaycast::GetGroundPosition(ray3, 0);
+		positions.c4 = GroundRaycast::GetGroundPosition(ray4, 0);
+		return positions;
 	}
 };

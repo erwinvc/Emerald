@@ -4,7 +4,8 @@ class TileTextureLoader : public AssetLoader {
 	String m_name;
 	byte* m_albedo;
 	byte* m_normal;
-	byte* m_specular;
+	byte* m_roughness;
+	byte* m_metallic;
 	byte* m_emission;
 
 public:
@@ -12,7 +13,7 @@ public:
 	~TileTextureLoader() {
 		delete[] m_albedo;
 		delete[] m_normal;
-		delete[] m_specular;
+		delete[] m_roughness;
 		delete[] m_emission;
 	}
 
@@ -31,11 +32,18 @@ public:
 			memcpy(m_normal, data.m_data, size);
 		});
 
-		TextureUtils::LoadTexture(Format("res/tiles/%s_specular.png", m_name.c_str()), 1, [this](const LoadedTexture& data) {
-			//if (data.m_channelCount != 4) LOG_ERROR("[~gTexture~x] tile texture needs 4 channels! %d found in ~1%s", data.m_channelCount, Format("%s_specular.png", m_name.c_str()).c_str());
+		TextureUtils::LoadTexture(Format("res/tiles/%s_roughness.png", m_name.c_str()), 1, [this](const LoadedTexture& data) {
+			//if (data.m_channelCount != 4) LOG_ERROR("[~gTexture~x] tile texture needs 4 channels! %d found in ~1%s", data.m_channelCount, Format("%s_roughness.png", m_name.c_str()).c_str());
 			int size = data.m_height * data.m_width * 4;
-			m_specular = new byte[size];
-			memcpy(m_specular, data.m_data, size);
+			m_roughness = new byte[size];
+			memcpy(m_roughness, data.m_data, size);
+		});
+
+		TextureUtils::LoadTexture(Format("res/tiles/%s_metallic.png", m_name.c_str()), 1, [this](const LoadedTexture& data) {
+			//if (data.m_channelCount != 4) LOG_ERROR("[~gTexture~x] tile texture needs 4 channels! %d found in ~1%s", data.m_channelCount, Format("%s_metallic.png", m_name.c_str()).c_str());
+			int size = data.m_height * data.m_width * 4;
+			m_metallic = new byte[size];
+			memcpy(m_metallic, data.m_data, size);
 		});
 
 		TextureUtils::LoadTexture(Format("res/tiles/%s_emission.png", m_name.c_str()), 1, [this](const LoadedTexture& data) {
@@ -47,7 +55,7 @@ public:
 	}
 
 	void SyncLoad(map<String, AssetBase*>& assets) {
-		GetTileTextureManager()->AddTexture(m_name, m_albedo, m_normal, m_specular, m_emission);
+		GetTileMaterialManager()->AddTexture(m_name, m_albedo, m_normal, m_roughness, m_metallic, m_emission);
 	}
 
 	float GetProgress() override {

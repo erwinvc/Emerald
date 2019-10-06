@@ -26,9 +26,15 @@ public:
 	}
 
 	void Update(const TimeStep& time) {
-
 	}
 
+	void ReloadShaderByFileName(const String& file) {
+		for (int i = 0; i < m_shadersVector.size(); i++) {
+			if (m_shadersVector[i]->m_file.compare(file) == 0) {
+				m_shadersVector[i]->Reload();
+			}
+		}
+	}
 	void OnImGUI() {
 		if (ImGui::BeginTabItem("Shaders")) {
 			static int currentlySelectedShader = 0;
@@ -48,6 +54,8 @@ public:
 			ImGui::EndTabItem();
 		}
 	}
+
+
 };
 
 static ShaderManager* GetShaderManager() { return ShaderManager::GetInstance(); }

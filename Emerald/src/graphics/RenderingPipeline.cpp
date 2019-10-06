@@ -28,12 +28,12 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 	m_gaussianShader->Bind();
 	m_gaussianShader->Set("_Bright", 0);
 
-	m_emissionShader = GetShaderManager()->Get("Emission");
-	m_emissionShader->Bind();
-	m_emissionShader->Set("_GMisc", 0);
-	m_emissionShader->Set("_GAlbedo", 1);
-	m_emissionShader->Set("_GNormal", 2);
-	m_emissionShader->Set("_GPosition", 3);
+	m_emissionAmbientShader = GetShaderManager()->Get("EmissionAmbient");
+	m_emissionAmbientShader->Bind();
+	m_emissionAmbientShader->Set("_GMisc", 0);
+	m_emissionAmbientShader->Set("_GAlbedo", 1);
+	m_emissionAmbientShader->Set("_GNormal", 2);
+	m_emissionAmbientShader->Set("_GPosition", 3);
 
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
@@ -115,8 +115,9 @@ void RenderingPipeline::PostGeometryRender() {
 
 	//Emission
 	m_gBuffer->BindTextures();
-	m_emissionShader->Bind();
-	m_emissionShader->Set("_BloomFactor", m_bloomFactor);
+	m_emissionAmbientShader->Bind();
+	m_emissionAmbientShader->Set("_BloomFactor", m_bloomFactor);
+	m_emissionAmbientShader->Set("_AmbientIntensity", m_ambientIntensity);
 	m_quad->Bind();
 	m_quad->Draw();
 
@@ -234,6 +235,7 @@ void RenderingPipeline::OnImGUI() {
 		}
 		if (ImGui::CollapsingHeader("Scene")) {
 			if (ImGui::TreeNode("Lighting")) {
+				ImGui::SliderFloat("Ambient", &m_ambientIntensity, 0, 1);
 				ImGui::Text("Directional");
 				m_directionalLight.OnImGui();
 				ImGui::TreePop();

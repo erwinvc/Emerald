@@ -120,6 +120,13 @@ void Application::Update(TimeStep time) {
 	GetShaderManager()->Update(time);
 }
 
+void Application::HandleQueue() {
+	function<void()> task;
+	if (m_queue.TryToGet(task)) {
+		task();
+	}
+}
+
 void Application::Render() {
 	m_window->ClearColor(Color(0, 0, 0, 1));
 
@@ -166,6 +173,9 @@ void Application::Render() {
 		GetStateManager()->OnResize(width, height);
 		toResize = Vector2I(-1, -1);
 	}
+
+	GetAssetWatcher()->HandleQueue();
+	HandleQueue();
 
 	m_window->SwapBuffers();
 	m_window->PollEvents();

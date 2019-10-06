@@ -9,7 +9,7 @@ private:
 	GBuffer* m_gBuffer;
 	AssetRef<Shader> m_directionalLightShader;
 	AssetRef<Shader> m_pointLightShader;
-	AssetRef<Shader> m_emissionShader;
+	AssetRef<Shader> m_emissionAmbientShader;
 
 	//SSAO
 	bool m_ssaoEnabled = true;
@@ -47,6 +47,8 @@ private:
 	bool m_bloom = true;
 	float m_bloomFactor = 1.0f;
 	float m_bloomMultiplier = 1.0f;
+
+	float m_ambientIntensity = 1.0f;
 public:
 	DirectionalLight m_directionalLight;
 	int m_selectedCamera = 0;

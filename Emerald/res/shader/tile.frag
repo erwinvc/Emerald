@@ -1,46 +1,35 @@
-#version 330
-in vec3 fsPos;
-in vec3 fsNormal;
-in vec2 fsUv;
-in mat3 fsTBNMatrix;
-in vec3 fsViewDirection;
-in vec3 fsStrengths;
-in float fsTextureID;
+#version 430 core
+struct Data {
+	vec3 pos;
+	vec3 normal;
+	vec2 uv;
+	mat3 TBNMatrix;
+	int textureID;
+};
+in Data fsData;
 
 uniform sampler2DArray _Albedo;
 uniform sampler2DArray _Normal;
-uniform sampler2DArray _Specular;
+uniform sampler2DArray _Roughness;
+uniform sampler2DArray _Metallic;
 uniform sampler2DArray _Emission;
 
-uniform sampler2D _Iridescence;
-uniform float _IridescenceStrength;
-
-out vec3 geoData[4];
+out vec4 geoData[4];
 
 void main(){
-	float normalStrength = fsStrengths.x;
-	float specularStrength = fsStrengths.y;
-	float emissionStrength = fsStrengths.z;
+	vec3 newUV = vec3(fsData.uv, 0);
 
-	vec4 albedo = texture(_Albedo, vec3(fsUv, fsTextureID)).rgba;
-	if (albedo.a < 0.2) {
-		discard;
-	}
-	
-    vec3 tangentNormal = (texture(_Normal, vec3(fsUv, fsTextureID)).xyz * 2.0f) - 1.0f;
-    vec3 worldNormal = normalize(fsTBNMatrix * tangentNormal);
-	vec3 finalNormal = mix(fsNormal, worldNormal, normalStrength);
+	vec4 albedo = texture(_Albedo, newUV).rgba;
+	if (albedo.a < 0.2) discard;
 
-	vec3 nView = normalize(fsViewDirection);
-	vec3 nReflection = normalize(reflect(nView, finalNormal)); 
-    float inverseDotView = 1.0 - max(dot(normalize(finalNormal), nView), 0.0);
-    vec3 iridescence = texture(_Iridescence, vec2(inverseDotView, 0.0)).rgb;
+	float roughness = texture(_Roughness, newUV).r;
+	float metallic = texture(_Metallic, newUV).r;
+	float emission = texture(_Emission, newUV).r;
+	vec3 tangentNormal = (texture(_Normal, newUV).xyz * 2.0f) - 1.0f;
+    vec3 worldNormal = normalize(fsData.TBNMatrix * tangentNormal);
 
-	float specular = texture(_Specular, vec3(fsUv, fsTextureID)).r;
-
-	geoData[0] = vec3(specular, 0, 0);
-	geoData[1] = albedo.rgb * mix(vec3(1), iridescence, _IridescenceStrength);
-	geoData[2] = finalNormal;
-	geoData[3] = fsPos;
+	geoData[0] = vec4(roughness, metallic, emission, 0);
+	geoData[1] = vec4(albedo.rgb, 1.0);
+	geoData[2] = vec4(worldNormal, 1.0);
+	geoData[3] = vec4(fsData.pos, 1.0);
 }
-

@@ -4,6 +4,7 @@ class MaterialManager : public Singleton<MaterialManager> {
 private:
 	map<String, Material*> m_materials;
 	BasicMaterial* m_nullMaterial;
+	bool m_initialized = false;
 
 	MaterialManager() {}
 	~MaterialManager() {}
@@ -11,7 +12,10 @@ private:
 
 public:
 	void Initialize() {
+		if (m_initialized) return;
 		m_nullMaterial = NEW(BasicMaterial());
+		LOG("[~GMaterial~x] Material Manager initialized");
+		m_initialized = true;
 	}
 
 	AssetRef<BasicMaterial> GetNullMaterial() { return m_nullMaterial; }

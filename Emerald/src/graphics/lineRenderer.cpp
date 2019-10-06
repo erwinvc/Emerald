@@ -22,7 +22,7 @@ void LineRenderer::Initialize() {
 	ManagedRef<IndexBuffer> ibo(NEW(IndexBuffer(indices.data(), indices.size())));
 	Mesh* mesh = NEW(Mesh(vao, ibo));
 
-	m_renderer = NEW(InstancedRenderer2D<Line>(mesh, MAX_OBJECTS, layout));
+	m_renderer = NEW(InstancedRenderer<Line>(mesh, MAX_OBJECTS, layout));
 
 	m_shader = GetShaderManager()->Get("Line");
 
