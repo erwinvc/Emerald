@@ -1,5 +1,6 @@
 #pragma once
 
+class AssetManager;
 class TextureLoader : public AssetLoader {
 private:
 	TextureParameters m_params;
@@ -9,12 +10,12 @@ private:
 	int m_height = 0;
 	int m_channelCount = 0;
 public:
-	TextureLoader(const String& name, const String& file, const TextureParameters& params = TextureParameters()) : AssetLoader(name, true), m_file(file), m_params(params) {}
+	TextureLoader(const String& name, const String& file, const TextureParameters& params = TextureParameters()) : AssetLoader(name), m_file(file), m_params(params) {}
 	~TextureLoader() {
 		delete[] m_data;
 	}
 	void AsyncLoad() override;
-	void SyncLoad(map<String, AssetBase*>& assets) override;
+	void SyncLoad(AssetManager* manager) override;
 
 	float GetProgress() override {
 		return 0;

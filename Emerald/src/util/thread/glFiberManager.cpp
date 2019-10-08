@@ -2,6 +2,7 @@
 
 void GLFiberManager::Initialize() {
 	if (m_initialized) return;
+	m_glThreadID = this_thread::get_id();
 	ConvertThreadToFiber(nullptr);
 	m_mainFiber = GetCurrentFiber();
 	m_initialized = true;

@@ -64,7 +64,7 @@ private:
 	int m_width = 0;
 	int m_height = 0;
 public:
-	ModelLoader(const String& name, const String& file, bool loadMaterials = false) : AssetLoader(name, true), m_loadMaterials(loadMaterials), m_file(file) {}
+	ModelLoader(const String& name, const String& file, bool loadMaterials = false) : AssetLoader(name), m_loadMaterials(loadMaterials), m_file(file) {}
 
 	void ProcessNode(aiNode* node, const aiScene* scene) {
 		for (GLuint i = 0; i < node->mNumMeshes; i++) {
@@ -94,7 +94,7 @@ public:
 
 		LOG("[~gModel~x] loaded ~1%s~x in %.2fms", m_name.c_str(), timer.Get());
 	}
-	void SyncLoad(map<String, AssetBase*>& assets) override;
+	void SyncLoad(AssetManager* manager) override;
 
 	float GetProgress() override {
 		return 0;

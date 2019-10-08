@@ -96,4 +96,6 @@ public:
 		m_meshes[index]->GetMaterial()->Bind(shader);
 		m_meshes[index]->Draw();
 	}
+
+	static const String GetAssetTypeName() { return "Model"; }
 };

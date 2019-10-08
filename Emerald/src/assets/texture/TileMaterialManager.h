@@ -35,7 +35,7 @@ public:
 		int i1 = m_albedoArray->AddTexture(albedo);
 		int i2 = m_normalArray->AddTexture(normal);
 		int i3 = m_roughnessArray->AddTexture(roughness);
-		int i4 = m_roughnessArray->AddTexture(metallic);
+		int i4 = m_metallicArray->AddTexture(metallic);
 		int i5 = m_emissionArray->AddTexture(emission);
 		if (i1 == (i2, i3, i4, i5)) {
 			m_textureIndices[name] = i1;

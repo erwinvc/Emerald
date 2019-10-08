@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-void ModelLoader::SyncLoad(map<String, AssetBase*>& assets) {
+void ModelLoader::SyncLoad(AssetManager* manager) {
 	vector<AssetRef<Mesh>> meshes;
 	meshes.reserve(m_preloadedMeshes.size());
 	for (PreloadedMesh& preloadedMesh : m_preloadedMeshes) {
@@ -16,5 +16,5 @@ void ModelLoader::SyncLoad(map<String, AssetBase*>& assets) {
 		delete[] preloadedMesh.m_indices;
 	}
 
-	assets[m_name] = NEW(Model(meshes));
+	manager->AddAsset<Model>(m_name, NEW(Model(meshes)));
 }

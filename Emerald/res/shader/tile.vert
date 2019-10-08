@@ -1,4 +1,4 @@
-#version 430 core
+#version 330
 
 layout(location = 0) in vec3 vsPos;
 layout(location = 1) in vec3 vsNormal;
@@ -26,7 +26,7 @@ void main(){
 	fsData.TBNMatrix = mat3(tangent, vsBitangents, vsNormal);
 	fsData.normal = vsNormal;
 
-	fsData.pos = vec3(vsPos.x + vsPosition.x, vsPos.y, vsPos.z + vsPosition.y);
+	fsData.pos = vec3(vsPos.x + (vsPosition.x * 10), vsPos.y, vsPos.z + (vsPosition.y * 10));
 
 	fsData.uv = vsUv;
 

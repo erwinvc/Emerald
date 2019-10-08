@@ -43,7 +43,7 @@ public:
 	}
 
 	AssetRef<Mesh> Copy() {
-		return new Mesh(m_vao, m_ibo, m_material);
+		return NEW(Mesh(m_vao, m_ibo, m_material));
 	}
 
 	inline ManagedRef<VertexArray> GetVAO() { return m_vao; }

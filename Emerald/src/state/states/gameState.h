@@ -35,6 +35,8 @@ public:
 		m_world->Update(time);
 	}
 	void RenderGeometry() override {
+		m_world->RenderGeometry();
+
 		m_geometryShader->Bind();
 		m_geometryShader->Set("_Iridescence", 5);
 		texIri->Bind(5);
@@ -43,8 +45,6 @@ public:
 		m_geometryShader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
 		m_geometryShader->Set("_TransformationMatrix", Matrix4::Identity());
 		m_geometryShader->Set("_CameraPosition", GetCamera()->m_position);
-
-		m_world->RenderGeometry();
 
 		CornerRayPositions positions = Camera::GetCornerRays();
 		m_entities[0]->m_position = positions.c1;

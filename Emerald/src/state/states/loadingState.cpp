@@ -26,6 +26,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
 	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry", false, true)));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
+	m_batch->Add(NEW(ShaderLoader("TileOld", "res/shader/tileOld")));
 	m_batch->Add(NEW(ShaderLoader("Directional", "res/shader/directional")));
 	m_batch->Add(NEW(ShaderLoader("Pointlight", "res/shader/pointlight")));
 	m_batch->Add(NEW(ShaderLoader("HDR", "res/shader/hdr")));
@@ -65,6 +66,7 @@ void LoadingState::Initialize() {
 	//m_batch->Add(NEW(CustomLoader("Tile manager", [] {GetTileManager()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Asset Watcher", [] {GetAssetWatcher()->Initialize(); })));
 
+	m_batch->PushLayer();
 	for (State* state : GetStateManager()->GetStates()) {
 		if (state != this) {
 			m_batch->Add(NEW(StateLoader(state)));
@@ -74,6 +76,7 @@ void LoadingState::Initialize() {
 
 void LoadingState::Update(const TimeStep& time) {
 	if (m_batch->IsFinished() && GetAssetManager()->GetProgress() >= GetAssetManager()->GetProgress() - 0.01f) {
+		GetTileMaterialManager()->GenerateMipmaps();
 		GetStateManager()->SetState(GameStates::GAME);
 		GetStateManager()->RemoveState(this);
 	}

@@ -1,11 +1,13 @@
-#version 430 core
+#version 330
+
 struct Data {
 	vec3 pos;
 	vec3 normal;
 	vec2 uv;
 	mat3 TBNMatrix;
-	int textureID;
+	float textureID;
 };
+
 in Data fsData;
 
 uniform sampler2DArray _Albedo;

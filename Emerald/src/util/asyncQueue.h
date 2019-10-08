@@ -18,8 +18,15 @@ public:
 	bool TryToGet(T& obj) {
 		unique_lock <mutex> lock(m_lock);
 		if (m_queue.empty()) return false;
-		obj = std::move(m_queue.front());
+		obj = move(m_queue.front());
 		m_queue.pop();
+		return true;
+	}
+
+	bool Peek(T& obj) {
+		unique_lock <mutex> lock(m_lock);
+		if (m_queue.empty()) return false;
+		obj = move(m_queue.front());
 		return true;
 	}
 
@@ -27,12 +34,17 @@ public:
 		unique_lock <mutex> lock(m_lock);
 		while (!m_releaseThreads && m_queue.empty()) m_conditionVariable.wait(lock);
 		if (m_queue.empty()) return false;
-		obj = std::move(m_queue.front());
+		obj = move(m_queue.front());
 		m_queue.pop();
 		return true;
 	}
 
 	void ReleaseWaitingThreads() {
 		m_releaseThreads = true;
+	}
+
+	int Size() {
+		unique_lock <mutex> lock(m_lock);
+		return m_queue.size();
 	}
 };

@@ -9,11 +9,12 @@ class TileTextureLoader : public AssetLoader {
 	byte* m_emission;
 
 public:
-	TileTextureLoader(const String name, const String& file) : AssetLoader(name, true), m_name(file) {}
+	TileTextureLoader(const String name, const String& file) : AssetLoader(name), m_name(file) {}
 	~TileTextureLoader() {
 		delete[] m_albedo;
 		delete[] m_normal;
 		delete[] m_roughness;
+		delete[] m_metallic;
 		delete[] m_emission;
 	}
 
@@ -54,9 +55,7 @@ public:
 		});
 	}
 
-	void SyncLoad(map<String, AssetBase*>& assets) {
-		GetTileMaterialManager()->AddTexture(m_name, m_albedo, m_normal, m_roughness, m_metallic, m_emission);
-	}
+	void SyncLoad(AssetManager* manager) override;
 
 	float GetProgress() override {
 		return 0;

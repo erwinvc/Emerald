@@ -9,7 +9,7 @@ public:
 	StateLoader(State* state);
 
 	void AsyncLoad() override {};
-	void SyncLoad(map<String, AssetBase*>& assets) override;
+	void SyncLoad(AssetManager* manager) override;
 
 	float GetProgress() override {
 		return 0;

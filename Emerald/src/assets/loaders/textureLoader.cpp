@@ -13,9 +13,9 @@ void TextureLoader::AsyncLoad() {
 		//m_params.SetFormat(RGBA);
 	});
 }
-void TextureLoader::SyncLoad(map<String, AssetBase*>& assets) {
+void TextureLoader::SyncLoad(AssetManager* manager) {
 	if (m_data != nullptr) {
-		assets[m_name] = NEW(Texture(m_width, m_height, m_data, m_params));
+		manager->AddAsset<Texture>(m_name, NEW(Texture(m_width, m_height, m_data, m_params)));
 		LOG("[~gTexture~x] Loaded ~1%s", m_file.c_str());
 	} else LOG_ERROR("[~gTexture~x] Failed to load ~1%s", m_file.c_str());
 }

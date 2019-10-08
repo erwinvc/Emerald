@@ -19,7 +19,6 @@ private:
 	HWND m_hwndHandle = 0;
 	AsyncQueue<function<void()>> m_queue;
 
-
 	void HandleQueue();
 
 public:
@@ -44,6 +43,7 @@ public:
 	inline float GetWidth() { return m_window->GetWidth(); }
 	inline float GetHeight() { return m_window->GetHeight(); }
 	inline float GetAspect() { return m_window->GetAspect(); }
+
 };
 
 static Application* GetApp() {

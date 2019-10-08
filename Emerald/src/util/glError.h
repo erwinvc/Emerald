@@ -12,6 +12,8 @@ static bool GLLogCall(const char* function, const char* file, int line) {
     return true;
 }
 
+//if(!GetGLFiberManager()->IsSameThread(this_thread::get_id())) LOG_ERROR("AAAAAA");
+
 #ifdef EE_DEBUG
 #define GL(x) glGetError();\
 		x; \

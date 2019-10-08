@@ -14,6 +14,7 @@ private:
 	BufferLayout m_layout;
 
 	void Initialize() {
+		LOG("A");
 		ASSERT(m_mesh, "InstancedRenderer mesh is a null pointer");
 		m_offsets = new T[m_maxObjects];
 		m_offsetsBuffer = NEW(VertexBuffer((float*)m_offsets, m_maxObjects, m_layout, GL_DYNAMIC_DRAW));
@@ -23,7 +24,7 @@ private:
 
 public:
 	void Begin() {
-		ASSERT(m_ended, "Call InstancedRenderer::End before calling InstancedRenderer2D::Begin");
+		ASSERT(m_ended, "Call InstancedRenderer::End before calling InstancedRenderer::Begin");
 		m_amount = 0;
 		m_ended = false;
 		m_started = true;
@@ -40,7 +41,7 @@ public:
 	}
 
 	void End() {
-		ASSERT(m_started, "Call InstancedRenderer::Begin before calling InstancedRenderer2D::End");
+		ASSERT(m_started, "Call InstancedRenderer::Begin before calling InstancedRenderer::End");
 		m_offsetsBuffer->Bind();
 		GL(glUnmapBuffer(GL_ARRAY_BUFFER));
 		m_started = false;
@@ -48,7 +49,7 @@ public:
 	}
 
 	void Set(vector<T>& entries, int count) {
-		ASSERT(!m_started, "Call InstancedRenderer::End before calling InstancedRenderer2D::Set");
+		ASSERT(!m_started, "Call InstancedRenderer::End before calling InstancedRenderer::Set");
 		m_offsetsBuffer->Bind();
 		GL(glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(T), (void*)entries.data()));
 		m_offsetsBuffer->Unbind();
@@ -57,7 +58,7 @@ public:
 	}
 
 	void Set(T* entries, int count) {
-		ASSERT(!m_started, "Call InstancedRenderer::End before calling InstancedRenderer2D::Set");
+		ASSERT(!m_started, "Call InstancedRenderer::End before calling InstancedRenderer::Set");
 		m_offsetsBuffer->Bind();
 		GL(glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(T), (void*)entries));
 		m_offsetsBuffer->Unbind();
@@ -66,16 +67,16 @@ public:
 	}
 
 	void Draw(AssetRef<Shader> shader, uint mode = GL_TRIANGLES) {
-		ASSERT(m_ended, "Call InstancedRenderer::End before calling InstancedRenderer2D::Draw");
+		ASSERT(m_ended, "Call InstancedRenderer::End before calling InstancedRenderer::Draw");
 		m_mesh->GetMaterial()->Bind(shader);
 		m_mesh->DrawInstanced(m_amount, mode);
 	}
 
 	void Draw(uint mode = GL_TRIANGLES) {
-		ASSERT(m_ended, "Call InstancedRenderer::End before calling InstancedRenderer2D::Draw");
+		ASSERT(m_ended, "Call InstancedRenderer::End before calling InstancedRenderer::Draw");
 		m_mesh->DrawInstanced(m_amount, mode);
 	}
 
 	InstancedRenderer(AssetRef<Mesh> mesh, int maxObjects, const BufferLayout& layout) : m_started(false), m_ended(true), m_maxObjects(maxObjects), m_layout(layout), m_mesh(mesh->Copy()) { Initialize(); }
-	~InstancedRenderer() { delete[] m_offsets; delete m_mesh; }
+	~InstancedRenderer() { delete[] m_offsets; DELETE(m_mesh); }
 };
