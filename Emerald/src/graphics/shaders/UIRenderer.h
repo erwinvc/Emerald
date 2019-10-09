@@ -17,7 +17,7 @@ namespace Origin {
 class UIRenderer : public Singleton<UIRenderer> {
 private:
 	shared_ptr<VertexArray> m_vao;
-	Mesh* m_quad;
+	Mesh* m_quad = nullptr;
 	AssetRef<Shader> m_shader;
 	Matrix4 CreateMatrix(Vector2& origin, float rot, float positionX, float positionY, float sizeX, float sizeY, bool flipX, bool flipY);
 

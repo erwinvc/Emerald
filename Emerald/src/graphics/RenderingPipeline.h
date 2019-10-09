@@ -6,14 +6,14 @@ private:
 	bool m_wireFrame = false;
 
 	//Deferred
-	GBuffer* m_gBuffer;
+	GBuffer* m_gBuffer = nullptr;
 	AssetRef<Shader> m_directionalLightShader;
 	AssetRef<Shader> m_pointLightShader;
 	AssetRef<Shader> m_emissionAmbientShader;
 
 	//SSAO
 	bool m_ssaoEnabled = true;
-	SSAORenderer* m_ssaoRenderer;
+	SSAORenderer* m_ssaoRenderer = nullptr;
 
 	//HDR
 	bool m_applyPostProcessing = true;
@@ -31,7 +31,7 @@ private:
 
 	AssetRef<FirstPersonCam> m_firstPersonCamera;
 	AssetRef<FreeCam> m_freeCam;
-	Camera* m_camera;
+	Camera* m_camera = nullptr;
 
 	Matrix4 m_orthoMatrix;
 	Matrix4 m_perspectiveMatrix;
@@ -42,8 +42,8 @@ private:
 	float m_exposure = 1;
 	int m_selectedTonemapping = 11;
 
-	uint m_width;
-	uint m_height;
+	uint m_width = 0;
+	uint m_height = 0;
 	bool m_bloom = true;
 	float m_bloomFactor = 1.0f;
 	float m_bloomMultiplier = 1.0f;

@@ -105,8 +105,9 @@ private:
 
 	ShaderUniformBuffer m_uniformBuffer;
 
-	GLuint LoadShader(String path, GLuint type) {
+	GLuint LoadShader(const String& path, GLuint type) {
 		GL(uint shader = glCreateShader(type));
+		if(!FileSystem::DoesFileExist(path)) LOG_ERROR("[~bShaders~x] ~1%s ~xshader ~1%s ~xat ~1%s does not exist", m_name.c_str(), GLUtils::ShaderTypeToString(type), path.c_str());
 		String source = FileSystem::ReadFile(path);
 		if (source.empty()) {
 			LOG_ERROR("[~bShaders~x] Failed to load ~1%s ~xshader ~1%s ~xat ~1%s", m_name.c_str(), GLUtils::ShaderTypeToString(type), path.c_str());
@@ -173,7 +174,6 @@ private:
 	}
 
 	Shader(const String& name, const String& file, bool hasGeometry = false, bool hasTessellation = false) : m_shaderProgram(nullptr), m_hasGeometry(hasGeometry), m_hasTessellation(hasTessellation), m_name(name), m_file(file) {
-		if (m_shaderProgram) delete m_shaderProgram;
 		m_shaderProgram = Load();
 		if (!m_shaderProgram->HasValidHandle()) LOG_ERROR("[~bShaders~x] ~1%s~x shader failed to compile", name.c_str());
 		m_uniformBuffer.RegisterUniforms(m_shaderProgram);
@@ -185,6 +185,11 @@ private:
 
 	friend class ShaderManager;
 public:
+
+	template<typename T>
+	void Set(const String_t location, const T* value, uint count) {
+		m_uniformBuffer.Set(location, value, count);
+	}
 
 	template<typename T>
 	void Set(const String_t location, const T& value) {

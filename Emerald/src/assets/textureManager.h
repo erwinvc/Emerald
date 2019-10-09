@@ -29,7 +29,7 @@ public:
 	void AddTexture(String name, Texture* texture) {
 		m_textures.emplace(name, texture);
 	}
-	AssetRef<Texture> GetTexture(String texture) {
+	AssetRef<Texture> GetTexture(const String& texture) {
 		return m_textures.at(texture);
 	}
 

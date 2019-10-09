@@ -55,7 +55,7 @@ struct BufferElement {
 	bool m_divisor;
 	bool m_normalized;
 
-	BufferElement() {}
+	BufferElement() : m_name(""), m_type(VertexBufferDataType::Bool), m_size(0), m_offset(0), m_bufferIndex(0), m_divisor(false), m_normalized(false) {}
 	BufferElement(VertexBufferDataType type, const String& name, uint32 bufferIndex, bool divisor = false) : m_name(name), m_type(type), m_size(VertexBufferDataTypeToSize(type)), m_offset(0), m_bufferIndex(bufferIndex), m_divisor(divisor), m_normalized(false) {}
 
 	uint32 GetComponentCount() const {

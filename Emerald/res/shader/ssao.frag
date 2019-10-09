@@ -1,5 +1,5 @@
 #version 330 core
-out vec4 FragColor;
+out float FragColor;
 
 in vec2 fsUv;
 
@@ -21,11 +21,11 @@ uniform mat4 _View;
 
 void main(){
 	vec3 fragPos = (_View * vec4(texture(_GPosition, fsUv).xyz, 1.0)).xyz;
-    vec3 normal = mat3(_View) * normalize(texture(_GNormal, fsUv).rgb);
+    vec3 normal = normalize(texture(_GNormal, fsUv).rgb);
     vec3 randomVec = normalize(texture(_Noise, fsUv * _NoiseScale).xyz);
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
     vec3 bitangent = cross(normal, tangent);
-    mat3 TBN = mat3(tangent, bitangent, normal);
+    mat3 TBN = mat3(_View) * mat3(tangent, bitangent, normal);
     float occlusion = 0.0;
     for(int i = 0; i < KERNELSIZE; ++i)
     {
@@ -44,6 +44,6 @@ void main(){
     }
     occlusion = 1.0 - (occlusion / KERNELSIZE);
     occlusion = pow(occlusion, _Power);
-    FragColor = vec4(occlusion, occlusion, occlusion, 1);
+    FragColor = occlusion;
 }
 

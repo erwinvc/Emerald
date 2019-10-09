@@ -6,14 +6,14 @@ private:
 	friend Singleton;
 
 	bool m_initialized = false;
-	Window* m_window;
+	Window* m_window = nullptr;
 	Timer m_timer;
-	uint64_t m_frameCount;
-	float m_lastFrameTime;
-	int m_fps;
+	uint64_t m_frameCount = 0;
+	float m_lastFrameTime = 0;
+	int m_fps = 0;
 
-	RenderingPipeline* m_pipeline;
-	bool m_running;
+	RenderingPipeline* m_pipeline = nullptr;
+	bool m_running = true;
 	bool m_ImGuiOpen = true;
 
 	HWND m_hwndHandle = 0;

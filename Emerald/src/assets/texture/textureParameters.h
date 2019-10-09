@@ -145,6 +145,6 @@ public:
 
 
 	String GetAsString() const {
-		return Format("%s %s %s %s %s", FormatToString(m_internalFormat).c_str(), FormatToString(m_format).c_str(), FilterToString(m_filter), WrapToString(m_wrap), TypeToString(m_type));
+		return Format("%s %s %s %s %s", FormatToString(m_internalFormat).c_str(), FormatToString(m_format).c_str(), FilterToString(m_filter).c_str(), WrapToString(m_wrap).c_str(), TypeToString(m_type).c_str());
 	}
 };

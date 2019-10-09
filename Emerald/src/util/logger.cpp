@@ -76,7 +76,7 @@ const char* Logger::GetTimeAsString(time_t& currentTime) {
 }
 
 /*Add QueuedMessage to the async queue*/
-void Logger::AddToQueue(int color, String message, String type, time_t time) {
+void Logger::AddToQueue(int color, const String& message, const String& type, time_t time) {
 	unique_lock<mutex> l(m_mutex);
 	m_queue.emplace(move(QueuedMessage(color, message, type, time)));
 	m_conditionVariable.notify_one();
@@ -90,7 +90,7 @@ void Logger::ProcessMessage(QueuedMessage& message) {
 	vector<String> splitMessage = Utils::Split(formattedMessage, "`");
 
 	SetTextColor(message.m_color);
-	printf(formattedTime);
+	printf("%s", formattedTime);
 
 	for (auto& splStr : splitMessage) {
 		if (splStr[0] == '~') {
@@ -118,7 +118,7 @@ void Logger::ProcessMessage(QueuedMessage& message) {
 			}
 			splStr.erase(0, 2);
 		}
-		printf(splStr.c_str());
+		printf("%s", splStr.c_str());
 		outputString += splStr;
 	}
 	printf("\n");

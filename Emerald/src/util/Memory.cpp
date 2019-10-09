@@ -23,7 +23,6 @@ void* Memory::AllocateDebug(size_t size, String name) {
 
 	vector<String> split = Utils::Split(name, " ");
 	if (split.size() < 2 || split[0] != "class") {
-		LOG_ERROR("Wtf is %s?", name);
 		return nullptr;
 	}
 
@@ -45,7 +44,6 @@ void Memory::Free(void* block) {
 void Memory::FreeDebug(void* block, String name) {
 	vector<String> split = Utils::Split(name, " ");
 	if (split.size() < 2 || split[0] != "class") {
-		LOG_ERROR("Wtf is %s?", name);
 		return;
 	}
 

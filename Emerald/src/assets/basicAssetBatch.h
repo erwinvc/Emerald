@@ -9,6 +9,7 @@ private:
 
 	int m_currentQueueSize = 0;
 	int m_currentQueueProgress = 0;
+
 	queue<AsyncQueue<AssetLoader*>*> m_queueQueue;
 	AsyncQueue<AssetLoader*>* m_aSyncQueue;
 	AsyncQueue<AssetLoader*> m_syncQueue;

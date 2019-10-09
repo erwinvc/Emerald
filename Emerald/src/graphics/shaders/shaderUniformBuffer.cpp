@@ -28,7 +28,7 @@ void ShaderUniformBuffer::Reload(ShaderProgram* shaderProgram) {
 		void* tempData = tempBytes + tempUniform->second.GetOffset();
 		auto uniform = m_uniforms.find(tempUniform->first.c_str());
 		if (uniform != m_uniforms.end()) {
-			SetUniformLocal(uniform->second.GetOffset(), tempData, uniform->second.GetSize());
+			SetUniformLocal(uniform->second.GetOffset(), tempData, uniform->second.GetSize(), uniform->second.GetCount());
 			SetUniformGL(uniform->second);
 			tempUniform->second.m_locked = uniform->second.m_locked;
 		}

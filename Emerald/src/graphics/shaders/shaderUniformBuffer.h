@@ -83,40 +83,34 @@ private:
 		return ShaderUniformType();
 	}
 
-	bool SetUniformLocal(uint offset, void* value, uint size) {
-		bool same = memcmp(m_data + offset, value, size) == 0;
-		memcpy(m_data + offset, value, size);
+	bool SetUniformLocal(uint offset, void* value, uint size, uint count) {
+		bool same = memcmp(m_data + offset, value, size * count) == 0;
+		memcpy(m_data + offset, value, size * count);
 		return same;
 	}
 
 	void SetUniformGL(ShaderUniform& uniform) {
 		uint location = uniform.GetLocation();
 		uint offset = uniform.GetOffset();
-
+		uint count = uniform.GetCount();
 		switch (uniform.GetType()) {
-			case ShaderUniformType::INT: SetGL(location, *(int*)&m_data[offset]); break;
-			case ShaderUniformType::FLOAT: SetGL(location, *(float*)&m_data[offset]); break;
-			case ShaderUniformType::VEC2: SetGL(location, *(Vector2*)&m_data[offset]); break;
-			case ShaderUniformType::VEC3: SetGL(location, *(Vector3*)&m_data[offset]); break;
-			case ShaderUniformType::VEC4: SetGL(location, *(Vector4*)&m_data[offset]); break;
-			case ShaderUniformType::MAT4: SetGL(location, *(Matrix4*)&m_data[offset]); break;
+			case ShaderUniformType::INT: SetGL(location, (int*)&m_data[offset], count); break;
+			case ShaderUniformType::FLOAT: SetGL(location, (float*)&m_data[offset], count); break;
+			case ShaderUniformType::VEC2: SetGL(location, (Vector2*)&m_data[offset], count); break;
+			case ShaderUniformType::VEC3: SetGL(location, (Vector3*)&m_data[offset], count); break;
+			case ShaderUniformType::VEC4: SetGL(location, (Vector4*)&m_data[offset], count); break;
+			case ShaderUniformType::MAT4: SetGL(location, (Matrix4*)&m_data[offset], count); break;
 		}
 	}
 
-	void SetGL(uint location, const int value) { glUniform1i(location, value); }
-	void SetGL(uint location, const bool value) { glUniform1i(location, value); }
-	void SetGL(uint location, const int x, const int y) { glUniform2i(location, x, y); }
-	void SetGL(uint location, const float value) { glUniform1f(location, value); }
-	void SetGL(uint location, const float x, const float y) { glUniform2f(location, x, y); }
-	void SetGL(uint location, const Color& color) { glUniform4f(location, color.R, color.G, color.B, color.A); }
-	void SetGL(uint location, float x, float y, float z) { glUniform3f(location, x, y, z); }
-	void SetGL(uint location, const Matrix4& matrix) { glUniformMatrix4fv(location, 1, GL_TRUE, matrix.elements); }
-	void SetGL(uint location, const Rect& rect) { glUniform4f(location, rect.m_position.x, rect.m_position.y, rect.m_size.x, rect.m_size.y); }
-	void SetGL(uint location, const Vector4& vector) { glUniform4f(location, vector.x, vector.y, vector.z, vector.w); }
-	void SetGL(uint location, const Vector3& vector) { glUniform3f(location, vector.x, vector.y, vector.z); }
-	void SetGL(uint location, const Vector2& vector) { glUniform2f(location, vector.x, vector.y); }
-	void SetGL(uint location, const Vector3* vectors, int count) { glUniform3fv(location, count, (float*)vectors); }
-	void SetGL(uint location, const Matrix4* matrices, int count) { glUniformMatrix4fv(location, count, GL_TRUE, (float*)matrices); }
+	void SetGL(uint location, const int* value, uint count) { glUniform1iv(location, count, (int*)value); }
+	//void SetGL(uint location, const bool* value, uint count) { glUniform1i(location, 1, value); }
+	void SetGL(uint location, const Vector2I* value, uint count) { glUniform2iv(location, count, (int*)value); }
+	void SetGL(uint location, const float* value, uint count) { glUniform1fv(location, count, (float*)value); }
+	void SetGL(uint location, const Vector2* value, uint count) { glUniform2fv(location, count, (float*)value); }
+	void SetGL(uint location, const Vector3* value, uint count) { glUniform3fv(location, count, (float*)value); }
+	void SetGL(uint location, const Vector4* value, uint count) { glUniform4fv(location, count, (float*)value); }
+	void SetGL(uint location, const Matrix4* value, uint count) { glUniformMatrix4fv(location, count, GL_TRUE, (float*)value); }
 
 public:
 	~ShaderUniformBuffer() {
@@ -128,7 +122,7 @@ public:
 		ShaderUniformType type = GLTypeToShaderUniformType(glType);
 		uint size = ShaderUniformTypeToSize(type);
 		m_uniforms.emplace(name, ShaderUniform(name, type, size, m_index++, m_offset, count, location));
-		m_offset += size;
+		m_offset += size * count;
 	}
 
 	void Allocate() {
@@ -153,7 +147,7 @@ public:
 	}
 
 	template<typename T>
-	void Set(const String_t name, const T& value) {
+	void Set(const String_t name, const T* value, uint count) {
 		ASSERT(m_allocated, "[~bShaders~x] ShaderUniformBuffer memory needs to be allocated first!");
 
 		auto it = m_uniforms.find(name);
@@ -163,14 +157,19 @@ public:
 		uint size = uniform.GetSize();
 		uint offset = uniform.GetOffset();
 		uint location = uniform.GetLocation();
-		uint valueSize = sizeof(value);
+		uint valueSize = sizeof(T) * count;
 		uint expectedSize = uniform.GetSize() * uniform.GetCount();
 		ASSERT(valueSize == expectedSize, "[~bShaders~x] ~1%s~x data size mismatch. Got ~1%d~x out of ~1%d~x bytes. Does the name match the uniform?", name, valueSize, expectedSize);
 
-		if (!SetUniformLocal(uniform.GetOffset(), (void*)&value, size) || uniform.m_firstUpload) {
+		if (!SetUniformLocal(uniform.GetOffset(), (void*)value, size, uniform.GetCount()) || uniform.m_firstUpload) {
 			SetUniformGL(uniform);
 			uniform.m_firstUpload = false;
 		}
+	}
+
+	template<typename T>
+	void Set(const String_t name, const T& value) {
+		Set<T>(name, &value, 1);
 	}
 
 	void RegisterUniforms(ShaderProgram* shaderProgram);

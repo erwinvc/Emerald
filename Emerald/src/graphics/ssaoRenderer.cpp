@@ -6,8 +6,8 @@ SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_text
 
 	m_fbo = GetFrameBufferManager()->Create("SSAO", FBOScale::QUARTER);
 	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", FBOScale::QUARTER);
-	m_texture = m_fbo->AddColorBuffer("SSAO", TextureParameters(RED, RGB, LINEAR, REPEAT, T_FLOAT));
-	m_textureBlur = m_fboBlur->AddColorBuffer("SSAOBlur", TextureParameters(RED, RGB, LINEAR, REPEAT, T_FLOAT));
+	m_texture = m_fbo->AddColorBuffer("SSAO", TextureParameters(RED, RED, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_textureBlur = m_fboBlur->AddColorBuffer("SSAOBlur", TextureParameters(RED, RED, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	m_shader = GetShaderManager()->Get("SSAO");
 	m_shaderBlur = GetShaderManager()->Get("SSAOBlur");
@@ -35,9 +35,7 @@ SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_text
 	m_shader->Set("_GPosition", 0);
 	m_shader->Set("_GNormal", 1);
 	m_shader->Set("_Noise", 2);
-	for (int i = 0; i < 64; i++) {
-		m_shader->Set(Format_t("_Samples[%d]", i), m_kernels[i]);
-	}
+	m_shader->Set("_Samples", m_kernels.data(), m_kernels.size());
 
 	LOG("[~bRenderer~x] SSAO initialized");
 }
@@ -54,7 +52,7 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_shader->Set("_Power", m_power);
 	m_shader->Set("_Projection", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("_View", GetCamera()->GetViewMatrix());
-	m_shader->Set("_NoiseScale", Vector2(GetApp()->GetWidth() / 4, GetApp()->GetHeight() / 4));
+	m_shader->Set("_NoiseScale", Vector2(GetApp()->GetWidth() / 4.0f, GetApp()->GetHeight() / 4.0f));
 
 	gBuffer->m_positionTexture->Bind(0);
 	gBuffer->m_normalTexture->Bind(1);

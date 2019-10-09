@@ -44,7 +44,7 @@ public:
 		GetLineRenderer()->DrawRect(Rect(m_position.x, m_position.z, 0.2f, 0.2f), Color::Yellow());
 	}
 
-	void Move(vector<Rect>& entityList, Vector3 vel) {
+	void Move(vector<Rect>& entityList, const Vector3& vel) {
 		bool contactX = MoveDirection(entityList, m_position.x, vel.x, Vector3(1, 0, 0));
 		bool contactZ = MoveDirection(entityList, m_position.z, vel.z, Vector3(0, 0, 1));
 		m_position.y += m_velocity.y;
@@ -83,15 +83,16 @@ public:
 	}
 
 
-	bool MoveDirection(vector<Rect>& entityList, float& value, float d, Vector3 axis) {
+	bool MoveDirection(vector<Rect>& entityList, float& value, float d, const Vector3& axis) {
 		bool contact = false;
 		while (d != 0) {
+			float precision = ToPrecision(d);
 			if (Math::Abs(d) > PRECISION) {
-				contact = checkCollision(entityList, ToPrecision(d) * axis.x, ToPrecision(d) * axis.y, ToPrecision(d) * axis.z);
+				contact = checkCollision(entityList, precision * axis.x, precision * axis.y, precision * axis.z);
 				if (!contact) {
-					value += ToPrecision(d);
+					value += precision;
 				} else return contact;
-				d -= ToPrecision(d);
+				d -= precision;
 			} else {
 				contact = checkCollision(entityList, d * axis.x, d * axis.y, d * axis.z);
 				if (!contact) {

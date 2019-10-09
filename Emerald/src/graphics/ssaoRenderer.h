@@ -29,8 +29,8 @@ public:
 	AssetRef<Texture> GetRawTexture() { return m_texture; }
 
 	void OnImGui() {
-		ImGui::SliderFloat("bias", &m_radius, 0, 25);
-		ImGui::SliderFloat("radius", &m_bias, 0, 25);
+		ImGui::SliderFloat("bias", &m_radius, 0, 1);
+		ImGui::SliderFloat("radius", &m_bias, 0, 1);
 		ImGui::SliderInt("power", &m_power, 0, 64);
 	}
 

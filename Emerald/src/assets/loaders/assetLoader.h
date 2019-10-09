@@ -7,7 +7,7 @@ protected:
 
 public:
 	AssetLoader(const String& name) : m_name(name) {}
-
+	virtual ~AssetLoader() {}
 	const String& GetName() { return m_name; }
 
 	virtual void AsyncLoad() = 0;

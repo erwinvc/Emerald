@@ -21,7 +21,7 @@ public:
 		return shader;
 	}
 
-	AssetRef<Shader> Get(String name) {
+	AssetRef<Shader> Get(const String& name) {
 		return m_shaders[name];
 	}
 

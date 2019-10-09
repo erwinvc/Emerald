@@ -87,7 +87,10 @@ public:
 		Timer timer;
 		Assimp::Importer importer;
 		const aiScene *scene = importer.ReadFile(m_file, ImportFlags);
-		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) LOG_ERROR("[~gModel~x] Failed to load ~1%s", m_name.c_str());
+		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+			LOG_ERROR("[~gModel~x] Failed to load ~1%s", m_name.c_str());
+			return;
+		}
 
 		m_preloadedMeshes.reserve(scene->mNumMeshes);
 		ProcessNode(scene->mRootNode, scene);

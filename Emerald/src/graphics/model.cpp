@@ -15,7 +15,10 @@ void Model::LoadModel(const String& path) {
 	Timer timer;
 	Assimp::Importer importer;
 	const aiScene *scene = importer.ReadFile(path, ImportFlags);
-	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) LOG_ERROR("[~g3DModel~x] Failed to load ~1%s", shortName);
+	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+		LOG_ERROR("[~g3DModel~x] Failed to load ~1%s", shortName);
+		return;
+	}
 	m_materials.reserve(scene->mNumMaterials);
 	m_meshes.reserve(scene->mNumMeshes);
 

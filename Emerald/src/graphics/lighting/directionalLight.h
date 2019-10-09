@@ -19,8 +19,8 @@ public:
 	}
 
 	void OnImGui() {
-		ImGui::InputFloat3("Direction###1", (float*)&m_direction, -Math::PI, Math::PI);
-		ImGui::SliderFloat3("Direction###2", (float*)&m_direction, -Math::PI, Math::PI);
+		ImGui::InputFloat3("Direction###1", (float*)&m_direction, -3, 3);
+		ImGui::SliderFloat3("Direction###2", (float*)&m_direction, -3, 3);
 		ImGui::SliderFloat("Multiplier", &m_multiplier, 0, 10);
 		Vector3& direction = GetDirection();
 		ImGui::LabelText("euler", "%.3f %.3f %.3f", direction.x, direction.y, direction.z);

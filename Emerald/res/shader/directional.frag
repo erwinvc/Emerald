@@ -91,9 +91,9 @@ void main(){
 
     float NdotL = max(dot(N, L), 0.0); 
 
-    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL * (_SSAOEnabled ? ssao : 1);
+    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 
-	vec3 ambient = vec3(0.03) * albedo;
+	vec3 ambient = vec3(0.03) * albedo * ssao;
 	vec3 color = Lo;
 
 

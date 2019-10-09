@@ -32,8 +32,7 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 	m_emissionAmbientShader->Bind();
 	m_emissionAmbientShader->Set("_GMisc", 0);
 	m_emissionAmbientShader->Set("_GAlbedo", 1);
-	m_emissionAmbientShader->Set("_GNormal", 2);
-	m_emissionAmbientShader->Set("_GPosition", 3);
+	m_emissionAmbientShader->Set("_SSAO", 2);
 
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
@@ -115,9 +114,11 @@ void RenderingPipeline::PostGeometryRender() {
 
 	//Emission
 	m_gBuffer->BindTextures();
+	m_ssaoRenderer->GetTexture()->Bind(2);
 	m_emissionAmbientShader->Bind();
 	m_emissionAmbientShader->Set("_BloomFactor", m_bloomFactor);
 	m_emissionAmbientShader->Set("_AmbientIntensity", m_ambientIntensity);
+	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
 	m_quad->Bind();
 	m_quad->Draw();
 

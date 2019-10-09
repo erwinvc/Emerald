@@ -3,7 +3,7 @@
 class State {
 public:
 	State() {}
-	~State() {}
+	virtual ~State() {}
 
 	virtual const String& GetName() = 0;
 

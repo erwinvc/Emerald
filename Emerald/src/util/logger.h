@@ -77,7 +77,7 @@ private:
 	static condition_variable m_conditionVariable;
 	static queue<QueuedMessage> m_queue;
 	static void HandleQueue();
-	static void AddToQueue(int color, String message, String type, time_t time);
+	static void AddToQueue(int color, const String& message, const String& type, time_t time);
 	static void ProcessMessage(QueuedMessage& message);
 
 	template <typename First>

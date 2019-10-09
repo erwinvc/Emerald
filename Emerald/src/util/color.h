@@ -78,7 +78,7 @@ public:
 
 	float getCombined() { return R + G + B; }
 
-	Color& getOffset(float offset) {
+	Color getOffset(float offset) {
 		Color col = { R + offset, G + offset, B + offset, A };
 		col.clamp();
 		return col;

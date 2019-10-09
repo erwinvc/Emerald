@@ -20,7 +20,7 @@ namespace Utils {
 	static void nullfunc() {}
 
 	//String
-	static vector<String> Split(String& s, const String splitter) {
+	static vector<String> Split(String& s, const String& splitter) {
 		size_t pos;
 		vector<String> out;
 		while ((pos = s.find(splitter)) != String::npos) {

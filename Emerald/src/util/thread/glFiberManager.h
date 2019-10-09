@@ -51,7 +51,7 @@ public:
 			else fiber->m_nextFiber = &m_fibers.front();
 		}
 		m_currentFiber = &m_fibers.front();
-		LOG("[~rThreads~x] Created ~1%s~x fiber", newFiber.m_name);
+		LOG("[~rThreads~x] Created ~1%s~x fiber", newFiber.m_name.c_str());
 	}
 
 	void Sleep(float waitTime);

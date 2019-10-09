@@ -35,7 +35,7 @@ void GLFiberManager::Delete(String name) {
 	for (Fiber& fiber : m_fibers) {
 		if (fiber.m_name.compare(name) == 0) {
 			DeleteFiber(fiber.m_fiber);
-			LOG("[~rThreads~x] Deleted ~1%s~x fiber", fiber.m_name);
+			LOG("[~rThreads~x] Deleted ~1%s~x fiber", fiber.m_name.c_str());
 			break;
 		}
 	}
@@ -45,7 +45,7 @@ void GLFiberManager::Cleanup() {
 	if (!m_cleaned) {
 		for (Fiber& fiber : m_fibers) {
 			DeleteFiber(fiber.m_fiber);
-			LOG("[~rThreads~x] Deleted ~1%s~x fiber", fiber.m_name);
+			LOG("[~rThreads~x] Deleted ~1%s~x fiber", fiber.m_name.c_str());
 		}
 		//LOG_DEBUG("[Threads] %s deleted", m_name);
 		m_cleaned = true;

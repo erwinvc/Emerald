@@ -26,13 +26,13 @@ private:
 			for (auto &file : std::filesystem::recursive_directory_iterator(dir)) {
 				auto current_file_last_write_time = std::filesystem::last_write_time(file);
 
-
-				if (m_paths.find(file.path().string()) == m_paths.end()) {
+				String path = file.path().string();
+				if (m_paths.find(path) == m_paths.end()) {
 					m_paths[file.path().string()] = current_file_last_write_time;
 				} else {
-					if (m_paths[file.path().string()] != current_file_last_write_time) {
-						m_paths[file.path().string()] = current_file_last_write_time;
-						HandleChange(dir, file.path().string());
+					if (m_paths[path] != current_file_last_write_time) {
+						m_paths[path] = current_file_last_write_time;
+						HandleChange(dir, path);
 					}
 				}
 			}

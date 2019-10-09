@@ -4,10 +4,10 @@ GBuffer::GBuffer(uint width, uint height) : m_fbo(0), m_width(width), m_height(h
 	m_fbo = GetFrameBufferManager()->Create("GBuffer", FBOScale::FULL);
 	m_fbo->Bind();
 
-	m_attributesTexture = m_fbo->AddColorBuffer("Attributes", TextureParameters(RGBA, RGBA, NEAREST, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
-	m_colorTexture = m_fbo->AddColorBuffer("Color", TextureParameters(RGBA, RGBA, NEAREST, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
-	m_normalTexture = m_fbo->AddColorBuffer("Normals", TextureParameters(RGBA16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
-	m_positionTexture = m_fbo->AddColorBuffer("Positions", TextureParameters(RGBA16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
+	m_attributesTexture = m_fbo->AddColorBuffer("Attributes", TextureParameters(RGBA, RGBA, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_colorTexture = m_fbo->AddColorBuffer("Color", TextureParameters(RGBA, RGBA, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_normalTexture = m_fbo->AddColorBuffer("Normals", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_positionTexture = m_fbo->AddColorBuffer("Positions", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 }
 
 void GBuffer::BindTextures() {

@@ -3,8 +3,8 @@
 void TileGrid::DrawGeometry() {
 	CornerRayPositions& corners = Camera::GetCornerRays();
 	m_renderer->Begin();
-	loop(x, 1) {
-		loop(y, 1) {
+	loop(x, 32) {
+		loop(y, 32) {
 			m_renderer->Submit(TileBufferData(x, y, 0, 0, 0));
 		}
 	}
