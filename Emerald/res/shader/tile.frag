@@ -1,4 +1,4 @@
-#version 330
+#version 400
 
 struct Data {
 	vec3 pos;
@@ -29,6 +29,8 @@ void main(){
 	float emission = texture(_Emission, newUV).r;
 	vec3 tangentNormal = (texture(_Normal, newUV).xyz * 2.0f) - 1.0f;
     vec3 worldNormal = normalize(fsData.TBNMatrix * tangentNormal);
+
+	//float mipmapLevel = textureQueryLod(_Albedo, fsData.uv).x / 7;
 
 	geoData[0] = vec4(roughness, metallic, emission, 0);
 	geoData[1] = vec4(albedo.rgb, 1.0);

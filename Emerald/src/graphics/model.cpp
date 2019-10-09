@@ -45,7 +45,7 @@ void Model::LoadMaterials(const aiScene *scene) {
 				m_materials[i]->SetSpecular(tex);
 			} else {
 				if (FileSystem::DoesFileExist(fullPath)) {
-					TextureLoader loader(fullPath, fullPath);
+					TextureLoader loader(fullPath, fullPath, false);
 					Texture* texture = GetAssetManager()->ForceLoad<Texture>(&loader);
 					m_materials[i]->SetSpecular(texture);
 				} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
@@ -61,7 +61,7 @@ void Model::LoadMaterials(const aiScene *scene) {
 				m_materials[i]->SetAlbedo(tex);
 			} else {
 				if (FileSystem::DoesFileExist(fullPath)) {
-					TextureLoader loader(fullPath, fullPath);
+					TextureLoader loader(fullPath, fullPath, false);
 					Texture* texture = GetAssetManager()->ForceLoad<Texture>(&loader);
 					m_materials[i]->SetAlbedo(texture);
 				} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
@@ -76,7 +76,7 @@ void Model::LoadMaterials(const aiScene *scene) {
 				m_materials[i]->SetNormal(tex);
 			} else {
 				if (FileSystem::DoesFileExist(fullPath)) {
-					TextureLoader loader(fullPath, fullPath);
+					TextureLoader loader(fullPath, fullPath, true);
 					Texture* texture = GetAssetManager()->ForceLoad<Texture>(&loader);
 					m_materials[i]->SetNormal(texture);
 				} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());

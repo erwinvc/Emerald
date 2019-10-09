@@ -1,14 +1,14 @@
 #include "stdafx.h"
 
-Texture::Texture(int32 width, int32 height, byte* data, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path(""), m_data(nullptr), m_keepData(keepData) {
+Texture::Texture(int32 width, int32 height, byte* data, bool hasMipmaps, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path(""), m_data(nullptr), m_hasMipmaps(hasMipmaps), m_keepData(keepData) {
 	SetData(data);
 }
 
-Texture::Texture(int32 width, int32 height, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path(""), m_data(nullptr), m_keepData(keepData) {
+Texture::Texture(int32 width, int32 height, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(width), m_height(height), m_path(""), m_data(nullptr), m_hasMipmaps(false), m_keepData(keepData) {
 	SetData(nullptr);
 }
 
-Texture::Texture(const String& path, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(0), m_height(0), m_path(path), m_data(nullptr), m_keepData(keepData) {
+Texture::Texture(const String& path, bool hasMipmaps, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(0), m_height(0), m_path(path), m_data(nullptr), m_hasMipmaps(hasMipmaps), m_keepData(keepData) {
 	TextureUtils::LoadTexture(m_path, params.GetFlipY(), [this](const LoadedTexture& data) {
 		SetData(data.m_data);
 		m_width = data.m_width;
@@ -22,13 +22,20 @@ void Texture::SetData(byte* data) {
 
 	GL(glBindTexture(GL_TEXTURE_2D, m_textureID));
 
-	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_params.GetFilter(GL_TEXTURE_MIN_FILTER)));
-	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_params.GetFilter(GL_TEXTURE_MAG_FILTER)));
+	if (m_hasMipmaps) {
+		GL(glTexStorage2D(GL_TEXTURE_2D, 7, m_params.GetInternalFormatSized(), m_width, m_height));
+		GL(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_params.GetFormat(), m_params.GetType(), data));
+		GL(glGenerateMipmap(GL_TEXTURE_2D));
+	} else {
+		GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), data));
+	}
+
+	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_params.GetFilter(GL_TEXTURE_MIN_FILTER, m_hasMipmaps)));
+	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_params.GetFilter(GL_TEXTURE_MAG_FILTER, m_hasMipmaps)));
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_params.GetWrap()));
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_params.GetWrap()));
-
-	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), data));
-	GL(glGenerateMipmap(GL_TEXTURE_2D));
+	//GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), data));
+	//GL(glGenerateMipmap(GL_TEXTURE_2D));
 	int size = m_width * m_height * m_params.GetChannelCount();
 
 	if (m_keepData && data != nullptr) {

@@ -23,10 +23,13 @@ public:
 		BasicMaterial* mat = GetMaterialManager()->Create<BasicMaterial>("Test");
 		mat->SetAlbedo(texIri);
 		mat->SetSpecular(GetTextureManager()->GetBlackTexture());
+		m_turtle->SetMaterial(mat);
 		m_model->SetMaterial(mat);
 		for (int i = 0; i < 4; i++) {
 			m_entities[i] = new Entity(m_model);
 		}
+		m_turtleEntity->m_position.y += 10;
+		m_turtleEntity->m_scale = Vector3(10, 10, 10);
 	}
 
 

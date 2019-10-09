@@ -8,13 +8,9 @@ FrameBuffer::FrameBuffer(String name, FBOScale scale, Color& clearColor) : m_nam
 	m_height = FBOScaleToFloat(m_scale) * m_realHeight;
 
 	GL(glGenFramebuffers(1, &m_fbo));
-	GL(glGenRenderbuffers(1, &m_dbo));
-
-	GL(glBindRenderbuffer(GL_RENDERBUFFER, m_dbo));
-	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_width, m_height));
+	AddBuffer("Depth", TextureParameters(DEPTH, DEPTH, NEAREST, CLAMP_TO_EDGE, T_FLOAT), FBOAttachment::DEPTH);
 
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
-	GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_dbo));
 	if (CheckStatus()) LOG("[~cBuffers~x] Created ~1%s~x framebuffer", m_name.c_str());
 }
 
@@ -23,9 +19,6 @@ void FrameBuffer::Resize(uint width, uint height) {
 	m_realHeight = height;
 	m_width = FBOScaleToFloat(m_scale) * m_realWidth;
 	m_height = FBOScaleToFloat(m_scale) * m_realHeight;
-	GL(glBindRenderbuffer(GL_RENDERBUFFER, m_dbo));
-	GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_width, m_height));
-	GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
 	for (Texture* texture : m_textures) {
 		texture->Resize(m_width, m_height);
@@ -39,7 +32,7 @@ FrameBuffer::~FrameBuffer() {
 	for (AssetRef<Texture> texture : m_textures) {
 		DELETE(texture.Get());
 	}
-	GL(glDeleteTextures(1, &m_dbo));
+	//GL(glDeleteTextures(1, &m_dbo));
 }
 
 bool FrameBuffer::CheckStatus() {
@@ -50,17 +43,19 @@ bool FrameBuffer::CheckStatus() {
 	} else return true;
 }
 
-AssetRef<Texture> FrameBuffer::AddColorBuffer(const String& name, const TextureParameters& params) {
+AssetRef<Texture> FrameBuffer::AddBuffer(const String& name, const TextureParameters& params, FBOAttachment type) {
 	Texture* texture = NEW(Texture(m_width, m_height, params));
 	m_textures.push_back(texture);
 	m_textureNames.push_back(name);
 
 	Bind();
 
-	GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->GetHandle(), 0));
-
-	m_colorAttachments++;
-	GL(glDrawBuffers(m_colorAttachments, drawBuffers));
+	if (type == FBOAttachment::COLOR) {
+		GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->GetHandle(), 0));
+		GL(glDrawBuffers(++m_colorAttachments, drawBuffers));
+	} else if (type == FBOAttachment::DEPTH) {
+		GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, texture->GetHandle(), 0));
+	}
 
 	GL(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
 	if (status != GL_FRAMEBUFFER_COMPLETE) LOG_ERROR("[~cBuffers~x] ~radding attachment to %s failed: %s", m_name.c_str(), GLUtils::GetFBOStatus(status));

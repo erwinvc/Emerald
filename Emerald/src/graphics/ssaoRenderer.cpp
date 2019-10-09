@@ -4,10 +4,10 @@ SSAORenderer::~SSAORenderer() {
 
 SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_textureBlur(nullptr), m_noiseTexture(nullptr), m_shader(nullptr), m_shaderBlur(nullptr), m_quad(nullptr) {
 
-	m_fbo = GetFrameBufferManager()->Create("SSAO", FBOScale::QUARTER);
-	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", FBOScale::QUARTER);
-	m_texture = m_fbo->AddColorBuffer("SSAO", TextureParameters(RED, RED, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
-	m_textureBlur = m_fboBlur->AddColorBuffer("SSAOBlur", TextureParameters(RED, RED, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_fbo = GetFrameBufferManager()->Create("SSAO", FBOScale::HALF);
+	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", FBOScale::HALF);
+	m_texture = m_fbo->AddBuffer("SSAO", TextureParameters(RED, RED, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_textureBlur = m_fboBlur->AddBuffer("SSAOBlur", TextureParameters(RED, RED, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	m_shader = GetShaderManager()->Get("SSAO");
 	m_shaderBlur = GetShaderManager()->Get("SSAOBlur");
@@ -27,7 +27,7 @@ SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_text
 	for (unsigned int i = 0; i < 16; i++) {
 		ssaoNoise.push_back(Color(Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f) * 2.0f - 1.0f, 0.0f, 1));
 	}
-	m_noiseTexture = NEW(Texture(4, 4, (byte*)ssaoNoise.data(), TextureParameters(RGB16, RGB, NEAREST, REPEAT, T_FLOAT)));
+	m_noiseTexture = NEW(Texture(4, 4, (byte*)ssaoNoise.data(), false, TextureParameters(RGB16, RGB, NEAREST, REPEAT, T_FLOAT)));
 
 	m_quad = MeshGenerator::Quad();
 

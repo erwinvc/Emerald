@@ -23,6 +23,7 @@ enum TextureFormat {
 	RGB32 = GL_RGB32F,
 	RGBA16 = GL_RGBA16F,
 	RGB16 = GL_RGB16F,
+	DEPTH = GL_DEPTH_COMPONENT,
 };
 
 enum TextureType {
@@ -41,59 +42,59 @@ private:
 
 	String WrapToString(TextureWrap wrap) const {
 		switch (wrap) {
-		case CLAMP: return "CLAMP";
-		case REPEAT: return "REPEAT";
-		case MIRRORED_REPEAT: return "MIRRORED_REPEAT";
-		case CLAMP_TO_EDGE: return "CLAMP_TO_EDGE";
-		case CLAMP_TO_BORDER: return "CLAMP_TO_BORDER";
+			case CLAMP: return "CLAMP";
+			case REPEAT: return "REPEAT";
+			case MIRRORED_REPEAT: return "MIRRORED_REPEAT";
+			case CLAMP_TO_EDGE: return "CLAMP_TO_EDGE";
+			case CLAMP_TO_BORDER: return "CLAMP_TO_BORDER";
 		}
 		return "NULL";
 	}
 
 	String FormatToString(TextureFormat format) const {
 		switch (format) {
-		case RED: return "RED";
-		case RG: return "RG";
-		case RGBA: return "RGBA";
-		case RGB: return "RGB";
-		case RGBA32: return "RGBA32";
-		case RGB32: return "RGB32";
-		case RGBA16: return "RGBA16";
-		case RGB16: return "RGB16";
+			case RED: return "RED";
+			case RG: return "RG";
+			case RGBA: return "RGBA";
+			case RGB: return "RGB";
+			case RGBA32: return "RGBA32";
+			case RGB32: return "RGB32";
+			case RGBA16: return "RGBA16";
+			case RGB16: return "RGB16";
 		}
 		return "NULL";
 	}
 
 	String FilterToString(TextureFilter filter) const {
 		switch (filter) {
-		case LINEARMIPMAP: return "LINEARMIPMAP";
-		case LINEAR: return "LINEAR";
-		case NEAREST: return "NEAREST";
+			//case LINEARMIPMAP: return "LINEARMIPMAP";
+			case LINEAR: return "LINEAR";
+			case NEAREST: return "NEAREST";
 		}
 		return "NULL";
 	}
 
 	String TypeToString(TextureType type) const {
 		switch (type) {
-		case T_UNSIGNED_BYTE: return "UNSIGNED_BYTE";
-		case T_FLOAT: return "FLOAT";
+			case T_UNSIGNED_BYTE: return "UNSIGNED_BYTE";
+			case T_FLOAT: return "FLOAT";
 		}
 		return "NULL";
 	}
 
 	int BaseInternalFormatToSizedInternalFormat(TextureFormat format) const {
 		switch (format) {
-		case RED: return GL_R8;
-		case RG: return GL_RG8;
-		case RGBA: return GL_RGBA8;
-		case RGB: return GL_RGB8;
+			case RED: return GL_R8;
+			case RG: return GL_RG8;
+			case RGBA: return GL_RGBA8;
+			case RGB: return GL_RGB8;
 		}
 		return format;
 	}
 
 public:
 
-	TextureParameters(TextureFormat internalFormat = RGBA, TextureFormat format = RGBA, TextureFilter filter = LINEARMIPMAP, TextureWrap wrap = REPEAT, TextureType type = T_UNSIGNED_BYTE, bool flipY = true)
+	TextureParameters(TextureFormat internalFormat = RGBA, TextureFormat format = RGBA, TextureFilter filter = LINEAR, TextureWrap wrap = REPEAT, TextureType type = T_UNSIGNED_BYTE, bool flipY = true)
 		: m_internalFormat(internalFormat), m_format(format), m_filter(filter), m_wrap(wrap), m_type(type), m_flipY(flipY) {
 	}
 
@@ -102,16 +103,16 @@ public:
 	inline int GetFormat() const { return m_format; }
 	inline int GetWrap() const { return m_wrap; }
 	inline int GetType() const { return m_type; }
-	inline int GetFilter(int type) const {
+	inline int GetFilter(int type, bool mipmap) const {
 		switch (type) {
-		case GL_TEXTURE_MIN_FILTER: {
-			switch (m_filter) {
-			case LINEARMIPMAP: return GL_LINEAR_MIPMAP_LINEAR;
-			case LINEAR: return GL_LINEAR;
-			case GL_NEAREST: return GL_NEAREST;
-			}
-		}break;
-		case GL_TEXTURE_MAG_FILTER: return (m_filter == LINEAR || m_filter == LINEARMIPMAP) ? GL_LINEAR : GL_NEAREST; break;
+			case GL_TEXTURE_MIN_FILTER: {
+				switch (m_filter) {
+					//case LINEARMIPMAP: return GL_LINEAR_MIPMAP_LINEAR;
+					case LINEAR: return mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
+					case GL_NEAREST: return mipmap ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
+				}
+			}break;
+			case GL_TEXTURE_MAG_FILTER: return (m_filter == LINEAR || m_filter == LINEARMIPMAP) ? GL_LINEAR : GL_NEAREST; break;
 		}
 		return GL_LINEAR;
 	}
@@ -126,19 +127,19 @@ public:
 
 	void SetFormatFromChannelCount(int count) {
 		switch (count) {
-		case 1: SetFormat(RED); break;
-		case 2: SetFormat(RG); break;
-		case 3: SetFormat(RGB); break;
-		case 4: SetFormat(RGBA); break;
+			case 1: SetFormat(RED); break;
+			case 2: SetFormat(RG); break;
+			case 3: SetFormat(RGB); break;
+			case 4: SetFormat(RGBA); break;
 		}
 	}
 
 	int GetChannelCount() {
 		switch (m_format) {
-		case RED: return 1;
-		case RG: return 2;
-		case RGB: return 3;
-		case RGBA: return 4;
+			case RED: return 1;
+			case RG: return 2;
+			case RGB: return 3;
+			case RGBA: return 4;
 		}
 		return 0;
 	}

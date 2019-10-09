@@ -37,15 +37,15 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
 	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", FBOScale::FULL);
-	m_hdrTexture = m_hdrBuffer->AddColorBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrTexture = m_hdrBuffer->AddBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
-	m_hdrBrightTexture = m_hdrBuffer->AddColorBuffer("HDRBloom", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrBrightTexture = m_hdrBuffer->AddBuffer("HDRBloom", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 
 	//Bloom
 	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", FBOScale::ONEFIFTH);
 	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", FBOScale::ONEFIFTH);
-	m_pingPongTexture[0] = m_pingPongFBO[0]->AddColorBuffer("PingPong1", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
-	m_pingPongTexture[1] = m_pingPongFBO[1]->AddColorBuffer("PingPong1", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_pingPongTexture[0] = m_pingPongFBO[0]->AddBuffer("PingPong1", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_pingPongTexture[1] = m_pingPongFBO[1]->AddBuffer("PingPong1", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer(m_width, m_height));
@@ -114,7 +114,8 @@ void RenderingPipeline::PostGeometryRender() {
 
 	//Emission
 	m_gBuffer->BindTextures();
-	m_ssaoRenderer->GetTexture()->Bind(2);
+	if (m_ssaoEnabled) m_ssaoRenderer->GetTexture()->Bind(2);
+	else GetTextureManager()->GetWhiteTexture()->Bind(2);
 	m_emissionAmbientShader->Bind();
 	m_emissionAmbientShader->Set("_BloomFactor", m_bloomFactor);
 	m_emissionAmbientShader->Set("_AmbientIntensity", m_ambientIntensity);
@@ -126,7 +127,8 @@ void RenderingPipeline::PostGeometryRender() {
 	m_directionalLightShader->Bind();
 
 	m_gBuffer->BindTextures();
-	m_ssaoRenderer->GetTexture()->Bind(4);
+	if(m_ssaoEnabled) m_ssaoRenderer->GetTexture()->Bind(4);
+	else GetTextureManager()->GetWhiteTexture()->Bind(4);
 	m_directionalLightShader->Set("_Color", m_directionalLight.GetColor());
 	m_directionalLightShader->Set("_Directional", m_directionalLight.GetDirection());
 	m_directionalLightShader->Set("_CameraPosition", m_camera->m_position);
@@ -143,6 +145,8 @@ void RenderingPipeline::PostGeometryRender() {
 	m_pointLightShader->Bind();
 	m_gBuffer->BindTextures();
 
+	if (m_ssaoEnabled) m_ssaoRenderer->GetTexture()->Bind(4);
+	else GetTextureManager()->GetWhiteTexture()->Bind(4);
 	m_pointLightShader->Set("projectionMatrix", m_camera->GetProjectionMatrix());
 	m_pointLightShader->Set("viewMatrix", m_camera->GetViewMatrix());
 	m_pointLightShader->Set("uCameraPos", m_camera->m_position);

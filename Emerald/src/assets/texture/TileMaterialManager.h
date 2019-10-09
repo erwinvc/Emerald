@@ -24,11 +24,11 @@ private:
 public:
 
 	void Initialize() {
-		m_albedoArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
-		m_normalArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
-		m_roughnessArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
-		m_metallicArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
-		m_emissionArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters()));
+		m_albedoArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters(RGB, RGBA)));
+		m_normalArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters(RGB, RGBA)));
+		m_roughnessArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters(RGB, RGBA)));
+		m_metallicArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters(RGB, RGBA)));
+		m_emissionArray = NEW(TextureArray(TEXTURESIZE, LAYERCOUNT, TextureParameters(RGB, RGBA)));
 	}
 
 	void AddTexture(const String& name, byte* albedo, byte* normal, byte* roughness, byte* metallic, byte* emission) {

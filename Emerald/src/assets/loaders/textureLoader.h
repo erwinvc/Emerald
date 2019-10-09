@@ -9,8 +9,9 @@ private:
 	int m_width = 0;
 	int m_height = 0;
 	int m_channelCount = 0;
+	bool m_mipmaps;
 public:
-	TextureLoader(const String& name, const String& file, const TextureParameters& params = TextureParameters()) : AssetLoader(name), m_file(file), m_params(params) {}
+	TextureLoader(const String& name, const String& file, bool mipmaps, const TextureParameters& params = TextureParameters()) : AssetLoader(name), m_file(file), m_params(params), m_mipmaps(mipmaps) {}
 	~TextureLoader() {
 		delete[] m_data;
 	}

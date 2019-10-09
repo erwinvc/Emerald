@@ -4,7 +4,7 @@ void LoadingState::Initialize() {
 
 	GetTextureManager()->Initialize();
 
-	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/logo.png"), TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
+	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/logo.png", false), TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
 	GetTileMaterialManager()->Initialize();
 
 	GetShaderManager()->Create("UI", "res/shader/UI");
@@ -42,9 +42,9 @@ void LoadingState::Initialize() {
 	//	m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("res/tiles/new/%d.obj", i))));
 	//}
 
-	m_batch->Add(NEW(TextureLoader("Irridescence", "res/irridescence.png")));
-	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png")));
-	m_batch->Add(NEW(TextureLoader("White", "res/white.png")));
+	m_batch->Add(NEW(TextureLoader("Irridescence", "res/irridescence.png", true)));
+	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png", true)));
+	m_batch->Add(NEW(TextureLoader("White", "res/white.png", true)));
 	//m_batch->Add(NEW(TextureLoader("BricksNormal", "res/bricksNormal.png")));
 	//m_batch->Add(NEW(TextureLoader("Concrete", "res/tiles/concrete_albedo.png")));
 	//m_batch->Add(NEW(TextureLoader("ConcreteSpec", "res/tiles/concrete_specular.png")));

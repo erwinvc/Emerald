@@ -12,13 +12,13 @@ public:
 		GL(glGenTextures(1, &m_handle));
 		GL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_handle));
 
-		GL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, m_params.GetFilter(GL_TEXTURE_MIN_FILTER)));
-		GL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, m_params.GetFilter(GL_TEXTURE_MAG_FILTER)));
+		GL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, m_params.GetFilter(GL_TEXTURE_MIN_FILTER, true)));
+		GL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, m_params.GetFilter(GL_TEXTURE_MAG_FILTER, true)));
 		GL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, m_params.GetWrap()));
 		GL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, m_params.GetWrap()));
 		//GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.4));
 
-		GL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 5, params.GetInternalFormatSized(), m_size, m_size, m_layers));
+		GL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 7, params.GetInternalFormatSized(), m_size, m_size, m_layers));
 
 		//if (GLEW_EXT_texture_filter_anisotropic) {
 		//	float value = 0;
@@ -30,7 +30,7 @@ public:
 
 	int AddTexture(byte* data) {
 		GL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_handle));
-		GL(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, m_index, m_size, m_size, 1, m_params.GetInternalFormat(), m_params.GetType(), data));
+		GL(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, m_index, m_size, m_size, 1, m_params.GetFormat(), m_params.GetType(), data));
 		return m_index++;
 	}
 

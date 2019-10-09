@@ -3,9 +3,7 @@
 void ShaderUniformBuffer::RegisterUniforms(ShaderProgram* shaderProgram) {
 	m_index = 0;
 	m_offset = 0;
-	LOG("%d", shaderProgram->GetUniformCount());
 	for (int i = 0; i < shaderProgram->GetUniformCount(); i++) {
-		LOG("%d", i);
 		ShaderProgram::UniformStruct& uniform = shaderProgram->GetUniform(i);
 		uint location = shaderProgram->GetUniformLocation(uniform.name.c_str());
 		AddUniform(uniform.name, uniform.glType, location, uniform.uniformSize);

@@ -42,6 +42,8 @@ void main(){
 	float metallic = texture(_Metallic, fsData.uv).x * _MetallicStrength;
 	float emission = texture(_Emission, fsData.uv).x * _EmissionStrength;
 
+	//float mipmapLevel = textureQueryLod(_Albedo, fsData.uv).x / 7;
+
 	geoData[0] = vec4(specular, metallic, 0, 0);
 	geoData[1] = vec4(albedo.rgb * mix(vec3(1), iridescence, _IridescenceStrength), 1.0);
 	geoData[2] = vec4(finalNormal, 1.0);

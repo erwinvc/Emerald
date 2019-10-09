@@ -3,6 +3,11 @@
 class Texture;
 class FrameBufferManager;
 
+enum class FBOAttachment {
+	COLOR,
+	DEPTH
+};
+
 enum class FBOScale {
 	FULL,
 	HALF,
@@ -18,7 +23,6 @@ private:
 	String m_name;
 	uint m_colorAttachments = 0;
 	uint m_fbo = 0;
-	uint m_dbo = 0;
 	uint m_width, m_height;
 	uint m_realWidth, m_realHeight;
 	Color m_color;
@@ -58,16 +62,16 @@ private:
 
 	float FBOScaleToFloat(FBOScale scale) {
 		switch (scale) {
-		case FBOScale::FULL: return 1.0f;
-		case FBOScale::HALF: return 0.5f;
-		case FBOScale::QUARTER: return 0.25f;
-		case FBOScale::ONEFIFTH: return 0.2f;
+			case FBOScale::FULL: return 1.0f;
+			case FBOScale::HALF: return 0.5f;
+			case FBOScale::QUARTER: return 0.25f;
+			case FBOScale::ONEFIFTH: return 0.2f;
 		}
 		return 1.0f;
 	}
 
 public:
-	AssetRef<Texture> AddColorBuffer(const String& name, const TextureParameters& params);
+	AssetRef<Texture> AddBuffer(const String& name, const TextureParameters& params, FBOAttachment type = FBOAttachment::COLOR);
 
 	const String& GetName() { return m_name; }
 	void Bind() const {
