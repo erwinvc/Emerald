@@ -9,7 +9,7 @@ enum TextureWrap {
 };
 
 enum TextureFilter {
-	LINEARMIPMAP,
+	//LINEARMIPMAP,
 	LINEAR,
 	NEAREST
 };
@@ -61,6 +61,7 @@ private:
 			case RGB32: return "RGB32";
 			case RGBA16: return "RGBA16";
 			case RGB16: return "RGB16";
+			case DEPTH: return "DEPTH";
 		}
 		return "NULL";
 	}
@@ -112,7 +113,7 @@ public:
 					case GL_NEAREST: return mipmap ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
 				}
 			}break;
-			case GL_TEXTURE_MAG_FILTER: return (m_filter == LINEAR || m_filter == LINEARMIPMAP) ? GL_LINEAR : GL_NEAREST; break;
+			case GL_TEXTURE_MAG_FILTER: return m_filter == LINEAR ? GL_LINEAR : GL_NEAREST; break;
 		}
 		return GL_LINEAR;
 	}

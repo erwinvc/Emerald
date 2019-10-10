@@ -15,6 +15,7 @@ private:
 	InstancedRenderer<TileBufferData>* m_renderer;
 	Tile m_tiles[32][32];
 	AssetRef<Shader> m_tileShader;
+	const float TILESIZE = 10;
 public:
 	TileGrid() {
 		BufferLayout layout = {
@@ -26,12 +27,12 @@ public:
 		m_renderer = new InstancedRenderer<TileBufferData>(GetAssetManager()->Get<Model>("Tile")->GetMeshes()[0], 8192, layout);
 
 		m_tileShader = GetShaderManager()->Get("Tile");
-		//m_tileShader->Bind();
-		//m_tileShader->Set("_Albedo", 0);
-		//m_tileShader->Set("_Normal", 1);
-		//m_tileShader->Set("_Roughness", 2);
-		//m_tileShader->Set("_Metallic", 3);
-		//m_tileShader->Set("_Emission", 4);
+		m_tileShader->Bind();
+		m_tileShader->Set("_Albedo", 0);
+		m_tileShader->Set("_Normal", 1);
+		m_tileShader->Set("_Roughness", 2);
+		m_tileShader->Set("_Metallic", 3);
+		m_tileShader->Set("_Emission", 4);
 
 		loop(x, 32) {
 			loop(y, 32) {

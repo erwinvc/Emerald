@@ -15,7 +15,6 @@ public:
 	Texture(int32 width, int32 height, byte* data, bool hasMipmaps, TextureParameters params = TextureParameters(), bool keepData = false);
 	Texture(int32 width, int32 height, TextureParameters params = TextureParameters(), bool keepData = false);
 	Texture(const String& path, bool hasMipmaps, TextureParameters params = TextureParameters(), bool keepData = false);
-	Texture(uint textureID, uint width, uint height, TextureParameters params = TextureParameters()) : m_params(params), m_textureID(textureID), m_width(width), m_height(height) {}
 	~Texture();
 
 	void SetData(byte* data);

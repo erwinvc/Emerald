@@ -14,7 +14,6 @@ private:
 	BufferLayout m_layout;
 
 	void Initialize() {
-		LOG("A");
 		ASSERT(m_mesh, "InstancedRenderer mesh is a null pointer");
 		m_offsets = new T[m_maxObjects];
 		m_offsetsBuffer = NEW(VertexBuffer((float*)m_offsets, m_maxObjects, m_layout, GL_DYNAMIC_DRAW));

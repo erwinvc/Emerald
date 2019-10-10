@@ -50,15 +50,15 @@ public:
 		m_geometryShader->Set("_CameraPosition", GetCamera()->m_position);
 
 		CornerRayPositions positions = Camera::GetCornerRays();
-		m_entities[0]->m_position = positions.c1;
-		m_entities[1]->m_position = positions.c2;
-		m_entities[2]->m_position = positions.c3;
-		m_entities[3]->m_position = positions.c4;
+		m_entities[0]->m_position = positions.TL;
+		m_entities[1]->m_position = positions.TR;
+		m_entities[2]->m_position = positions.BR;
+		m_entities[3]->m_position = positions.BL;
 
 		for (int i = 0; i < 4; i++) {
 			m_entities[i]->Draw(m_geometryShader, GL_PATCHES);
 		}
-
+		//m_entities[0]->Draw(m_geometryShader, GL_PATCHES);
 		m_turtleEntity->Draw(m_geometryShader, GL_PATCHES);
 	}
 

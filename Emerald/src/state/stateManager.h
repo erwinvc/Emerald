@@ -13,10 +13,7 @@ class StateManager : public Singleton<StateManager > {
 private:
 	StateManager() {}
 	~StateManager() {
-		for (State* state : m_states) {
-			state->Cleanup();
-			DELETE(state);
-		}
+		Cleanup();
 	}
 	friend Singleton;
 
@@ -53,7 +50,13 @@ public:
 			ImGui::EndTabItem();
 		}
 	}
-	void Cleanup() { m_currentState->Cleanup(); }
+	void Cleanup() {
+		for (State* state : m_states) {
+			state->Cleanup();
+			DELETE(state);
+			m_states.clear();
+		}
+	}
 
 	template<typename T>
 	State* RegisterState() {

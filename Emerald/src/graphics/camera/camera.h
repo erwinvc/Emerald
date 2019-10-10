@@ -1,10 +1,10 @@
 #pragma once
 
 struct CornerRayPositions {
-	Vector3 c1;
-	Vector3 c2;
-	Vector3 c3;
-	Vector3 c4;
+	Vector3 TL;
+	Vector3 TR;
+	Vector3 BR;
+	Vector3 BL;
 };
 
 class Camera {
@@ -29,7 +29,7 @@ public:
 	Vector3 m_position = Vector3();
 	Vector3 m_rotation = Vector3();
 
-	Camera(float fov, float nearPlane, float farPlane) { SetProjectionMatrix(fov, nearPlane, farPlane); }
+	Camera(float fov, float nearPlane, float farPlane) { SetProjectionMatrix(fov, nearPlane, farPlane); UpdateViewMatrix(); }
 
 	virtual ~Camera() {}
 	virtual void Update(const TimeStep& time) {}
@@ -44,11 +44,11 @@ public:
 	}
 
 
-	inline Matrix4& GetProjectionMatrix() { return m_projectionMatrix; }
-	inline Matrix4& GetViewMatrix() { return m_viewMatrix; }
-	inline float GetFOV() { return m_FOV; }
-	inline float GetNear() { return m_nearPlane; }
-	inline float GetFar() { return m_farPlane; }
+	inline Matrix4 GetProjectionMatrix() const { return m_projectionMatrix; }
+	inline Matrix4 GetViewMatrix() const { return m_viewMatrix; }
+	inline float GetFOV() const { return m_FOV; }
+	inline float GetNear() const { return m_nearPlane; }
+	inline float GetFar() const { return m_farPlane; }
 
 
 	virtual void OnImGui() {
@@ -62,10 +62,10 @@ public:
 		Vector3& ray3 = GroundRaycast::GetScreenPosition(Vector2(1.0f, 1.0f));
 		Vector3& ray4 = GroundRaycast::GetScreenPosition(Vector2(0.0f, 1.0f));
 		CornerRayPositions positions;
-		positions.c1 = GroundRaycast::GetGroundPosition(ray1, 0);
-		positions.c2 = GroundRaycast::GetGroundPosition(ray2, 0);
-		positions.c3 = GroundRaycast::GetGroundPosition(ray3, 0);
-		positions.c4 = GroundRaycast::GetGroundPosition(ray4, 0);
+		positions.TL = GroundRaycast::GetGroundPosition(ray1, 0);
+		positions.TR = GroundRaycast::GetGroundPosition(ray2, 0);
+		positions.BR = GroundRaycast::GetGroundPosition(ray3, 0);
+		positions.BL = GroundRaycast::GetGroundPosition(ray4, 0);
 		return positions;
 	}
 };
