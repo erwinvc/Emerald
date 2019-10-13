@@ -2,7 +2,7 @@
 
 class TileMaterialManager : public Singleton<TileMaterialManager> {
 private:
-	static const uint TEXTURESIZE = 128;
+	static const uint TEXTURESIZE = 500;
 	static const uint LAYERCOUNT = 128;
 	TextureArray* m_albedoArray;
 	TextureArray* m_normalArray;

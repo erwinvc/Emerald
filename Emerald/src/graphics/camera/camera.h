@@ -1,10 +1,17 @@
 #pragma once
 
 struct CornerRayPositions {
-	Vector3 TL;
-	Vector3 TR;
-	Vector3 BR;
-	Vector3 BL;
+	union {
+		struct {
+			Vector3 TL;
+			Vector3 TR;
+			Vector3 BR;
+			Vector3 BL;
+		};
+		Vector3 corners[4];
+	};
+
+	CornerRayPositions() {}
 };
 
 class Camera {
@@ -14,6 +21,7 @@ private:
 	float m_FOV;
 	float m_nearPlane;
 	float m_farPlane;
+	Vector2 m_viewPort;
 
 protected:
 	void UpdateViewMatrix() {
@@ -28,6 +36,7 @@ protected:
 public:
 	Vector3 m_position = Vector3();
 	Vector3 m_rotation = Vector3();
+	static float offset;
 
 	Camera(float fov, float nearPlane, float farPlane) { SetProjectionMatrix(fov, nearPlane, farPlane); UpdateViewMatrix(); }
 
@@ -43,6 +52,12 @@ public:
 		UpdateProjectionMatrix();
 	}
 
+	void SetViewport(uint width, uint height) {
+		m_viewPort.x = width;
+		m_viewPort.y = height;
+		UpdateProjectionMatrix();
+	}
+
 
 	inline Matrix4 GetProjectionMatrix() const { return m_projectionMatrix; }
 	inline Matrix4 GetViewMatrix() const { return m_viewMatrix; }
@@ -50,17 +65,29 @@ public:
 	inline float GetNear() const { return m_nearPlane; }
 	inline float GetFar() const { return m_farPlane; }
 
-
 	virtual void OnImGui() {
 		ImGui::InputFloat3("Position", (float*)&m_position);
 		ImGui::InputFloat3("Rotation", (float*)&m_rotation);
+		if (ImGui::InputFloat("Near", &m_nearPlane, 0.000001f, 10000.0f)) {
+			UpdateProjectionMatrix();
+		}
+
+		if (ImGui::InputFloat("Far", &m_farPlane, 0.000001f, 10000.0f)) {
+			UpdateProjectionMatrix();
+		}
+
+		if (ImGui::SliderFloat("FOV", &m_FOV, 0, 180)) {
+			UpdateProjectionMatrix();
+		}
+
+		ImGui::SliderFloat("Test", &offset, -0.2f, 0.2f);
 	}
 
 	static CornerRayPositions GetCornerRays() {
-		Vector3& ray1 = GroundRaycast::GetScreenPosition(Vector2(0.0f, 0.0f));
-		Vector3& ray2 = GroundRaycast::GetScreenPosition(Vector2(1.0f, 0.0f));
-		Vector3& ray3 = GroundRaycast::GetScreenPosition(Vector2(1.0f, 1.0f));
-		Vector3& ray4 = GroundRaycast::GetScreenPosition(Vector2(0.0f, 1.0f));
+		Vector3& ray1 = GroundRaycast::GetScreenPosition(Vector2(0.0f + offset, 0.0f + offset));
+		Vector3& ray2 = GroundRaycast::GetScreenPosition(Vector2(1.0f - offset, 0.0f + offset));
+		Vector3& ray3 = GroundRaycast::GetScreenPosition(Vector2(1.0f - offset, 1.0f - offset));
+		Vector3& ray4 = GroundRaycast::GetScreenPosition(Vector2(0.0f + offset, 1.0f - offset));
 		CornerRayPositions positions;
 		positions.TL = GroundRaycast::GetGroundPosition(ray1, 0);
 		positions.TR = GroundRaycast::GetGroundPosition(ray2, 0);

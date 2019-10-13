@@ -3,6 +3,7 @@
 class GameStates {
 public:
 	static State* LOADING;
+	static State* EDITOR;
 	static State* MENU;
 	static State* GAME;
 	static State* PAUSE;
@@ -38,7 +39,7 @@ public:
 	void Update(TimeStep time) { m_currentState->Update(time); }
 	void RenderGeometry() { m_currentState->RenderGeometry(); }
 	void RenderUI() { m_currentState->RenderUI(); }
-	void OnImGUI() {
+	void OnStateImGUI() {
 		if (ImGui::BeginTabItem("State")) {
 			int i = 0;
 			for (State* state : m_states) {
@@ -50,12 +51,16 @@ public:
 			ImGui::EndTabItem();
 		}
 	}
+
+	void OnImGUI() {
+		m_currentState->OnImGUI();
+	}
 	void Cleanup() {
 		for (State* state : m_states) {
 			state->Cleanup();
 			DELETE(state);
-			m_states.clear();
 		}
+		m_states.clear();
 	}
 
 	template<typename T>

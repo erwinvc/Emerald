@@ -9,8 +9,7 @@ void TextureLoader::AsyncLoad() {
 		m_data = new byte[size];
 		memcpy(m_data, data.m_data, size);
 
-		//m_params.SetFormatFromChannelCount(data.m_channelCount);
-		//m_params.SetFormat(RGBA);
+		//m_params.SetFormatFromChannelCount(data.m_channelCount); //STBImage already converts to RGBA so we don't need to do that
 	});
 }
 void TextureLoader::SyncLoad(AssetManager* manager) {

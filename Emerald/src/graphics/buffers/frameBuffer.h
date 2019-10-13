@@ -52,7 +52,6 @@ private:
 	bool CheckStatus();
 
 	friend FrameBufferManager;
-	void Resize(uint width, uint height);
 
 	void SetScale(FBOScale scale) {
 		if (m_scale == scale) return;
@@ -86,14 +85,16 @@ public:
 		GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	}
 
+	void Resize(uint width, uint height);
 
-	inline uint GetWidth() const { return m_width; }
-	inline uint GetHeight() const { return m_height; }
-	inline FBOScale GetScale() const { return m_scale; }
-	inline uint GetHandle() const { return m_fbo; }
-	inline void SetClearColor(Color& color) { m_color = color; }
-	inline vector<AssetRef<Texture>>& GetTextures() { return m_textures; }
-	inline vector<String>& GetTextureNames() { return m_textureNames; }
+	uint GetWidth() const { return m_width; }
+	uint GetHeight() const { return m_height; }
+	FBOScale GetScale() const { return m_scale; }
+	uint GetHandle() const { return m_fbo; }
+	void SetClearColor(Color& color) { m_color = color; }
+	vector<AssetRef<Texture>>& GetTextures() { return m_textures; }
+	vector<String>& GetTextureNames() { return m_textureNames; }
+	AssetRef<Texture> GetDepthTexture() { return m_textures[0]; }
 };
 
 class FrameBufferManager : public Singleton<FrameBufferManager> {
@@ -104,6 +105,8 @@ private:
 	~FrameBufferManager() {}
 	friend Singleton;
 
+	uint m_width = 0;
+	uint m_height = 0;
 public:
 	AssetRef<FrameBuffer> Create(const String& name, FBOScale scale) {
 		for (FrameBuffer* fbo : m_frameBuffers) {
@@ -131,7 +134,10 @@ public:
 	}
 
 	void OnResize(uint width, uint height) {
-		for (FrameBuffer* fbo : m_frameBuffers) fbo->Resize(width, height);
+		if (m_width == width && m_height == height)return;
+		m_width = width;
+		m_height = height;
+		for (FrameBuffer* fbo : m_frameBuffers) fbo->Resize(m_width, m_height);
 	}
 };
 

@@ -13,6 +13,7 @@ public:
 	void Update(const TimeStep& time) override;
 	void RenderGeometry() override;
 	void RenderUI() override;
+	void OnStateImGUI() override;
 	void OnImGUI() override;
 	void Cleanup() override;
 

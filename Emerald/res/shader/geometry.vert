@@ -14,6 +14,7 @@ struct Data {
 };
 out Data csData;
 
+uniform vec3 _CameraPosition;
 uniform mat4 _TransformationMatrix;
 uniform mat4 _ViewMatrix;
 
@@ -26,7 +27,7 @@ void main(){
 	csData.normal = (_TransformationMatrix * vec4(vsNormal, 0.0)).xyz;
 	csData.uv = vec2(vsUv.x, -vsUv.y);
 
-	csData.viewDirection = (inverse(_ViewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - csData.pos;
+	csData.viewDirection = _CameraPosition - csData.pos;
 	gl_Position = vec4(csData.pos, 1.0);
 }
 

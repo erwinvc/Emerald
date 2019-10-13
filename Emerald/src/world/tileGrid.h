@@ -24,7 +24,7 @@ public:
 			{VertexBufferDataType::Int, "vsTextureID", 7, true}
 		};
 
-		m_renderer = new InstancedRenderer<TileBufferData>(GetAssetManager()->Get<Model>("Tile")->GetMeshes()[0], 8192, layout);
+		m_renderer = new InstancedRenderer<TileBufferData>(GetAssetManager()->Get<Model>("Tile")->GetMeshes()[0], 8192*8, layout);
 
 		m_tileShader = GetShaderManager()->Get("Tile");
 		m_tileShader->Bind();

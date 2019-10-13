@@ -50,18 +50,18 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer(m_width, m_height));
 
-	m_freeCam = NEW(FreeCam(70, 0.001f, 1000.0f));
-	m_firstPersonCamera = NEW(FirstPersonCam(70, 0.001f, 1000.0f));
+	m_freeCam = NEW(FreeCam(70, 0.1f, 90.0f));
+	m_firstPersonCamera = NEW(FirstPersonCam(70, 0.1f, 90.0f));
 	m_camera = m_freeCam;
 
 	m_firstPersonCamera->m_position = Vector3(14, 0, -2);
 	m_firstPersonCamera->m_rotation = Vector3(0, Math::PI, 0);
 	m_camera->m_position = Vector3(10, 5, -2);
 	m_camera->m_rotation = Vector3(0.5, Math::PI, 0);
-	//m_projectionMatrix = Matrix4::Perspective(70, aspect, 0.01f, 1000.0f);
 
-	//Shader variables
-	//m_geometryShader->Bind();
+	//Final
+	m_finalFBO = GetFrameBufferManager()->Create("Final", FBOScale::FULL);
+	m_finalTexture = m_finalFBO->AddBuffer("Final", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	m_quad = MeshGenerator::Quad();
 
@@ -127,7 +127,7 @@ void RenderingPipeline::PostGeometryRender() {
 	m_directionalLightShader->Bind();
 
 	m_gBuffer->BindTextures();
-	if(m_ssaoEnabled) m_ssaoRenderer->GetTexture()->Bind(4);
+	if (m_ssaoEnabled) m_ssaoRenderer->GetTexture()->Bind(4);
 	else GetTextureManager()->GetWhiteTexture()->Bind(4);
 	m_directionalLightShader->Set("_Color", m_directionalLight.GetColor());
 	m_directionalLightShader->Set("_Directional", m_directionalLight.GetDirection());
@@ -183,7 +183,8 @@ void RenderingPipeline::PostGeometryRender() {
 			first_iteration = false;
 	}
 
-	GetFrameBufferManager()->BindDefaultFBO();
+	m_finalFBO->Bind();
+	m_finalFBO->Clear();
 
 	m_hdrShader->Bind();
 	m_hdrShader->Set("_HDRBuffer", 0);
@@ -203,6 +204,10 @@ void RenderingPipeline::PostGeometryRender() {
 	m_quad->Bind();
 	m_quad->Draw();
 	m_hdrShader->Unbind();
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_finalFBO->GetHandle());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 }
 
 void RenderingPipeline::PreUIRender() {
@@ -280,10 +285,12 @@ void RenderingPipeline::OnImGUI() {
 //#TODO properly resize fbos
 void RenderingPipeline::OnResize(uint width, uint height) {
 	if (!m_initialized) return;
+	if (m_width == width && m_height == height)return;
 	m_width = width;
 	m_height = height;
 	//m_gBuffer->Resize(width, height);
 	// m_hdrBuffer->Resize(width, height);
 	//m_ssaoRenderer->Resize(width, height);
-	m_camera->UpdateProjectionMatrix();
+	m_camera->SetViewport(width, height);
+	m_ssaoRenderer->Resize(width, height);
 }

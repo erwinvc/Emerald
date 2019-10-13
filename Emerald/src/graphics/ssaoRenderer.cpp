@@ -2,8 +2,7 @@
 SSAORenderer::~SSAORenderer() {
 }
 
-SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_textureBlur(nullptr), m_noiseTexture(nullptr), m_shader(nullptr), m_shaderBlur(nullptr), m_quad(nullptr) {
-
+SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_textureBlur(nullptr), m_noiseTexture(nullptr), m_shader(nullptr), m_shaderBlur(nullptr), m_quad(nullptr), m_width(width), m_height(height) {
 	m_fbo = GetFrameBufferManager()->Create("SSAO", FBOScale::HALF);
 	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", FBOScale::HALF);
 	m_texture = m_fbo->AddBuffer("SSAO", TextureParameters(RED, RED, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
@@ -35,6 +34,7 @@ SSAORenderer::SSAORenderer(uint width, uint height) : m_texture(nullptr), m_text
 	m_shader->Set("_GPosition", 0);
 	m_shader->Set("_GNormal", 1);
 	m_shader->Set("_Noise", 2);
+	m_shader->Set("_Depth", 3);
 	m_shader->Set("_Samples", m_kernels.data(), m_kernels.size());
 
 	LOG("[~bRenderer~x] SSAO initialized");
@@ -52,11 +52,12 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_shader->Set("_Power", m_power);
 	m_shader->Set("_Projection", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("_View", GetCamera()->GetViewMatrix());
-	m_shader->Set("_NoiseScale", Vector2(GetApp()->GetWidth() / 4.0f, GetApp()->GetHeight() / 4.0f));
-
+	m_shader->Set("_ScreenSize", Vector2(m_width / 4.0f, m_height / 4.0f));
+	m_shader->Set("_CameraPlanes", Vector2(GetCamera()->GetNear(), GetCamera()->GetFar()));
 	gBuffer->m_positionTexture->Bind(0);
 	gBuffer->m_normalTexture->Bind(1);
 	m_noiseTexture->Bind(2);
+	gBuffer->GetFBO()->GetDepthTexture()->Bind(3);
 	m_quad->Draw();
 	m_fbo->Unbind();
 
@@ -67,4 +68,10 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_quad->Draw();
 	m_fboBlur->Unbind();
 	GL(glFrontFace(GL_CCW));
+}
+
+void SSAORenderer::Resize(uint width, uint height) {
+	if (m_width == width && m_height == height)return;
+	m_width = width;
+	m_height = height;
 }

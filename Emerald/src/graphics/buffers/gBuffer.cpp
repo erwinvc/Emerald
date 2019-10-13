@@ -7,7 +7,7 @@ GBuffer::GBuffer(uint width, uint height) : m_fbo(0), m_width(width), m_height(h
 	m_attributesTexture = m_fbo->AddBuffer("Attributes", TextureParameters(RGBA, RGBA, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 	m_colorTexture = m_fbo->AddBuffer("Color", TextureParameters(RGBA, RGBA, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 	m_normalTexture = m_fbo->AddBuffer("Normals", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
-	m_positionTexture = m_fbo->AddBuffer("Positions", TextureParameters(RGBA16, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_positionTexture = m_fbo->AddBuffer("Positions", TextureParameters(RGBA32, RGBA, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 }
 
 void GBuffer::BindTextures() {

@@ -26,6 +26,7 @@ public:
 
 	/*Check for collision with a list of entities*/
 	bool checkCollision(vector<Rect>& entityList, float xa, float ya, float za) {
+		ya = 0; //Remove this
 		for (Rect& b : entityList) {
 			bool withinX = Math::Within<float>(m_position.x - m_size.x / 2 + xa, m_position.x + m_size.x / 2 + xa, b.m_position.x - b.m_size.x / 2, b.m_position.x + b.m_size.x / 2);
 			bool withinZ = Math::Within<float>(m_position.z - m_size.z / 2 + za, m_position.z + m_size.z / 2 + za, b.m_position.y - b.m_size.y / 2, b.m_position.y + b.m_size.y / 2);
@@ -78,15 +79,10 @@ public:
 		checkCollision(entityList, 0, 0, 0);
 	}
 
-	float ToPrecision(float value) {
-		return value < 0 ? -PRECISION : PRECISION;
-	}
-
-
 	bool MoveDirection(vector<Rect>& entityList, float& value, float d, const Vector3& axis) {
 		bool contact = false;
 		while (d != 0) {
-			float precision = ToPrecision(d);
+			float precision = Math::Sign(d);
 			if (Math::Abs(d) > PRECISION) {
 				contact = checkCollision(entityList, precision * axis.x, precision * axis.y, precision * axis.z);
 				if (!contact) {

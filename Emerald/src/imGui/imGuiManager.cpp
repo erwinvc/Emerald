@@ -4,7 +4,7 @@ void ImGuiManager::Initialize(Window* window) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	//io.IniFilename = NULL;
+	io.IniFilename = NULL;
 	//io.ConfigDockingWithShift = true;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;

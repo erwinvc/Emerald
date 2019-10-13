@@ -7,9 +7,13 @@ void FreeCam::Update(const TimeStep& time) {
 
 	if (KeyDown('W')) Utils::setPositionInFrontOfCam(m_position, this, speed);
 	if (KeyDown('S')) Utils::setPositionInFrontOfCam(m_position, this, -speed);
-	if (KeyDown('D')) m_position += Vector3(Math::Cos(m_rotation.yaw) * speed, 0, Math::Sin(m_rotation.yaw) * speed);
-	if (KeyDown('A')) m_position -= Vector3(Math::Cos(m_rotation.yaw) * speed, 0, Math::Sin(m_rotation.yaw) * speed);
+	if (KeyDown('D')) m_position += Vector3(Math::Cos(m_rotation.yaw), 0, Math::Sin(m_rotation.yaw))  * speed;
+	if (KeyDown('A')) m_position -= Vector3(Math::Cos(m_rotation.yaw), 0, Math::Sin(m_rotation.yaw))  * speed;
 
+	if (KeyDown('I')) m_position.z += speed;
+	if (KeyDown('K')) m_position.z -= speed;
+	if (KeyDown('J')) m_position.x += speed;
+	if (KeyDown('L')) m_position.x -= speed;
 	if (KeyDown('Q') || KeyDown(' ')) m_position.y += speed;
 	if (KeyDown('E') || KeyDown('C') /*|| KeyDown(LCTRL)*/) m_position.y -= speed;
 

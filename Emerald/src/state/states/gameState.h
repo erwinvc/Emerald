@@ -13,23 +13,23 @@ private:
 public:
 	const String& GetName() override { return m_name; }
 	void Initialize() override {
-		texIri = GetAssetManager()->Get<Texture>("Irridescence");
-		m_geometryShader = GetShaderManager()->Get("Geometry");
-
-		m_world = new World();
-		m_model = GetAssetManager()->Get<Model>("Sphere");
-		m_turtle = GetAssetManager()->Get<Model>("Turtle");
-		m_turtleEntity = new Entity(m_turtle);
-		BasicMaterial* mat = GetMaterialManager()->Create<BasicMaterial>("Test");
-		mat->SetAlbedo(texIri);
-		mat->SetSpecular(GetTextureManager()->GetBlackTexture());
-		m_turtle->SetMaterial(mat);
-		m_model->SetMaterial(mat);
-		for (int i = 0; i < 4; i++) {
-			m_entities[i] = new Entity(m_model);
-		}
-		m_turtleEntity->m_position.y += 10;
-		m_turtleEntity->m_scale = Vector3(10, 10, 10);
+		//texIri = GetAssetManager()->Get<Texture>("Irridescence");
+		//m_geometryShader = GetShaderManager()->Get("Geometry");
+		//
+		//m_world = new World();
+		//m_model = GetAssetManager()->Get<Model>("Sphere");
+		//m_turtle = GetAssetManager()->Get<Model>("Turtle");
+		//m_turtleEntity = new Entity(m_turtle);
+		//BasicMaterial* mat = GetMaterialManager()->Create<BasicMaterial>("Test");
+		//mat->SetAlbedo(texIri);
+		//mat->SetSpecular(GetTextureManager()->GetBlackTexture());
+		//m_turtle->SetMaterial(mat);
+		//m_model->SetMaterial(mat);
+		//for (int i = 0; i < 4; i++) {
+		//	m_entities[i] = new Entity(m_model);
+		//}
+		//m_turtleEntity->m_position.y += 10;
+		//m_turtleEntity->m_scale = Vector3(10, 10, 10);
 	}
 
 
@@ -59,12 +59,13 @@ public:
 			m_entities[i]->Draw(m_geometryShader, GL_PATCHES);
 		}
 		//m_entities[0]->Draw(m_geometryShader, GL_PATCHES);
-		m_turtleEntity->Draw(m_geometryShader, GL_PATCHES);
+		//m_turtleEntity->Draw(m_geometryShader, GL_PATCHES);
 	}
 
 	void RenderUI() override {
 	}
 
+	void OnStateImGUI() override {}
 	void OnImGUI() override {
 	}
 

@@ -33,6 +33,9 @@ private:
 	AssetRef<FreeCam> m_freeCam;
 	Camera* m_camera = nullptr;
 
+	AssetRef<FrameBuffer> m_finalFBO;
+	AssetRef<Texture> m_finalTexture;
+
 	Matrix4 m_orthoMatrix;
 	Matrix4 m_perspectiveMatrix;
 	bool m_perspective = true;
@@ -74,4 +77,7 @@ public:
 	inline GBuffer* GetGBuffer() { return m_gBuffer; }
 	inline AssetRef<Camera> GetCamera() { return m_camera; }
 	inline bool Initialized() { return m_initialized; }
+
+	AssetRef<Texture> GetHDRTexture() { return m_hdrTexture; }
+	AssetRef<Texture> GetFinalTexture() { return m_finalTexture; }
 };

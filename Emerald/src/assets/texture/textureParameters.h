@@ -123,7 +123,6 @@ public:
 
 	void SetFormat(TextureFormat format) {
 		m_format = format;
-		m_internalFormat = format;
 	}
 
 	void SetFormatFromChannelCount(int count) {

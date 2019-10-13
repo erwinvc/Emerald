@@ -30,10 +30,11 @@ private:
 
 public:
 	bool m_locked = false;
+	bool m_existsInShader;
 	bool m_firstUpload = true;
 
-	ShaderUniform(const String& name, ShaderUniformType type, uint size, uint index, uint offset, uint count, uint location)
-		: m_name(name), m_size(size), m_index(index), m_offset(offset), m_type(type), m_count(count), m_location(location) {
+	ShaderUniform(const String& name, ShaderUniformType type, uint size, uint index, uint offset, uint count, uint location, bool existsInShader)
+		: m_name(name), m_size(size), m_index(index), m_offset(offset), m_type(type), m_count(count), m_location(location), m_existsInShader(existsInShader) {
 	}
 
 	const String& GetName() { return m_name; }
@@ -117,12 +118,15 @@ public:
 		DeAllocate();
 	}
 
-	void AddUniform(const String& name, GLenum glType, uint location, uint count) {
+	void AddUniform(const String& name, ShaderUniformType type, uint location, uint count, bool existsInShader) {
 		ASSERT(!m_allocated, "[~bShaders~x] ShaderUniformBuffer memory has already been allocated!");
-		ShaderUniformType type = GLTypeToShaderUniformType(glType);
 		uint size = ShaderUniformTypeToSize(type);
-		m_uniforms.emplace(name, ShaderUniform(name, type, size, m_index++, m_offset, count, location));
+		m_uniforms.emplace(name, ShaderUniform(name, type, size, m_index++, m_offset, count, location, existsInShader));
 		m_offset += size * count;
+	}
+
+	void AddUniform(const String& name, GLenum glType, uint location, uint count, bool existsInShader) {
+		AddUniform(name, GLTypeToShaderUniformType(glType), location, count, existsInShader);
 	}
 
 	void Allocate() {
@@ -153,7 +157,7 @@ public:
 		auto it = m_uniforms.find(name);
 		if (it == m_uniforms.end()) return;
 		ShaderUniform& uniform = it->second;
-		if (uniform.m_locked) return;
+		if (uniform.m_locked || !uniform.m_existsInShader) return;
 		uint size = uniform.GetSize();
 		uint offset = uniform.GetOffset();
 		uint location = uniform.GetLocation();
@@ -172,7 +176,7 @@ public:
 		Set<T>(name, &value, 1);
 	}
 
-	void RegisterUniforms(ShaderProgram* shaderProgram);
+	void RegisterUniforms(ShaderProgram* shaderProgram, map<String, ShaderUniform>* oldMap = nullptr);
 
 	void Reload(ShaderProgram* shaderProgram);
 
@@ -181,9 +185,10 @@ public:
 		int index = 0;
 		for (auto it = m_uniforms.begin(); it != m_uniforms.end(); it++) {
 			ShaderUniform& uniform = it->second;
-			if (uniform.GetType() == ShaderUniformType::MAT4) continue;
+			if (uniform.GetType() == ShaderUniformType::MAT4 || !uniform.m_existsInShader) continue;
 			ImGui::Checkbox(Format_t("###%d", index++), &uniform.m_locked);
 			ImGui::SameLine();
+			ImGui::PushItemWidth(-130);
 			switch (uniform.GetType()) {
 				case ShaderUniformType::INT: if (ImGui::InputInt(uniform.GetName().c_str(), (int*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;
 				case ShaderUniformType::FLOAT: if (ImGui::SliderFloat(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()], 0, 1)) { SetUniformGL(uniform); } break;
@@ -191,6 +196,7 @@ public:
 				case ShaderUniformType::VEC3: if (ImGui::InputFloat3(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;
 				case ShaderUniformType::VEC4: if (ImGui::InputFloat4(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;
 			}
+			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 		}
 		ImGui::Columns(1);

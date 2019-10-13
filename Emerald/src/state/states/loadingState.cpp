@@ -23,6 +23,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ModelLoader("Cube", "res/cube.obj")));
 
 	m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
+	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
 	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
 	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry", false, true)));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
@@ -42,17 +43,18 @@ void LoadingState::Initialize() {
 	//	m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("res/tiles/new/%d.obj", i))));
 	//}
 
-	m_batch->Add(NEW(TextureLoader("Irridescence", "res/irridescence.png", true)));
+	m_batch->Add(NEW(TextureLoader("Iridescence", "res/iridescence.png", true)));
 	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png", true)));
 	m_batch->Add(NEW(TextureLoader("White", "res/white.png", true)));
 	//m_batch->Add(NEW(TextureLoader("BricksNormal", "res/bricksNormal.png")));
 	//m_batch->Add(NEW(TextureLoader("Concrete", "res/tiles/concrete_albedo.png")));
 	//m_batch->Add(NEW(TextureLoader("ConcreteSpec", "res/tiles/concrete_specular.png")));
 	//m_batch->Add(NEW(TextureLoader("SphereAlbedo", "res/sphere_albedo.png")));
-	//m_batch->Add(NEW(TextureLoader("SphereNormal", "res/sphere_normal.png")));
+	m_batch->Add(NEW(TextureLoader("SphereNormal", "res/sphere_normal.png", true)));
 	//m_batch->Add(NEW(TextureLoader("SphereSpec", "res/sphere_specular.png")));
 	//m_batch->Add(NEW(TextureLoader("SphereEmission", "res/sphere_emission.png")));
-	m_batch->Add(NEW(TileTextureLoader("Concrete", "concrete")));
+	//m_batch->Add(NEW(TileTextureLoader("Concrete", "concrete")));
+	m_batch->Add(NEW(TileTextureLoader("Cross", "cross")));
 	//m_batch->Add(NEW(TextureLoader("RustAlbedo", "res/rust/rust_albedo.png")));
 	//m_batch->Add(NEW(TextureLoader("RustHeight", "res/rust/rust_height.png")));
 	//m_batch->Add(NEW(TextureLoader("RustMetallic", "res/rust/rust_metallic.png")));
@@ -77,7 +79,7 @@ void LoadingState::Initialize() {
 void LoadingState::Update(const TimeStep& time) {
 	if (m_batch->IsFinished() && GetAssetManager()->GetProgress() >= GetAssetManager()->GetProgress() - 0.01f) {
 		GetTileMaterialManager()->GenerateMipmaps();
-		GetStateManager()->SetState(GameStates::GAME);
+		GetStateManager()->SetState(GameStates::EDITOR);
 		GetStateManager()->RemoveState(this);
 	}
 }
@@ -87,10 +89,12 @@ void LoadingState::RenderUI() {
 	float progress = GetAssetManager()->GetProgress();
 	Color color = Color::Mix(Color(0xFF0029), Color(0x007AFF), progress);
 	GetUIRenderer()->Rect(Origin::CENTER, GetApp()->GetWidth() / 2, GetApp()->GetHeight() / 2, GetApp()->GetWidth(), GetApp()->GetHeight(), Color::Black());
-	GetUIRenderer()->Rect(Origin::LEFT, Vector2(0.248f * GetApp()->GetWidth(), GetApp()->GetHeight()/2), Vector2(0.502f * GetApp()->GetWidth(), 0.022f * GetApp()->GetHeight()), Color::White());
+	GetUIRenderer()->Rect(Origin::LEFT, Vector2(0.248f * GetApp()->GetWidth(), GetApp()->GetHeight() / 2), Vector2(0.502f * GetApp()->GetWidth(), 0.022f * GetApp()->GetHeight()), Color::White());
 	GetUIRenderer()->Rect(Origin::LEFT, Vector2(0.25f * GetApp()->GetWidth(), GetApp()->GetHeight() / 2), Vector2(progress * 0.5f * GetApp()->GetWidth(), 0.02f  * GetApp()->GetHeight()), color);
 
 	GetUIRenderer()->RenderTexture(m_logo, Origin::CENTER, GetApp()->GetWidth() / 2, GetApp()->GetHeight() * 0.85f, 0.4095f * GetApp()->GetWidth(), 0.0945f * GetApp()->GetWidth());
+}
+void LoadingState::OnStateImGUI() {
 }
 void LoadingState::OnImGUI() {
 }

@@ -1,12 +1,21 @@
 #include "stdafx.h"
 
-void ShaderUniformBuffer::RegisterUniforms(ShaderProgram* shaderProgram) {
+void ShaderUniformBuffer::RegisterUniforms(ShaderProgram* shaderProgram, map<String, ShaderUniform>* oldMap) {
 	m_index = 0;
 	m_offset = 0;
 	for (int i = 0; i < shaderProgram->GetUniformCount(); i++) {
 		ShaderProgram::UniformStruct& uniform = shaderProgram->GetUniform(i);
 		uint location = shaderProgram->GetUniformLocation(uniform.name.c_str());
-		AddUniform(uniform.name, uniform.glType, location, uniform.uniformSize);
+		AddUniform(uniform.name, uniform.glType, location, uniform.uniformSize, true);
+	}
+
+	if (oldMap) {
+		for (auto it = oldMap->begin(); it != oldMap->end(); it++) {
+			auto uniform = m_uniforms.find(it->first.c_str());
+			if (uniform == m_uniforms.end()) {
+				AddUniform(it->second.GetName(), it->second.GetType(), it->second.GetLocation(), it->second.GetSize(), false);
+			}
+		}
 	}
 	Allocate();
 }
@@ -20,7 +29,7 @@ void ShaderUniformBuffer::Reload(ShaderProgram* shaderProgram) {
 	memcpy(tempBytes, m_data, m_offset);
 	DeAllocate();
 
-	RegisterUniforms(shaderProgram);
+	RegisterUniforms(shaderProgram, &tempUniforms);
 
 	for (auto tempUniform = tempUniforms.begin(); tempUniform != tempUniforms.end(); tempUniform++) {
 		void* tempData = tempBytes + tempUniform->second.GetOffset();

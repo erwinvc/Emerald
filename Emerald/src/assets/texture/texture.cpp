@@ -8,14 +8,15 @@ Texture::Texture(int32 width, int32 height, TextureParameters params, bool keepD
 	SetData(nullptr);
 }
 
-Texture::Texture(const String& path, bool hasMipmaps, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(0), m_height(0), m_path(path), m_data(nullptr), m_hasMipmaps(hasMipmaps), m_keepData(keepData) {
-	TextureUtils::LoadTexture(m_path, params.GetFlipY(), [this](const LoadedTexture& data) {
-		SetData(data.m_data);
-		m_width = data.m_width;
-		m_height = data.m_height;
-		m_params.SetFormatFromChannelCount(data.m_channelCount);
-	});
-}
+//Texture::Texture(const String& path, bool hasMipmaps, TextureParameters params, bool keepData) : m_params(params), m_textureID(0), m_width(0), m_height(0), m_path(path), m_data(nullptr), m_hasMipmaps(hasMipmaps), m_keepData(keepData) {
+//	TextureUtils::LoadTexture(m_path, params.GetFlipY(), [this, path](const LoadedTexture& data) {
+//		SetData(data.m_data);
+//		m_width = data.m_width;
+//		m_height = data.m_height;
+//		LOG("%d %s", data.m_channelCount, path.c_str());
+//		m_params.SetFormatFromChannelCount(data.m_channelCount);
+//	});
+//}
 
 void Texture::SetData(byte* data) {
 	GL(glGenTextures(1, &m_textureID));
@@ -36,6 +37,14 @@ void Texture::SetData(byte* data) {
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_params.GetWrap()));
 	//GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), data));
 	//GL(glGenerateMipmap(GL_TEXTURE_2D));
+
+	if (GLEW_EXT_texture_filter_anisotropic) {
+		float value = 0;
+		GL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value));
+		float amount = Math::Min(8.0f, value);
+		GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount));
+	} else LOG_WARN("GL_EXT_texture_filter_anisotropic not supported");
+
 	int size = m_width * m_height * m_params.GetChannelCount();
 
 	if (m_keepData && data != nullptr) {

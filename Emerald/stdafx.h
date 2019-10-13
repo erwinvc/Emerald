@@ -15,6 +15,7 @@
 #include <time.h>
 #include <fileapi.h>
 
+#include <limits>
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -193,6 +194,7 @@ using namespace std;
 
 #include "state/state.h"
 #include "state/stateManager.h"
+#include "state/states/editorState.h"
 #include "state/states/loadingState.h"
 #include "state/states/menuState.h"
 #include "state/states/gameState.h"

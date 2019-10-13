@@ -148,13 +148,14 @@ void Application::Render() {
 		if (ImGui::Begin("Emerald###Window", &m_ImGuiOpen, ImVec2(576, 680), -1)) {
 			if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
 				m_pipeline->OnImGUI();
-				GetStateManager()->OnImGUI();
+				GetStateManager()->OnStateImGUI();
 				GetFrameBufferManager()->OnImGUI();
 				GetShaderManager()->OnImGUI();
 				ImGui::EndTabBar();
 			}
 			ImGui::End();
 		}
+		GetStateManager()->OnImGUI();
 		GetImGuiManager()->End();
 	} else {
 		GLUtils::EnableBlending();

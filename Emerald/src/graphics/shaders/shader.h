@@ -1,5 +1,15 @@
 #pragma once
 
+class Test {
+public:
+	Test(const std::string &n) : name(new std::string(n)) {}
+	~Test() { delete name; }
+	const std::string* GetName() const { return name; }
+	std::string*& GetModifiableName() { return name; }
+private:
+	std::string* name;
+};
+
 class ShaderProgram {
 private:
 	GLuint m_handle = 0xffffffff;
@@ -7,7 +17,14 @@ private:
 	vector<GLuint> m_attachedShaders;
 
 public:
-	ShaderProgram() {}
+	ShaderProgram()
+	{
+		
+		Test t("Charlie");
+		std::string newName("Wakanda");
+		std::cout << t.GetName()->c_str() << std::endl;
+		t.GetModifiableName() = &newName;
+	}
 	~ShaderProgram() {
 		DeleteProgram();
 	}
@@ -89,7 +106,6 @@ public:
 		GL(glGetActiveUniform(m_handle, GLuint(index), 64, &nameSize, &uniformSize, &glType, nameBuffer));
 		String name = nameBuffer;
 		if (uniformSize > 1) name = name.substr(0, name.size() - 3);
-		LOG("%s", name.c_str());
 		return { uniformSize, glType, name };
 	}
 };

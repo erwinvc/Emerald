@@ -10,7 +10,10 @@ namespace Math {
 	static const float THIRD_PI = 1.0471976f;
 	static const float QUARTER_PI = 0.7853982f;
 
-
+	static const float MIN_FLOAT = FLT_MIN;
+	static const float MAX_FLOAT = FLT_MAX;
+	static const int MIN_INT = INT_MIN;
+	static const int MAX_INT = INT_MAX;
 	inline float ToRadians(float degrees) {
 		return (float)(degrees * (3.14 / 180.0f));
 	}
@@ -67,20 +70,25 @@ namespace Math {
 		return (float)::atan2(y, x);
 	}
 
-	inline float Min(float value, float minimum) {
-		return (value < minimum) ? minimum : value;
+	inline float Min(float value, float value2) {
+		return (value < value2) ? value : value2;
 	}
 
-	inline int Min(int value, int minimum) {
-		return (value < minimum) ? minimum : value;
+	inline int Min(int value, int value2) {
+		return (value < value2) ? value : value2;
 	}
 
-	inline int Max(int value, int maximum) {
-		return (value > maximum) ? maximum : value;
+	inline int Max(int value, int value2) {
+		return (value > value2) ? value : value2;
 	}
 
-	inline float Max(float value, float maximum) {
-		return (value > maximum) ? maximum : value;
+	inline float Max(float value, float value2) {
+		return (value > value2) ? value : value2;
+	}
+
+	inline float Sign(float value, float amount = 1.0f) {
+		if (value == 0) return 0;
+		return value < 0 ? -amount : amount;
 	}
 
 	template<typename T>
