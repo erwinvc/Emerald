@@ -25,7 +25,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
 	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
 	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
-	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry", false, true)));
+	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry")));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
 	m_batch->Add(NEW(ShaderLoader("TileOld", "res/shader/tileOld")));
 	m_batch->Add(NEW(ShaderLoader("Directional", "res/shader/directional")));
@@ -64,7 +64,7 @@ void LoadingState::Initialize() {
 
 	//m_batch->Add(NEW(CustomLoader("Tile Renderer", [] {GetTileRenderer()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Pointlight Renderer", [] {GetPointlightRenderer()->Initialize(MeshGenerator::Sphere(10, 10), PointlightRenderer::MAX_LIGHTS); })));
-	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(GetApp()->GetWidth(), GetApp()->GetHeight()); })));
+	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(); })));
 	//m_batch->Add(NEW(CustomLoader("Tile manager", [] {GetTileManager()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Asset Watcher", [] {GetAssetWatcher()->Initialize(); })));
 

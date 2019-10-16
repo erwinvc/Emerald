@@ -249,6 +249,7 @@ vec3 ToGreyScale(vec3 colorIn)
 
 void main(){
 	vec3 color = texture(_HDRBuffer, fsUv).rgb;
+		vec3 bloom = texture(_HDRBloom, fsUv).rgb;
 
 	if(_ApplyPostProcessing == 0) {
 		out_color = vec4(color, 1.0);

@@ -12,9 +12,6 @@ private:
 	AssetRef<Mesh> m_quad;
 
 	vector<Vector3> m_kernels;
-
-	uint m_width = 0;
-	uint m_height = 0;
 public:
 	const int KERNELCOUNT = 64;
 
@@ -22,15 +19,13 @@ public:
 	float m_bias = 0.01f;
 	int m_power = 1;
 
-	SSAORenderer(uint width, uint height);
+	SSAORenderer();
 	~SSAORenderer();
 
 	void Render(GBuffer* gBuffer);
 
 	AssetRef<Texture> GetTexture() { return m_textureBlur; }
 	AssetRef<Texture> GetRawTexture() { return m_texture; }
-
-	void Resize(uint width, uint height);
 
 	void OnImGui() {
 		ImGui::SliderFloat("bias", &m_radius, 0, 1);

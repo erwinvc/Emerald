@@ -1,15 +1,5 @@
 #pragma once
 
-class Test {
-public:
-	Test(const std::string &n) : name(new std::string(n)) {}
-	~Test() { delete name; }
-	const std::string* GetName() const { return name; }
-	std::string*& GetModifiableName() { return name; }
-private:
-	std::string* name;
-};
-
 class ShaderProgram {
 private:
 	GLuint m_handle = 0xffffffff;
@@ -17,14 +7,7 @@ private:
 	vector<GLuint> m_attachedShaders;
 
 public:
-	ShaderProgram()
-	{
-		
-		Test t("Charlie");
-		std::string newName("Wakanda");
-		std::cout << t.GetName()->c_str() << std::endl;
-		t.GetModifiableName() = &newName;
-	}
+	ShaderProgram() {}
 	~ShaderProgram() {
 		DeleteProgram();
 	}

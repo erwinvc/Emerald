@@ -45,8 +45,6 @@ private:
 	float m_exposure = 1;
 	int m_selectedTonemapping = 11;
 
-	uint m_width = 0;
-	uint m_height = 0;
 	bool m_bloom = true;
 	float m_bloomFactor = 1.0f;
 	float m_bloomMultiplier = 1.0f;
@@ -65,7 +63,7 @@ public:
 		DELETE(m_ssaoRenderer);
 	}
 
-	void Initialize(uint width, uint height);
+	void Initialize();
 
 	void PreGeometryRender();
 	void PostGeometryRender();

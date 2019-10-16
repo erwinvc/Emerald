@@ -3,8 +3,8 @@
 class EditorState : public State {
 private:
 	String m_name = "Editor";
-	AssetRef<FrameBuffer> m_viewportFBO;
 	void OnImGuiViewport();
+	void CameraControls();
 
 	ImGuiID m_dockspaceCenter;
 	ImGuiID m_dockspaceLeft;

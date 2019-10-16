@@ -2,7 +2,7 @@
 #define LOG( fmt, ...)					Logger::Message((int)ConsoleColor::WHITE,				" [Info]",		fmt, ##__VA_ARGS__ )
 #define LOG_WARN( fmt, ...)				Logger::Message((int)ConsoleColor::RED,					" [Warn]",		fmt, ##__VA_ARGS__ )
 #define LOG_TIMED(time, fmt, ...)		Logger::MessageTimed(time, (int)ConsoleColor::WHITE,	" [Info]",		fmt, ##__VA_ARGS__ )
-#define LOG_ERROR( fmt, ...)			Logger::MessageDirect((int)ConsoleColor::RED,			" [Fail]",		fmt, ##__VA_ARGS__ )
+#define LOG_ERROR( fmt, ...)			{Logger::Message((int)ConsoleColor::RED,			" [Fail]",		fmt, ##__VA_ARGS__ ); Logger::ForceEmptyQueue(); __debugbreak();}
 
 class UILoggerComponent;
 
@@ -41,8 +41,10 @@ public:
 	static void Initialize();
 	static void Message(int color, const char* type, const char* fmt, ...);
 	static void MessageTimed(int time, int color, const char* type, const char* fmt, ...);
-	static void MessageDirect(int color, const char* type, const char* fmt, ...);
+	static void ForceEmptyQueue();
 	static void Cleanup();
+	static void OnImGui();
+
 
 	template <typename... Args>
 	static void LogMessage(Args... args) {
@@ -70,7 +72,6 @@ private:
 	static void LogToFile(const char * buff);
 	static void SetTextColor(const int color);
 	static const char* GetTimeAsString(time_t& currentTime);
-	static void ForceEmptyQueue();
 
 	//Queue
 	static mutex m_mutex;

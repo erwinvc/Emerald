@@ -128,6 +128,26 @@ namespace Math {
 		return min + rand() % ((max + 1) - min);
 	}
 
+	inline Vector3 PointOnUnitSphere(float u, float v) {
+		float theta = u * 2.0f * Math::PI;
+		float phi = Math::Acos(2.0f * v - 1.0f);
+		float sinTheta = Math::Sin(theta);
+		float cosTheta = Math::Cos(theta);
+		float sinPhi = Math::Sin(phi);
+		float cosPhi = Math::Cos(phi);
+		float x = sinPhi * cosTheta;
+		float y = sinPhi * sinTheta;
+		float z = cosPhi;
+		return { x, y, z };
+	}
+
+	inline Vector3 RandomOnUnitSphere() {
+		float u = Math::RandomFloat(0.0f, 1.0f);
+		float v = Math::RandomFloat(0.0f, 1.0f);
+		return PointOnUnitSphere(u, v);
+	}
+
+
 	inline float Lerp(float toEase, float easeFrom, float percent) {
 		return (toEase + percent * (easeFrom - toEase));
 	}

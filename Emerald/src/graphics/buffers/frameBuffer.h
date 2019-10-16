@@ -26,6 +26,7 @@ private:
 	uint m_width, m_height;
 	uint m_realWidth, m_realHeight;
 	Color m_color;
+	bool m_hasDepth;
 
 	const GLenum drawBuffers[16] = {
 		GL_COLOR_ATTACHMENT0,
@@ -46,7 +47,7 @@ private:
 		GL_COLOR_ATTACHMENT15
 	};
 
-	FrameBuffer(String name, FBOScale scale, Color& clearColor = Color::Black());
+	FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clearColor = Color::Black());
 	~FrameBuffer();
 
 	bool CheckStatus();
@@ -91,6 +92,7 @@ public:
 	uint GetHeight() const { return m_height; }
 	FBOScale GetScale() const { return m_scale; }
 	uint GetHandle() const { return m_fbo; }
+	bool HasDepth() const { return m_hasDepth; }
 	void SetClearColor(Color& color) { m_color = color; }
 	vector<AssetRef<Texture>>& GetTextures() { return m_textures; }
 	vector<String>& GetTextureNames() { return m_textureNames; }
@@ -108,14 +110,14 @@ private:
 	uint m_width = 0;
 	uint m_height = 0;
 public:
-	AssetRef<FrameBuffer> Create(const String& name, FBOScale scale) {
+	AssetRef<FrameBuffer> Create(const String& name, FBOScale scale, bool hasDepth) {
 		for (FrameBuffer* fbo : m_frameBuffers) {
 			if (fbo->GetName().compare(name) == 0) {
 				LOG_ERROR("[~cBuffers~x] ~rFramebuffer ~1%s~r already exists", fbo->GetName().c_str());
 				return AssetRef<FrameBuffer>(fbo);
 			}
 		}
-		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, scale));
+		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, scale, hasDepth));
 		m_frameBuffers.push_back(fbo);
 		return AssetRef<FrameBuffer>(fbo);
 	}

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-FrameBuffer::FrameBuffer(String name, FBOScale scale, Color& clearColor) : m_name(name), m_width(0), m_height(0), m_color(clearColor) {
+FrameBuffer::FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clearColor) : m_name(name), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(hasDepth) {
 	m_scale = scale;
 	m_realWidth = GetApp()->GetWindow()->GetWidth();
 	m_realHeight = GetApp()->GetWindow()->GetHeight();
@@ -82,10 +82,14 @@ void FrameBufferManager::OnImGUI() {
 			if (ImGui::Combo(Format_t("Scale##%d", index++), &selected, scales, NUMOF(scales))) fbo->SetScale(FBOScale(selected));
 			int i = 0;
 			for (AssetRef<Texture>& tex : fbo->GetTextures()) {
+				if (!fbo->HasDepth() && i == 0) {
+					i++;
+					continue;
+				}
 				ImGui::NextColumn();
 				if (ImGui::GetColumnIndex() == 0) ImGui::NextColumn();
 				if (ImGui::ImageButton(tex->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = tex;
-				ImGui::Tooltip(fbo->GetName().c_str());
+				ImGui::Tooltip(m_fboTextureNames[i].c_str());
 				ImGui::Text("%s", m_fboTextureNames[i++].c_str());
 				ImGui::Text("%d x %d", tex->GetWidth(), tex->GetHeight());
 				ImGui::Text(tex->GetTextureParams().GetAsString().c_str());

@@ -1,12 +1,10 @@
 #include "stdafx.h"
 #include <random>
 
-void RenderingPipeline::Initialize(uint width, uint height) {
-	m_width = width;
-	m_height = height;
+void RenderingPipeline::Initialize() {
 
 	//Deferred
-	m_gBuffer = NEW(GBuffer(m_width, m_height));
+	m_gBuffer = NEW(GBuffer());
 
 	//#Dirty add proper shader asset loading
 	m_directionalLightShader = GetShaderManager()->Get("Directional");
@@ -36,19 +34,22 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
-	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", FBOScale::FULL);
+	m_hdrShader->Set("_HDRBuffer", 0);
+	m_hdrShader->Set("_HDRBloom", 1);
+
+	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", FBOScale::FULL, false);
 	m_hdrTexture = m_hdrBuffer->AddBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
 	m_hdrBrightTexture = m_hdrBuffer->AddBuffer("HDRBloom", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 
 	//Bloom
-	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", FBOScale::ONEFIFTH);
-	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", FBOScale::ONEFIFTH);
+	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", FBOScale::ONEFIFTH, false);
+	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", FBOScale::ONEFIFTH, false);
 	m_pingPongTexture[0] = m_pingPongFBO[0]->AddBuffer("PingPong1", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 	m_pingPongTexture[1] = m_pingPongFBO[1]->AddBuffer("PingPong1", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	//SSAO
-	m_ssaoRenderer = NEW(SSAORenderer(m_width, m_height));
+	m_ssaoRenderer = NEW(SSAORenderer());
 
 	m_freeCam = NEW(FreeCam(70, 0.1f, 90.0f));
 	m_firstPersonCamera = NEW(FirstPersonCam(70, 0.1f, 90.0f));
@@ -56,11 +57,11 @@ void RenderingPipeline::Initialize(uint width, uint height) {
 
 	m_firstPersonCamera->m_position = Vector3(14, 0, -2);
 	m_firstPersonCamera->m_rotation = Vector3(0, Math::PI, 0);
-	m_camera->m_position = Vector3(10, 5, -2);
-	m_camera->m_rotation = Vector3(0.5, Math::PI, 0);
+	m_camera->m_position = Vector3(0.0f, 0.5f, -1.5f);
+	m_camera->m_rotation = Vector3(0.4f, Math::PI, 0.0f);
 
 	//Final
-	m_finalFBO = GetFrameBufferManager()->Create("Final", FBOScale::FULL);
+	m_finalFBO = GetFrameBufferManager()->Create("Final", FBOScale::FULL, false);
 	m_finalTexture = m_finalFBO->AddBuffer("Final", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	m_quad = MeshGenerator::Quad();
@@ -187,8 +188,6 @@ void RenderingPipeline::PostGeometryRender() {
 	m_finalFBO->Clear();
 
 	m_hdrShader->Bind();
-	m_hdrShader->Set("_HDRBuffer", 0);
-	m_hdrShader->Set("_HDRBloom", 1);
 	m_hdrShader->Set("_BloomMultiplier", m_bloomMultiplier);
 	m_hdrShader->Set("_ApplyPostProcessing", m_applyPostProcessing);
 	m_hdrShader->Set("_FXAA", m_FXAA);
@@ -198,16 +197,15 @@ void RenderingPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_ScreenSize", Vector2(GetApp()->GetWidth(), GetApp()->GetHeight()));
 	m_hdrShader->Set("_Chromatic", m_chromatic);
 	m_hdrShader->Set("_Bloom", m_bloom);
-	GetFrameBufferManager()->GetSelectedTexture()->Bind();
+	GetFrameBufferManager()->GetSelectedTexture()->Bind(0);
 
 	m_pingPongTexture[1]->Bind(1);
 	m_quad->Bind();
 	m_quad->Draw();
-	m_hdrShader->Unbind();
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_finalFBO->GetHandle());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	glBlitFramebuffer(0, 0, m_finalFBO->GetWidth(), m_finalFBO->GetHeight(), 0, 0, m_finalFBO->GetWidth(), m_finalFBO->GetHeight(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 }
 
 void RenderingPipeline::PreUIRender() {
@@ -285,12 +283,8 @@ void RenderingPipeline::OnImGUI() {
 //#TODO properly resize fbos
 void RenderingPipeline::OnResize(uint width, uint height) {
 	if (!m_initialized) return;
-	if (m_width == width && m_height == height)return;
-	m_width = width;
-	m_height = height;
 	//m_gBuffer->Resize(width, height);
 	// m_hdrBuffer->Resize(width, height);
 	//m_ssaoRenderer->Resize(width, height);
 	m_camera->SetViewport(width, height);
-	m_ssaoRenderer->Resize(width, height);
 }
