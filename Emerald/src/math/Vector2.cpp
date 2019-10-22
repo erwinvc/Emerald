@@ -191,7 +191,14 @@ float Vector2::Magnitude() const {
 	return Math::Sqrt(x * x + y * y);
 }
 
-Vector2 Vector2::Normalise() const {
+Vector2& Vector2::Normalize() {
+	float length = Magnitude();
+	x /= length;
+	y /= length;
+	return *this;
+}
+
+Vector2 Vector2::Normalized() const {
 	float length = Magnitude();
 	return Vector2(x / length, y / length);
 }

@@ -6,13 +6,12 @@ class GroundRaycast {
 public:
 	static Vector3 GetMousePosition();
 	static Vector3 GetScreenPosition(Vector2 position);
-	static Vector3 GetGroundPosition(const Vector3& ray, float height = 1);
+	static Vector3 GetGroundPosition(const Vector3& ray, float height);
 	static Vector2I GetTile();
 
 private:
 	static Vector3 CalculateMouseRay();
 	static Vector3 CalculateScreenRay(const Vector2& position);
-	static Vector2 GetNormalizedDeviceCoords(float mouseX, float mouseY);
 	static Vector4 ToEyeCoords(const Vector4& clipCoords, const AssetRef<Camera>& camera);
 	static Vector3 ToWorldCoords(const Vector4& eyeCoords, const AssetRef<Camera>& camera);
 

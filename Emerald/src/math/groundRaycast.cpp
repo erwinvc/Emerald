@@ -21,17 +21,18 @@ Vector3 GroundRaycast::CalculateMouseRay() {
 	Camera* camera = GetCamera();
 	float mouseX = GetMouse()->GetPosition().x;
 	float mouseY = GetMouse()->GetPosition().y;
-	Vector2 normalizedCoords = GetNormalizedDeviceCoords(mouseX, mouseY);
-	Vector4 clipCoords = Vector4(normalizedCoords.x, normalizedCoords.y, -1.0f, -1.0f);
+	Vector4& viewport = GetCamera()->GetViewport();
+	mouseX = Math::Clamp(mouseX, viewport.x, viewport.x + viewport.z);
+	mouseY = Math::Clamp(mouseY, viewport.y, viewport.y + viewport.w);
+	mouseX = Math::Map(mouseX, viewport.x, viewport.x + viewport.z, -1.0f, 1.0f);
+	mouseY = Math::Map(mouseY, viewport.y, viewport.y + viewport.w, 1.0f, -1.0f);
+	//LOG("%f, %f", mouseX, mouseY);
+	Vector4 clipCoords = Vector4(mouseX, mouseY, -1.0f, -1.0f);
 	Vector4 eyeCoords = ToEyeCoords(clipCoords, camera);
 	Vector3 worldRay = ToWorldCoords(eyeCoords, camera);
 	return worldRay;
 }
-Vector2 GroundRaycast::GetNormalizedDeviceCoords(float mouseX, float mouseY) {
-	float x = ((2.0f * mouseX) / GetApp()->GetWindow()->GetWidth()) - 1.0f;
-	float y = ((2.0f * mouseY) / GetApp()->GetWindow()->GetHeight()) - 1.0f;
-	return Vector2(x, -1.0f * y);
-}
+
 Vector4 GroundRaycast::ToEyeCoords(const Vector4& clipCoords, const AssetRef<Camera>& camera) {
 	Matrix4 invertedProjection = Matrix4::Invert(camera->GetProjectionMatrix());
 	Vector4 eyeCoords = invertedProjection * clipCoords;
@@ -57,12 +58,12 @@ Vector3 GroundRaycast::GetGroundPosition(const Vector3& ray, float height) {
 	auto wp = rayToPlaneDelta.Dot(Vector3::Up());
 	auto vp = delta.Dot(Vector3::Up());
 	auto k = wp / vp;
-
 	return delta.Multiply(k).Add(rayStart);
 }
 
 Vector2I GroundRaycast::GetTile() {
-	Vector3& ray = GetMousePosition();
-	Vector3& pos = GetGroundPosition(ray);
-	return { (int)pos.x, (int)pos.z };
+	//Vector3& ray = GetMousePosition();
+	//Vector3& pos = GetGroundPosition(ray);
+	//return { (int)pos.x, (int)pos.z };
+	return Vector2I();
 }

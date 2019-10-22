@@ -21,7 +21,6 @@ private:
 
 	uint m_size;
 	uint m_count;
-	uint m_index;
 	uint m_offset;
 	uint m_location;
 
@@ -33,8 +32,8 @@ public:
 	bool m_existsInShader;
 	bool m_firstUpload = true;
 
-	ShaderUniform(const String& name, ShaderUniformType type, uint size, uint index, uint offset, uint count, uint location, bool existsInShader)
-		: m_name(name), m_size(size), m_index(index), m_offset(offset), m_type(type), m_count(count), m_location(location), m_existsInShader(existsInShader) {
+	ShaderUniform(const String& name, ShaderUniformType type, uint size, uint offset, uint count, uint location, bool existsInShader)
+		: m_name(name), m_size(size), m_offset(offset), m_type(type), m_count(count), m_location(location), m_existsInShader(existsInShader) {
 	}
 
 	const String& GetName() { return m_name; }
@@ -50,7 +49,6 @@ private:
 	map<String, ShaderUniform> m_uniforms;
 	byte* m_data = nullptr;	//All data stored in one buffer
 	uint m_offset = 0;		//Memory offset in bytes. Total size when all uniform have been added
-	uint m_index = 0;		//Uniform index
 	bool m_allocated = false;
 
 	static uint ShaderUniformTypeToSize(ShaderUniformType type) {
@@ -121,7 +119,7 @@ public:
 	void AddUniform(const String& name, ShaderUniformType type, uint location, uint count, bool existsInShader) {
 		ASSERT(!m_allocated, "[~bShaders~x] ShaderUniformBuffer memory has already been allocated!");
 		uint size = ShaderUniformTypeToSize(type);
-		m_uniforms.emplace(name, ShaderUniform(name, type, size, m_index++, m_offset, count, location, existsInShader));
+		m_uniforms.emplace(name, ShaderUniform(name, type, size, m_offset, count, location, existsInShader));
 		m_offset += size * count;
 	}
 
@@ -131,17 +129,8 @@ public:
 
 	void Allocate() {
 		m_data = new byte[m_offset];
-		for (int i = 0; i < m_offset; i++) {
-			m_data[i] = 1;
-		}
+		for (uint i = 0; i < m_offset; i++) m_data[i] = 1;
 		m_allocated = true;
-
-		//auto it = m_uniforms.begin();
-		//while (it != m_uniforms.end()) {
-		//	ShaderUniform& uniform = it->second;
-		//	//LOG("%s: %d, %d, %d", uniform.GetName().c_str(), uniform.GetOffset(), uniform.GetSize(), uniform.GetCount());
-		//	it++;
-		//}
 	}
 
 	void DeAllocate() {

@@ -5,8 +5,8 @@ SSAORenderer::~SSAORenderer() {
 SSAORenderer::SSAORenderer() : m_texture(nullptr), m_textureBlur(nullptr), m_noiseTexture(nullptr), m_shader(nullptr), m_shaderBlur(nullptr), m_quad(nullptr) {
 	m_fbo = GetFrameBufferManager()->Create("SSAO", FBOScale::FULL, false);
 	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", FBOScale::FULL, false);
-	m_texture = m_fbo->AddBuffer("SSAO", TextureParameters(RED, RED, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
-	m_textureBlur = m_fboBlur->AddBuffer("SSAOBlur", TextureParameters(RED, RED, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_texture = m_fbo->AddBuffer("SSAO", TextureParameters(RED, RED, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
+	m_textureBlur = m_fboBlur->AddBuffer("SSAOBlur", TextureParameters(RED, RED, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 
 	m_shader = GetShaderManager()->Get("SSAO");
 	m_shaderBlur = GetShaderManager()->Get("SSAOBlur");
@@ -18,23 +18,24 @@ SSAORenderer::SSAORenderer() : m_texture(nullptr), m_textureBlur(nullptr), m_noi
 
 		scale = Math::Lerp(0.1f, 1.0f, scale * scale);
 		sample *= scale;
-		m_kernels.push_back(Math::RandomOnUnitSphere());
+		m_kernels.push_back(sample);
 	}
 
 	//SSAO noise
-	vector<Color> ssaoNoise;
+	vector<Vector3> ssaoNoise;
 	for (unsigned int i = 0; i < 16; i++) {
-		ssaoNoise.push_back(Color(Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f) * 2.0f - 1.0f, 0.0f, 1));
+		ssaoNoise.push_back(Vector3(Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f) * 2.0f - 1.0f, 0.0f));
 	}
-	m_noiseTexture = NEW(Texture(4, 4, (byte*)ssaoNoise.data(), false, TextureParameters(RGB16, RGB, NEAREST, REPEAT, T_FLOAT)));
+	m_noiseTexture = NEW(Texture(4, 4, (byte*)ssaoNoise.data(), false, TextureParameters(RGB32, RGB, NEAREST, REPEAT, T_FLOAT)));
 
 	m_quad = MeshGenerator::Quad();
 
 	m_shader->Bind();
-	m_shader->Set("_GPosition", 0);
-	m_shader->Set("_GNormal", 1);
-	m_shader->Set("_Noise", 2);
-	m_shader->Set("_Depth", 3);
+	m_shader->Set("_GMisc", 0);
+	m_shader->Set("_GAlbedo", 1);
+	m_shader->Set("_GNormal", 2);
+	m_shader->Set("_GPosition", 3);
+	m_shader->Set("_Noise", 4);
 	m_shader->Set("_Samples", m_kernels.data(), m_kernels.size());
 
 	LOG("[~bRenderer~x] SSAO initialized");
@@ -50,21 +51,20 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_shader->Set("_Radius", m_radius);
 	m_shader->Set("_Bias", m_bias);
 	m_shader->Set("_Power", m_power);
+	m_shader->Set("_SampleCount", m_sampleCount);
 	m_shader->Set("_Projection", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("_View", GetCamera()->GetViewMatrix());
 	m_shader->Set("_ScreenSize", Vector2((float)m_fbo->GetWidth() / 4.0f, (float)m_fbo->GetHeight() / 4.0f));
 	m_shader->Set("_CameraPlanes", Vector2(GetCamera()->GetNear(), GetCamera()->GetFar()));
-	gBuffer->m_positionTexture->Bind(0);
-	gBuffer->m_normalTexture->Bind(1);
-	m_noiseTexture->Bind(2);
-	gBuffer->GetFBO()->GetDepthTexture()->Bind(3);
+	gBuffer->BindTextures();
+	m_noiseTexture->Bind(4);
 	m_quad->Draw();
 	m_fbo->Unbind();
 
 	m_fboBlur->Bind();
 	m_shaderBlur->Bind();
 	m_shaderBlur->Set("_SSAO", 0);
-	m_texture->Bind();
+	m_texture->Bind(0);
 	m_quad->Draw();
 	m_fboBlur->Unbind();
 	GL(glFrontFace(GL_CCW));

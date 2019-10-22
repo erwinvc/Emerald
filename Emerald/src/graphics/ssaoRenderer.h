@@ -15,9 +15,10 @@ private:
 public:
 	const int KERNELCOUNT = 64;
 
-	float m_radius = 0.1f;
-	float m_bias = 0.01f;
+	float m_radius = 0.5f;
+	float m_bias = 0.025f;
 	int m_power = 1;
+	int m_sampleCount = 8;
 
 	SSAORenderer();
 	~SSAORenderer();
@@ -28,8 +29,9 @@ public:
 	AssetRef<Texture> GetRawTexture() { return m_texture; }
 
 	void OnImGui() {
-		ImGui::SliderFloat("bias", &m_radius, 0, 1);
-		ImGui::SliderFloat("radius", &m_bias, 0, 1);
-		ImGui::SliderInt("power", &m_power, 0, 64);
+		ImGui::SliderFloat("Bias", &m_radius, 0, 1);
+		ImGui::SliderFloat("Radius", &m_bias, 0, 1);
+		ImGui::SliderInt("Power", &m_power, 0, 64);
+		ImGui::SliderInt("Sample count", &m_sampleCount, 2, 64);
 	}
 };

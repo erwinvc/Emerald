@@ -595,8 +595,8 @@ namespace ImGui
     IMGUI_API void          SetNextWindowDockID(ImGuiID dock_id, ImGuiCond cond = 0);           // set next window dock id (FIXME-DOCK)
     IMGUI_API void          SetNextWindowClass(const ImGuiWindowClass* window_class);           // set next window class / user type (docking filters by same user_type)
     IMGUI_API ImGuiID       GetWindowDockID();
-    IMGUI_API bool          IsWindowDocked();                                                   // is current window docked into another window? 
-
+	IMGUI_API bool          IsWindowDocked();                                                   // is current window docked into another window? 
+	
     // Logging/Capture
     // - All text output from the interface can be captured into tty/file/clipboard. By default, tree nodes are automatically opened during logging.
     IMGUI_API void          LogToTTY(int max_depth = -1);                                       // start logging to tty (stdout)

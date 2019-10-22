@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 void ShaderUniformBuffer::RegisterUniforms(ShaderProgram* shaderProgram, map<String, ShaderUniform>* oldMap) {
-	m_index = 0;
 	m_offset = 0;
 	for (int i = 0; i < shaderProgram->GetUniformCount(); i++) {
 		ShaderProgram::UniformStruct& uniform = shaderProgram->GetUniform(i);

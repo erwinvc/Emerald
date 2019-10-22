@@ -21,7 +21,7 @@ private:
 	float m_FOV;
 	float m_nearPlane;
 	float m_farPlane;
-	Vector2 m_viewPort;
+	Vector4 m_viewPort;
 
 protected:
 	void UpdateViewMatrix() {
@@ -36,7 +36,6 @@ protected:
 public:
 	Vector3 m_position = Vector3();
 	Vector3 m_rotation = Vector3();
-	static float offset;
 
 	Camera(float fov, float nearPlane, float farPlane) { SetProjectionMatrix(fov, nearPlane, farPlane); UpdateViewMatrix(); }
 
@@ -52,15 +51,18 @@ public:
 		UpdateProjectionMatrix();
 	}
 
-	void SetViewport(uint width, uint height) {
-		m_viewPort.x = width;
-		m_viewPort.y = height;
+	void SetViewport(uint x, uint y, uint width, uint height) {
+		m_viewPort.x = (float)x;
+		m_viewPort.y = (float)y;
+		m_viewPort.z = (float)width;
+		m_viewPort.w = (float)height;
 		UpdateProjectionMatrix();
 	}
 
 
 	inline Matrix4 GetProjectionMatrix() const { return m_projectionMatrix; }
 	inline Matrix4 GetViewMatrix() const { return m_viewMatrix; }
+	inline Vector4 GetViewport() const { return m_viewPort; }
 	inline float GetFOV() const { return m_FOV; }
 	inline float GetNear() const { return m_nearPlane; }
 	inline float GetFar() const { return m_farPlane; }
@@ -79,16 +81,15 @@ public:
 		if (ImGui::SliderFloat("FOV", &m_FOV, 0, 180)) {
 			UpdateProjectionMatrix();
 		}
-
-		ImGui::SliderFloat("Test", &offset, -0.2f, 0.2f);
 	}
 
-	static CornerRayPositions GetCornerRays() {
+	static CornerRayPositions GetCornerRays(float offset) {
 		Vector3& ray1 = GroundRaycast::GetScreenPosition(Vector2(0.0f + offset, 0.0f + offset));
 		Vector3& ray2 = GroundRaycast::GetScreenPosition(Vector2(1.0f - offset, 0.0f + offset));
 		Vector3& ray3 = GroundRaycast::GetScreenPosition(Vector2(1.0f - offset, 1.0f - offset));
 		Vector3& ray4 = GroundRaycast::GetScreenPosition(Vector2(0.0f + offset, 1.0f - offset));
 		CornerRayPositions positions;
+
 		positions.TL = GroundRaycast::GetGroundPosition(ray1, 0);
 		positions.TR = GroundRaycast::GetGroundPosition(ray2, 0);
 		positions.BR = GroundRaycast::GetGroundPosition(ray3, 0);

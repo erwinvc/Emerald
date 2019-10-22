@@ -94,7 +94,7 @@ namespace TextureUtils {
 
 		if (data) {
 			//LOG("[~gTexture~x] Loaded ~1%s", path.c_str());
-			LoadedTexture textureData = { data, width, height, channelCount, size };
+			LoadedTexture textureData = { data, (uint)width, (uint)height, channelCount, size };
 			callback(textureData);
 			stbi_image_free(data);
 			return true;

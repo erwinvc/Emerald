@@ -87,8 +87,6 @@ using namespace std;
 #include "util/timer.h"
 #include "util/glError.h"
 
-#include "math/groundRaycast.h"
-
 #undef DELETE
 
 #ifdef MEMORY_CHECK
@@ -149,8 +147,12 @@ using namespace std;
 #include "input/keyboard.h"
 #include "input/mouse.h"
 
+
+#include "math/groundRaycast.h"
 #include "graphics/camera/freeCam.h"
 #include "graphics/camera/firstPersonCam.h"
+#include "math/rasterization.h"
+
 #include "graphics/mesh.h"
 #include "graphics/customMesh.h"
 #include "graphics/model.h"

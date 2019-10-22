@@ -23,8 +23,12 @@ public:
 	inline void SetWidth(uint width) { m_width = width; }
 	inline void SetHeight(uint height) { m_height = height; }
 
-	inline float GetWidth() { return (float)m_width; }
-	inline float GetHeight() { return (float)m_height; }
+	template<typename T>
+	inline T GetWidth() { return (T)m_width; }
+
+	template<typename T>
+	inline T GetHeight() { return (T)m_height; }
+
 	inline float GetAspect() { return (float)(m_width) / m_height; }
 
 	~Window() {

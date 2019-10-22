@@ -26,7 +26,7 @@ void UIRenderer::RenderTexture(AssetRef<Texture> texture, Vector2& origin, float
 	m_shader->Set("_Texture", 0);
 	m_shader->Set("_Color", color);
 
-	Matrix4 projection = Matrix4::Orthographic(0, GetApp()->GetWidth(), 0, GetApp()->GetHeight(), -1.0f, 1.0f);
+	Matrix4 projection = Matrix4::Orthographic(0.0f, GetApp()->GetWidth<float>(), 0.0f, GetApp()->GetHeight<float>(), -1.0f, 1.0f);
 	m_shader->Set("projectionMatrix", projection);
 	m_shader->Set("transformationMatrix", CreateMatrix(origin, rot, positionX, positionY, sizeX, sizeY, flipX, flipY));
 	m_quad->Draw();

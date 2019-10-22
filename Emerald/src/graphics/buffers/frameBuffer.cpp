@@ -2,10 +2,10 @@
 
 FrameBuffer::FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clearColor) : m_name(name), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(hasDepth) {
 	m_scale = scale;
-	m_realWidth = GetApp()->GetWindow()->GetWidth();
-	m_realHeight = GetApp()->GetWindow()->GetHeight();
-	m_width = FBOScaleToFloat(m_scale) * m_realWidth;
-	m_height = FBOScaleToFloat(m_scale) * m_realHeight;
+	m_realWidth = GetApp()->GetWindow()->GetWidth<uint>();
+	m_realHeight = GetApp()->GetWindow()->GetHeight<uint>();
+	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
+	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
 
 	GL(glGenFramebuffers(1, &m_fbo));
 	AddBuffer("Depth", TextureParameters(DEPTH, DEPTH, NEAREST, CLAMP_TO_EDGE, T_FLOAT), FBOAttachment::DEPTH);
@@ -17,8 +17,8 @@ FrameBuffer::FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clea
 void FrameBuffer::Resize(uint width, uint height) {
 	m_realWidth = width;
 	m_realHeight = height;
-	m_width = FBOScaleToFloat(m_scale) * m_realWidth;
-	m_height = FBOScaleToFloat(m_scale) * m_realHeight;
+	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
+	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
 
 	for (Texture* texture : m_textures) {
 		texture->Resize(m_width, m_height);
@@ -105,5 +105,5 @@ void FrameBufferManager::OnImGUI() {
 
 void FrameBufferManager::BindDefaultFBO() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	GL(glViewport(0, 0, GetApp()->GetWidth(), GetApp()->GetHeight()));
+	GL(glViewport(0, 0, GetApp()->GetWidth<GLsizei>(), GetApp()->GetHeight<GLsizei>()));
 }

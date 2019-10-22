@@ -12826,6 +12826,13 @@ void ImGui::ShowDockingDebug() {
 	}
 }
 
+//ImVec2 ImGui::GetDockedWindowPos(ImGuiID nodeID) {
+//	ImGuiContext& g = *GImGui;
+//	ImGuiWindow* window = GetCurrentWindowRead();
+//	ImGuiDockNode* node = DockContextFindNodeByID(GImGui, nodeID);
+//	return node->Pos - window->Pos;
+//}
+
 //-----------------------------------------------------------------------------
 
 // Include imgui_user.inl at the end of imgui.cpp to access private data/functions that aren't exposed.

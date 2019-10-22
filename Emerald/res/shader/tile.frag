@@ -32,7 +32,7 @@ void main(){
 
 	//float mipmapLevel = textureQueryLod(_Albedo, fsData.uv).x / 7;
 
-	geoData[0] = vec4(roughness, metallic, emission, 0);
+	geoData[0] = vec4(roughness, metallic, emission, 1);
 	geoData[1] = vec4(albedo.rgb, 1.0);
 	geoData[2] = vec4(worldNormal, 1.0);
 	geoData[3] = vec4(fsData.pos, 1.0);

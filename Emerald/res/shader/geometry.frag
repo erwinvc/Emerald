@@ -45,8 +45,9 @@ void main(){
 
 	vec3 iridescence = texture(_Iridescence, vec2(fresnel, 0) + noise.r).rgb;
 
-	geoData[0] = vec4(specular, metallic, 0, 0);
-	geoData[1] = vec4(albedo.rgb + (iridescence * noise), 1.0);
+	geoData[0] = vec4(specular, metallic, 0, 1);
+	geoData[1] = vec4(albedo.rgb, 1.0);
+	//geoData[1] = vec4(albedo.rgb + (iridescence * noise), 1.0);
 	geoData[2] = vec4(finalNormal, 1.0);
 	geoData[3] = vec4(fsData.pos, 1.0);
 }

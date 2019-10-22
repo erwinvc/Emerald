@@ -12,12 +12,15 @@ uniform float _AmbientIntensity;
 uniform bool _SSAOEnabled;
 
 void main(){
+	vec4 misc = texture(_GMisc, fsUV);
 	vec3 albedo = texture(_GAlbedo, fsUV).xyz;
-	float emission = texture(_GMisc, fsUV).z * 2;
+	float emission = misc.z * 2;
 	float ssao = texture(_SSAO, fsUV).x;
+
+	float lightInfluence = misc.w;
+	//if(lightInfluence == 1) 
 	//if(emission == 0) discard;
 
-
-	outColor[0] = vec3(albedo * emission + albedo * _AmbientIntensity) * ssao;
+	outColor[0] = mix(albedo, vec3(albedo * emission + albedo * _AmbientIntensity) * ssao, lightInfluence);
 	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);
 }

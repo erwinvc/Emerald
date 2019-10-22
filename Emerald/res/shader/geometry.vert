@@ -24,13 +24,15 @@ void main(){
 	vec3 tangent = normalize(vsTangents - dot(vsNormal, vsTangents) * vsNormal);
 	vec3 biTangent = cross(vsNormal, tangent);
 
-	fsData.normal = (_TransformationMatrix * vec4(vsNormal, 0.0)).xyz;
-    fsData.TBNMatrix = mat3((_TransformationMatrix * vec4(tangent, 0.0)).xyz, (_TransformationMatrix * vec4(biTangent, 0.0)).xyz, fsData.normal);
+	mat3 normalMatrix = transpose(inverse(mat3(_TransformationMatrix)));
+    fsData.normal = normalMatrix * vsNormal;
+    fsData.TBNMatrix = mat3(normalMatrix * tangent, normalMatrix * biTangent, fsData.normal);
 
-	fsData.pos = (_TransformationMatrix * vec4(vsPos, 1.0)).xyz;
-	fsData.uv = vec2(vsUv.x, -vsUv.y);
+	vec4 viewPos = _TransformationMatrix * vec4(vsPos, 1.0);
+	fsData.pos = viewPos.xyz;
+	fsData.uv = vsUv;
 
 	fsData.viewDirection = _CameraPosition - fsData.pos;
-	gl_Position = _ProjectionMatrix * _ViewMatrix * vec4(fsData.pos, 1.0);
+	gl_Position = _ProjectionMatrix * _ViewMatrix * viewPos;
 }
 

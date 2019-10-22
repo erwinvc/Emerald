@@ -194,7 +194,7 @@ void RenderingPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_Gamma", m_gamma);
 	m_hdrShader->Set("_Exposure", m_exposure);
 	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
-	m_hdrShader->Set("_ScreenSize", Vector2(GetApp()->GetWidth(), GetApp()->GetHeight()));
+	m_hdrShader->Set("_ScreenSize", Vector2(GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>()));
 	m_hdrShader->Set("_Chromatic", m_chromatic);
 	m_hdrShader->Set("_Bloom", m_bloom);
 	GetFrameBufferManager()->GetSelectedTexture()->Bind(0);
@@ -228,7 +228,7 @@ void RenderingPipeline::OnImGUI() {
 				ImGui::Checkbox("Bloom##2", &m_bloom);
 				ImGui::SliderFloat("Bloom factor", &m_bloomFactor, 0, 2.0f);
 				ImGui::SliderFloat("Bloom multiplier", &m_bloomMultiplier, 0, 5.0f);
-				ImGui::SliderFloat("Chromatic", &m_chromatic, -0.01, 0.01f);
+				ImGui::SliderFloat("Chromatic", &m_chromatic, -0.01f, 0.01f);
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
@@ -286,5 +286,5 @@ void RenderingPipeline::OnResize(uint width, uint height) {
 	//m_gBuffer->Resize(width, height);
 	// m_hdrBuffer->Resize(width, height);
 	//m_ssaoRenderer->Resize(width, height);
-	m_camera->SetViewport(width, height);
+	m_camera->SetViewport(0, 0, width, height);
 }

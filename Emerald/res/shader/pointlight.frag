@@ -117,7 +117,7 @@ void main(){
     float at = 1.0 - d;
 
 	color *= ztest * at;
-	outColor[0] = vec3(mix(color, albedo, lightInfluence));
+	outColor[0] = vec3(mix(albedo, color, lightInfluence));
 	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);
 }
 

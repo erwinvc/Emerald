@@ -163,4 +163,8 @@ namespace Math {
 	inline float Floor(float val) {
 		return ::floor(val);
 	}
+
+	inline float Map(float value, float minFrom, float maxFrom, float minTo, float maxTo) {
+		return minTo + (maxTo - minTo) * ((value - minFrom) / (maxFrom - minFrom));
+	}
 }

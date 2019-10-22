@@ -29,7 +29,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 
     return nom / denom;
 }
-// ----------------------------------------------------------------------------
+
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
     float r = (roughness + 1.0);
@@ -40,7 +40,7 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 
     return nom / denom;
 }
-// ----------------------------------------------------------------------------
+
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 {
     float NdotV = max(dot(N, V), 0.0);
@@ -51,14 +51,11 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-// Shlick's approximation of the Fresnel factor.
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-//uniform float _Roughness;
-//uniform float _Metallic = 0;
 uniform float _BloomFactor;
 void main(){
 	vec4 misc = texture(_GMisc, fsUV);
@@ -93,35 +90,8 @@ void main(){
 
     vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 
-	vec3 ambient = vec3(0.03) * albedo * ssao;
-	vec3 color = Lo;
+	vec3 color = Lo* ssao;
 
-
-	outColor[0] = vec3(mix(color, albedo, lightInfluence));
+	outColor[0] = vec3(mix(albedo, color, lightInfluence));
 	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);
 }
-
-//void main()
-//{
-//	vec3 misc = texture(_GMisc, FSUV).xyz;
-//	vec3 albedo = texture(_GAlbedo, FSUV).xyz;
-//	vec3 normal = normalize(texture(_GNormal, FSUV).xyz);
-//	vec3 position = texture(_GPosition, FSUV).xyz;
-//	float ssao = texture(_SSAO, FSUV).x;
-//
-//	float specular = misc.x;
-//	float lightInfluence = misc.y;
-//
-//	vec3 l = normalize(_Directional);
-//	vec3 v = normalize(_CameraPosition - position);
-//	vec3 h = normalize(l + v);
-//
-//	vec3 color = 
-//	_Diffuse * albedo.xyz * max(0.0, dot(normal.xyz, l)) +
-//	specular * pow(max(0.0, dot(h, normal)), 32.0) +
-//	_Ambient * albedo.xyz;
-//
-//	vec3 finalColor = mix(color * _Color.rgb * (_SSAOEnabled ? ssao : 1), albedo, misc.y);
-//	//vec3 finalColor = mix(color * _Color.rgb, albedo, misc.y);
-//	OutColor = vec4(finalColor, 1.0);
-//}

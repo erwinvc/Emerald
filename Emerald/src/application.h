@@ -40,8 +40,11 @@ public:
 	uint64_t GetFrameCount() { return m_frameCount; }
 	RenderingPipeline* GetPipeline() { return m_pipeline; }
 
-	inline float GetWidth() { return m_window->GetWidth(); }
-	inline float GetHeight() { return m_window->GetHeight(); }
+	template<typename T>
+	inline float GetWidth() { return m_window->GetWidth<T>(); }
+
+	template<typename T>
+	inline float GetHeight() { return m_window->GetHeight<T>(); }
 	inline float GetAspect() { return m_window->GetAspect(); }
 
 };
@@ -51,5 +54,5 @@ static Application* GetApp() {
 }
 
 static RenderingPipeline* GetPipeline() { return Application::GetInstance()->GetPipeline(); }
-static AssetRef<Camera> GetCamera() { return Application::GetInstance()->GetPipeline()->GetCamera(); }
+static Camera* GetCamera() { return Application::GetInstance()->GetPipeline()->GetCamera(); }
 //static GBuffer* GetGBuffer() { return Application::GetInstance()->GetPipeline()->GetGBuffer(); }
