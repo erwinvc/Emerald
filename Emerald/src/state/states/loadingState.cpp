@@ -36,6 +36,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "res/shader/ssaoBlur")));
 	m_batch->Add(NEW(ShaderLoader("Gaussian", "res/shader/gaussian")));
 	m_batch->Add(NEW(ShaderLoader("EmissionAmbient", "res/shader/emissionAmbient")));
+	m_batch->Add(NEW(ShaderLoader("SSR", "res/shader/ssr")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
 	m_batch->Add(NEW(ModelLoader("Tile", "res/tiles/tile.obj")));

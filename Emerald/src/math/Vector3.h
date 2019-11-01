@@ -8,6 +8,7 @@ struct Vector3 {
 	union {
 		struct { float x, y, z; };
 		struct { float pitch, yaw, roll; };
+		float values[3];
 	};
 
 	Vector3();

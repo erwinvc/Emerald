@@ -3,16 +3,20 @@ in vec2 fsUV;
 
 out vec3 outColor[2];
 
-uniform sampler2D _GMisc;
+uniform sampler2D _Depth;
 uniform sampler2D _GAlbedo;
 uniform sampler2D _GNormal;
-uniform sampler2D _GPosition;
+uniform sampler2D _GMisc;
 uniform sampler2D _SSAO;
+
+uniform mat4 _Projection;
+uniform mat4 _View;
 
 uniform vec4 _Color;
 uniform vec3 _Directional;
 uniform vec3 _CameraPosition;
 uniform bool _SSAOEnabled;
+uniform float _BloomFactor;
 
 const float PI = 3.14159265359;
 
@@ -56,12 +60,20 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-uniform float _BloomFactor;
+vec3 GetPosition(vec2 coord){
+	float z = texture(_Depth, coord).x * 2.0f - 1.0f;
+	vec4 clipSpacePosition = vec4(coord * 2.0 - 1.0, z, 1.0);
+	vec4 viewSpacePosition = inverse(_Projection) * clipSpacePosition;
+	viewSpacePosition /= viewSpacePosition.w;
+	vec4 worldSpacePosition = inverse(_View) * viewSpacePosition;
+	return worldSpacePosition.xyz;
+}
+
 void main(){
 	vec4 misc = texture(_GMisc, fsUV);
 	vec3 albedo = texture(_GAlbedo, fsUV).rgb;
 	vec3 N = normalize(texture(_GNormal, fsUV).rgb);
-	vec3 position = texture(_GPosition, fsUV).rgb;
+	vec3 position = GetPosition(fsUV);
 	float ssao = texture(_SSAO, fsUV).x;
 	float roughness = max(misc.x, 0.05);
 	float metallic = misc.y;

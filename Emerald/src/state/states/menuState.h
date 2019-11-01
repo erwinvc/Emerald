@@ -34,12 +34,12 @@ public:
 		Model* model = new Model();
 		model->LoadModel("res/sponza/sponza.obj");
 		sponzaEntity = new Entity(model);
-		sponzaEntity->m_scale = Vector3(0.1f, 0.1f, 0.1f);
-		sponzaEntity->m_position.z = 4;
+		sponzaEntity->m_transform.m_size = Vector3(0.1f, 0.1f, 0.1f);
+		sponzaEntity->m_transform.m_position.z = 4;
 		//GetCamera()->m_position.y = -2;
 		GetCamera()->m_position = Vector3(-1.3f, 0.96f, 0);
 		GetCamera()->m_rotation.y = Math::HALF_PI;
-		m_moriEntity->m_position.y = 0.5f;
+		m_moriEntity->m_transform.m_position.y = 0.5f;
 		GetPipeline()->m_directionalLight.m_multiplier = 5.0f;
 		for (int i = 0; i < LIGHTCOUNT; i++) {
 			m_positions.push_back(Vector3(Math::RandomFloat(-150.0f, 130.0f), Math::RandomFloat(0.0f, 90.0f), Math::RandomFloat(-60.0f, 60.0f)));
@@ -49,14 +49,16 @@ public:
 	bool disableMori = false;
 	bool moveLights = false;
 	bool irid = false;
+	int amount = 0;
 	void Update(const TimeStep& time) override {
 		GetCamera()->Update(time);
 		static float seconds = 0;
 		seconds += time.GetSeconds();
-		m_moriEntity->m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
+		m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
 
 		if (moveLights) {
-			for (int i = 0; i < LIGHTCOUNT; i++) {
+			amount = Math::Clamp(amount + 5, 0, LIGHTCOUNT);
+			for (int i = 0; i < amount; i++) {
 				m_pointLights[i].m_position.Lerp(m_positions[i], time.GetSeconds() / 4.0f);
 			}
 		}
@@ -99,37 +101,38 @@ public:
 						Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
 							irid = true;
 							Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
-								//irid = false;
+
 								Tween::To(GetCamera()->m_position, Vector3(-105, 32, 0), 5000)->SetEase(Ease::INOUTEXPO);
 								Tween::To(GetCamera()->m_rotation, Vector3(0.2f, Math::HALF_PI, 0), 5000)->SetEase(Ease::INOUTEXPO);
 								Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
 									disableMori = true;
 									GetPipeline()->m_applyPostProcessing = false;
 									GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetGBuffer()->m_colorTexture);
+
 									Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
 										GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetGBuffer()->m_normalTexture);
+
 										Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-											GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetGBuffer()->m_positionTexture);
+											GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetGBuffer()->m_attributesTexture);
+
 											Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-												GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetGBuffer()->m_attributesTexture);
+												GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->m_ssaoRenderer->GetRawTexture());
+
 												Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-													GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->m_ssaoRenderer->GetRawTexture());
-													Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-														GetPipeline()->m_applyPostProcessing = true;
-														GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetHDRTexture());
+													GetPipeline()->m_applyPostProcessing = true;
+													GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetHDRTexture());
 
-														Tween::To(GetPipeline()->m_ambientIntensity, 0.01f, 2500);
-														Tween::To(GetPipeline()->m_directionalLight.m_multiplier, 0.0f, 2500);
-														Tween::To(temp, 0.0f, 2000)->SetOnComplete([&] {
+													Tween::To(GetPipeline()->m_ambientIntensity, 0.01f, 2500);
+													Tween::To(GetPipeline()->m_directionalLight.m_multiplier, 0.0f, 2500);
+													Tween::To(temp, 0.0f, 2000)->SetOnComplete([&] {
 
-															for (int i = 0; i < LIGHTCOUNT; i++) {
-																m_pointLights.push_back(Pointlight(Vector3(0, 2, 0), 5, Color::RandomPrimary()));
-															}
-															Tween::To(temp, 0.0f, 1000)->SetOnComplete([&] {
-																moveLights = true;
-																Tween::To(GetPipeline()->m_exposure, 4.0f, 1000)->SetOnComplete([&] {
+														for (int i = 0; i < LIGHTCOUNT; i++) {
+															m_pointLights.push_back(Pointlight(Vector3(0, 2, 0), 5, Color::RandomPrimary()));
+														}
+														Tween::To(temp, 0.0f, 1000)->SetOnComplete([&] {
+															moveLights = true;
+															Tween::To(GetPipeline()->m_exposure, 4.0f, 1000)->SetOnComplete([&] {
 
-																});
 															});
 														});
 													});

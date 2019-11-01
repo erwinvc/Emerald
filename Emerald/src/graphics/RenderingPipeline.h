@@ -12,7 +12,6 @@ public:
 	AssetRef<Shader> m_emissionAmbientShader;
 
 	//SSAO
-	bool m_ssaoEnabled = true;
 	SSAORenderer* m_ssaoRenderer = nullptr;
 
 	//HDR
@@ -23,6 +22,11 @@ public:
 	AssetRef<Texture> m_hdrBrightTexture;
 	AssetRef<Shader> m_hdrShader;
 	AssetRef<Mesh> m_quad;
+
+	//SSR
+	AssetRef<FrameBuffer> m_ssrBuffer;
+	AssetRef<Texture> m_ssrTexture;
+	AssetRef<Shader> m_ssrShader;
 
 	//Bloom
 	AssetRef<Shader> m_gaussianShader;

@@ -5,11 +5,14 @@ in vec2 fsUv;
 
 const int KERNELSIZE = 64;
 
-uniform sampler2D _GMisc;
+uniform sampler2D _Depth;
 uniform sampler2D _GAlbedo;
 uniform sampler2D _GNormal;
-uniform sampler2D _GPosition;
+uniform sampler2D _GMisc;
 uniform sampler2D _Noise;
+
+uniform mat4 _Projection;
+uniform mat4 _View;
 
 uniform vec3 _Samples[KERNELSIZE];
 
@@ -17,9 +20,6 @@ uniform int _SampleCount;
 uniform float _Radius;
 uniform float _Bias;
 uniform int _Power;
-
-uniform mat4 _Projection;
-uniform mat4 _View;
 
 uniform vec2 _ScreenSize;
 uniform vec2 _CameraPlanes;
@@ -40,10 +40,20 @@ uniform vec2 _CameraPlanes;
 //    return clip.xyz/clip.w;
 //}
 
+vec3 GetPosition(vec2 coord){
+	float z = texture(_Depth, coord).x * 2.0f - 1.0f;
+	vec4 clipSpacePosition = vec4(coord * 2.0 - 1.0, z, 1.0);
+	vec4 viewSpacePosition = inverse(_Projection) * clipSpacePosition;
+	viewSpacePosition /= viewSpacePosition.w;
+	vec4 worldSpacePosition = inverse(_View) * viewSpacePosition;
+	return worldSpacePosition.xyz;
+}
+
 void main(){
 	vec4 misc = texture(_GMisc, fsUv);
-	vec3 fragPos = (_View * vec4(texture(_GPosition, fsUv).xyz, 1.0)).xyz;
-    vec3 normal = normalize(texture(_GNormal, fsUv).rgb);
+	//vec3 fragPos = (_View * vec4(texture(_GPosition, fsUv).xyz, 1.0)).xyz;
+    vec3 fragPos = (_View * vec4(GetPosition(fsUv), 1.0)).xyz;
+	vec3 normal = normalize(texture(_GNormal, fsUv).rgb);
     vec3 randomVec = normalize(texture(_Noise, fsUv * _ScreenSize).xyz);
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
     vec3 bitangent = cross(normal, tangent);
@@ -59,14 +69,14 @@ void main(){
         offset.xyz /= offset.w;
         offset.xyz = offset.xyz * 0.5 + 0.5;
         
-        float sampleDepth = (_View * vec4(texture(_GPosition, offset.xy).xyz, 1.0)).z;
+        float sampleDepth =(_View * vec4(GetPosition(offset.xy), 1.0)).z;
         
         float rangeCheck = smoothstep(0.0, 1.0, _Radius / abs(fragPos.z - sampleDepth));
         occlusion += (sampleDepth <= sample.z + _Bias ? 1.0 : 0.0) * rangeCheck;      
 	}
     occlusion = (occlusion / _SampleCount);
     occlusion = pow(occlusion, _Power);
-    FragColor = vec3(occlusion,occlusion,occlusion);
+    FragColor = vec3(occlusion, occlusion, occlusion);
 }
 
 //HBAO https://blenderartists.org/t/bge-hbao-ambient-occlusion-shader/690374

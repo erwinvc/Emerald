@@ -9,19 +9,20 @@ void RenderingPipeline::Initialize() {
 	//#Dirty add proper shader asset loading
 	m_directionalLightShader = GetShaderManager()->Get("Directional");
 	m_directionalLightShader->Bind();
-	m_directionalLightShader->Set("_GMisc", 0);
+	m_directionalLightShader->Set("_Depth", 0);
 	m_directionalLightShader->Set("_GAlbedo", 1);
 	m_directionalLightShader->Set("_GNormal", 2);
-	m_directionalLightShader->Set("_GPosition", 3);
+	m_directionalLightShader->Set("_GMisc", 3);
 	m_directionalLightShader->Set("_SSAO", 4);
 
 	m_pointLightShader = GetShaderManager()->Get("Pointlight");
 	m_pointLightShader->Bind();
-	m_pointLightShader->Set("_GMisc", 0);
+	m_pointLightShader->Set("_Depth", 0);
 	m_pointLightShader->Set("_GAlbedo", 1);
 	m_pointLightShader->Set("_GNormal", 2);
-	m_pointLightShader->Set("_GPosition", 3);
+	m_pointLightShader->Set("_GMisc", 3);
 	m_pointLightShader->Set("_SSAO", 4);
+
 	m_gaussianShader = GetShaderManager()->Get("Gaussian");
 	m_gaussianShader->Bind();
 	m_gaussianShader->Set("_Bright", 0);
@@ -37,6 +38,17 @@ void RenderingPipeline::Initialize() {
 	m_hdrShader->Bind();
 	m_hdrShader->Set("_HDRBuffer", 0);
 	m_hdrShader->Set("_HDRBloom", 1);
+
+	m_ssrShader = GetShaderManager()->Get("SSR");
+	m_ssrShader->Bind();
+	m_ssrShader->Set("_Depth", 0);
+	m_ssrShader->Set("_GAlbedo", 1);
+	m_ssrShader->Set("_GNormal", 2);
+	m_ssrShader->Set("_GMisc", 3);
+	m_ssrShader->Set("_HDR", 4);
+
+	m_ssrBuffer = GetFrameBufferManager()->Create("SSR", FBOScale::FULL, false);
+	m_ssrTexture = m_ssrBuffer->AddBuffer("SSR", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", FBOScale::FULL, false);
 	m_hdrTexture = m_hdrBuffer->AddBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
@@ -105,7 +117,7 @@ void RenderingPipeline::PostGeometryRender() {
 
 	GL(glDisable(GL_DEPTH_TEST));
 
-	if (m_ssaoEnabled) m_ssaoRenderer->Render(m_gBuffer);
+	m_ssaoRenderer->Render(m_gBuffer);
 
 	//Draw to HDR
 	m_hdrBuffer->Bind();
@@ -116,12 +128,11 @@ void RenderingPipeline::PostGeometryRender() {
 
 	//Emission
 	m_gBuffer->BindTextures();
-	if (m_ssaoEnabled) m_ssaoRenderer->GetTexture()->Bind(2);
-	else GetTextureManager()->GetWhiteTexture()->Bind(2);
+	m_ssaoRenderer->GetTexture()->Bind(2);
 	m_emissionAmbientShader->Bind();
 	m_emissionAmbientShader->Set("_BloomFactor", m_bloomFactor);
 	m_emissionAmbientShader->Set("_AmbientIntensity", m_ambientIntensity);
-	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
+	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoRenderer->m_enabled);
 	m_quad->Bind();
 	m_quad->Draw();
 
@@ -129,15 +140,16 @@ void RenderingPipeline::PostGeometryRender() {
 	m_directionalLightShader->Bind();
 
 	m_gBuffer->BindTextures();
-	if (m_ssaoEnabled) m_ssaoRenderer->GetTexture()->Bind(4);
-	else GetTextureManager()->GetWhiteTexture()->Bind(4);
+	m_ssaoRenderer->GetTexture()->Bind(4);
 	m_directionalLightShader->Set("_Color", m_directionalLight.GetColor());
 	m_directionalLightShader->Set("_Directional", m_directionalLight.GetDirection());
 	m_directionalLightShader->Set("_CameraPosition", m_camera->m_position);
-	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
+	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoRenderer->m_enabled);
 	m_directionalLightShader->Set("_Roughness", roughness);
 	m_directionalLightShader->Set("_Metallic", metallic);
 	m_directionalLightShader->Set("_BloomFactor", m_bloomFactor);
+	m_directionalLightShader->Set("_Projection", m_camera->GetProjectionMatrix());
+	m_directionalLightShader->Set("_View", m_camera->GetViewMatrix());
 	m_quad->Bind();
 	m_quad->Draw();
 
@@ -146,13 +158,11 @@ void RenderingPipeline::PostGeometryRender() {
 	//Draw pointlights
 	m_pointLightShader->Bind();
 	m_gBuffer->BindTextures();
-
-	if (m_ssaoEnabled) m_ssaoRenderer->GetTexture()->Bind(4);
-	else GetTextureManager()->GetWhiteTexture()->Bind(4);
-	m_pointLightShader->Set("projectionMatrix", m_camera->GetProjectionMatrix());
-	m_pointLightShader->Set("viewMatrix", m_camera->GetViewMatrix());
+	m_ssaoRenderer->GetTexture()->Bind(4);
+	m_pointLightShader->Set("_Projection", m_camera->GetProjectionMatrix());
+	m_pointLightShader->Set("_View", m_camera->GetViewMatrix());
 	m_pointLightShader->Set("_CameraPosition", m_camera->m_position);
-	m_pointLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
+	m_pointLightShader->Set("_SSAOEnabled", m_ssaoRenderer->m_enabled);
 	//m_pointLightShader->Set("_Roughness", roughness);
 	//m_pointLightShader->Set("_Metallic", metallic);
 	m_pointLightShader->Set("_BloomFactor", m_bloomFactor);
@@ -163,6 +173,21 @@ void RenderingPipeline::PostGeometryRender() {
 
 	//Draw to screen
 	GL(glDisable(GL_BLEND));
+
+	m_ssrBuffer->Bind();
+	m_ssrBuffer->Clear();
+	m_ssrShader->Bind();
+	m_gBuffer->BindTextures();
+	m_hdrTexture->Bind(4);
+	m_ssrShader->Set("_Projection", m_camera->GetProjectionMatrix());
+	m_ssrShader->Set("_View", m_camera->GetViewMatrix());
+	m_ssrShader->Set("_InverseProjection", m_camera->GetProjectionMatrix().Invert());
+	m_ssrShader->Set("_InverseView", m_camera->GetViewMatrix().Invert());
+	m_ssrShader->Set("_CameraPosition", m_camera->m_position);
+	m_quad->Bind();
+	m_quad->Draw();
+
+	m_ssrBuffer->Unbind();
 
 	bool horizontal = true, first_iteration = true;
 	int amount = 8;
@@ -250,7 +275,7 @@ void RenderingPipeline::OnImGUI() {
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("SSAO")) {
-				ImGui::Checkbox("Enabled", &m_ssaoEnabled);
+				ImGui::Checkbox("Enabled", &m_ssaoRenderer->m_enabled);
 				m_ssaoRenderer->OnImGui();
 				ImGui::TreePop();
 			}

@@ -180,7 +180,7 @@ public:
 			ImGui::PushItemWidth(-130);
 			switch (uniform.GetType()) {
 				case ShaderUniformType::INT: if (ImGui::InputInt(uniform.GetName().c_str(), (int*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;
-				case ShaderUniformType::FLOAT: if (ImGui::SliderFloat(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()], 0, 1)) { SetUniformGL(uniform); } break;
+				case ShaderUniformType::FLOAT: if (ImGui::InputFloat(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;
 				case ShaderUniformType::VEC2: if (ImGui::InputFloat2(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;
 				case ShaderUniformType::VEC3: if (ImGui::InputFloat3(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;
 				case ShaderUniformType::VEC4: if (ImGui::InputFloat4(uniform.GetName().c_str(), (float*)&m_data[uniform.GetOffset()])) { SetUniformGL(uniform); } break;

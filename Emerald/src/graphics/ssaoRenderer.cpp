@@ -5,8 +5,8 @@ SSAORenderer::~SSAORenderer() {
 SSAORenderer::SSAORenderer() : m_texture(nullptr), m_textureBlur(nullptr), m_noiseTexture(nullptr), m_shader(nullptr), m_shaderBlur(nullptr), m_quad(nullptr) {
 	m_fbo = GetFrameBufferManager()->Create("SSAO", FBOScale::FULL, false);
 	m_fboBlur = GetFrameBufferManager()->Create("SSAOBlur", FBOScale::FULL, false);
-	m_texture = m_fbo->AddBuffer("SSAO", TextureParameters(RED, RED, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
-	m_textureBlur = m_fboBlur->AddBuffer("SSAOBlur", TextureParameters(RED, RED, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
+	m_texture = m_fbo->AddBuffer("SSAO", TextureParameters(RGB, RGB, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
+	m_textureBlur = m_fboBlur->AddBuffer("SSAOBlur", TextureParameters(RGB, RGB, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 
 	m_shader = GetShaderManager()->Get("SSAO");
 	m_shaderBlur = GetShaderManager()->Get("SSAOBlur");
@@ -31,17 +31,19 @@ SSAORenderer::SSAORenderer() : m_texture(nullptr), m_textureBlur(nullptr), m_noi
 	m_quad = MeshGenerator::Quad();
 
 	m_shader->Bind();
-	m_shader->Set("_GMisc", 0);
+	m_shader->Set("_Depth", 0);
 	m_shader->Set("_GAlbedo", 1);
 	m_shader->Set("_GNormal", 2);
-	m_shader->Set("_GPosition", 3);
+	m_shader->Set("_GMisc", 3);
 	m_shader->Set("_Noise", 4);
+
 	m_shader->Set("_Samples", m_kernels.data(), m_kernels.size());
 
 	LOG("[~bRenderer~x] SSAO initialized");
 }
 
 void SSAORenderer::Render(GBuffer* gBuffer) {
+	if (!m_enabled) return;
 	GL(glFrontFace(GL_CW));
 
 	m_fbo->Bind();
@@ -69,3 +71,5 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_fboBlur->Unbind();
 	GL(glFrontFace(GL_CCW));
 }
+
+Texture* SSAORenderer::GetTexture() { return m_enabled ? m_textureBlur : GetTextureManager()->GetWhiteTexture(); }

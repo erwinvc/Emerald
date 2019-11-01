@@ -8,7 +8,7 @@ FrameBuffer::FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clea
 	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
 
 	GL(glGenFramebuffers(1, &m_fbo));
-	AddBuffer("Depth", TextureParameters(DEPTH, DEPTH, NEAREST, CLAMP_TO_EDGE, T_FLOAT), FBOAttachment::DEPTH);
+	AddBuffer("Depth", TextureParameters(DEPTH32, DEPTH, NEAREST, CLAMP_TO_EDGE, T_FLOAT), FBOAttachment::DEPTH);
 
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 	if (CheckStatus()) LOG("[~cBuffers~x] Created ~1%s~x framebuffer", m_name.c_str());

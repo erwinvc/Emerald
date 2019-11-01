@@ -8,7 +8,6 @@ public:
 	AssetRef<Texture> m_attributesTexture;
 	AssetRef<Texture> m_colorTexture;
 	AssetRef<Texture> m_normalTexture;
-	AssetRef<Texture> m_positionTexture;
 
 	GBuffer();
 	GBuffer::~GBuffer() {

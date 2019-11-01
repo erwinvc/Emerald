@@ -24,7 +24,7 @@ uniform sampler2D _Iridescence;
 uniform sampler2D _Noise;
 uniform float _IridescenceStrength;
 
-out vec4 geoData[4];
+out vec4 geoData[3];
 
 void main(){
 	vec4 albedo = texture(_Albedo, fsData.uv).rgba;
@@ -48,7 +48,6 @@ void main(){
 	geoData[1] = vec4(mix(albedo.rgb, iridescence * noise, Iri), 1.0);
 	//geoData[1] = vec4((iridescence * noise), 1.0);
 	geoData[2] = vec4(finalNormal, 1.0);
-	geoData[3] = vec4(fsData.pos, 1.0);
 }
 
 

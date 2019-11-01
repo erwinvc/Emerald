@@ -7,7 +7,8 @@ private:
 		Vector3 m_end;
 		Color m_color;
 
-		Line(float x1, float y1, float z1, float x2, float y2, float z2, Color& color) : m_begin(x1, y1, z1), m_end(x2, y2, z2), m_color(color) {}
+		Line(const float x1, const float y1, const float z1, const float x2, const  float y2, const  float z2, Color& color) : m_begin(x1, y1, z1), m_end(x2, y2, z2), m_color(color) {}
+		Line(const Vector3 begin, const Vector3 end, Color& color) : m_begin(begin), m_end(end), m_color(color) {}
 		Line() : m_begin(), m_end(), m_color() {}
 	};
 
@@ -22,7 +23,7 @@ private:
 	friend Singleton;
 public:
 	void Begin();
-	void Submit(Vector3& begin, Vector3& end, Color& color);
+	void Submit(Vector3 begin, Vector3 end, Color color);
 	void Submit(float x1, float y1, float z1, float x2, float y2, float z2, Color& color);
 	void End();
 	void Draw();

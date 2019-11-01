@@ -13,6 +13,8 @@ private:
 
 	vector<Vector3> m_kernels;
 public:
+	bool m_enabled = true;
+
 	const int KERNELCOUNT = 64;
 
 	float m_radius = 0.5f;
@@ -25,8 +27,8 @@ public:
 
 	void Render(GBuffer* gBuffer);
 
-	AssetRef<Texture> GetTexture() { return m_textureBlur; }
-	AssetRef<Texture> GetRawTexture() { return m_texture; }
+	Texture* GetTexture();
+	Texture* GetRawTexture() { return m_texture; }
 
 	void OnImGui() {
 		ImGui::SliderFloat("Bias", &m_radius, 0, 1);

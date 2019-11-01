@@ -38,6 +38,7 @@ public:
 		m_buffer += size;
 		m_amount += size;
 	}
+
 	void Submit(T& offset) {
 		if (m_amount >= m_maxObjects) return;
 		*m_buffer = offset;

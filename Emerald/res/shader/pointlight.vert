@@ -7,8 +7,8 @@ out vec4 fsPos;
 out vec4 newPos;
 out vec4 color;
 
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
+uniform mat4 _Projection;
+uniform mat4 _View;
 
 //uniform float uLightRadius;
 //uniform vec3 uLightPosition;
@@ -16,7 +16,7 @@ uniform mat4 viewMatrix;
 void main(){
 	float uLightRadius = vars.w;
 	vec3 uLightPosition = vars.xyz;
-	vec4 pos = projectionMatrix * viewMatrix * vec4((vsPos * uLightRadius) + uLightPosition, 1.0);
+	vec4 pos = _Projection * _View * vec4((vsPos * uLightRadius) + uLightPosition, 1.0);
 
 	gl_Position = pos;
 	fsPos = pos;

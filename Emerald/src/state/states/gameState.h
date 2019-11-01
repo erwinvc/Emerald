@@ -28,8 +28,8 @@ public:
 		for (int i = 0; i < 4; i++) {
 			m_entities[i] = new Entity(m_model);
 		}
-		m_turtleEntity->m_position.y += 10;
-		m_turtleEntity->m_scale = Vector3(10, 10, 10);
+		m_turtleEntity->m_transform.m_position.y += 10;
+		m_turtleEntity->m_transform.m_size = Vector3(10, 10, 10);
 	}
 
 
@@ -50,10 +50,10 @@ public:
 		m_geometryShader->Set("_CameraPosition", GetCamera()->m_position);
 
 		CornerRayPositions positions = Camera::GetCornerRays(0);
-		m_entities[0]->m_position = positions.TL;
-		m_entities[1]->m_position = positions.TR;
-		m_entities[2]->m_position = positions.BR;
-		m_entities[3]->m_position = positions.BL;
+		m_entities[0]->m_transform.m_position = positions.TL;
+		m_entities[1]->m_transform.m_position = positions.TR;
+		m_entities[2]->m_transform.m_position = positions.BR;
+		m_entities[3]->m_transform.m_position = positions.BL;
 		
 		for (int i = 0; i < 4; i++) {
 			m_entities[i]->Draw(m_geometryShader);

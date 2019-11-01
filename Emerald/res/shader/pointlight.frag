@@ -1,10 +1,13 @@
 #version 400 core
 
-uniform sampler2D _GMisc;
+uniform sampler2D _Depth;
 uniform sampler2D _GAlbedo;
 uniform sampler2D _GNormal;
-uniform sampler2D _GPosition;
+uniform sampler2D _GMisc;
 uniform sampler2D _SSAO;
+
+uniform mat4 _Projection;
+uniform mat4 _View;
 
 in vec4 fsPos;
 in vec4 newPos;
@@ -69,6 +72,16 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 //uniform float _Roughness;
 //uniform float _Metallic;
 
+vec3 GetPosition(vec2 coord){
+	float z = texture(_Depth, coord).x * 2.0f - 1.0f;
+	vec4 clipSpacePosition = vec4(coord * 2.0 - 1.0, z, 1.0);
+	vec4 viewSpacePosition = inverse(_Projection) * clipSpacePosition;
+
+	viewSpacePosition /= viewSpacePosition.w;
+	vec4 worldSpacePosition = inverse(_View) * viewSpacePosition;
+	return worldSpacePosition.xyz;
+}
+
 void main(){
 	float uLightRadius = newPos.w;
 	vec2 uv = (fsPos.xy / fsPos.w) * 0.5 + 0.5;
@@ -80,7 +93,8 @@ void main(){
 
 	vec3 albedo = texture(_GAlbedo, uv).xyz;
 	vec3 N = normalize(texture(_GNormal, uv).xyz);
-	vec3 position = texture(_GPosition, uv).xyz;
+	vec3 position = GetPosition(uv);
+	//vec3 position = GetPosition(uv).xyz;
 	float ssao = texture(_SSAO, uv).x;
 
 
@@ -91,23 +105,27 @@ void main(){
 	vec3 lightPos = newPos.xyz;
     vec3 lightToPosVector = position.xyz - lightPos;
     float lightDist = length(lightToPosVector);  
-    vec3 L = -lightToPosVector / (lightDist);
+    //vec3 L = -lightToPosVector / (lightDist);
+	vec3 L = normalize(lightPos - position);
     vec3 H = normalize(V + L);
-    float attenuation = 1.0 / (lightDist * lightDist);
+    float attenuation = clamp(1.0 - lightDist/(uLightRadius), 0.0, 1.0);
+	attenuation *= attenuation; 
+	//float attenuation = 1.0 / (1.0 + 0.1*lightDist + 0.01*lightDist*lightDist); 
+	//float attenuation = 1.0f / (lightDist * lightDist);
     vec3 radiance = color.rgb * attenuation;
 
     float NDF = DistributionGGX(N, H, roughness);   
     float G   = GeometrySmith(N, V, L, roughness);      
-    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    vec3 F    = fresnelSchlick(max(dot(N, V), 0.0), F0);
        
-    vec3 nominator    = NDF * G * F; 
-    float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
-    vec3 specular = nominator / denominator;
-    
     vec3 kD = vec3(1.0) - F;
     kD *= 1.0 - metallic;	  
 
     float NdotL = max(dot(N, L), 0.0);        
+
+	vec3 nominator    = NDF * G * F; 
+    float denominator = 4.0 * max(dot(N, V), 0.0) * NdotL + 0.001;
+    vec3 specular = nominator / max(denominator, 0.001); 
 
     vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL * (_SSAOEnabled ? ssao : 1);
 

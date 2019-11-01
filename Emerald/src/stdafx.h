@@ -68,6 +68,7 @@ using namespace std;
 #include "math/matrix4.h"
 #include "math/rect.h"
 #include "math/mathFunctions.h"
+#include "math/transform.h"
 
 
 #include "util/types.h"

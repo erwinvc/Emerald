@@ -31,10 +31,16 @@ public:
 	static Color Transparent() { return Color(0, 0, 0, 0); }
 	static Color NormalMap() { return Color(0.5f, 0.5f, 1); }
 
-	float R;
-	float G;
-	float B;
-	float A;
+union
+	{
+	struct {
+		float R;
+		float G;
+		float B;
+		float A;
+	};
+	float values[4];
+	};
 
 	Color() : R(0), G(0), B(0), A(0) {}
 	Color(int32 hexValue) {

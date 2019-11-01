@@ -9,6 +9,21 @@ Texture* noise;
 //Entity* cursor;
 //Entity* m_entities[4];
 
+void draw_translation_gizmo(const Transform& transform) {
+	for (int i = 0; i < 3; i++) {
+		Vector3 axis_end = Vector3(0.f, 0.f, 0.f);
+		axis_end.values[i] = 1.f;
+
+		Color axis_color = Color(0.f, 0.f, 0.f);
+		axis_color.values[i] = 1.f;
+
+		//if (i == context.selected_axis) {
+		//	axis_color = Vec3f(1.f, 0.65f, 0.f);
+		//}
+
+		GetLineRenderer()->Submit(transform.m_position, axis_end + transform.m_position, axis_color);
+	}
+}
 
 void EditorState::Initialize() {
 	m_mori = GetAssetManager()->Get<Model>("Mori");
@@ -29,6 +44,7 @@ void EditorState::Initialize() {
 }
 
 void EditorState::RenderGeometry() {
+	draw_translation_gizmo(m_moriEntity->m_transform);
 	m_geometryShader->Bind();
 	m_geometryShader->Set("_Iridescence", 5);
 	m_geometryShader->Set("_Noise", 6);
@@ -73,7 +89,7 @@ void EditorState::RenderGeometry() {
 void EditorState::Update(const TimeStep& time) {
 	GetCamera()->Update(time);
 
-	m_moriEntity->m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
+	m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
 	//for (int i = 0; i < 64; i++) {
 	//	//pointsX[i] += 0.002f;
 	//	pointsY[i] += 0.05f * time.GetSeconds();
