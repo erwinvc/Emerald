@@ -47,7 +47,7 @@ public:
 					SetState(state);
 				}
 			}
-			if (ImGui::CollapsingHeader("Current state")) m_currentState->OnImGUI();
+			if (ImGui::CollapsingHeader("Current state")) m_currentState->OnStateImGUI();
 			ImGui::EndTabItem();
 		}
 	}

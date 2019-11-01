@@ -256,3 +256,9 @@ float Vector3::Distance(const Vector3& other) const {
 	float c = z - other.z;
 	return (float)sqrt(a * a + b * b + c * c);
 }
+
+void Vector3::Lerp(const Vector3& to, float amount) {
+	x = Math::Lerp(x, to.x, amount);
+	y = Math::Lerp(y, to.y, amount);
+	z = Math::Lerp(z, to.z, amount);
+}

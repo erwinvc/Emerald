@@ -22,18 +22,15 @@ uniform mat4 _ProjectionMatrix;
 uniform mat4 _ViewMatrix;
 
 void main(){
-	gl_Position = _ProjectionMatrix * _ViewMatrix * vec4(fsData.pos, 1.0);
+    fsData.normal = vsNormal;
+    fsData.TBNMatrix = mat3(vsTangents, vsBitangents, fsData.normal);
 
-	mat3 normalMatrix = transpose(inverse(mat3(_ViewMatrix)));
-    fsData.normal = normalMatrix * vsNormal;
-    fsData.TBNMatrix = mat3(normalMatrix * vsTangents, normalMatrix * vsBitangents, fsData.normal);
-
-	vec4 viewPos = _ViewMatrix * vec4(vsPos.x + (vsPosition.x * 10), vsPos.y, vsPos.z + (vsPosition.y * 10), 1.0);
+	vec4 viewPos = vec4(vsPos.x + (vsPosition.x * 10 + 5), vsPos.y, vsPos.z + (vsPosition.y * 10 + 5), 1.0);
 	fsData.pos = viewPos.xyz;
 
 	fsData.uv = vsUv;
 
 	fsData.textureID = vsTextureID;
-	gl_Position = _ProjectionMatrix * viewPos;
+	gl_Position = _ProjectionMatrix * _ViewMatrix * viewPos;
 }
 

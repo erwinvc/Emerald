@@ -18,7 +18,7 @@ public:
 	float m_radius = 0.5f;
 	float m_bias = 0.025f;
 	int m_power = 1;
-	int m_sampleCount = 8;
+	int m_sampleCount = 32;
 
 	SSAORenderer();
 	~SSAORenderer();

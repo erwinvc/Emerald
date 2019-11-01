@@ -1,5 +1,5 @@
 #version 330 core
-out float FragColor;
+out vec3 FragColor;
   
 in vec2 fsUv;
   
@@ -18,5 +18,5 @@ void main() {
         }
     }
 	float res = result / (2 * amount * 2 * amount);
-    FragColor = res;
+    FragColor = vec3(res, res, res);
 }  

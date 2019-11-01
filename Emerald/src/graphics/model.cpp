@@ -42,12 +42,12 @@ void Model::LoadMaterials(const aiScene *scene) {
 			String fullPath = m_dir + "\\" + path.C_Str();
 			AssetRef<Texture> tex = GetAssetManager()->Get<Texture>(fullPath);
 			if (tex.Get()) {
-				m_materials[i]->SetSpecular(tex);
+				m_materials[i]->SetRoughness(tex);
 			} else {
 				if (FileSystem::DoesFileExist(fullPath)) {
 					TextureLoader loader(fullPath, fullPath, false);
 					Texture* texture = GetAssetManager()->ForceLoad<Texture>(&loader);
-					m_materials[i]->SetSpecular(texture);
+					m_materials[i]->SetRoughness(texture);
 				} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
 			}
 		}

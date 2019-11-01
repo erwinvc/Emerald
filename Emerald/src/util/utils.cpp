@@ -72,7 +72,7 @@ namespace GLUtils {
 namespace TextureUtils {
 	bool LoadTexture(const String& path, bool flip, function<void(const LoadedTexture& data)> callback) {
 		if (!FileSystem::DoesFileExist(path)) {
-			LOG_ERROR("[~gTexture~x] file at ~1%s~x does not exist!", path.c_str());
+			LOG_WARN("[~gTexture~x] file at ~1%s~x does not exist!", path.c_str());
 			return false;
 		}
 

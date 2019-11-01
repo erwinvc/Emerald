@@ -17,7 +17,7 @@ out vec3 outColor[2];
 //uniform vec3 uLightPosition;
 //uniform vec3 uLightColor;
 
-uniform vec3 uCameraPos;
+uniform vec3 _CameraPosition;
 uniform float shineDamper;
 uniform bool _SSAOEnabled;
 uniform float _BloomFactor;
@@ -73,18 +73,21 @@ void main(){
 	float uLightRadius = newPos.w;
 	vec2 uv = (fsPos.xy / fsPos.w) * 0.5 + 0.5;
 	vec4 misc = texture(_GMisc, uv);
+	float roughness = max(misc.x, 0.05);
+	float metallic = misc.y;
+	float lightInfluence = misc.w;
+	if(lightInfluence == 0) discard;
+
 	vec3 albedo = texture(_GAlbedo, uv).xyz;
 	vec3 N = normalize(texture(_GNormal, uv).xyz);
 	vec3 position = texture(_GPosition, uv).xyz;
 	float ssao = texture(_SSAO, uv).x;
-	float roughness = max(misc.x, 0.05);
-	float metallic = misc.y;
-	float lightInfluence = misc.w;
+
 
 	vec3 F0 = vec3(0.04); 
 	F0 = mix(F0, albedo, metallic);
 
-	vec3 V = normalize(uCameraPos - position);
+	vec3 V = normalize(_CameraPosition - position);
 	vec3 lightPos = newPos.xyz;
     vec3 lightToPosVector = position.xyz - lightPos;
     float lightDist = length(lightToPosVector);  
@@ -92,7 +95,6 @@ void main(){
     vec3 H = normalize(V + L);
     float attenuation = 1.0 / (lightDist * lightDist);
     vec3 radiance = color.rgb * attenuation;
-	if(lightInfluence == 1) discard;
 
     float NDF = DistributionGGX(N, H, roughness);   
     float G   = GeometrySmith(N, V, L, roughness);      
@@ -117,7 +119,7 @@ void main(){
     float at = 1.0 - d;
 
 	color *= ztest * at;
-	outColor[0] = vec3(mix(albedo, color, lightInfluence));
+	outColor[0] = mix(albedo, color, lightInfluence);
 	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);
 }
 

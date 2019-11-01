@@ -22,7 +22,7 @@ public:
 		m_turtleEntity = new Entity(m_turtle);
 		BasicMaterial* mat = GetMaterialManager()->Create<BasicMaterial>("Test");
 		mat->SetAlbedo(texIri);
-		mat->SetSpecular(GetTextureManager()->GetBlackTexture());
+		mat->SetRoughness(GetTextureManager()->GetBlackTexture());
 		//m_turtle->SetMaterial(mat);
 		//m_model->SetMaterial(mat);
 		for (int i = 0; i < 4; i++) {

@@ -2,11 +2,12 @@
 
 class DirectionalLight {
 private:
-	float m_multiplier = 1;
 	Color m_color = Color::White();
 	Vector3 m_rotation = Vector3(0.3f, 0.0f, 0.3f);
 
 public:
+	float m_multiplier = 2;
+
 	Color GetColor() { return m_color * m_multiplier; }
 	Vector3 GetDirection() {
 		Matrix4 mat = Matrix4::Identity();

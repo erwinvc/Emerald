@@ -1,40 +1,31 @@
 #include "stdafx.h"
 
 Model* m_mori;
+Entity* m_moriEntity;
 Shader* m_geometryShader;
 Texture* iri;
 Texture* noise;
 
-Entity* cursor;
-Entity* entity[64];
-vector<float> pointsX;
-vector<float> pointsY;
-
-Entity* m_entities[4];
+//Entity* cursor;
+//Entity* m_entities[4];
 
 
 void EditorState::Initialize() {
 	m_mori = GetAssetManager()->Get<Model>("Mori");
 	BasicMaterial* mat = GetMaterialManager()->Create<BasicMaterial>("Turtle");
-	mat->SetAlbedo(GetAssetManager()->Get<Texture>("White"));
-	//mat->SetNormal(GetAssetManager()->Get<Texture>("SphereNormal"));
+	mat->SetPBR("gold");
 	m_mori->SetMaterial(mat);
+	m_moriEntity = new Entity(m_mori);
 	m_geometryShader = GetShaderManager()->Get("Geometry");
 	iri = GetAssetManager()->Get<Texture>("Iridescence");
 	noise = GetAssetManager()->Get<Texture>("Noise");
 
-	for (int i = 0; i < 64; i++) {
-		entity[i] = new Entity(m_mori);
-		//entity[i]->m_scale = Vector3(0.2f, 0.2f, 0.2f);
-		pointsX.push_back(Math::RandomFloat(0.0f, 1.0f));
-		pointsY.push_back(Math::RandomFloat(0.0f, 2.0f));
-		//entity[i]->m_position = Math::RandomOnUnitSphere();
-	}
-	cursor = new Entity(GetAssetManager()->Get<Model>("Sphere"));
+	//cursor = new Entity(GetAssetManager()->Get<Model>("Sphere"));
 
-	for (int i = 0; i < 4; i++) {
-		m_entities[i] = new Entity(GetAssetManager()->Get<Model>("Sphere"));
-	}
+	//for (int i = 0; i < 4; i++) {
+	//	m_entities[i] = new Entity(GetAssetManager()->Get<Model>("Sphere"));
+	//}
+	m_world = new World();
 }
 
 void EditorState::RenderGeometry() {
@@ -48,37 +39,41 @@ void EditorState::RenderGeometry() {
 	m_geometryShader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
 	m_geometryShader->Set("_TransformationMatrix", Matrix4::Identity());
 	m_geometryShader->Set("_CameraPosition", GetCamera()->m_position);
-	//m_mori->Draw(m_geometryShader, GL_PATCHES);
-	for (int i = 0; i < 64; i++) {
-		entity[i]->Draw(m_geometryShader);
-	}
 
-	CornerRayPositions positions = Camera::GetCornerRays(0);
-	m_entities[0]->m_position = positions.TL;
-	m_entities[1]->m_position = positions.TR;
-	m_entities[2]->m_position = positions.BR;
-	m_entities[3]->m_position = positions.BL;
+	m_moriEntity->Draw(m_geometryShader);
 
-	for (int i = 0; i < 4; i++) {
-		m_entities[i]->Draw(m_geometryShader);
-	}
+	//CornerRayPositions positions = Camera::GetCornerRays(0);
+	//m_entities[0]->m_position = positions.TL;
+	//m_entities[1]->m_position = positions.TR;
+	//m_entities[2]->m_position = positions.BR;
+	//m_entities[3]->m_position = positions.BL;
+
+	//for (int i = 0; i < 4; i++) {
+	//	m_entities[i]->Draw(m_geometryShader);
+	//}
 
 	Rasterization::Scan scan;
-	Rasterization::PlotCamera(scan, Camera::GetCornerRays(0), GetCamera(), 10.0f);
+	//Rasterization::PlotCamera(scan, positions, GetCamera(), 10.0f);
 
-	for (int y = scan.minY; y <= scan.maxY; y++) {
-		GetLineRenderer()->Submit(scan.yValues[y].minX * 10, 0, y * 10, scan.yValues[y].maxX * 10, 0, y * 10, Color::Cyan());
-		for (int x = scan.yValues[y].minX; x <= scan.yValues[y].maxX; x++) {
-			GetLineRenderer()->Submit(x * 10, 0, y * 10, x * 10, 0, (y + 1) * 10, Color::Cyan());
-		}
-	}
+	//for (int y = scan.minY; y <= scan.maxY; y++) {
+	//	GetLineRenderer()->Submit(scan.yValues[y].minX * 10, 0, y * 10, scan.yValues[y].maxX * 10, 0, y * 10, Color::Cyan());
+	//	for (int x = scan.yValues[y].minX; x <= scan.yValues[y].maxX; x++) {
+	//		GetLineRenderer()->Submit(x * 10, 0, y * 10, x * 10, 0, (y + 1) * 10, Color::Cyan());
+	//	}
+	//}
 
-	cursor->Draw(m_geometryShader);
+	//cursor->Draw(m_geometryShader);
+
+	m_world->RenderGeometry();
+
+	//GetPointlightRenderer()->Submit(Pointlight(Vector3(1.1f, 1.0f, 0), 50, Color::White() * 20));
+	//GetPointlightRenderer()->Submit(Pointlight(Vector3(0, 1.0f, 1.1f), 5, Color::Green()));
 }
 
 void EditorState::Update(const TimeStep& time) {
 	GetCamera()->Update(time);
 
+	m_moriEntity->m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
 	//for (int i = 0; i < 64; i++) {
 	//	//pointsX[i] += 0.002f;
 	//	pointsY[i] += 0.05f * time.GetSeconds();
@@ -87,8 +82,13 @@ void EditorState::Update(const TimeStep& time) {
 	//	entity[i]->m_position = Math::PointOnUnitSphere(pointsX[i], pointsY[i]);
 	//}
 
-	Vector3& ray = GroundRaycast::GetMousePosition();
-	cursor->m_position = GroundRaycast::GetGroundPosition(ray, 0);
+	//Vector3& ray = GroundRaycast::GetMousePosition();
+	////cursor->m_position = GroundRaycast::GetGroundPosition(ray, 0);
+	//int xPos = cursor->m_position.x / 10;
+	//int zPos = cursor->m_position.z / 10;
+	//if (cursor->m_position.x < 0) xPos--;
+	//if (cursor->m_position.z < 0) zPos--;
+	//m_world->m_grid->SetTile(xPos, zPos, GetTileMaterialManager()->Get("Cross"));
 }
 
 ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_NoDockingInCentralNode;
@@ -112,7 +112,7 @@ void EditorState::OnImGuiViewport() {
 
 	ImVec2 pos = ImGui::GetCursorScreenPos();
 	ImVec2 parentPos = ImGui::GetCurrentWindowRead()->ParentWindow->Pos;
-	 
+
 	GetPipeline()->OnResize((uint)viewportSize.x, (uint)viewportSize.y);
 	GetFrameBufferManager()->OnResize((uint)viewportSize.x, (uint)viewportSize.y);
 	GetCamera()->UpdateProjectionMatrix();
@@ -125,6 +125,11 @@ void EditorState::OnImGuiViewport() {
 	ImGui::SetNextWindowDockID(m_dockspaceLeft, ImGuiCond_Always);
 	EditorState::CameraControls();
 	ImGui::Begin("Editor", nullptr, window_flags);
+
+	if (ImGui::Button("Serialize")) {
+		nlohmann::json j = nlohmann::json({ "world", *m_world });
+		LOG("%s", j.dump().c_str());
+	}
 	ImGui::End();
 
 	ImGui::SetNextWindowDockID(m_dockspaceBottom, ImGuiCond_Always);

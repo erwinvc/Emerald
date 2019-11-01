@@ -45,8 +45,7 @@ float FXAA_REDUCE_MUL = 1.0f/8.0f;
 float FXAA_REDUCE_MIN = 1.0f/128.0f;
 float middleGrey = 0.18f;
 
-vec3 computeFxaa()
-{
+vec3 computeFxaa(){
     vec2 screenTextureOffset = 1.0f/_ScreenSize;
     vec3 luma = vec3(0.299f, 0.587f, 0.114f);
 
@@ -86,23 +85,20 @@ vec3 computeFxaa()
         return vec3(resultB);
 }
 
-vec3 linearToneMapping(vec3 color)
-{
+vec3 linearToneMapping(vec3 color){
 	color = clamp(color, 0., 1.);
 	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
 
-vec3 simpleReinhardToneMapping(vec3 color)
-{
+vec3 simpleReinhardToneMapping(vec3 color){
 	float exposure = 1.5;
 	color *= exposure/(1. + color / exposure);
 	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
 
-vec3 lumaBasedReinhardToneMapping(vec3 color)
-{
+vec3 lumaBasedReinhardToneMapping(vec3 color){
 	float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
 	float toneMappedLuma = luma / (1. + luma);
 	color *= toneMappedLuma / luma;
@@ -110,8 +106,7 @@ vec3 lumaBasedReinhardToneMapping(vec3 color)
 	return color;
 }
 
-vec3 whitePreservingLumaBasedReinhardToneMapping(vec3 color)
-{
+vec3 whitePreservingLumaBasedReinhardToneMapping(vec3 color){
 	float white = 2.;
 	float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
 	float toneMappedLuma = luma * (1. + luma / (white*white)) / (1. + luma);
@@ -120,27 +115,23 @@ vec3 whitePreservingLumaBasedReinhardToneMapping(vec3 color)
 	return color;
 }
 
-vec3 RomBinDaHouseToneMapping(vec3 color)
-{
+vec3 RomBinDaHouseToneMapping(vec3 color){
     color = exp( -1.0 / ( 2.72*color + 0.15 ) );
 	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
 
-vec3 filmicToneMapping(vec3 color)
-{
+vec3 filmicToneMapping(vec3 color){
 	color = max(vec3(0.), color - vec3(0.004));
 	color = (color * (6.2 * color + .5)) / (color * (6.2 * color + 1.7) + 0.06);
 	return color;
 }
 
-vec3 Uncharted2Tonemap(vec3 x, float A, float B, float C, float D, float E, float F, float W)
-{
+vec3 Uncharted2Tonemap(vec3 x, float A, float B, float C, float D, float E, float F, float W){
    return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 
-vec3 Uncharted2ToneMapping(vec3 color)
-{
+vec3 Uncharted2ToneMapping(vec3 color){
 	float A = 0.15;
 	float B = 0.50;
 	float C = 0.10;
@@ -157,8 +148,7 @@ vec3 Uncharted2ToneMapping(vec3 color)
 	return color;
 }
 
-vec3 GTAToneMapping(vec3 color)
-{
+vec3 GTAToneMapping(vec3 color){
 	float A = 0.22;
 	float B = 0.30;
 	float C = 0.10;
@@ -190,15 +180,13 @@ const int levels = 8;
 }
 
 //Stephen Hill
-vec3 RRTAndODTFit(vec3 v)
-{
+vec3 RRTAndODTFit(vec3 v){
     vec3 a = v * (v + 0.0245786f) - 0.000090537f;
     vec3 b = v * (0.983729f * v + 0.4329510f) + 0.238081f;
     return a / b;
 }
 
-vec3 ACESFitted(vec3 color)
-{
+vec3 ACESFitted(vec3 color){
 	mat3 ACESInputMat = mat3(
 	    0.59719, 0.35458, 0.04823,
 	    0.07600, 0.90834, 0.01566,
@@ -222,7 +210,6 @@ vec3 Cherno(vec3 color){
 	float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
 	float mappedLuminance = (luminance * (1.0 + luminance / (1.0 * 1.0))) / (1.0 + luminance);
 
-	
 	// Scale color by ratio of average luminances.
 	vec3 mappedColor = (mappedLuminance / luminance) * color;
 
@@ -249,7 +236,7 @@ vec3 ToGreyScale(vec3 colorIn)
 
 void main(){
 	vec3 color = texture(_HDRBuffer, fsUv).rgb;
-		vec3 bloom = texture(_HDRBloom, fsUv).rgb;
+	vec3 bloom = texture(_HDRBloom, fsUv).rgb;
 
 	if(_ApplyPostProcessing == 0) {
 		out_color = vec4(color, 1.0);

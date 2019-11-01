@@ -1,7 +1,7 @@
 #pragma once
 
 class RenderingPipeline {
-private:
+public:
 	bool m_initialized = false;
 	bool m_wireFrame = false;
 
@@ -49,8 +49,9 @@ private:
 	float m_bloomFactor = 1.0f;
 	float m_bloomMultiplier = 1.0f;
 
-	float m_ambientIntensity = 1.0f;
 public:
+	float m_ambientIntensity = 0.5f;
+
 	DirectionalLight m_directionalLight;
 	int m_selectedCamera = 0;
 	float m_chromatic = 0;

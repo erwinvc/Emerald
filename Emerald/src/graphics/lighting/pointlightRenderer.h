@@ -24,6 +24,7 @@ public:
 	void Begin();
 	void End();
 	void Draw();
+	void Submit(Pointlight* pointlights, int count);
 	void Submit(Pointlight& pointlight);
 };
 

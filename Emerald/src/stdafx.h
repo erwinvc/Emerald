@@ -134,6 +134,7 @@ using namespace std;
 #include "assets/loaders/assetLoader.h"
 #include "assets/loaders/customLoader.h"
 #include "assets/loaders/textureLoader.h"
+#include "assets/loaders/pbrTextureLoader.h"
 #include "assets/loaders/tileTextureLoader.h"
 #include "assets/loaders/shaderLoader.h"
 #include "assets/loaders/modelLoader.h"

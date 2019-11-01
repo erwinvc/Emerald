@@ -1,5 +1,5 @@
 #version 330 core
-out float FragColor;
+out vec3 FragColor;
 
 in vec2 fsUv;
 
@@ -66,7 +66,7 @@ void main(){
 	}
     occlusion = (occlusion / _SampleCount);
     occlusion = pow(occlusion, _Power);
-    FragColor = occlusion;
+    FragColor = vec3(occlusion,occlusion,occlusion);
 }
 
 //HBAO https://blenderartists.org/t/bge-hbao-ambient-occlusion-shader/690374

@@ -1,10 +1,9 @@
 #pragma once
 
 class World {
-private:
+public:
 	TileGrid* m_grid;
 
-public:
 	World() {
 		m_grid = NEW(TileGrid());
 	}
@@ -17,6 +16,10 @@ public:
 	}
 
 	void RenderGeometry() {
-		m_grid->DrawGeometry();
+		m_grid->RenderGeometry();
+	}
+
+	friend void to_json(nlohmann::json& j, const World& w) {
+		j = nlohmann::json({ "grid", *w.m_grid });
 	}
 };

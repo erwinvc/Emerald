@@ -13,9 +13,10 @@ private:
 	};
 
 	InstancedRenderer<TileBufferData>* m_renderer;
-	Tile m_tiles[32][32];
 	AssetRef<Shader> m_tileShader;
 	const float TILESIZE = 10;
+	const int GRIDSIZE = 8;
+	Tile m_tiles[8 * 8];
 public:
 	TileGrid() {
 		BufferLayout layout = {
@@ -24,7 +25,7 @@ public:
 			{VertexBufferDataType::Int, "vsTextureID", 7, true}
 		};
 
-		m_renderer = new InstancedRenderer<TileBufferData>(GetAssetManager()->Get<Model>("Tile")->GetMeshes()[0], 8192*8, layout);
+		m_renderer = new InstancedRenderer<TileBufferData>(GetAssetManager()->Get<Model>("Tile")->GetMeshes().at(0), 8192, layout);
 
 		m_tileShader = GetShaderManager()->Get("Tile");
 		m_tileShader->Bind();
@@ -33,17 +34,21 @@ public:
 		m_tileShader->Set("_Roughness", 2);
 		m_tileShader->Set("_Metallic", 3);
 		m_tileShader->Set("_Emission", 4);
-
-		loop(x, 32) {
-			loop(y, 32) {
-				m_tiles[y][x] = Tile(Vector2I(x, y), 0);
-			}
-		}
 	}
 
 	~TileGrid() {
 		delete m_renderer;
 	}
 
-	void DrawGeometry();
+	void SetTile(int x, int y, int textureID) {
+		if (Math::Within(x, 0, GRIDSIZE - 1) && Math::Within(y, 0, GRIDSIZE - 1)) {
+			m_tiles[y * GRIDSIZE + x].SetTextureID(textureID);
+		}
+	}
+
+	void RenderGeometry();
+
+	friend void to_json(nlohmann::json& j, const TileGrid& g) {
+		j = nlohmann::json({ "tiles", g.m_tiles });
+	}
 };

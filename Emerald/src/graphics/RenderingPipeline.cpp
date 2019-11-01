@@ -34,13 +34,14 @@ void RenderingPipeline::Initialize() {
 
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
+	m_hdrShader->Bind();
 	m_hdrShader->Set("_HDRBuffer", 0);
 	m_hdrShader->Set("_HDRBloom", 1);
 
 	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", FBOScale::FULL, false);
 	m_hdrTexture = m_hdrBuffer->AddBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrBrightTexture = m_hdrBuffer->AddBuffer("HDRBloom", TextureParameters(RGB, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
-	m_hdrBrightTexture = m_hdrBuffer->AddBuffer("HDRBloom", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 
 	//Bloom
 	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", FBOScale::ONEFIFTH, false);
@@ -150,10 +151,10 @@ void RenderingPipeline::PostGeometryRender() {
 	else GetTextureManager()->GetWhiteTexture()->Bind(4);
 	m_pointLightShader->Set("projectionMatrix", m_camera->GetProjectionMatrix());
 	m_pointLightShader->Set("viewMatrix", m_camera->GetViewMatrix());
-	m_pointLightShader->Set("uCameraPos", m_camera->m_position);
+	m_pointLightShader->Set("_CameraPosition", m_camera->m_position);
 	m_pointLightShader->Set("_SSAOEnabled", m_ssaoEnabled);
-	m_pointLightShader->Set("_Roughness", roughness);
-	m_pointLightShader->Set("_Metallic", metallic);
+	//m_pointLightShader->Set("_Roughness", roughness);
+	//m_pointLightShader->Set("_Metallic", metallic);
 	m_pointLightShader->Set("_BloomFactor", m_bloomFactor);
 	GetPointlightRenderer()->End();
 	GetPointlightRenderer()->Draw();

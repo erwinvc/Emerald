@@ -10,6 +10,7 @@ private:
 	ImGuiID m_dockspaceLeft;
 	ImGuiID m_dockspaceRight;
 	ImGuiID m_dockspaceBottom;
+	World* m_world;
 
 public:
 	const String& GetName() override { return m_name; }

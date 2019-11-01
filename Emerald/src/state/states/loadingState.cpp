@@ -21,6 +21,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
 	m_batch->Add(NEW(ModelLoader("Sphere", "res/sphere.obj")));
 	m_batch->Add(NEW(ModelLoader("Cube", "res/cube.obj")));
+	m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza/sponza.obj")));
 
 	m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
 	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
@@ -42,6 +43,10 @@ void LoadingState::Initialize() {
 	//for (int i = 0; i < 16; i++) {
 	//	m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("res/tiles/new/%d.obj", i))));
 	//}
+
+	m_batch->Add(NEW(PBRTextureLoader("gold", "gold")));
+	m_batch->Add(NEW(PBRTextureLoader("planks", "planks")));
+	m_batch->Add(NEW(PBRTextureLoader("metal", "metal")));
 
 	m_batch->Add(NEW(TextureLoader("Iridescence", "res/iridescence.png", true)));
 	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png", true)));
@@ -79,7 +84,7 @@ void LoadingState::Initialize() {
 void LoadingState::Update(const TimeStep& time) {
 	if (m_batch->IsFinished() && GetAssetManager()->GetProgress() >= GetAssetManager()->GetProgress() - 0.01f) {
 		GetTileMaterialManager()->GenerateMipmaps();
-		GetStateManager()->SetState(GameStates::EDITOR);
+		GetStateManager()->SetState(GameStates::MENU);
 		GetStateManager()->RemoveState(this);
 	}
 }
