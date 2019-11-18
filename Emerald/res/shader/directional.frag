@@ -72,7 +72,7 @@ vec3 GetPosition(vec2 coord){
 void main(){
 	vec4 misc = texture(_GMisc, fsUV);
 	vec3 albedo = texture(_GAlbedo, fsUV).rgb;
-	vec3 N = normalize(texture(_GNormal, fsUV).rgb);
+	vec3 N = mat3(inverse(_View)) * normalize(texture(_GNormal, fsUV).xyz);
 	vec3 position = GetPosition(fsUV);
 	float ssao = texture(_SSAO, fsUV).x;
 	float roughness = max(misc.x, 0.05);

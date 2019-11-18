@@ -184,6 +184,7 @@ void RenderingPipeline::PostGeometryRender() {
 	m_ssrShader->Set("_InverseProjection", m_camera->GetProjectionMatrix().Invert());
 	m_ssrShader->Set("_InverseView", m_camera->GetViewMatrix().Invert());
 	m_ssrShader->Set("_CameraPosition", m_camera->m_position);
+	
 	m_quad->Bind();
 	m_quad->Draw();
 

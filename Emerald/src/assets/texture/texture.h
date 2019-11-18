@@ -13,7 +13,7 @@ private:
 
 public:
 	Texture(int32 width, int32 height, byte* data, bool hasMipmaps, TextureParameters params = TextureParameters(), bool keepData = false);
-	Texture(int32 width, int32 height, TextureParameters params = TextureParameters(), bool keepData = false);
+	Texture(int32 width, int32 height, bool hasMipmaps, TextureParameters params = TextureParameters(), bool keepData = false);
 	//Texture(const String& path, bool hasMipmaps, TextureParameters params = TextureParameters(), bool keepData = false);
 	~Texture();
 

@@ -1,7 +1,5 @@
 #include "stdafx.h"
 
-static ThreadPool g_pool;
-
 void ThreadPool::Initialize(int threads) {
 	if (m_initialized) return;
 	m_initialized = true;
@@ -23,7 +21,7 @@ void ThreadPool::DoJob(std::function <void(void)> func) {
 void ThreadPool::ThreadEntry() {
 	function <void(void)> job;
 	while (1) {
-		if(!m_queue.WaitForGet(job)) return;
+		m_queue.WaitForGet(job);
 		job();
 	}
 }

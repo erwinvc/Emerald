@@ -7,7 +7,6 @@ layout(location = 3) in vec3 vsTangent;
 layout(location = 4) in vec3 vsBitangent;
 
 struct Data {
-	vec3 pos;
 	vec3 normal;
 	vec2 uv;
 	mat3 TBNMatrix;
@@ -22,17 +21,14 @@ uniform mat4 _ProjectionMatrix;
 uniform mat4 _ViewMatrix;
 
 void main(){
-	//vec3 tangent = normalize(vsTangents - dot(vsNormal, vsTangents) * vsNormal);
-	//vec3 biTangent = cross(vsNormal, tangent);
+	mat4 MVMatrix = _ViewMatrix * _TransformationMatrix;
 
-	mat3 normalMatrix = transpose(inverse(mat3(_TransformationMatrix)));
-    fsData.normal = normalMatrix * vsNormal;
-    fsData.TBNMatrix = mat3(normalMatrix * vsTangent, normalMatrix * vsBitangent, fsData.normal);
+	vec4 viewPos = MVMatrix * vec4(vsPos, 1.0);
+	fsData.normal = (MVMatrix * vec4(vsNormal, 0.0)).xyz;
+	fsData.TBNMatrix = mat3(MVMatrix) * mat3(vsTangent, vsBitangent, vsNormal);
 
-	vec4 viewPos = _TransformationMatrix * vec4(vsPos, 1.0);
-	fsData.pos = viewPos.xyz;
 	fsData.uv = vsUv;
+	fsData.viewDirection = _CameraPosition - viewPos.xyz;
 
-	fsData.viewDirection = _CameraPosition - fsData.pos;
-	gl_Position = _ProjectionMatrix * _ViewMatrix * viewPos;
+	gl_Position = _ProjectionMatrix * viewPos;
 }

@@ -1,7 +1,6 @@
 #version 330
 
 struct Data {
-	vec3 pos;
 	vec3 normal;
 	vec2 uv;
 	mat3 TBNMatrix;
@@ -32,7 +31,7 @@ void main(){
 	
 	vec3 tangentNormal = (texture(_Normal, fsData.uv).xyz * 2.0f) - 1.0f;
     vec3 worldNormal = normalize(fsData.TBNMatrix * tangentNormal);
-	vec3 finalNormal = mix(fsData.normal, worldNormal, _NormalStrength);
+	vec3 finalNormal = mix(fsData.normal, worldNormal, 0);
 
 	float roughness = texture(_Roughness, fsData.uv).x * _RoughnessStrength;
 	float metallic = texture(_Metallic, fsData.uv).x * _MetallicStrength;

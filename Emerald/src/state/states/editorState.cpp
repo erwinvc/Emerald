@@ -5,12 +5,42 @@ Entity* m_moriEntity;
 Shader* m_geometryShader;
 Texture* iri;
 Texture* noise;
-
 //Entity* cursor;
 //Entity* m_entities[4];
 
+struct Ray {
+	Vector3 origin;
+	Vector3 direction;
+
+	Ray(Vector3 orig, Vector3 dir) : origin(orig), direction(dir) {}
+};
+
+float ClosestDistanceBetweenLines(Ray& l1, Ray& l2) {
+	const Vector3 dp = l2.origin - l1.origin;
+	const float v12 = l1.direction.Dot(l1.direction);
+	const float v22 = l2.direction.Dot(l2.direction);
+	const float v1v2 = l1.direction.Dot(l2.direction);
+
+	const float det = v1v2 * v1v2 - v12 * v22;
+
+	if (Math::Abs(det) > FLT_MIN) {
+		const float inv_det = 1.f / det;
+
+		const float dpv1 = dp.Dot(l1.direction);
+		const float dpv2 = dp.Dot(l2.direction);
+
+		float l1t = inv_det * (v22 * dpv1 - v1v2 * dpv2);
+		float l2t = inv_det * (v1v2 * dpv1 - v12 * dpv2);
+
+		return (dp + l2.direction * l2t - l1.direction * l1t).Magnitude();
+	} else {
+		const Vector3 a = dp.Cross(l1.direction);
+		return Math::Sqrt(a.Dot(a) / v12);
+	}
+}
+
 void draw_translation_gizmo(const Transform& transform) {
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 1; i++) {
 		Vector3 axis_end = Vector3(0.f, 0.f, 0.f);
 		axis_end.values[i] = 1.f;
 
@@ -21,9 +51,13 @@ void draw_translation_gizmo(const Transform& transform) {
 		//	axis_color = Vec3f(1.f, 0.65f, 0.f);
 		//}
 
+		Vector3 ray = GroundRaycast::GetMousePosition();
+		float dist = ClosestDistanceBetweenLines(Ray(transform.m_position, axis_end.Normalized()), Ray(GetCamera()->m_position, ray.Normalized()));
+		LOG("%f", dist);
 		GetLineRenderer()->Submit(transform.m_position, axis_end + transform.m_position, axis_color);
 	}
 }
+
 
 void EditorState::Initialize() {
 	m_mori = GetAssetManager()->Get<Model>("Mori");
@@ -68,6 +102,9 @@ void EditorState::RenderGeometry() {
 	//	m_entities[i]->Draw(m_geometryShader);
 	//}
 
+
+
+
 	Rasterization::Scan scan;
 	//Rasterization::PlotCamera(scan, positions, GetCamera(), 10.0f);
 
@@ -81,7 +118,6 @@ void EditorState::RenderGeometry() {
 	//cursor->Draw(m_geometryShader);
 
 	m_world->RenderGeometry();
-
 	//GetPointlightRenderer()->Submit(Pointlight(Vector3(1.1f, 1.0f, 0), 50, Color::White() * 20));
 	//GetPointlightRenderer()->Submit(Pointlight(Vector3(0, 1.0f, 1.1f), 5, Color::Green()));
 }
@@ -90,6 +126,7 @@ void EditorState::Update(const TimeStep& time) {
 	GetCamera()->Update(time);
 
 	m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
+	
 	//for (int i = 0; i < 64; i++) {
 	//	//pointsX[i] += 0.002f;
 	//	pointsY[i] += 0.05f * time.GetSeconds();
@@ -170,7 +207,7 @@ void EditorState::OnImGUI() {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	ImGui::Begin("DockSpace Demo", nullptr, window_flags);
+	ImGui::Begin("Dock", nullptr, window_flags);
 	ImGui::PopStyleVar(3);
 
 	// Dockspace

@@ -13,6 +13,8 @@ uniform sampler2D _Noise;
 
 uniform mat4 _Projection;
 uniform mat4 _View;
+uniform mat4 _InverseProjection;
+uniform mat4 _InverseView;
 
 uniform vec3 _Samples[KERNELSIZE];
 
@@ -24,58 +26,46 @@ uniform int _Power;
 uniform vec2 _ScreenSize;
 uniform vec2 _CameraPlanes;
 
-//float getLinearDepth( in vec2 uv, in vec2 zLinear )
-//{
-//  float depth = texture(_Depth, uv).r;
-//  return zLinear.y / (depth - zLinear.x);
-//}
-//
-//vec3 posFromDepth(in vec2 Tex, in float d){ // get eye coordinate from depth
-//    vec3 pos = vec3(Tex, d); 
-//
-//    // transform by the projection inverse 
-//    vec4 clip = inverse(_Projection)*vec4(pos*2-1,1);
-//
-//    // divide by w to get the position. 
-//    return clip.xyz/clip.w;
-//}
-
 vec3 GetPosition(vec2 coord){
 	float z = texture(_Depth, coord).x * 2.0f - 1.0f;
 	vec4 clipSpacePosition = vec4(coord * 2.0 - 1.0, z, 1.0);
 	vec4 viewSpacePosition = inverse(_Projection) * clipSpacePosition;
 	viewSpacePosition /= viewSpacePosition.w;
-	vec4 worldSpacePosition = inverse(_View) * viewSpacePosition;
-	return worldSpacePosition.xyz;
+	//vec4 worldSpacePosition = inverse(_View) * viewSpacePosition;
+	return viewSpacePosition.xyz;
 }
 
 void main(){
-	vec4 misc = texture(_GMisc, fsUv);
-	//vec3 fragPos = (_View * vec4(texture(_GPosition, fsUv).xyz, 1.0)).xyz;
-    vec3 fragPos = (_View * vec4(GetPosition(fsUv), 1.0)).xyz;
-	vec3 normal = normalize(texture(_GNormal, fsUv).rgb);
+	vec3 fragPos = GetPosition(fsUv);
+    vec3 normal = (vec4(normalize(texture(_GNormal, fsUv).rgb), 0.0)).xyz;
     vec3 randomVec = normalize(texture(_Noise, fsUv * _ScreenSize).xyz);
+    // create TBN change-of-basis matrix: from tangent-space to view-space
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
     vec3 bitangent = cross(normal, tangent);
-    mat3 TBN = mat3(_View) * mat3(tangent, bitangent, normal);
+    mat3 TBN = mat3(tangent, bitangent, normal);
+    // iterate over the sample kernel and calculate occlusion factor
     float occlusion = 0.0;
     for(int i = 0; i < _SampleCount; ++i)
     {
-        vec3 sample = TBN * _Samples[i];
+        // get sample position
+        vec3 sample = TBN * _Samples[i]; // from tangent to view-space
         sample = fragPos + sample * _Radius; 
         
+        // project sample position (to sample texture) (to get position on screen/texture)
         vec4 offset = vec4(sample, 1.0);
-        offset = _Projection * offset;
-        offset.xyz /= offset.w;
-        offset.xyz = offset.xyz * 0.5 + 0.5;
+        offset = _Projection * offset; // from view to clip-space
+        offset.xyz /= offset.w; // perspective divide
+        offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
         
-        float sampleDepth =(_View * vec4(GetPosition(offset.xy), 1.0)).z;
+        // get sample depth
+        float sampleDepth = GetPosition(offset.xy).z;
         
+        // range check & accumulate
         float rangeCheck = smoothstep(0.0, 1.0, _Radius / abs(fragPos.z - sampleDepth));
-        occlusion += (sampleDepth <= sample.z + _Bias ? 1.0 : 0.0) * rangeCheck;      
-	}
-    occlusion = (occlusion / _SampleCount);
-    occlusion = pow(occlusion, _Power);
+        occlusion += (sampleDepth >= sample.z + _Bias ? 1.0 : 0.0) * rangeCheck;           
+    }
+    occlusion = 1.0 - (occlusion / _SampleCount);
+
     FragColor = vec3(occlusion, occlusion, occlusion);
 }
 

@@ -92,7 +92,7 @@ void main(){
 	if(lightInfluence == 0) discard;
 
 	vec3 albedo = texture(_GAlbedo, uv).xyz;
-	vec3 N = normalize(texture(_GNormal, uv).xyz);
+	vec3 N = mat3(inverse(_View)) * normalize(texture(_GNormal, uv).xyz);
 	vec3 position = GetPosition(uv);
 	//vec3 position = GetPosition(uv).xyz;
 	float ssao = texture(_SSAO, uv).x;
@@ -108,9 +108,9 @@ void main(){
     //vec3 L = -lightToPosVector / (lightDist);
 	vec3 L = normalize(lightPos - position);
     vec3 H = normalize(V + L);
-    float attenuation = clamp(1.0 - lightDist/(uLightRadius), 0.0, 1.0);
-	attenuation *= attenuation; 
-	//float attenuation = 1.0 / (1.0 + 0.1*lightDist + 0.01*lightDist*lightDist); 
+    //float attenuation = clamp(1.0 - lightDist/(uLightRadius), 0.0, 1.0);
+	//attenuation *= attenuation; 
+	float attenuation = 1.0 / (1.0 + 0.1*lightDist + 0.01*lightDist*lightDist); 
 	//float attenuation = 1.0f / (lightDist * lightDist);
     vec3 radiance = color.rgb * attenuation;
 

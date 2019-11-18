@@ -11,7 +11,7 @@ class Keyboard : public Singleton<Keyboard> {
 private:
 	int m_lastKey;
 	const int m_NOWPERIOD = 100;
-	const int m_MAXDOWN = 600000; // ms
+	const int m_MAXDOWN = 600000;
 
 	struct Key {
 		DWORD time;

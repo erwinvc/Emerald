@@ -8,7 +8,7 @@ FrameBuffer::FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clea
 	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
 
 	GL(glGenFramebuffers(1, &m_fbo));
-	AddBuffer("Depth", TextureParameters(DEPTH32, DEPTH, NEAREST, CLAMP_TO_EDGE, T_FLOAT), FBOAttachment::DEPTH);
+	AddBuffer("Depth", TextureParameters(DEPTH24, DEPTH, NEAREST, CLAMP_TO_EDGE, T_FLOAT), FBOAttachment::DEPTH);
 
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 	if (CheckStatus()) LOG("[~cBuffers~x] Created ~1%s~x framebuffer", m_name.c_str());
@@ -32,7 +32,6 @@ FrameBuffer::~FrameBuffer() {
 	for (AssetRef<Texture> texture : m_textures) {
 		DELETE(texture.Get());
 	}
-	//GL(glDeleteTextures(1, &m_dbo));
 }
 
 bool FrameBuffer::CheckStatus() {
@@ -44,7 +43,7 @@ bool FrameBuffer::CheckStatus() {
 }
 
 AssetRef<Texture> FrameBuffer::AddBuffer(const String& name, const TextureParameters& params, FBOAttachment type) {
-	Texture* texture = NEW(Texture(m_width, m_height, params));
+	Texture* texture = NEW(Texture(m_width, m_height, false, params));
 	m_textures.push_back(texture);
 	m_textureNames.push_back(name);
 
