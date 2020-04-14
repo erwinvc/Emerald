@@ -158,27 +158,27 @@ private:
 	}
 
 	template <>
-	static String_t ToString<Vector2>(Vector2 const& t) {
+	static String_t ToString<glm::vec2>(glm::vec2 const& t) {
 		return Format_t("(%f, %f)", t.x, t.y);
 	}
 
 	template <>
-	static String_t ToString<Vector2I>(Vector2I const& t) {
+	static String_t ToString<glm::ivec2>(glm::ivec2 const& t) {
 		return Format_t("(%d, %d)", t.x, t.y);
 	}
 
 	template <>
-	static String_t ToString<Vector3>(Vector3 const& t) {
+	static String_t ToString<glm::vec3>(glm::vec3 const& t) {
 		return Format_t("(%f, %f, %f)", t.x, t.y, t.z);
 	}
 
 	template <>
-	static String_t ToString<Vector4>(Vector4 const& t) {
+	static String_t ToString<glm::vec4>(glm::vec4 const& t) {
 		return Format_t("(%f, %f, %f, %f)", t.x, t.y, t.z, t.w);
 	}
 
 	template <>
-	static String_t ToString<Rect>(Rect const& t) {
+	static String_t ToString<Rectangle>(Rectangle const& t) {
 		return Format_t("(%f, %f, %f, %f)", t.m_position.x, t.m_position.y, t.m_size.x, t.m_size.y);
 	}
 

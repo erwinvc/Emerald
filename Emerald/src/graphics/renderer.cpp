@@ -7,7 +7,7 @@
 //}
 //
 //Renderer::Renderer(int numvertices, int numindices, float* vertices, float* normals, float* texcoords, float* tangents, uint* indices) : m_started(false), m_ended(false), m_amount(0), m_numindices(numindices), m_offsetsTempBuffer(nullptr), m_offsetsPtr(nullptr) {
-//	m_offsetsTempBuffer = new Vector3[MAX_OBJECTS];
+//	m_offsetsTempBuffer = new glm::vec3[MAX_OBJECTS];
 //
 //    for (int i = 0; i < MAX_OBJECTS; i++) {
 //        m_offsetsTempBuffer[i].x = Math::RandomFloat(-1, 1);
@@ -34,7 +34,7 @@
 //    m_started = true;
 //}
 //
-//void Renderer::Submit(Vector3& offset) {
+//void Renderer::Submit(glm::vec3& offset) {
 //    m_offsetsPtr->x = offset.x;
 //    m_offsetsPtr->y = offset.y;
 //    m_offsetsPtr->z = offset.z;

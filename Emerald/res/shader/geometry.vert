@@ -24,11 +24,16 @@ void main(){
 	mat4 MVMatrix = _ViewMatrix * _TransformationMatrix;
 
 	vec4 viewPos = MVMatrix * vec4(vsPos, 1.0);
-	fsData.normal = (MVMatrix * vec4(vsNormal, 0.0)).xyz;
-	fsData.TBNMatrix = mat3(MVMatrix) * mat3(vsTangent, vsBitangent, vsNormal);
+
+	vec3 n = (_TransformationMatrix * vec4(vsNormal, 0.0)).xyz;
+	vec3 t = (_TransformationMatrix * vec4(vsTangent, 0.0)).xyz;
+	t = normalize(t - dot(t, n) * n);
+	vec3 b = cross(n, t);
+	fsData.TBNMatrix = mat3(t, b, n);
+	fsData.normal = n;
 
 	fsData.uv = vsUv;
 	fsData.viewDirection = _CameraPosition - viewPos.xyz;
 
-	gl_Position = _ProjectionMatrix * viewPos;
+	gl_Position = _ProjectionMatrix * _ViewMatrix * _TransformationMatrix * vec4(vsPos, 1.0);
 }

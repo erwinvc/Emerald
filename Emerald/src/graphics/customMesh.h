@@ -90,16 +90,16 @@ public:
 	}
 
 	void CalculateTangents(Vertex* v0, Vertex* v1, Vertex* v2) {
-		Vector3 delatPos1 = v1->m_position - v0->m_position;
-		Vector3 delatPos2 = v2->m_position - v0->m_position;
-		Vector2 deltaUv1 = v1->m_uv - v0->m_uv;
-		Vector2 deltaUv2 = v2->m_uv - v0->m_uv;
+		glm::vec3 delatPos1 = v1->m_position - v0->m_position;
+		glm::vec3 delatPos2 = v2->m_position - v0->m_position;
+		glm::vec2 deltaUv1 = v1->m_uv - v0->m_uv;
+		glm::vec2 deltaUv2 = v2->m_uv - v0->m_uv;
 
 		float r = 1.0f / (deltaUv1.x * deltaUv2.y - deltaUv1.y * deltaUv2.x);
 
 		delatPos1 *= deltaUv2.y;
 		delatPos2 *= deltaUv1.y;
-		Vector3 tangent = delatPos1 - delatPos2;
+		glm::vec3 tangent = delatPos1 - delatPos2;
 		tangent *= r;
 		v0->m_tangent += tangent;
 		v1->m_tangent += tangent;
@@ -108,16 +108,16 @@ public:
 
 	void CalculateNormals() {
 		for (uint i = 0; i < m_vertexCount; i++) {
-			m_vertices[i].m_normal = Vector3();
-			m_vertices[i].m_tangent = Vector3();
+			m_vertices[i].m_normal = glm::vec3();
+			m_vertices[i].m_tangent = glm::vec3();
 		}
 
 		for (uint i = 0; i < m_faceCount; i++) {
 			Face& face = m_faces[i];
 
-			Vector3 normal;
-			Vector3 U = face.m_vertex2->m_position - face.m_vertex1->m_position;
-			Vector3 V = face.m_vertex3->m_position - face.m_vertex1->m_position;
+			glm::vec3 normal;
+			glm::vec3 U = face.m_vertex2->m_position - face.m_vertex1->m_position;
+			glm::vec3 V = face.m_vertex3->m_position - face.m_vertex1->m_position;
 
 			normal.x = (U.y * V.z) - (U.z * V.y);
 			normal.y = (U.z * V.x) - (U.x * V.z);
@@ -131,8 +131,8 @@ public:
 		}
 
 		for (uint i = 0; i < m_vertexCount; i++) {
-			m_vertices[i].m_normal.Normalize();
-			m_vertices[i].m_tangent.Normalize();
+			m_vertices[i].m_normal = glm::normalize(m_vertices[i].m_normal);
+			m_vertices[i].m_tangent = glm::normalize(m_vertices[i].m_tangent);
 		}
 	}
 };

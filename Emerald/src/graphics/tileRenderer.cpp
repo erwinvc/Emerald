@@ -25,11 +25,11 @@
 //	texIri = GetAssetManager()->Get<Texture>("Irridescence");
 //	texNoise = GetAssetManager()->Get<Texture>("Noise");
 //
-//	Matrix4 transforms[4] = {
-//		Matrix4::Rotate(0, Vector3::YAxis()),
-//		Matrix4::Rotate(Math::HALF_PI + Math::PI, Vector3::YAxis()),
-//		Matrix4::Rotate(Math::PI, Vector3::YAxis()),
-//		Matrix4::Rotate(Math::HALF_PI, Vector3::YAxis()),
+//	glm::mat4 transforms[4] = {
+//		glm::mat4::Rotate(0, glm::vec3::YAxis()),
+//		glm::mat4::Rotate(Math::HALF_PI + Math::PI, glm::vec3::YAxis()),
+//		glm::mat4::Rotate(Math::PI, glm::vec3::YAxis()),
+//		glm::mat4::Rotate(Math::HALF_PI, glm::vec3::YAxis()),
 //	};
 //
 //	m_shader->Bind();
@@ -58,7 +58,7 @@
 //void TileRenderer::Submit(Tile& tile, int x, int y) {
 //	//m_renderers[tile.m_type]->Submit(TileBufferData((float)x, (float)y, tile.m_transformIndex, m_scale2, 1, 1, tile.m_definition->GetMaterialID()));
 //}
-////void TileRenderer::Submit(Tile& tile, Vector2& position) {
+////void TileRenderer::Submit(Tile& tile, glm::vec2& position) {
 ////	m_renderers[tile.m_type]->Submit(position);
 ////}
 //void TileRenderer::End() {

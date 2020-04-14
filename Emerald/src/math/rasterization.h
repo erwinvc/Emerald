@@ -25,7 +25,7 @@ public:
 		float D = 2 * dx - dy;
 		float x = x0;
 
-		for (int y = y0; y <= y1; y++) {
+		for (int y = (int)y0; y <= y1; y++) {
 			scan.yValues[y].maxX = Math::Max((int)x, scan.yValues[y].maxX);
 			scan.yValues[y].minX = Math::Min((int)x, scan.yValues[y].minX);
 			scan.minY = Math::Min((int)y, scan.minY);
@@ -49,9 +49,9 @@ public:
 		float D = 2 * dy - dx;
 		float y = y0;
 
-		for (int x = x0; x <= x1; x++) {
-			scan.yValues[y].maxX = Math::Max((int)x, scan.yValues[y].maxX);
-			scan.yValues[y].minX = Math::Min((int)x, scan.yValues[y].minX);
+		for (int x = (int)x0; x <= x1; x++) {
+			scan.yValues[y].maxX = (int)Math::Max((int)x, scan.yValues[y].maxX);
+			scan.yValues[y].minX = (int)Math::Min((int)x, scan.yValues[y].minX);
 			scan.minY = Math::Min((int)y, scan.minY);
 			scan.maxY = Math::Max((int)y, scan.maxY);
 			if (D > 0) {
@@ -78,22 +78,22 @@ public:
 	}
 
 	static void PlotCamera(Scan& scan, const CornerRayPositions& cornersObj, Camera* camera, float scale) {
-		const Vector3* corners = cornersObj.corners;
+		const glm::vec3* corners = cornersObj.corners;
 
-		Vector2 cam(camera->m_position.x, camera->m_position.z);
-		Vector2 a(corners[0].x, corners[0].z);
-		Vector2 b(corners[1].x, corners[1].z);
-		Vector2 c(corners[2].x, corners[2].z);
-		Vector2 d(corners[3].x, corners[3].z);
+		glm::vec2 cam(camera->transform.m_position.x, camera->transform.m_position.z);
+		glm::vec2 a(corners[0].x, corners[0].z);
+		glm::vec2 b(corners[1].x, corners[1].z);
+		glm::vec2 c(corners[2].x, corners[2].z);
+		glm::vec2 d(corners[3].x, corners[3].z);
 
-		if (cam.Distance(a) > 1000)
-			a = cam + (a - cam).Normalized() * 1000;
-		if (cam.Distance(b) > 1000)
-			b = cam + (b - cam).Normalized() * 1000;
-		if (cam.Distance(c) > 1000)
-			c = cam + (c - cam).Normalized() * 1000;
-		if (cam.Distance(d) > 1000)
-			d = cam + (d - cam).Normalized() * 1000;
+		if (glm::distance(cam, a) > 1000)
+			a = cam + glm::normalize(a - cam) * 1000.0f;
+		if (glm::distance(cam, b) > 1000)
+			b = cam + glm::normalize(b - cam) * 1000.0f;
+		if (glm::distance(cam, c) > 1000)
+			c = cam + glm::normalize(c - cam) * 1000.0f;
+		if (glm::distance(cam, d) > 1000)
+			d = cam + glm::normalize(d - cam) * 1000.0f;
 
 		Rasterization::PlotLine(scan, scale, a.x, a.y, b.x, b.y);
 		Rasterization::PlotLine(scan, scale, b.x, b.y, c.x, c.y);

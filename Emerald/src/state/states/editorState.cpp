@@ -9,41 +9,40 @@ Texture* noise;
 //Entity* m_entities[4];
 
 struct Ray {
-	Vector3 origin;
-	Vector3 direction;
+	glm::vec3 origin;
+	glm::vec3 direction;
 
-	Ray(Vector3 orig, Vector3 dir) : origin(orig), direction(dir) {}
+	Ray(glm::vec3 orig, glm::vec3 dir) : origin(orig), direction(dir) {}
 };
 
 float ClosestDistanceBetweenLines(Ray& l1, Ray& l2) {
-	const Vector3 dp = l2.origin - l1.origin;
-	const float v12 = l1.direction.Dot(l1.direction);
-	const float v22 = l2.direction.Dot(l2.direction);
-	const float v1v2 = l1.direction.Dot(l2.direction);
+	const glm::vec3 dp = l2.origin - l1.origin;
+	const float v12 = glm::dot(l1.direction, l1.direction);
+	const float v22 = glm::dot(l2.direction, l2.direction);
+	const float v1v2 = glm::dot(l1.direction, l2.direction);
 
 	const float det = v1v2 * v1v2 - v12 * v22;
 
 	if (Math::Abs(det) > FLT_MIN) {
 		const float inv_det = 1.f / det;
 
-		const float dpv1 = dp.Dot(l1.direction);
-		const float dpv2 = dp.Dot(l2.direction);
+		const float dpv1 = glm::dot(dp, l1.direction);
+		const float dpv2 = glm::dot(dp, l2.direction);
 
 		float l1t = inv_det * (v22 * dpv1 - v1v2 * dpv2);
 		float l2t = inv_det * (v1v2 * dpv1 - v12 * dpv2);
 
-		return (dp + l2.direction * l2t - l1.direction * l1t).Magnitude();
+		return (dp + l2.direction * l2t - l1.direction * l1t).length();
 	} else {
-		const Vector3 a = dp.Cross(l1.direction);
-		return Math::Sqrt(a.Dot(a) / v12);
+		const glm::vec3 a = glm::cross(dp,l1.direction);
+		return Math::Sqrt(glm::dot(a, a) / v12);
 	}
 }
 
 void draw_translation_gizmo(const Transform& transform) {
 	for (int i = 0; i < 1; i++) {
-		Vector3 axis_end = Vector3(0.f, 0.f, 0.f);
-		axis_end.values[i] = 1.f;
-
+		glm::vec3 axis_end = glm::vec3(0.f, 0.f, 0.f);
+		axis_end[i] = 1.0f;
 		Color axis_color = Color(0.f, 0.f, 0.f);
 		axis_color.values[i] = 1.f;
 
@@ -51,8 +50,8 @@ void draw_translation_gizmo(const Transform& transform) {
 		//	axis_color = Vec3f(1.f, 0.65f, 0.f);
 		//}
 
-		Vector3 ray = GroundRaycast::GetMousePosition();
-		float dist = ClosestDistanceBetweenLines(Ray(transform.m_position, axis_end.Normalized()), Ray(GetCamera()->m_position, ray.Normalized()));
+		glm::vec3 ray = GroundRaycast::GetMousePosition();
+		float dist = ClosestDistanceBetweenLines(Ray(transform.m_position, glm::normalize(axis_end)), Ray(GetCamera()->transform.m_position, glm::normalize(ray)));
 		LOG("%f", dist);
 		GetLineRenderer()->Submit(transform.m_position, axis_end + transform.m_position, axis_color);
 	}
@@ -87,8 +86,8 @@ void EditorState::RenderGeometry() {
 	m_geometryShader->Set("_IridescenceStrength", 0);
 	m_geometryShader->Set("_ProjectionMatrix", GetCamera()->GetProjectionMatrix());
 	m_geometryShader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
-	m_geometryShader->Set("_TransformationMatrix", Matrix4::Identity());
-	m_geometryShader->Set("_CameraPosition", GetCamera()->m_position);
+	m_geometryShader->Set("_TransformationMatrix", glm::mat4(1.0f));
+	m_geometryShader->Set("_CameraPosition", GetCamera()->transform.m_position);
 
 	m_moriEntity->Draw(m_geometryShader);
 
@@ -118,8 +117,8 @@ void EditorState::RenderGeometry() {
 	//cursor->Draw(m_geometryShader);
 
 	m_world->RenderGeometry();
-	//GetPointlightRenderer()->Submit(Pointlight(Vector3(1.1f, 1.0f, 0), 50, Color::White() * 20));
-	//GetPointlightRenderer()->Submit(Pointlight(Vector3(0, 1.0f, 1.1f), 5, Color::Green()));
+	//GetPointlightRenderer()->Submit(Pointlight(glm::vec3(1.1f, 1.0f, 0), 50, Color::White() * 20));
+	//GetPointlightRenderer()->Submit(Pointlight(glm::vec3(0, 1.0f, 1.1f), 5, Color::Green()));
 }
 
 void EditorState::Update(const TimeStep& time) {
@@ -135,7 +134,7 @@ void EditorState::Update(const TimeStep& time) {
 	//	entity[i]->m_position = Math::PointOnUnitSphere(pointsX[i], pointsY[i]);
 	//}
 
-	//Vector3& ray = GroundRaycast::GetMousePosition();
+	//glm::vec3& ray = GroundRaycast::GetMousePosition();
 	////cursor->m_position = GroundRaycast::GetGroundPosition(ray, 0);
 	//int xPos = cursor->m_position.x / 10;
 	//int zPos = cursor->m_position.z / 10;

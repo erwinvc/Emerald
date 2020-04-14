@@ -3,12 +3,12 @@
 struct CornerRayPositions {
 	union {
 		struct {
-			Vector3 TL;
-			Vector3 TR;
-			Vector3 BR;
-			Vector3 BL;
+			glm::vec3 TL;
+			glm::vec3 TR;
+			glm::vec3 BR;
+			glm::vec3 BL;
 		};
-		Vector3 corners[4];
+		glm::vec3 corners[4];
 	};
 
 	CornerRayPositions() {}
@@ -16,26 +16,21 @@ struct CornerRayPositions {
 
 class Camera {
 private:
-	Matrix4 m_projectionMatrix;
-	Matrix4 m_viewMatrix;
+	glm::mat4 m_projectionMatrix;
+	glm::mat4 m_viewMatrix;
 	float m_FOV;
 	float m_nearPlane;
 	float m_farPlane;
-	Vector4 m_viewPort;
+	glm::vec4 m_viewPort;
 
 protected:
 	void UpdateViewMatrix() {
-		Matrix4 transform = Matrix4::Translate(Vector3(0, 0, 1));
-		transform *= Matrix4::Rotate(m_rotation.x, Vector3::XAxis());
-		transform *= Matrix4::Rotate(m_rotation.y, Vector3::YAxis());
-		transform *= Matrix4::Rotate(m_rotation.z, Vector3::ZAxis());
-		transform *= Matrix4::Translate(-m_position);
-		m_viewMatrix = transform;
+		m_viewMatrix = glm::translate(glm::mat4(1.0f), transform.m_position) * glm::toMat4(transform.GetOrientation());
+		m_viewMatrix = glm::inverse(m_viewMatrix);
 	}
 
 public:
-	Vector3 m_position = Vector3();
-	Vector3 m_rotation = Vector3();
+	Transform transform;
 
 	Camera(float fov, float nearPlane, float farPlane) { SetProjectionMatrix(fov, nearPlane, farPlane); UpdateViewMatrix(); }
 
@@ -60,16 +55,16 @@ public:
 	}
 
 
-	inline Matrix4 GetProjectionMatrix() const { return m_projectionMatrix; }
-	inline Matrix4 GetViewMatrix() const { return m_viewMatrix; }
-	inline Vector4 GetViewport() const { return m_viewPort; }
+	inline glm::mat4 GetProjectionMatrix() const { return m_projectionMatrix; }
+	inline glm::mat4 GetViewMatrix() const { return m_viewMatrix; }
+	inline glm::vec4 GetViewport() const { return m_viewPort; }
 	inline float GetFOV() const { return m_FOV; }
 	inline float GetNear() const { return m_nearPlane; }
 	inline float GetFar() const { return m_farPlane; }
 
 	virtual void OnImGui() {
-		ImGui::InputFloat3("Position", (float*)&m_position);
-		ImGui::InputFloat3("Rotation", (float*)&m_rotation);
+		ImGui::InputFloat3("Position", (float*)&transform.m_position);
+		ImGui::InputFloat3("Rotation", (float*)&transform.m_rotation);
 		if (ImGui::InputFloat("Near", &m_nearPlane, 0.000001f, 10000.0f)) {
 			UpdateProjectionMatrix();
 		}
@@ -84,10 +79,10 @@ public:
 	}
 
 	static CornerRayPositions GetCornerRays(float offset) {
-		Vector3& ray1 = GroundRaycast::GetScreenPosition(Vector2(0.0f + offset, 0.0f + offset));
-		Vector3& ray2 = GroundRaycast::GetScreenPosition(Vector2(1.0f - offset, 0.0f + offset));
-		Vector3& ray3 = GroundRaycast::GetScreenPosition(Vector2(1.0f - offset, 1.0f - offset));
-		Vector3& ray4 = GroundRaycast::GetScreenPosition(Vector2(0.0f + offset, 1.0f - offset));
+		glm::vec3& ray1 = GroundRaycast::GetScreenPosition(glm::vec2(0.0f + offset, 0.0f + offset));
+		glm::vec3& ray2 = GroundRaycast::GetScreenPosition(glm::vec2(1.0f - offset, 0.0f + offset));
+		glm::vec3& ray3 = GroundRaycast::GetScreenPosition(glm::vec2(1.0f - offset, 1.0f - offset));
+		glm::vec3& ray4 = GroundRaycast::GetScreenPosition(glm::vec2(0.0f + offset, 1.0f - offset));
 		CornerRayPositions positions;
 
 		positions.TL = GroundRaycast::GetGroundPosition(ray1, 0);

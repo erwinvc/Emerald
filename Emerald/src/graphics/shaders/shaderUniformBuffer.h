@@ -95,21 +95,21 @@ private:
 		switch (uniform.GetType()) {
 			case ShaderUniformType::INT: SetGL(location, (int*)&m_data[offset], count); break;
 			case ShaderUniformType::FLOAT: SetGL(location, (float*)&m_data[offset], count); break;
-			case ShaderUniformType::VEC2: SetGL(location, (Vector2*)&m_data[offset], count); break;
-			case ShaderUniformType::VEC3: SetGL(location, (Vector3*)&m_data[offset], count); break;
-			case ShaderUniformType::VEC4: SetGL(location, (Vector4*)&m_data[offset], count); break;
-			case ShaderUniformType::MAT4: SetGL(location, (Matrix4*)&m_data[offset], count); break;
+			case ShaderUniformType::VEC2: SetGL(location, (glm::vec2*)&m_data[offset], count); break;
+			case ShaderUniformType::VEC3: SetGL(location, (glm::vec3*)&m_data[offset], count); break;
+			case ShaderUniformType::VEC4: SetGL(location, (glm::vec4*)&m_data[offset], count); break;
+			case ShaderUniformType::MAT4: SetGL(location, (glm::mat4*)&m_data[offset], count); break;
 		}
 	}
 
 	void SetGL(uint location, const int* value, uint count) { glUniform1iv(location, count, (int*)value); }
 	//void SetGL(uint location, const bool* value, uint count) { glUniform1i(location, 1, value); }
-	void SetGL(uint location, const Vector2I* value, uint count) { glUniform2iv(location, count, (int*)value); }
+	void SetGL(uint location, const glm::ivec2* value, uint count) { glUniform2iv(location, count, (int*)value); }
 	void SetGL(uint location, const float* value, uint count) { glUniform1fv(location, count, (float*)value); }
-	void SetGL(uint location, const Vector2* value, uint count) { glUniform2fv(location, count, (float*)value); }
-	void SetGL(uint location, const Vector3* value, uint count) { glUniform3fv(location, count, (float*)value); }
-	void SetGL(uint location, const Vector4* value, uint count) { glUniform4fv(location, count, (float*)value); }
-	void SetGL(uint location, const Matrix4* value, uint count) { glUniformMatrix4fv(location, count, GL_TRUE, (float*)value); }
+	void SetGL(uint location, const glm::vec2* value, uint count) { glUniform2fv(location, count, (float*)value); }
+	void SetGL(uint location, const glm::vec3* value, uint count) { glUniform3fv(location, count, (float*)value); }
+	void SetGL(uint location, const glm::vec4* value, uint count) { glUniform4fv(location, count, (float*)value); }
+	void SetGL(uint location, const glm::mat4* value, uint count) { glUniformMatrix4fv(location, count, GL_FALSE, (float*)value); }
 
 public:
 	~ShaderUniformBuffer() {

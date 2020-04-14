@@ -11,15 +11,15 @@ private:
 	AssetRef<Shader> m_shaderBlur;
 	AssetRef<Mesh> m_quad;
 
-	vector<Vector3> m_kernels;
+	vector<glm::vec3> m_kernels;
 public:
 	bool m_enabled = true;
 
 	const int KERNELCOUNT = 64;
 
 	float m_radius = 0.5f;
-	float m_bias = 0.025f;
-	int m_power = 1;
+	float m_bias = 0.085f;
+	int m_power = 5;
 	int m_sampleCount = 32;
 
 	SSAORenderer();

@@ -10,11 +10,11 @@ private:
 	ManagedRef<VertexBuffer> m_offsets;
     int m_amount;
     int m_numindices;
-    Vector3* m_offsetsTempBuffer;
-    Vector3* m_offsetsPtr;
+    glm::vec3* m_offsetsTempBuffer;
+    glm::vec3* m_offsetsPtr;
 public:
     void Begin();
-	void Submit(Vector3& offset);
+	void Submit(glm::vec3& offset);
     void End();
     void Draw();
 

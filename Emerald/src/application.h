@@ -44,7 +44,7 @@ public:
 	inline float GetWidth() { return m_window->GetWidth<T>(); }
 
 	template<typename T>
-	inline float GetHeight() { return m_window->GetHeight<T>(); }
+	inline T GetHeight() { return m_window->GetHeight<T>(); }
 	inline float GetAspect() { return m_window->GetAspect(); }
 
 };

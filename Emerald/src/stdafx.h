@@ -1,6 +1,9 @@
 #pragma once
 
 #define _HAS_STD_BYTE 0
+#define NOGDI
+
+
 //#define MEMORY_CHECK
 #pragma warning (disable: 4244) /*type_traits conversion warning*/
 
@@ -61,15 +64,15 @@ using namespace std;
 #define foreach(x, y) for(auto& x : y)
 #define BUFFEROFFSET(i) ((char *)NULL + (i))
 
-#include "math/vector2.h"
-#include "math/vector2I.h"
-#include "math/vector3.h"
-#include "math/vector4.h"
-#include "math/matrix4.h"
-#include "math/rect.h"
+#include "vendor/glm/glm.hpp"
+#include "vendor/glm/gtx/transform.hpp"
+#include "vendor/glm/gtc/matrix_transform.hpp"
+#include "vendor/glm/gtx/quaternion.hpp"
+#include "vendor/glm/gtx/compatibility.hpp"
+#include "vendor/glm/gtx/euler_angles.hpp"
+#include "math/rectangle.h"
 #include "math/mathFunctions.h"
 #include "math/transform.h"
-
 
 #include "util/types.h"
 #include "util/ref.h"
@@ -141,19 +144,20 @@ using namespace std;
 #include "assets/loaders/modelLoader.h"
 #include "assets/loaders/stateLoader.h"
 
-#include "graphics/window.h"
-#include "graphics/shaders/UIRenderer.h"
-#include "graphics/renderer.h"
-#include "graphics/ssaoRenderer.h"
-
 #include "input/keyboard.h"
 #include "input/mouse.h"
-
 
 #include "math/groundRaycast.h"
 #include "graphics/camera/freeCam.h"
 #include "graphics/camera/firstPersonCam.h"
 #include "math/rasterization.h"
+
+#include "graphics/window.h"
+#include "graphics/shaders/UIRenderer.h"
+#include "graphics/renderer.h"
+
+#include "graphics/ssaoRenderer.h"
+#include "graphics/ssrRenderer.h"
 
 #include "graphics/mesh.h"
 #include "graphics/customMesh.h"

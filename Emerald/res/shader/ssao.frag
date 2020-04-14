@@ -37,34 +37,30 @@ vec3 GetPosition(vec2 coord){
 
 void main(){
 	vec3 fragPos = GetPosition(fsUv);
-    vec3 normal = (vec4(normalize(texture(_GNormal, fsUv).rgb), 0.0)).xyz;
+    vec3 normal = normalize(textureLod(_GNormal, fsUv, 0).xyz);
     vec3 randomVec = normalize(texture(_Noise, fsUv * _ScreenSize).xyz);
-    // create TBN change-of-basis matrix: from tangent-space to view-space
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
     vec3 bitangent = cross(normal, tangent);
     mat3 TBN = mat3(tangent, bitangent, normal);
-    // iterate over the sample kernel and calculate occlusion factor
+
     float occlusion = 0.0;
-    for(int i = 0; i < _SampleCount; ++i)
+    for(int i = 0; i < _SampleCount; i++)
     {
-        // get sample position
-        vec3 sample = TBN * _Samples[i]; // from tangent to view-space
+        vec3 sample = TBN * _Samples[i];
         sample = fragPos + sample * _Radius; 
         
-        // project sample position (to sample texture) (to get position on screen/texture)
         vec4 offset = vec4(sample, 1.0);
         offset = _Projection * offset; // from view to clip-space
         offset.xyz /= offset.w; // perspective divide
         offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
         
-        // get sample depth
         float sampleDepth = GetPosition(offset.xy).z;
         
-        // range check & accumulate
         float rangeCheck = smoothstep(0.0, 1.0, _Radius / abs(fragPos.z - sampleDepth));
         occlusion += (sampleDepth >= sample.z + _Bias ? 1.0 : 0.0) * rangeCheck;           
     }
     occlusion = 1.0 - (occlusion / _SampleCount);
+    occlusion = clamp(pow(occlusion, 1.0 + _Power), 0.0, 1.0);
 
     FragColor = vec3(occlusion, occlusion, occlusion);
 }

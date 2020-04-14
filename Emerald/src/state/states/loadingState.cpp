@@ -4,7 +4,8 @@ void LoadingState::Initialize() {
 
 	GetTextureManager()->Initialize();
 
-	m_logo = GetAssetManager()->ForceLoad<Texture>(NEW(TextureLoader("Logo", "res/logo.png", false), TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
+	TextureLoader* loader = NEW(TextureLoader("Logo", "res/logo.png", false), TextureParameters(RGBA, RGBA, NEAREST, REPEAT));
+	m_logo = GetAssetManager()->ForceLoad<Texture>(loader);
 	GetTileMaterialManager()->Initialize();
 
 	GetShaderManager()->Create("UI", "res/shader/UI");
@@ -95,8 +96,8 @@ void LoadingState::RenderUI() {
 	float progress = GetAssetManager()->GetProgress();
 	Color color = Color::Mix(Color(0xFF0029), Color(0x007AFF), progress);
 	GetUIRenderer()->Rect(Origin::CENTER, GetApp()->GetWidth<float>() / 2.0f, GetApp()->GetHeight<float>() / 2.0f, GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>(), Color::Black());
-	GetUIRenderer()->Rect(Origin::LEFT, Vector2(0.248f * GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>() / 2.0f), Vector2(0.502f * GetApp()->GetWidth<float>(), 0.022f * GetApp()->GetHeight<float>()), Color::White());
-	GetUIRenderer()->Rect(Origin::LEFT, Vector2(0.25f * GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>() / 2.0f), Vector2(progress * 0.5f * GetApp()->GetWidth<float>(), 0.02f  * GetApp()->GetHeight<float>()), color);
+	GetUIRenderer()->Rect(Origin::LEFT, glm::vec2(0.248f * GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>() / 2.0f), glm::vec2(0.502f * GetApp()->GetWidth<float>(), 0.022f * GetApp()->GetHeight<float>()), Color::White());
+	GetUIRenderer()->Rect(Origin::LEFT, glm::vec2(0.25f * GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>() / 2.0f), glm::vec2(progress * 0.5f * GetApp()->GetWidth<float>(), 0.02f  * GetApp()->GetHeight<float>()), color);
 
 	GetUIRenderer()->RenderTexture(m_logo, Origin::CENTER, GetApp()->GetWidth<float>() / 2, GetApp()->GetHeight<float>() * 0.85f, 0.4095f * GetApp()->GetWidth<float>(), 0.0945f * GetApp()->GetWidth<float>());
 }

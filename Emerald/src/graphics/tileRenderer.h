@@ -10,7 +10,7 @@
 //	float m_strengthsSpecular;
 //	float m_strengthsEmission;
 //	int m_textureID;
-//	//Vector4 m_heights;
+//	//glm::vec4 m_heights;
 //
 //	TileBufferData(float x, float y, int transformIndex, float normalStrength, float specularStrength, float emissionStrength, int textureID) :
 //		m_x(x), m_y(y),

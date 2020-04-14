@@ -13,6 +13,7 @@ public:
 
 	//SSAO
 	SSAORenderer* m_ssaoRenderer = nullptr;
+	SSRRenderer* m_ssrRenderer = nullptr;
 
 	//HDR
 	bool m_applyPostProcessing = true;
@@ -22,11 +23,6 @@ public:
 	AssetRef<Texture> m_hdrBrightTexture;
 	AssetRef<Shader> m_hdrShader;
 	AssetRef<Mesh> m_quad;
-
-	//SSR
-	AssetRef<FrameBuffer> m_ssrBuffer;
-	AssetRef<Texture> m_ssrTexture;
-	AssetRef<Shader> m_ssrShader;
 
 	//Bloom
 	AssetRef<Shader> m_gaussianShader;
@@ -40,8 +36,8 @@ public:
 	AssetRef<FrameBuffer> m_finalFBO;
 	AssetRef<Texture> m_finalTexture;
 
-	Matrix4 m_orthoMatrix;
-	Matrix4 m_perspectiveMatrix;
+	glm::mat4 m_orthoMatrix;
+	glm::mat4 m_perspectiveMatrix;
 	bool m_perspective = true;
 	float m_lerpAmount = 0;
 	int m_selectedTexture = 0;

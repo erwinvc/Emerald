@@ -39,11 +39,11 @@ private:
 			m_indices = new GLuint[m_numIndices];
 
 			for (uint32 i = 0; i < mesh->mNumVertices; i++) {
-				m_vertices[i].m_position = Vector3(mesh->mVertices[i]);
-				m_vertices[i].m_normal = Vector3(mesh->mNormals[i]);
-				m_vertices[i].m_uv = Vector2(mesh[0].mTextureCoords[0][i]);
-				m_vertices[i].m_tangent = Vector3(mesh->mTangents[i]);
-				m_vertices[i].m_biTangent = Vector3(mesh->mBitangents[i]);
+				m_vertices[i].m_position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+				m_vertices[i].m_normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+				m_vertices[i].m_uv = glm::vec2(mesh[0].mTextureCoords[0][i].x, mesh[0].mTextureCoords[0][i].y);
+				m_vertices[i].m_tangent = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+				m_vertices[i].m_biTangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
 			}
 
 			for (uint i = 0; i < mesh->mNumFaces; i++) {

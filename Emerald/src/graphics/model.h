@@ -18,11 +18,11 @@ private:
 	}
 
 	struct Vertex {
-		Vector3 m_position;
-		Vector3 m_normal;
-		Vector2 m_uv;
-		Vector3 m_tangents;
-		Vector3 m_biTangents;
+		glm::vec3 m_position;
+		glm::vec3 m_normal;
+		glm::vec2 m_uv;
+		glm::vec3 m_tangents;
+		glm::vec3 m_biTangents;
 	};
 	Mesh* ProcessMesh(aiMesh *mesh, const aiScene *scene) {
 		vector<GLfloat> texcoords;
@@ -42,11 +42,11 @@ private:
 		Vertex* vertices = new Vertex[mesh->mNumVertices];
 
 		for (uint32 i = 0; i < mesh->mNumVertices; i++) {
-			vertices[i].m_position = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-			vertices[i].m_normal = Vector3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-			vertices[i].m_uv = Vector2(mesh[0].mTextureCoords[0][i].x, mesh[0].mTextureCoords[0][i].y);
-			vertices[i].m_tangents = Vector3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
-			vertices[i].m_biTangents = Vector3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+			vertices[i].m_position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+			vertices[i].m_normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+			vertices[i].m_uv = glm::vec2(mesh[0].mTextureCoords[0][i].x, mesh[0].mTextureCoords[0][i].y);
+			vertices[i].m_tangents = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+			vertices[i].m_biTangents = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
 		}
 
 		ManagedRef<VertexArray> vaoModel(new VertexArray());

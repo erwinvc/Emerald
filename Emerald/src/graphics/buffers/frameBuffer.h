@@ -130,7 +130,6 @@ public:
 
 	void OnImGUI();
 	inline AssetRef<Texture> GetSelectedTexture() { return m_selectedTexture; }
-
 	void SetSelectedTexture(AssetRef<Texture> texture) {
 		m_selectedTexture = texture;
 	}

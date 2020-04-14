@@ -1,18 +1,18 @@
 #include "stdafx.h"
 
-Vector2I toResize(-1, -1);
+glm::ivec2 toResize(-1, -1);
 
 static void ErrorCallback(int error, const char* description) {
 	LOG_ERROR("[GLFW] %s", description);
 }
 
-static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
+static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	LOG("%d %d %s", type, id, message);
 }
 
 void Application::OnResize(int width, int height) {
 	if (!m_initialized) return;
-	toResize = Vector2I(width, height);
+	toResize = glm::ivec2(width, height);
 }
 
 void Application::OnWindowClose() {
@@ -153,8 +153,8 @@ void Application::Render() {
 				GetShaderManager()->OnImGUI();
 				ImGui::EndTabBar();
 			}
-			ImGui::End();
 		}
+		ImGui::End();
 		GetStateManager()->OnImGUI();
 		GetImGuiManager()->End();
 	} else {
@@ -172,7 +172,7 @@ void Application::Render() {
 		m_pipeline->OnResize(width, height);
 		GetFrameBufferManager()->OnResize(width, height);
 		GetStateManager()->OnResize(width, height);
-		toResize = Vector2I(-1, -1);
+		toResize = glm::ivec2(-1, -1);
 	}
 
 	GetAssetWatcher()->HandleQueue();

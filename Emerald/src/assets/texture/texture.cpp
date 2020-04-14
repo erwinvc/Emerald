@@ -13,27 +13,29 @@ void Texture::SetData(byte* data) {
 
 	GL(glBindTexture(GL_TEXTURE_2D, m_textureID));
 
-	if (m_hasMipmaps) {
-		GL(glTexStorage2D(GL_TEXTURE_2D, 7, m_params.GetInternalFormatSized(), m_width, m_height));
-		GL(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_params.GetFormat(), m_params.GetType(), data));
-		GL(glGenerateMipmap(GL_TEXTURE_2D));
-	} else {
-		GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), data));
-	}
+	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), data));
 
-	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_params.GetFilter(GL_TEXTURE_MIN_FILTER, m_hasMipmaps)));
-	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_params.GetFilter(GL_TEXTURE_MAG_FILTER, m_hasMipmaps)));
+	
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_params.GetWrap()));
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_params.GetWrap()));
-
+	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_params.GetFilter(GL_TEXTURE_MIN_FILTER, m_hasMipmaps)));
+	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_params.GetFilter(GL_TEXTURE_MAG_FILTER, m_hasMipmaps)));
 	if (m_hasMipmaps) {
-		if (GLEW_EXT_texture_filter_anisotropic) {
-			float value = 0;
-			GL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value));
-			float amount = Math::Min(8.0f, value);
-			GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount));
-		} else LOG_WARN("GL_EXT_texture_filter_anisotropic not supported");
+		m_mipmapCount = static_cast<int>(1 + Math::Floor(log2(Math::Min(m_width, m_height))));
+		GL(glGenerateMipmap(GL_TEXTURE_2D));
+	}else
+	{
+		m_mipmapCount = 0;
 	}
+
+	//if (m_hasMipmaps) {
+	//	if (GLEW_EXT_texture_filter_anisotropic) {
+	//		float value = 0;
+	//		GL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value));
+	//		float amount = Math::Min(8.0f, value);
+	//		GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount));
+	//	} else LOG_WARN("GL_EXT_texture_filter_anisotropic not supported");
+	//}
 
 	int size = m_width * m_height * m_params.GetChannelCount();
 

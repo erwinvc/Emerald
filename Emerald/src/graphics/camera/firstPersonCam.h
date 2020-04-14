@@ -12,8 +12,8 @@ public:
 	void Update(const TimeStep& time);
 
 	void OnImGui() override {
-		ImGui::InputFloat3("Position", (float*)&m_position);
-		ImGui::InputFloat3("Rotation", (float*)&m_rotation);
+		ImGui::InputFloat3("Position", (float*)&transform.m_position);
+		ImGui::InputFloat3("Rotation", (float*)&transform.m_rotation);
 		ImGui::InputFloat("Camera height", (float*)&cameraHeight);
 	}
 

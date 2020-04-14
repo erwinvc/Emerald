@@ -37,8 +37,8 @@
 //	}
 //
 //public:
-//	vector<Vector2I> m_open;
-//	vector<Vector2I> m_closed;
+//	vector<glm::ivec2> m_open;
+//	vector<glm::ivec2> m_closed;
 //	AStarResult FindPath(Tile* start, Tile* goal) {
 //		vector<Node*> allNodes;
 //		vector<Node*> openList;
@@ -170,11 +170,11 @@
 //	}
 //
 //	void Draw() {
-//		for (Vector2I& vec : m_closed) {
+//		for (glm::ivec2& vec : m_closed) {
 //			GetLineRenderer()->DrawRect(Rect((float)vec.x, (float)vec.y + 0.5f, 0.5f, 0.5f), Color(0.35f, 0, 0));
 //		}
 //
-//		for (Vector2I& vec : m_open) {
+//		for (glm::ivec2& vec : m_open) {
 //			GetLineRenderer()->DrawRect(Rect((float)vec.x, (float)vec.y + 0.5f, 0.5f, 0.5f), Color::Green());
 //		}
 //	}

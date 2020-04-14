@@ -2,13 +2,13 @@
 
 class Tile {
 private:
-	Vector2I m_position;
+	glm::ivec2 m_position;
 	bool m_exists;
 public:
 	int m_textureID;
 
-	Tile(Vector2I position, int textureID) : m_position(position), m_exists(true), m_textureID(textureID) {}
-	Tile() : m_position(Vector2I()), m_exists(false), m_textureID(0) {}
+	Tile(glm::ivec2 position, int textureID) : m_position(position), m_exists(true), m_textureID(textureID) {}
+	Tile() : m_position(glm::ivec2()), m_exists(false), m_textureID(0) {}
 
 	bool Exists() { return m_exists; }
 

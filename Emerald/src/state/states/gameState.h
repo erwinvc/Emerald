@@ -29,7 +29,7 @@ public:
 			m_entities[i] = new Entity(m_model);
 		}
 		m_turtleEntity->m_transform.m_position.y += 10;
-		m_turtleEntity->m_transform.m_size = Vector3(10, 10, 10);
+		m_turtleEntity->m_transform.m_size = glm::vec3(10, 10, 10);
 	}
 
 
@@ -38,7 +38,6 @@ public:
 		m_world->Update(time);
 	}
 	void RenderGeometry() override {
-		m_world->RenderGeometry();
 
 		m_geometryShader->Bind();
 		m_geometryShader->Set("_Iridescence", 5);
@@ -46,8 +45,8 @@ public:
 		m_geometryShader->Set("_IridescenceStrength", 0);
 		m_geometryShader->Set("_ProjectionMatrix", GetCamera()->GetProjectionMatrix());
 		m_geometryShader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
-		m_geometryShader->Set("_TransformationMatrix", Matrix4::Identity());
-		m_geometryShader->Set("_CameraPosition", GetCamera()->m_position);
+		m_geometryShader->Set("_TransformationMatrix", glm::mat4(1.0f));
+		m_geometryShader->Set("_CameraPosition", GetCamera()->transform.m_position);
 
 		CornerRayPositions positions = Camera::GetCornerRays(0);
 		m_entities[0]->m_transform.m_position = positions.TL;
@@ -60,6 +59,9 @@ public:
 		}
 		m_entities[0]->Draw(m_geometryShader);
 		m_turtleEntity->Draw(m_geometryShader);
+
+		m_world->RenderGeometry();
+
 	}
 
 	void RenderUI() override {

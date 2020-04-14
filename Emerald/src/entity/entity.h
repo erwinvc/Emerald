@@ -11,12 +11,12 @@ public:
 	virtual ~Entity() {}
 
 	void Draw(AssetRef<Shader> shader, uint mode = GL_TRIANGLES) {
-		shader->Set("_TransformationMatrix", m_transform.GetMatrix());
+		shader->Set("_TransformationMatrix", m_transform.GetTransformationMatrix());
 		m_model->Draw(shader, mode);
 	}
 
 	void OnImGui() {
-		m_transform.OnImGui();
+		//m_transform.OnImGui();
 	}
 };
 

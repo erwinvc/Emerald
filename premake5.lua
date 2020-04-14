@@ -23,6 +23,7 @@ project "Emerald"
 		files
 	{
 		"%{prj.name}/**.h",
+		"%{prj.name}/**.hpp",
 		"%{prj.name}/**.cpp",
 		"%{prj.name}/**.vert",
 		"%{prj.name}/**.frag",
@@ -44,6 +45,7 @@ project "Emerald"
 		"%{prj.name}/vendor/GLFW/include",
 		"%{prj.name}/vendor/GLEW/include",
 		"%{prj.name}/vendor/imgui",
+		"%{prj.name}/vendor",
 		"%{prj.name}",
 		"%{prj.name}/src"
 	}

@@ -1,7 +1,7 @@
 #pragma once
 
 struct Position {
-	Vector3 m_position;
+	glm::vec3 m_position;
 };
 class MenuState : public State {
 private:
@@ -16,7 +16,7 @@ private:
 	//Model* sponza;
 	Entity* sponzaEntity;
 	vector<Pointlight> m_pointLights;
-	vector<Vector3> m_positions;
+	vector<glm::vec3> m_positions;
 	int LIGHTCOUNT = 16000;
 public:
 	const String& GetName() override { return m_name; }
@@ -34,15 +34,15 @@ public:
 		Model* model = new Model();
 		model->LoadModel("res/sponza/sponza.obj");
 		sponzaEntity = new Entity(model);
-		sponzaEntity->m_transform.m_size = Vector3(0.1f, 0.1f, 0.1f);
+		sponzaEntity->m_transform.m_size = glm::vec3(0.1f, 0.1f, 0.1f);
 		sponzaEntity->m_transform.m_position.z = 4;
 		//GetCamera()->m_position.y = -2;
-		GetCamera()->m_position = Vector3(-1.3f, 0.96f, 0);
-		GetCamera()->m_rotation.y = Math::HALF_PI;
+		GetCamera()->transform.m_position = glm::vec3(-1.3f, 0.96f, 0);
+		GetCamera()->transform.m_rotation.y = Math::HALF_PI;
 		m_moriEntity->m_transform.m_position.y = 0.5f;
 		GetPipeline()->m_directionalLight.m_multiplier = 5.0f;
 		for (int i = 0; i < LIGHTCOUNT; i++) {
-			m_positions.push_back(Vector3(Math::RandomFloat(-150.0f, 130.0f), Math::RandomFloat(0.0f, 90.0f), Math::RandomFloat(-60.0f, 60.0f)));
+			m_positions.push_back(glm::vec3(Math::RandomFloat(-150.0f, 130.0f), Math::RandomFloat(0.0f, 90.0f), Math::RandomFloat(-60.0f, 60.0f)));
 		}
 	}
 	bool started = false;
@@ -54,12 +54,13 @@ public:
 		GetCamera()->Update(time);
 		static float seconds = 0;
 		seconds += time.GetSeconds();
-		m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
+		//m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
 
 		if (moveLights) {
 			amount = Math::Clamp(amount + 5, 0, LIGHTCOUNT);
 			for (int i = 0; i < amount; i++) {
-				m_pointLights[i].m_position.Lerp(m_positions[i], time.GetSeconds() / 4.0f);
+				//m_pointLights[i].m_position.Lerp(m_positions[i], time.GetSeconds() / 4.0f);
+				m_pointLights[i].m_position = glm::lerp(m_pointLights[i].m_position, m_positions[i], time.GetSeconds() / 4.0f);
 			}
 		}
 	}
@@ -72,11 +73,11 @@ public:
 		m_geometryShader->Set("_IridescenceStrength", 0);
 		m_geometryShader->Set("_ProjectionMatrix", GetCamera()->GetProjectionMatrix());
 		m_geometryShader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
-		m_geometryShader->Set("_TransformationMatrix", Matrix4::Identity());
-		m_geometryShader->Set("_CameraPosition", GetCamera()->m_position);
+		m_geometryShader->Set("_TransformationMatrix", glm::mat4(1.0));
+		m_geometryShader->Set("_CameraPosition", GetCamera()->transform.m_position);
 
 		m_geometryShader->Set("Iri", irid ? 1.0f : 0.0f);
-		if (!disableMori)m_moriEntity->Draw(m_geometryShader);
+		if (!disableMori) m_moriEntity->Draw(m_geometryShader);
 		m_geometryShader->Set("Iri", 0);
 
 		sponzaEntity->Draw(m_geometryShader);
@@ -89,6 +90,13 @@ public:
 		if (ImGui::Button("Planks")) mat->SetPBR("planks");
 		if (ImGui::Button("Gold")) mat->SetPBR("gold");
 		if (ImGui::Button("Metal")) mat->SetPBR("metal");
+		if (ImGui::DragFloat3("pos", (float*)&sponzaEntity->m_transform.m_position));
+		if (ImGui::DragFloat3("rot", (float*)&sponzaEntity->m_transform.m_rotation, 0.02f));
+		if (ImGui::DragFloat3("size", (float*)&sponzaEntity->m_transform.m_size, 0.02f));
+
+		if (ImGui::DragFloat3("pos1", (float*)&m_moriEntity->m_transform.m_position));
+		if (ImGui::DragFloat3("rot1", (float*)&m_moriEntity->m_transform.m_rotation, 0.02f));
+		if (ImGui::DragFloat3("size1", (float*)&m_moriEntity->m_transform.m_size, 0.02f));
 		static float temp = 0;
 
 		if (ImGui::Button("Start")) {
@@ -102,8 +110,8 @@ public:
 							irid = true;
 							Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
 
-								Tween::To(GetCamera()->m_position, Vector3(-105, 32, 0), 5000)->SetEase(Ease::INOUTEXPO);
-								Tween::To(GetCamera()->m_rotation, Vector3(0.2f, Math::HALF_PI, 0), 5000)->SetEase(Ease::INOUTEXPO);
+								Tween::To(GetCamera()->transform.m_position, glm::vec3(-105, 32, 0), 5000)->SetEase(Ease::INOUTEXPO);
+								Tween::To(GetCamera()->transform.m_rotation, glm::vec3(0.2f, Math::HALF_PI, 0), 5000)->SetEase(Ease::INOUTEXPO);
 								Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
 									disableMori = true;
 									GetPipeline()->m_applyPostProcessing = false;
@@ -127,7 +135,7 @@ public:
 													Tween::To(temp, 0.0f, 2000)->SetOnComplete([&] {
 
 														for (int i = 0; i < LIGHTCOUNT; i++) {
-															m_pointLights.push_back(Pointlight(Vector3(0, 2, 0), 5, Color::RandomPrimary()));
+															m_pointLights.push_back(Pointlight(glm::vec3(0, 2, 0), 5, Color::RandomPrimary()));
 														}
 														Tween::To(temp, 0.0f, 1000)->SetOnComplete([&] {
 															moveLights = true;

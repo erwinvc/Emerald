@@ -10,12 +10,12 @@ class Mouse : public Singleton<Mouse> {
 private:
     const int m_NOWPERIOD = 100, m_MAXDOWN = 600000, m_DOUBLECLICKPERIOD = 200;
 
-    Vector2 m_position;
-    Vector2 m_prevPosition;
-    Vector2 m_usePosition;
-    Vector2 m_delta;
+    glm::vec2 m_position;
+    glm::vec2 m_prevPosition;
+    glm::vec2 m_usePosition;
+    glm::vec2 m_delta;
 
-    Vector2 m_scroll;
+    glm::vec2 m_scroll;
 
     struct Button {
         bool m_glIsUpNow;
@@ -46,8 +46,8 @@ public:
         m_delta = m_prevPosition - m_usePosition;
     }
 
-    inline Vector2& GetPosition() { return m_usePosition; }
-    inline Vector2& GetDelta() { return m_delta; }
+    inline glm::vec2& GetPosition() { return m_usePosition; }
+    inline glm::vec2& GetDelta() { return m_delta; }
 
     void Initialize(Window* window);
     bool ButtonDown(DWORD button) { return !ImGui::GetIO().WantCaptureMouse && !m_buttonStates[button].m_isUpNow; }

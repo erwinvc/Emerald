@@ -108,10 +108,12 @@ vec3 hash(vec3 a)
 }
 
 void main(){
+	if(GetPosition(fsUv).xyz == vec3(0)) discard;
+
 	float metallic = 1;
  
 	vec3 viewPos = GetPosition(fsUv); //Position in viewspace
-	vec3 viewNormal = normalize(texture(_GNormal, fsUv).rgb * mat3(_View) * mat3(inverse(_View))); //Viewspace normal
+	vec3 viewNormal = normalize(texture(_GNormal, fsUv).rgb); //Viewspace normal
 
 	vec3 albedo = texture(_GAlbedo, fsUv).rgb;
 	

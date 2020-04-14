@@ -4,7 +4,7 @@ LineRenderer::~LineRenderer() {
 }
 
 void LineRenderer::Initialize() {
-	//m_lines = new Vector3[MAX_OBJECTS * 2];
+	//m_lines = new glm::vec3[MAX_OBJECTS * 2];
 
 	BufferLayout layout = {
 		{VertexBufferDataType::Float3, "vsBegin", 0, true},
@@ -33,7 +33,7 @@ void LineRenderer::Begin() {
 	m_renderer->Begin();
 }
 
-void LineRenderer::Submit( Vector3 begin, Vector3 end, Color color) {
+void LineRenderer::Submit( glm::vec3 begin, glm::vec3 end, Color color) {
 	m_renderer->Submit(Line(begin.x, begin.y, begin.z, end.x, end.y, end.z, color));
 }
 void LineRenderer::Submit(float x1, float y1, float z1, float x2, float y2, float z2, Color& color) {

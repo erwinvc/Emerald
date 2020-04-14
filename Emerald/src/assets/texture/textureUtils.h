@@ -2,7 +2,7 @@
 //
 //namespace TextureUtils
 //{
-//    void RenderTextureToScreen(uint texture, Vector2 position, Vector2 size)
+//    void RenderTextureToScreen(uint texture, glm::vec2 position, glm::vec2 size)
 //    {
 //        GLuint quad_VertexArrayID;
 //        glGenVertexArrays(1, &quad_VertexArrayID);

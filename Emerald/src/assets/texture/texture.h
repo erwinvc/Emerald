@@ -9,6 +9,7 @@ private:
 	byte* m_data = nullptr;
 	bool m_keepData = false;
 	bool m_hasMipmaps;
+	uint m_mipmapCount = 0;
 	void Cleanup();
 
 public:

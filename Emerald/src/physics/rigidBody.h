@@ -2,14 +2,14 @@
 
 class RigidBody {
 public:
-	Vector3 m_velocity;
-	Vector3 m_position;
-	Vector3 m_size;
+	glm::vec3 m_velocity;
+	glm::vec3 m_position;
+	glm::vec3 m_size;
 
-	vector<Rect> m_rects;
+	vector<Rectangle> m_rects;
 	const float PRECISION = 0.1f;
 	const float gravity = 0.008f;
-	RigidBody() : m_velocity(Vector3(0, 0, 0)), m_position(Vector3(14, 0, -2)), m_size(Vector3(0.4f, 0.4f, 0.4f)) {}
+	RigidBody() : m_velocity(glm::vec3(0, 0, 0)), m_position(glm::vec3(14, 0, -2)), m_size(glm::vec3(0.4f, 0.4f, 0.4f)) {}
 
 	void Update(const TimeStep& time, vector<Tile*> surroundingTiles) {
 		m_rects.clear();
@@ -25,9 +25,9 @@ public:
 	}
 
 	/*Check for collision with a list of entities*/
-	bool checkCollision(vector<Rect>& entityList, float xa, float ya, float za) {
+	bool checkCollision(vector<Rectangle>& entityList, float xa, float ya, float za) {
 		ya = 0; //Remove this
-		for (Rect& b : entityList) {
+		for (Rectangle& b : entityList) {
 			bool withinX = Math::Within<float>(m_position.x - m_size.x / 2 + xa, m_position.x + m_size.x / 2 + xa, b.m_position.x - b.m_size.x / 2, b.m_position.x + b.m_size.x / 2);
 			bool withinZ = Math::Within<float>(m_position.z - m_size.z / 2 + za, m_position.z + m_size.z / 2 + za, b.m_position.y - b.m_size.y / 2, b.m_position.y + b.m_size.y / 2);
 
@@ -39,15 +39,15 @@ public:
 	}
 
 	void DebugDraw() {
-		for (Rect& rect : m_rects) {
+		for (Rectangle& rect : m_rects) {
 			GetLineRenderer()->DrawRect(rect, Color::Cyan());
 		}
-		GetLineRenderer()->DrawRect(Rect(m_position.x, m_position.z, 0.2f, 0.2f), Color::Yellow());
+		GetLineRenderer()->DrawRect(Rectangle(m_position.x, m_position.z, 0.2f, 0.2f), Color::Yellow());
 	}
 
-	void Move(vector<Rect>& entityList, const Vector3& vel) {
-		bool contactX = MoveDirection(entityList, m_position.x, vel.x, Vector3(1, 0, 0));
-		bool contactZ = MoveDirection(entityList, m_position.z, vel.z, Vector3(0, 0, 1));
+	void Move(vector<Rectangle>& entityList, const glm::vec3& vel) {
+		bool contactX = MoveDirection(entityList, m_position.x, vel.x, glm::vec3(1, 0, 0));
+		bool contactZ = MoveDirection(entityList, m_position.z, vel.z, glm::vec3(0, 0, 1));
 		m_position.y += m_velocity.y;
 
 		if (m_position.y < 0) {
@@ -79,7 +79,7 @@ public:
 		checkCollision(entityList, 0, 0, 0);
 	}
 
-	bool MoveDirection(vector<Rect>& entityList, float& value, float d, const Vector3& axis) {
+	bool MoveDirection(vector<Rectangle>& entityList, float& value, float d, const glm::vec3& axis) {
 		bool contact = false;
 		while (d != 0) {
 			float precision = Math::Sign(d);

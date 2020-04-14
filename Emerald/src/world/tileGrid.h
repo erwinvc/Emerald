@@ -5,11 +5,11 @@ private:
 	struct TileBufferData {
 		float m_x;
 		float m_y;
-		Vector2 m_rotation;
+		glm::vec2 m_rotation;
 		float m_textureID;
 
-		TileBufferData(float x, float y, float rx, float ry, int tid) : m_x(x), m_y(y), m_rotation(Vector2(rx, ry)), m_textureID(tid) {}
-		TileBufferData() : m_x(0), m_y(0), m_rotation(Vector2()), m_textureID(0) {}
+		TileBufferData(float x, float y, float rx, float ry, int tid) : m_x(x), m_y(y), m_rotation(glm::vec2(rx, ry)), m_textureID(tid) {}
+		TileBufferData() : m_x(0), m_y(0), m_rotation(glm::vec2()), m_textureID(0) {}
 	};
 
 	InstancedRenderer<TileBufferData>* m_renderer;

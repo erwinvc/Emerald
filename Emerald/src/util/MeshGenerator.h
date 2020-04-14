@@ -49,17 +49,17 @@ namespace MeshGenerator {
 	/*Create a simple quad*/
 	static Mesh* Quad() {
 		struct Vertex {
-			Vector3 m_position;
-			Vector2 m_uv;
+			glm::vec3 m_position;
+			glm::vec2 m_uv;
 
-			Vertex(Vector3 pos, Vector2 uv) : m_position(pos), m_uv(uv) {}
+			Vertex(glm::vec3 pos, glm::vec2 uv) : m_position(pos), m_uv(uv) {}
 		};
 
 		Vertex vertices[4] = {
-		Vertex(Vector3(-1, -1, 0), Vector2(0, 0)),
-		Vertex(Vector3(-1,  1, 0), Vector2(0, 1)),
-		Vertex(Vector3(1,  1, 0),  Vector2(1, 1)),
-		Vertex(Vector3(1, -1, 0),  Vector2(1, 0))
+		Vertex(glm::vec3(-1, -1, 0), glm::vec2(0, 0)),
+		Vertex(glm::vec3(-1,  1, 0), glm::vec2(0, 1)),
+		Vertex(glm::vec3(1,  1, 0),  glm::vec2(1, 1)),
+		Vertex(glm::vec3(1, -1, 0),  glm::vec2(1, 0))
 		};
 
 		uint indices[] = { 0, 1, 2, 0, 2, 3 };

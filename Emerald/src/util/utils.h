@@ -85,7 +85,7 @@ namespace Utils {
 	}
 
 	//Math?
-	void setPositionInFrontOfCam(Vector3& dest, const Camera* cam, float distance);
+	void setPositionInFrontOfCam(glm::vec3& dest, const Camera* cam, float distance);
 }
 
 namespace GLUtils {

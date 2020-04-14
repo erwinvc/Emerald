@@ -7,7 +7,7 @@
 // Shader* directionalLightShader;
 // Shader* pointLightShader;
 // 
-// Vector3 directional(-0.7, 0.3, 0.1);
+// glm::vec3 directional(-0.7, 0.3, 0.1);
 // FreeCam* cam;
 // FrameBuffer* hdr;
 // struct Light {
@@ -17,8 +17,8 @@
 //     float sinincrement1;
 //     float sinincrement2;
 //     float sinincrement3;
-//     Vector3 m_pos;
-//     Vector3 m_original;
+//     glm::vec3 m_pos;
+//     glm::vec3 m_original;
 //     Color m_col;
 //     float m_radius;
 // 
@@ -109,7 +109,7 @@
 //     shader->Set("uCameraPos", cam->m_position);
 // }
 // 
-// void RenderPointLight(float radius, const Vector3& position, const Color& color) {
+// void RenderPointLight(float radius, const glm::vec3& position, const Color& color) {
 //     pointLightShader->Set("uLightRadius", radius);
 //     pointLightShader->Set("uLightPosition", position);
 //     pointLightShader->Set("uLightColor", color.R, color.G, color.B);
@@ -120,15 +120,15 @@
 // void NewLight() {
 //     Light light;
 //     light.m_col = Color::Random();
-//     light.m_pos = Vector3();
+//     light.m_pos = glm::vec3();
 //     light.m_radius = 5;
 //     lights.push_back(light);
 //     currentLight = &lights.back();
 // }
 // 
-// Vector2 pos(0, 0);
-// Vector2 sizee(1, 1);
-// Vector2 origin(0, 0);
+// glm::vec2 pos(0, 0);
+// glm::vec2 sizee(1, 1);
+// glm::vec2 origin(0, 0);
 // float rot = 0;
 // bool x, y;
 // 
@@ -155,7 +155,7 @@
 //                 light.sinincrement1 = Math::RandomFloat(0, 0.1f);
 //                 light.sinincrement2 = Math::RandomFloat(0, 0.1f);
 //                 light.sinincrement3 = Math::RandomFloat(0, 0.1f);
-//                 light.m_pos = Vector3(x * 100, y * 50 + 50, z * 50);
+//                 light.m_pos = glm::vec3(x * 100, y * 50 + 50, z * 50);
 //                 light.m_original = light.m_pos;
 //                 light.m_col = Color::RandomPrimary();
 //                 light.m_radius = 200;
@@ -227,7 +227,7 @@
 //         light.m_position.z += Math::Sin(l.sinval3);
 //     }
 // 
-//     Matrix4 projectionMatrix = Matrix4::Perspective(70, (float)(1920) / 1080, 0.1f, 3000.0f);
+//     glm::mat4 projectionMatrix = glm::mat4::Perspective(70, (float)(1920) / 1080, 0.1f, 3000.0f);
 // 
 //     // setup GL state.
 //     GL(glEnable(GL_DEPTH_TEST));
@@ -312,10 +312,10 @@
 //     //glBindTexture(GL_TEXTURE_2D, hdr->GetTexture()->GetHandle());
 //     quad->Draw();
 // 
-//     //uiShader->RenderTexture(hdr->GetTexture()->GetHandle(), origin, rot, Vector2(0, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), x, y);
-//     //uiShader->RenderTexture(gBuffer->m_colorTexture, origin, 0, Vector2(0.25f, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), x, y);
-//     //uiShader->RenderTexture(gBuffer->m_normalTexture, origin, 0, Vector2(0.5f, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), x, y);
-//     //uiShader->RenderTexture(gBuffer->m_positionTexture, origin, 0, Vector2(0.75f, 0), Vector2(0.25f, 0.25f), Vector2(1920, 1080), x, y);
+//     //uiShader->RenderTexture(hdr->GetTexture()->GetHandle(), origin, rot, glm::vec2(0, 0), glm::vec2(0.25f, 0.25f), glm::vec2(1920, 1080), x, y);
+//     //uiShader->RenderTexture(gBuffer->m_colorTexture, origin, 0, glm::vec2(0.25f, 0), glm::vec2(0.25f, 0.25f), glm::vec2(1920, 1080), x, y);
+//     //uiShader->RenderTexture(gBuffer->m_normalTexture, origin, 0, glm::vec2(0.5f, 0), glm::vec2(0.25f, 0.25f), glm::vec2(1920, 1080), x, y);
+//     //uiShader->RenderTexture(gBuffer->m_positionTexture, origin, 0, glm::vec2(0.75f, 0), glm::vec2(0.25f, 0.25f), glm::vec2(1920, 1080), x, y);
 // 
 //     ImGui::Begin("Hello, world!");
 //     ImGui::Checkbox("x", &x);

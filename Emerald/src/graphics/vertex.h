@@ -1,11 +1,11 @@
 #pragma once
 
 struct Vertex {
-	Vector3 m_position;
-	Vector3 m_normal;
-	Vector2 m_uv;
-	Vector3 m_tangent;
-	Vector3 m_biTangent;
+	glm::vec3 m_position;
+	glm::vec3 m_normal;
+	glm::vec2 m_uv;
+	glm::vec3 m_tangent;
+	glm::vec3 m_biTangent;
 
-	Vertex() : m_position(Vector3()), m_normal(Vector3()), m_uv(Vector2()), m_tangent(Vector3()), m_biTangent(Vector3()) {}
+	Vertex() : m_position(glm::vec3()), m_normal(glm::vec3()), m_uv(glm::vec2()), m_tangent(glm::vec3()), m_biTangent(glm::vec3()) {}
 };

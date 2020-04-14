@@ -8,7 +8,7 @@ public:
 	void Move(const TimeStep& time) {
 
 		float speed = 0.5f;
-		Vector3 vel(0, 0, 0);
+		glm::vec3 vel(0, 0, 0);
 
 		if (KeyDown('W')) vel.x += speed * time.GetSeconds();
 		if (KeyDown('S')) vel.x -= speed * time.GetSeconds();
@@ -21,8 +21,8 @@ public:
 				GetPipeline()->m_chromatic = Math::Ease(GetPipeline()->m_chromatic, 0.015f, 6);
 		} else GetPipeline()->m_chromatic = Math::Ease(GetPipeline()->m_chromatic, 0, 6);
 
-		float _sin = Math::Sin(GetCamera()->m_rotation.yaw - Math::HALF_PI);
-		float _cos = Math::Cos(GetCamera()->m_rotation.yaw - Math::HALF_PI);
+		float _sin = Math::Sin(GetCamera()->transform.m_rotation.y - Math::HALF_PI);
+		float _cos = Math::Cos(GetCamera()->transform.m_rotation.y - Math::HALF_PI);
 
 		float x = vel.x * _cos - vel.z * _sin;
 		float z = vel.x * _sin + vel.z * _cos;
@@ -32,7 +32,7 @@ public:
 
 		body.Update(time, m_surroundingTiles);
 
-		GetCamera()->m_position = Vector3(body.m_position.x, body.m_position.y + 0.9f, body.m_position.z);
+		GetCamera()->transform.m_position = glm::vec3(body.m_position.x, body.m_position.y + 0.9f, body.m_position.z);
 
 		if (GetApp()->GetWindow()->GetFocussed()) {
 			glfwSetInputMode(GetApp()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -42,7 +42,7 @@ public:
 
 		m_surroundingTiles.clear();
 		for (int i = 0; i < 8; i++) {
-			//Vector2I dir = WangTile::m_positionOffsetsComplete[i];
+			//glm::ivec2 dir = WangTile::m_positionOffsetsComplete[i];
 			//Tile* tile = GetWorld()->GetTile(Math::Round(body.m_position.x) + dir.x, Math::Round(body.m_position.z) + dir.y);
 			//if (tile) m_surroundingTiles.push_back(tile);
 		}
