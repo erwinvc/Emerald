@@ -258,6 +258,11 @@ void RenderingPipeline::OnImGUI() {
 				m_ssaoRenderer->OnImGui();
 				ImGui::TreePop();
 			}
+			if (ImGui::TreeNode("SSR")) {
+				ImGui::Checkbox("Enabled", &m_ssrRenderer->m_enabled);
+				m_ssrRenderer->OnImGui();
+				ImGui::TreePop();
+			}
 		}
 
 		if (ImGui::CollapsingHeader("Camera")) {

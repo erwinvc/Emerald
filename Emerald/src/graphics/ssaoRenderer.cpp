@@ -56,8 +56,8 @@ void SSAORenderer::Render(GBuffer* gBuffer) {
 	m_shader->Set("_SampleCount", m_sampleCount);
 	m_shader->Set("_Projection", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("_View", GetCamera()->GetViewMatrix());
-	m_shader->Set("_InverseProjection", glm::inverse(GetCamera()->GetProjectionMatrix()));
-	m_shader->Set("_InverseView", glm::inverse(GetCamera()->GetViewMatrix()));
+	m_shader->Set("_InverseProjection", GetCamera()->GetInverseProjectionMatrix());
+	m_shader->Set("_InverseView", GetCamera()->GetInverseViewMatrix());
 	m_shader->Set("_ScreenSize", glm::vec2((float)m_fbo->GetWidth() / 4.0f, (float)m_fbo->GetHeight() / 4.0f));
 	m_shader->Set("_CameraPlanes", glm::vec2(GetCamera()->GetNear(), GetCamera()->GetFar()));
 	gBuffer->BindTextures();

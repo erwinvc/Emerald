@@ -2,7 +2,7 @@
 
 in vec2 fsUv;
 
-out vec3 outColor;
+out vec4 outColor;
 
 uniform sampler2D _Depth;
 uniform sampler2D _GAlbedo;
@@ -16,13 +16,12 @@ uniform mat4 _InverseProjection;
 uniform mat4 _InverseView;
 uniform vec3 _CameraPosition;
 
-uniform float thickness = 1.2;
 const float screenEdgeFadeStart = 0.5;
 const float rayStep = 0.1f;
-const float minRayStep = 0.1f;
+const float minRayStep = 0.001f;
 const float maxSteps = 128;
-const float numBinarySearchSteps = 4;
-const float reflectionSpecularFalloffExponent = 3.0f;
+const float numBinarySearchSteps = 8;
+const float reflectionSpecularFalloffExponent = 3.0;
 
 vec3 GetPosition(vec2 coord){
 	float z = texture(_Depth, coord).x * 2.0f - 1.0f;
@@ -82,13 +81,11 @@ vec4 RayMarch(in vec3 dir, inout vec3 hitCoord, out float dDepth) {
         dDepth = hitCoord.z - depth;
 
 
-        if((dir.z - dDepth) < 1.2f) {
-            if(dDepth <= 0.0) {   
-                vec4 Result;
-                Result = vec4(BinarySearch(dir, hitCoord, dDepth), 1.0);
+        if((dir.z - dDepth) < 1.2f && dDepth <= 0.0) {
+            vec4 Result;
+            Result = vec4(BinarySearch(dir, hitCoord, dDepth), 1.0);
 
-                return Result;
-            }
+            return Result;
         }
 		steps++;
 	}
@@ -108,35 +105,34 @@ vec3 hash(vec3 a)
 }
 
 void main(){
-	if(GetPosition(fsUv).xyz == vec3(0)) discard;
+	float metallic = texture(_GMisc, fsUv).y;
+	float spec = texture(_GMisc, fsUv).x;
 
-	float metallic = 1;
+	if(GetPosition(fsUv).xyz == vec3(0) || metallic == 0) discard;
+
+	
  
-	vec3 viewPos = GetPosition(fsUv); //Position in viewspace
-	vec3 viewNormal = normalize(texture(_GNormal, fsUv).rgb); //Viewspace normal
+	vec3 viewPos = GetPosition(fsUv);
+	vec3 viewNormal = normalize(texture(_GNormal, fsUv).rgb);
 
 	vec3 albedo = texture(_GAlbedo, fsUv).rgb;
 	
-	//float spec = texture(ColorBuffer, TexCoords).w;
+
 	
 	vec3 F0 = vec3(0.04); 
-	F0      = mix(F0, albedo, 0.5);
+	F0 = mix(F0, albedo, 0.5);
 	vec3 fresnel = fresnelSchlick(max(dot(normalize(viewNormal), normalize(viewPos)), 0.0), F0);
 	
-	// Reflection vector
 	vec3 reflected = normalize(reflect(normalize(viewPos), normalize(viewNormal)));
-	
 	
 	vec3 hitPos = viewPos;
 	float dDepth;
 	
 	vec3 wp = vec3(vec4(viewPos, 1.0) * _InverseView);
-	vec3 jitt = mix(vec3(0.0), vec3(hash(wp)), 0);
+	vec3 jitt = mix(vec3(0.0), vec3(hash(wp)), spec);
 	vec4 coords = RayMarch((vec3(jitt) + reflected * max(minRayStep, -viewPos.z)), hitPos, dDepth);
 	
-	
 	vec2 dCoords = smoothstep(0.2, 0.6, abs(vec2(0.5, 0.5) - coords.xy));
-	
 	
 	float screenEdgefactor = clamp(1.0 - (dCoords.x + dCoords.y), 0.0, 1.0);
 	
@@ -144,8 +140,8 @@ void main(){
 	            screenEdgefactor * 
 	            -reflected.z;
 	
-	// Get color
-	vec3 SSR = texture(_HDR, coords.xy).rgb * clamp(ReflectionMultiplier, 0.0, 0.9) * fresnel;  
-	
-	outColor = vec3(SSR);
+	vec4 SSR = vec4(texture(_HDR, coords.xy).rgb, clamp(ReflectionMultiplier, 0.0, 0.9) * fresnel);  
+
+	outColor = SSR;
+	//outColor = vec4(SSR.w * SSR.r, SSR.w* SSR.g, SSR.w * SSR.b, 1.0);
 }

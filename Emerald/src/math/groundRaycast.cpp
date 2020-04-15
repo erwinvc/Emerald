@@ -34,12 +34,12 @@ glm::vec3 GroundRaycast::CalculateMouseRay() {
 }
 
 glm::vec4 GroundRaycast::ToEyeCoords(const glm::vec4& clipCoords, const AssetRef<Camera>& camera) {
-	glm::mat4& invertedProjection = glm::inverse(camera->GetProjectionMatrix());
+	glm::mat4& invertedProjection = camera->GetInverseProjectionMatrix();
 	glm::vec4& eyeCoords = invertedProjection * clipCoords;
 	return glm::vec4{ eyeCoords.x, eyeCoords.y, -1.0f, 0.0f };
 }
 glm::vec3 GroundRaycast::ToWorldCoords(const glm::vec4& eyeCoords, const AssetRef<Camera>& camera) {
-	glm::mat4& invertedView = glm::inverse(camera->GetViewMatrix());
+	glm::mat4& invertedView = camera->GetInverseViewMatrix();
 	glm::vec4& rayWorld = invertedView * eyeCoords;
 	glm::vec3& mouseRay = glm::vec3(rayWorld.x, rayWorld.y, rayWorld.z);
 	return glm::normalize(mouseRay);

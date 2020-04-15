@@ -23,7 +23,7 @@ public:
 	}
 
 	glm::mat4 GetTransformationMatrix() {
-		glm::mat4 matrix = glm::toMat4(GetOrientation()) * glm::translate(glm::mat4(1.0f), m_position);
+		glm::mat4 matrix = glm::toMat4(GetOrientation()) * glm::translate(glm::mat4(1.0f), -m_position);
 		matrix = glm::inverse(matrix) * glm::scale(m_size);
 		
 		//if (m_dirty) {

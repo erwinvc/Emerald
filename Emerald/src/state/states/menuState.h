@@ -39,7 +39,9 @@ public:
 		//GetCamera()->m_position.y = -2;
 		GetCamera()->transform.m_position = glm::vec3(-1.3f, 0.96f, 0);
 		GetCamera()->transform.m_rotation.y = Math::HALF_PI;
-		m_moriEntity->m_transform.m_position.y = 0.5f;
+		m_moriEntity->m_transform.m_position.y = 5.0f;
+		m_moriEntity->m_transform.m_position.x = -6.0f;
+		m_moriEntity->m_transform.m_size = glm::vec3(10.0f);
 		GetPipeline()->m_directionalLight.m_multiplier = 5.0f;
 		for (int i = 0; i < LIGHTCOUNT; i++) {
 			m_positions.push_back(glm::vec3(Math::RandomFloat(-150.0f, 130.0f), Math::RandomFloat(0.0f, 90.0f), Math::RandomFloat(-60.0f, 60.0f)));

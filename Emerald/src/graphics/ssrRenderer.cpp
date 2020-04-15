@@ -9,26 +9,48 @@ SSRRenderer::SSRRenderer() {
 	m_shader->Set("_GMisc", 3);
 	m_shader->Set("_HDR", 4);
 
-	m_fbo = GetFrameBufferManager()->Create("SSR", FBOScale::FULL, false);
-	m_texture = m_fbo->AddBuffer("SSR", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	//m_fbo = GetFrameBufferManager()->Create("SSR", FBOScale::FULL, false);
+	//m_texture = m_fbo->AddBuffer("SSR", TextureParameters(RGBA, RGBA, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	m_quad = MeshGenerator::Quad();
 }
 
 void SSRRenderer::Draw(RenderingPipeline* pipeline) {
-	m_fbo->Bind();
-	m_fbo->Clear();
+	if (!m_enabled) return;
+	bool fbo = false;
+	if (fbo) {
+		//m_fbo->Bind();
+		//m_fbo->Clear();
+	} else {
+		pipeline->m_hdrBuffer->Bind();
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_EQUAL);
+	}
+
 	m_shader->Bind();
 	pipeline->GetGBuffer()->BindTextures();
 	pipeline->GetHDRTexture()->Bind(4);
 	m_shader->Set("_Projection", GetCamera()->GetProjectionMatrix());
 	m_shader->Set("_View", GetCamera()->GetViewMatrix());
-	m_shader->Set("_InverseProjection", glm::inverse(GetCamera()->GetProjectionMatrix()));
-	m_shader->Set("_InverseView", glm::inverse(GetCamera()->GetViewMatrix()));
+	m_shader->Set("_InverseProjection", GetCamera()->GetInverseProjectionMatrix());
+	m_shader->Set("_InverseView", GetCamera()->GetInverseViewMatrix());
 	m_shader->Set("_CameraPosition", GetCamera()->transform.m_position);
 
 	m_quad->Bind();
 	m_quad->Draw();
 
-	m_fbo->Unbind();
+	if (fbo) {
+		//m_fbo->Unbind();
+	} else {
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LESS);
+		glDisable(GL_BLEND);
+	}
+}
+
+void SSRRenderer::OnImGui()
+{
+	
 }
