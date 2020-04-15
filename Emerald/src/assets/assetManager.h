@@ -55,10 +55,10 @@ public:
 	}
 
 	template<typename T>
-	AssetRef<T> Get(const String& name) {
+	AssetRef<T> Get(const String& name, bool warn = true) {
 		const String& typeName = T::GetAssetTypeName();
 		T* asset = (T*)m_assets[typeName][name];
-		if (asset == nullptr) LOG_WARN("[~yAssets~x] asset ~1%s~x of type ~1%s~x not found", name.c_str(), typeid(T).name());
+		if (warn && asset == nullptr) LOG_WARN("[~yAssets~x] asset ~1%s~x of type ~1%s~x not found", name.c_str(), typeid(T).name());
 		return asset;
 	}
 

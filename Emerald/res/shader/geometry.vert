@@ -25,7 +25,7 @@ void main(){
 
 	vec4 viewPos = MVMatrix * vec4(vsPos, 1.0);
 
-	vec3 n = (_TransformationMatrix * vec4(vsNormal, 0.0)).xyz;
+	vec3 n = normalize((_TransformationMatrix * vec4(vsNormal, 0.0)).xyz);
 	vec3 t = (_TransformationMatrix * vec4(vsTangent, 0.0)).xyz;
 	t = normalize(t - dot(t, n) * n);
 	vec3 b = cross(n, t);

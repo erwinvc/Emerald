@@ -4,6 +4,7 @@ class Model : public AssetBase {
 private:
 	vector<AssetRef<Mesh>> m_meshes;
 	vector<AssetRef<BasicMaterial>> m_materials;
+	String m_name;
 	String m_dir;
 
 	void ProcessNode(aiNode* node, const aiScene* scene) {
@@ -68,6 +69,7 @@ private:
 	}
 
 	void LoadMaterials(const aiScene *scene);
+	bool LoadTexture(int index, aiMaterial* mat, aiTextureType type, Texture*& texture);
 
 public:
 	void LoadModel(const String& path);

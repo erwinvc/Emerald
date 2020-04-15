@@ -22,7 +22,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
 	m_batch->Add(NEW(ModelLoader("Sphere", "res/sphere.obj")));
 	m_batch->Add(NEW(ModelLoader("Cube", "res/cube.obj")));
-	m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza/sponza.obj")));
+	//m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza/sponza.obj")));
 
 	m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
 	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));

@@ -1,6 +1,7 @@
 #pragma once
 
 class Camera;
+class Path;
 
 #define ASSERT(x, ...) \
 		if (!(x)) {\
@@ -152,5 +153,5 @@ struct LoadedTexture {
 };
 
 namespace TextureUtils {
-	bool LoadTexture(const String& path, bool flip, function<void(const LoadedTexture& data)> callback);
+	bool LoadTexture(const Path& filePath, bool flip, function<void(const LoadedTexture & data)> callback);
 }

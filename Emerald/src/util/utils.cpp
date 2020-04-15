@@ -70,9 +70,9 @@ namespace GLUtils {
 }
 
 namespace TextureUtils {
-	bool LoadTexture(const String& path, bool flip, function<void(const LoadedTexture& data)> callback) {
-		if (!FileSystem::DoesFileExist(path)) {
-			LOG_WARN("[~gTexture~x] file at ~1%s~x does not exist!", path.c_str());
+	bool LoadTexture(const Path& filePath, bool flip, function<void(const LoadedTexture & data)> callback) {
+		if (!FileSystem::DoesFileExist(filePath.GetFullPath())) {
+			LOG_WARN("[~gTexture~x] ~1%s~x.png at ~1%s~x does not exist!", filePath.GetFileName().c_str(), filePath.GetDirectory().c_str());
 			return false;
 		}
 
@@ -80,7 +80,7 @@ namespace TextureUtils {
 		int width, height;
 
 		stbi_set_flip_vertically_on_load(flip);
-		byte* data = stbi_load(path.c_str(), &width, &height, &channelCount, 4);
+		byte* data = stbi_load(filePath.GetFullPath().c_str(), &width, &height, &channelCount, 4);
 
 		//if (bpc != 3 && bpc != 4) {
 		//	LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", bpc, path.c_str());
@@ -88,7 +88,7 @@ namespace TextureUtils {
 		//	return false;
 		//}
 
-		if (channelCount < 1 || channelCount > 4) LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", channelCount, path.c_str());
+		if (channelCount < 1 || channelCount > 4) LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", channelCount, filePath.GetFileName().c_str());
 
 		int size = channelCount * width * height;
 

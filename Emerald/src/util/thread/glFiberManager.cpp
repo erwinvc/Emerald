@@ -13,15 +13,15 @@ void GLFiberManager::AddFiber(String name, void(*function)()) {
 	UINT64* args = new UINT64[2]{ (UINT64)function, (UINT64)m_mainFiber };
 	LPVOID fiber = CreateFiber(NULL, [](LPVOID lpFiberParameter) {
 		UINT64* arguments = (UINT64*)lpFiberParameter;
-		try {
+		//try {
 			while (true) {
 				((void(*)(void)) arguments[0])();
 				SwitchToFiber((LPVOID)arguments[1]);
 			}
-		} catch (...) {
-			LOG_ERROR("[~rThreads~x] caught exception in fiber");
+		//} catch (...) {
+		//	LOG_ERROR("[~rThreads~x] caught exception in fiber");
 			delete[] arguments;
-		}
+		//}
 	}, args);
 
 	Fiber newFiber = { fiber, nullptr, (float)glfwGetTime(), name };

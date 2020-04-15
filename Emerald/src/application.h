@@ -41,7 +41,7 @@ public:
 	RenderingPipeline* GetPipeline() { return m_pipeline; }
 
 	template<typename T>
-	inline float GetWidth() { return m_window->GetWidth<T>(); }
+	inline T GetWidth() { return m_window->GetWidth<T>(); }
 
 	template<typename T>
 	inline T GetHeight() { return m_window->GetHeight<T>(); }

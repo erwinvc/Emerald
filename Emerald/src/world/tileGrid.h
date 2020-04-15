@@ -8,7 +8,7 @@ private:
 		glm::vec2 m_rotation;
 		float m_textureID;
 
-		TileBufferData(float x, float y, float rx, float ry, int tid) : m_x(x), m_y(y), m_rotation(glm::vec2(rx, ry)), m_textureID(tid) {}
+		TileBufferData(float x, float y, float rx, float ry, int tid) : m_x(x), m_y(y), m_rotation(glm::vec2(rx, ry)), m_textureID((float)tid) {}
 		TileBufferData() : m_x(0), m_y(0), m_rotation(glm::vec2()), m_textureID(0) {}
 	};
 

@@ -14,7 +14,7 @@ void Model::LoadModel(const String& path) {
 	String_t shortName = FileSystem::GetShortFilename(path.c_str());
 	Timer timer;
 	Assimp::Importer importer;
-	const aiScene *scene = importer.ReadFile(path, ImportFlags);
+	const aiScene* scene = importer.ReadFile(path, ImportFlags);
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 		LOG_ERROR("[~g3DModel~x] Failed to load ~1%s", shortName);
 		return;
@@ -27,60 +27,56 @@ void Model::LoadModel(const String& path) {
 	}
 
 	m_dir = path.substr(0, path.find_last_of('/'));
+	m_name = shortName;
 	if (scene->HasMaterials()) LoadMaterials(scene);
 	LOG("[~g3DModel~x] ~1%s~x loaded in %.2fms", shortName, timer.Get());
 	ProcessNode(scene->mRootNode, scene);
 }
 
-void Model::LoadMaterials(const aiScene *scene) {
+void Model::LoadMaterials(const aiScene* scene) {
+
+	int textureCounts[12] = { 0 };
 	for (int i = 0; i < (int)scene->mNumMaterials; i++) {
-
 		aiMaterial* mat = scene->mMaterials[i];
-		if (mat->GetTextureCount(aiTextureType_SPECULAR) > 0) {
-			aiString path;
-			mat->GetTexture(aiTextureType_SPECULAR, 0, &path);
-			String fullPath = m_dir + "\\" + path.C_Str();
-			AssetRef<Texture> tex = GetAssetManager()->Get<Texture>(fullPath);
-			if (tex.Get()) {
-				m_materials[i]->SetRoughness(tex);
-			} else {
-				if (FileSystem::DoesFileExist(fullPath)) {
-					TextureLoader loader(fullPath, fullPath, true);
-					Texture* texture = GetAssetManager()->ForceLoad<Texture>(&loader);
-					m_materials[i]->SetRoughness(texture);
-				} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
-			}
+
+		for (int i = 0; i < 12; i++) {
+			textureCounts[i] += mat->GetTextureCount((aiTextureType)i);
 		}
 
-		if (mat->GetTextureCount(aiTextureType_AMBIENT) > 0) {
-			aiString path;
-			mat->GetTexture(aiTextureType_AMBIENT, 0, &path);
-			String fullPath = m_dir + "\\" + path.C_Str();
-			AssetRef<Texture> tex = GetAssetManager()->Get<Texture>(fullPath);
-			if (tex.Get()) {
-				m_materials[i]->SetAlbedo(tex);
-			} else {
-				if (FileSystem::DoesFileExist(fullPath)) {
-					TextureLoader loader(fullPath, fullPath, true);
-					Texture* texture = GetAssetManager()->ForceLoad<Texture>(&loader);
-					m_materials[i]->SetAlbedo(texture);
-				} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
-			}
+		Texture* tempTex = nullptr;
+		if (LoadTexture(i, mat, aiTextureType_SHININESS, tempTex))	m_materials[i]->SetRoughness(tempTex);
+		if (LoadTexture(i, mat, aiTextureType_DIFFUSE, tempTex))	m_materials[i]->SetAlbedo(tempTex);
+		if (LoadTexture(i, mat, aiTextureType_HEIGHT, tempTex))		m_materials[i]->SetNormal(tempTex);
+		if (LoadTexture(i, mat, aiTextureType_AMBIENT, tempTex))	m_materials[i]->SetMetallic(tempTex);
+	}
+
+	const String_t lookupTable[] = {
+		"NONE","DIFFUSE","SPECULAR","AMBIENT","EMISSIVE","HEIGHT","NORMALS",
+		"SHININESS","OPACITY","DISPLACEMENT","LIGHTMAP","REFLECTION","UNKNOWN" };
+
+	LOG("Model ~1%s~x contains: ", m_name.c_str());
+	for (int i = 0; i < 12; i++) {
+		LOG(textureCounts[i] > 0 ? "	%d %s" : "	~1%d %s", textureCounts[i], lookupTable[i]);
+	}
+}
+
+bool Model::LoadTexture(int index, aiMaterial* mat, aiTextureType type, Texture*& texture) {
+	if (mat->GetTextureCount(type) > 0) {
+		aiString path;
+		mat->GetTexture(type, 0, &path);
+		String fullPath = m_dir + "\\" + path.C_Str();
+		AssetRef<Texture> tex = GetAssetManager()->Get<Texture>(fullPath);
+		if (tex.Get()) {
+			texture = tex;
+			return true;
+		} else {
+			if (FileSystem::DoesFileExist(fullPath)) {
+				TextureLoader loader(fullPath, fullPath, true);
+				tex = GetAssetManager()->ForceLoad<Texture>(&loader);
+				texture = tex;
+				return true;
+			} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
 		}
-		if (mat->GetTextureCount(aiTextureType_HEIGHT) > 0) {
-			aiString path;
-			mat->GetTexture(aiTextureType_HEIGHT, 0, &path);
-			String fullPath = m_dir + "\\" + path.C_Str();
-			AssetRef<Texture> tex = GetAssetManager()->Get<Texture>(fullPath);
-			if (tex.Get()) {
-				m_materials[i]->SetNormal(tex);
-			} else {
-				if (FileSystem::DoesFileExist(fullPath)) {
-					TextureLoader loader(fullPath, fullPath, true);
-					Texture* texture = GetAssetManager()->ForceLoad<Texture>(&loader);
-					m_materials[i]->SetNormal(texture);
-				} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
-			}
-		}
+		return false;
 	}
 }

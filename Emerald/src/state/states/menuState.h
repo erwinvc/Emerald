@@ -32,7 +32,7 @@ public:
 		noise = GetAssetManager()->Get<Texture>("Noise");
 		//sponza = GetAssetManager()->Get<Model>("Sponza");
 		Model* model = new Model();
-		model->LoadModel("res/sponza/sponza.obj");
+		model->LoadModel("res/sponza2/sponzaPBR.obj");
 		sponzaEntity = new Entity(model);
 		sponzaEntity->m_transform.m_size = glm::vec3(0.1f, 0.1f, 0.1f);
 		sponzaEntity->m_transform.m_position.z = 4;
@@ -92,13 +92,13 @@ public:
 		if (ImGui::Button("Planks")) mat->SetPBR("planks");
 		if (ImGui::Button("Gold")) mat->SetPBR("gold");
 		if (ImGui::Button("Metal")) mat->SetPBR("metal");
-		if (ImGui::DragFloat3("pos", (float*)&sponzaEntity->m_transform.m_position));
-		if (ImGui::DragFloat3("rot", (float*)&sponzaEntity->m_transform.m_rotation, 0.02f));
-		if (ImGui::DragFloat3("size", (float*)&sponzaEntity->m_transform.m_size, 0.02f));
+		ImGui::DragFloat3("pos", (float*)&sponzaEntity->m_transform.m_position);
+		ImGui::DragFloat3("rot", (float*)&sponzaEntity->m_transform.m_rotation, 0.02f);
+		ImGui::DragFloat3("size", (float*)&sponzaEntity->m_transform.m_size, 0.02f);
 
-		if (ImGui::DragFloat3("pos1", (float*)&m_moriEntity->m_transform.m_position));
-		if (ImGui::DragFloat3("rot1", (float*)&m_moriEntity->m_transform.m_rotation, 0.02f));
-		if (ImGui::DragFloat3("size1", (float*)&m_moriEntity->m_transform.m_size, 0.02f));
+		ImGui::DragFloat3("pos1", (float*)&m_moriEntity->m_transform.m_position);
+		ImGui::DragFloat3("rot1", (float*)&m_moriEntity->m_transform.m_rotation, 0.02f);
+		ImGui::DragFloat3("size1", (float*)&m_moriEntity->m_transform.m_size, 0.02f);
 		static float temp = 0;
 
 		if (ImGui::Button("Start")) {

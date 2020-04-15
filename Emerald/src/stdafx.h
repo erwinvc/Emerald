@@ -85,6 +85,7 @@ using namespace std;
 #include "util/thread/threadManager.h"
 #include "util/thread/threadPool.h"
 #include "util/logger.h"
+#include "util/path.h"
 #include "util/thread/glFiberManager.h"
 #include "util/color.h"
 #include "util/timestep.h"
