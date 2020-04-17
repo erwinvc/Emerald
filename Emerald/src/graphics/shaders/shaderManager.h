@@ -21,8 +21,9 @@ public:
 		return shader;
 	}
 
-	AssetRef<Shader> Get(const String& name) {
-		return m_shaders[name];
+	Shader* Get(const String& name) {
+		Shader* toRet = m_shaders[name];
+		return toRet;
 	}
 
 	void Update(const TimeStep& time) {
@@ -30,7 +31,7 @@ public:
 
 	void ReloadShaderByFileName(const String& file) {
 		for (int i = 0; i < m_shadersVector.size(); i++) {
-			if (m_shadersVector[i]->m_file.compare(file) == 0) {
+			if (m_shadersVector[i]->m_filePath.GetFullPath().compare(file) == 0) {
 				m_shadersVector[i]->Reload();
 			}
 		}

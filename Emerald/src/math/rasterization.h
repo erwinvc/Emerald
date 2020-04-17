@@ -26,8 +26,8 @@ public:
 		float x = x0;
 
 		for (int y = (int)y0; y <= y1; y++) {
-			scan.yValues[y].maxX = Math::Max((int)x, scan.yValues[y].maxX);
-			scan.yValues[y].minX = Math::Min((int)x, scan.yValues[y].minX);
+			scan.yValues[(int)y].maxX = Math::Max((int)x, scan.yValues[(int)y].maxX);
+			scan.yValues[(int)y].minX = Math::Min((int)x, scan.yValues[(int)y].minX);
 			scan.minY = Math::Min((int)y, scan.minY);
 			scan.maxY = Math::Max((int)y, scan.maxY);
 			if (D > 0) {
@@ -50,8 +50,8 @@ public:
 		float y = y0;
 
 		for (int x = (int)x0; x <= x1; x++) {
-			scan.yValues[y].maxX = (int)Math::Max((int)x, scan.yValues[y].maxX);
-			scan.yValues[y].minX = (int)Math::Min((int)x, scan.yValues[y].minX);
+			scan.yValues[(int)y].maxX = Math::Max((int)x, scan.yValues[(int)y].maxX);
+			scan.yValues[(int)y].minX = Math::Min((int)x, scan.yValues[(int)y].minX);
 			scan.minY = Math::Min((int)y, scan.minY);
 			scan.maxY = Math::Max((int)y, scan.maxY);
 			if (D > 0) {

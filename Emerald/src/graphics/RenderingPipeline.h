@@ -11,6 +11,9 @@ public:
 	AssetRef<Shader> m_pointLightShader;
 	AssetRef<Shader> m_emissionAmbientShader;
 
+	//Shadow
+	AssetRef<ShadowRenderer> m_shadowRenderer;
+	
 	//SSAO
 	SSAORenderer* m_ssaoRenderer = nullptr;
 	SSRRenderer* m_ssrRenderer = nullptr;
@@ -62,6 +65,8 @@ public:
 	~RenderingPipeline() {
 		DELETE(m_gBuffer);
 		DELETE(m_ssaoRenderer);
+		DELETE(m_ssrRenderer);
+		DELETE(m_shadowRenderer);
 	}
 
 	void Initialize();

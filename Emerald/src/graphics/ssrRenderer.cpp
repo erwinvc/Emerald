@@ -9,25 +9,20 @@ SSRRenderer::SSRRenderer() {
 	m_shader->Set("_GMisc", 3);
 	m_shader->Set("_HDR", 4);
 
-	//m_fbo = GetFrameBufferManager()->Create("SSR", FBOScale::FULL, false);
-	//m_texture = m_fbo->AddBuffer("SSR", TextureParameters(RGBA, RGBA, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_simpleShader = GetShaderManager()->Get("Simple");
+	m_simpleShader->Bind();
+	m_simpleShader->Set("_SSR", 0);
+
+	m_fbo = GetFrameBufferManager()->Create("SSR", FBOScale::FULL, false);
+	m_texture = m_fbo->AddBuffer("SSR", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	m_quad = MeshGenerator::Quad();
 }
 
 void SSRRenderer::Draw(RenderingPipeline* pipeline) {
 	if (!m_enabled) return;
-	bool fbo = false;
-	if (fbo) {
-		//m_fbo->Bind();
-		//m_fbo->Clear();
-	} else {
-		pipeline->m_hdrBuffer->Bind();
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDepthMask(GL_FALSE);
-		glDepthFunc(GL_EQUAL);
-	}
+	m_fbo->Bind();
+	m_fbo->Clear();
 
 	m_shader->Bind();
 	pipeline->GetGBuffer()->BindTextures();
@@ -41,16 +36,26 @@ void SSRRenderer::Draw(RenderingPipeline* pipeline) {
 	m_quad->Bind();
 	m_quad->Draw();
 
-	if (fbo) {
-		//m_fbo->Unbind();
-	} else {
-		glDepthMask(GL_TRUE);
-		glDepthFunc(GL_LESS);
-		glDisable(GL_BLEND);
-	}
+	m_fbo->Unbind();
+
+
+	m_simpleShader->Bind();
+	pipeline->m_hdrBuffer->Bind();
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_EQUAL);
+	m_texture->Bind(0);
+
+	m_quad->Bind();
+	m_quad->Draw();
+	
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LESS);
+	glDisable(GL_BLEND);
 }
 
-void SSRRenderer::OnImGui()
-{
-	
+void SSRRenderer::OnImGui() {
+
 }

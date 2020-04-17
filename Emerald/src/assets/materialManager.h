@@ -3,7 +3,7 @@
 class MaterialManager : public Singleton<MaterialManager> {
 private:
 	map<String, Material*> m_materials;
-	BasicMaterial* m_nullMaterial;
+	map<String, Material*> m_defaultMaterials;
 	bool m_initialized = false;
 
 	MaterialManager() {}
@@ -13,18 +13,27 @@ private:
 public:
 	void Initialize() {
 		if (m_initialized) return;
-		m_nullMaterial = NEW(BasicMaterial());
+		//m_nullMaterial = NEW(BasicMaterial());
+
 		LOG("[~GMaterial~x] Material Manager initialized");
 		m_initialized = true;
 	}
 
-	AssetRef<BasicMaterial> GetNullMaterial() { return m_nullMaterial; }
+	//template<typename T>
+	//AssetRef<T> Create(const String& name) {
+	//	m_materials[name] = NEW(T());
+	//	return (T*)m_materials[name];
+	//}
 
-	template<typename T>
-	AssetRef<T> Create(const String& name) {
-		m_materials[name] = NEW(T());
-		return (T*)m_materials[name];
+	Material* GetBasicMaterial(Shader* shader) {
+		if (m_defaultMaterials.find(shader->GetName()) == m_defaultMaterials.end()) {
+			m_defaultMaterials[shader->GetName()] = NEW(Material(Format("%s_Default", shader->GetName().c_str()), shader));
+		}
+		return m_defaultMaterials[shader->GetName()];
 	}
+
+	Material* Create(const String& name, Shader* shader);
+	Material* Create(const String& name);
 
 	AssetRef<Material> Get(const String& name) {
 		return m_materials[name];

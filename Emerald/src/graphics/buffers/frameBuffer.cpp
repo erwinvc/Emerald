@@ -1,20 +1,37 @@
 #include "stdafx.h"
 
-FrameBuffer::FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clearColor) : m_name(name), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(hasDepth) {
-	m_scale = scale;
+FrameBuffer::FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clearColor) : m_name(name), m_scale(scale), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(hasDepth) {
 	m_realWidth = GetApp()->GetWindow()->GetWidth<uint>();
 	m_realHeight = GetApp()->GetWindow()->GetHeight<uint>();
 	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
 	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
 
 	GL(glGenFramebuffers(1, &m_fbo));
-	AddBuffer("Depth", TextureParameters(DEPTH24, DEPTH, NEAREST, CLAMP_TO_EDGE, T_FLOAT), FBOAttachment::DEPTH);
+	AddBuffer("Depth", TextureParameters(DEPTH24, DEPTH, NEAREST, REPEAT, T_FLOAT), FBOAttachment::DEPTH);
 
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
+	GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
+
+	if (CheckStatus()) LOG("[~cBuffers~x] Created ~1%s~x framebuffer", m_name.c_str());
+}
+
+FrameBuffer::FrameBuffer(String name, uint width, uint height, bool hasDepth, Color& clearColor) : m_name(name), m_scale(FBOScale::STATIC), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(hasDepth) {
+	m_realWidth = width;
+	m_realHeight = height;
+	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
+	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
+
+	GL(glGenFramebuffers(1, &m_fbo));
+	AddBuffer("Depth", TextureParameters(DEPTH24, DEPTH, NEAREST, REPEAT, T_FLOAT), FBOAttachment::DEPTH);
+
+	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
+	GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
+
 	if (CheckStatus()) LOG("[~cBuffers~x] Created ~1%s~x framebuffer", m_name.c_str());
 }
 
 void FrameBuffer::Resize(uint width, uint height) {
+	if (m_scale == FBOScale::STATIC) return;
 	m_realWidth = width;
 	m_realHeight = height;
 	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
@@ -71,13 +88,10 @@ void FrameBufferManager::OnImGUI() {
 		for (FrameBuffer* fbo : m_frameBuffers) {
 			ImGui::Separator();
 			ImGui::Text("%s", fbo->GetName().c_str());
-			//if (ImGui::ColorPicker3("Color", (float*)&fbo->m_color)) {
-			//	fbo->SetClearColor(fbo->m_color);
-			//}
 			m_fboTextureNames = fbo->GetTextureNames();
 
 			int selected = (int)fbo->GetScale();
-			static String_t scales[] = { "Full", "Half", "Quarter", "One Fifth" };
+			static String_t scales[] = { "Static", "Full", "Half", "Quarter", "One Fifth" };
 			if (ImGui::Combo(Format_t("Scale##%d", index++), &selected, scales, NUMOF(scales))) fbo->SetScale(FBOScale(selected));
 			int i = 0;
 			for (AssetRef<Texture>& tex : fbo->GetTextures()) {

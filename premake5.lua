@@ -61,11 +61,7 @@ project "Emerald"
 	{
 		"glfw3",
 		"glew32s",
-		"opengl32",
-		"IrrXML",
-		"zlib.lib",
-		"zlibstatic",
-		"assimp-vc140-mt"
+		"opengl32"
 	}
 
 	filter "system:windows"
@@ -82,8 +78,22 @@ project "Emerald"
 		runtime "Debug"
 		symbols "On"
 
+			links
+			{
+				"Emerald/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib",
+				"Emerald/vendor/assimp/bin/Debug/IrrXMLd",
+				"Emerald/vendor/assimp/bin/Debug/zlibstaticd"
+			}
+			
 	filter "configurations:Release"
 		defines "EE_RELEASE"
 			flags{"LinkTimeOptimization"}
 		runtime "Release"
 		optimize "On"
+		
+			links
+			{
+				"Emerald/vendor/assimp/bin/Release/assimp-vc141-mt.lib",
+				"Emerald/vendor/assimp/bin/Release/IrrXML",
+				"Emerald/vendor/assimp/bin/Release/zlibstatic"
+			}

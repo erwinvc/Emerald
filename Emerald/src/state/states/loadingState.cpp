@@ -8,6 +8,7 @@ void LoadingState::Initialize() {
 	m_logo = GetAssetManager()->ForceLoad<Texture>(loader);
 	GetTileMaterialManager()->Initialize();
 
+	GetShaderManager()->Create("Geometry", "res/shader/geometry");
 	GetShaderManager()->Create("UI", "res/shader/UI");
 	GetUIRenderer()->Initialize();
 
@@ -27,7 +28,6 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
 	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
 	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
-	m_batch->Add(NEW(ShaderLoader("Geometry", "res/shader/geometry")));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
 	m_batch->Add(NEW(ShaderLoader("TileOld", "res/shader/tileOld")));
 	m_batch->Add(NEW(ShaderLoader("Directional", "res/shader/directional")));
@@ -38,6 +38,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("Gaussian", "res/shader/gaussian")));
 	m_batch->Add(NEW(ShaderLoader("EmissionAmbient", "res/shader/emissionAmbient")));
 	m_batch->Add(NEW(ShaderLoader("SSR", "res/shader/ssr")));
+	m_batch->Add(NEW(ShaderLoader("Simple", "res/shader/simple")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
 	m_batch->Add(NEW(ModelLoader("Tile", "res/tiles/tile.obj")));

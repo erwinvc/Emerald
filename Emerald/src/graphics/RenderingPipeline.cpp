@@ -33,6 +33,9 @@ void RenderingPipeline::Initialize() {
 	m_emissionAmbientShader->Set("_GAlbedo", 1);
 	m_emissionAmbientShader->Set("_SSAO", 2);
 
+	//Shadow
+	m_shadowRenderer = NEW(ShadowRenderer(1024, 1024));
+	
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
 	m_hdrShader->Bind();
@@ -80,7 +83,7 @@ void RenderingPipeline::Initialize() {
 //}
 
 void RenderingPipeline::PreGeometryRender() {
-	glPatchParameteri(GL_PATCH_VERTICES, 3);
+	//glPatchParameteri(GL_PATCH_VERTICES, 3);
 
 	GL(glEnable(GL_DEPTH_TEST));
 	GL(glDepthMask(true));
@@ -162,12 +165,12 @@ void RenderingPipeline::PostGeometryRender() {
 	GetPointlightRenderer()->Draw();
 
 	m_hdrBuffer->Unbind();
-
+	
 	//Draw to screen
 	GL(glDisable(GL_BLEND));
 
 	m_ssrRenderer->Draw(this);
-
+	
 	bool horizontal = true, first_iteration = true;
 	int amount = 8;
 	m_gaussianShader->Bind();

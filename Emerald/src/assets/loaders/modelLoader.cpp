@@ -9,7 +9,7 @@ void ModelLoader::SyncLoad(AssetManager* manager) {
 		vaoModel->ApplyLayouts();
 
 		ManagedRef<IndexBuffer> ibo(new IndexBuffer(preloadedMesh.m_indices, preloadedMesh.m_numIndices));
-		Mesh* mesh = NEW(Mesh(vaoModel, ibo, GetMaterialManager()->GetNullMaterial()));
+		Mesh* mesh = NEW(Mesh(vaoModel, ibo));
 		meshes.push_back(mesh);
 
 		delete[] preloadedMesh.m_vertices;

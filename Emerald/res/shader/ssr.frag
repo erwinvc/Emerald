@@ -2,7 +2,7 @@
 
 in vec2 fsUv;
 
-out vec4 outColor;
+out vec3 outColor;
 
 uniform sampler2D _Depth;
 uniform sampler2D _GAlbedo;
@@ -142,6 +142,6 @@ void main(){
 	
 	vec4 SSR = vec4(texture(_HDR, coords.xy).rgb, clamp(ReflectionMultiplier, 0.0, 0.9) * fresnel);  
 
-	outColor = SSR;
+	outColor = vec3(SSR.r * SSR.a, SSR.g * SSR.a, SSR.b * SSR.a);
 	//outColor = vec4(SSR.w * SSR.r, SSR.w* SSR.g, SSR.w * SSR.b, 1.0);
 }

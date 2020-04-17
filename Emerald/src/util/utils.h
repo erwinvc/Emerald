@@ -21,20 +21,38 @@ namespace Utils {
 	static void nullfunc() {}
 
 	//String
-	static vector<String> Split(String& s, const String& splitter) {
+	static inline void LTrim(String& s) {
+		s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+			return !std::isspace(ch);
+		}));
+	}
+
+	static inline void RTrim(String& s) {
+		s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+			return !std::isspace(ch);
+		}).base(), s.end());
+	}
+
+	static inline void Trim(String& s) {
+		LTrim(s);
+		RTrim(s);
+	}
+
+	static vector<String> Split(const String& s, const String& splitter) {
 		size_t pos;
 		vector<String> out;
-		while ((pos = s.find(splitter)) != String::npos) {
-			String token = s.substr(0, pos);
+		String ss = s;
+		while ((pos = ss.find(splitter)) != String::npos) {
+			String token = ss.substr(0, pos);
 			out.push_back(token);
-			s.erase(0, pos + splitter.length());
+			ss.erase(0, pos + splitter.length());
 		}
-		out.push_back(s);
+		out.push_back(ss);
 		return out;
 	}
 
 	static String RotateString90(const String& toRotate, int x, int y) {
-		int size = (x*y);
+		int size = (x * y);
 
 		String* strs = new String[y];
 		for (int i = 0; i < size; i++) {
@@ -92,26 +110,26 @@ namespace Utils {
 namespace GLUtils {
 	static String_t ShaderTypeToString(int type, bool upperCase = false) {
 		switch (type) {
-		case GL_VERTEX_SHADER: return upperCase ? "Vertex" : "vertex";
-		case GL_GEOMETRY_SHADER: return upperCase ? "Geometry" : "geometry";
-		case GL_FRAGMENT_SHADER: return upperCase ? "Fragment" : "fragment";
-		case GL_TESS_EVALUATION_SHADER: return upperCase ? "Tessellation evaluation" : "tessellation evaluation";
-		case GL_TESS_CONTROL_SHADER: return upperCase ? "Tessellation control" : "tessellation control";
+			case GL_VERTEX_SHADER: return upperCase ? "Vertex" : "vertex";
+			case GL_GEOMETRY_SHADER: return upperCase ? "Geometry" : "geometry";
+			case GL_FRAGMENT_SHADER: return upperCase ? "Fragment" : "fragment";
+			case GL_TESS_EVALUATION_SHADER: return upperCase ? "Tessellation evaluation" : "tessellation evaluation";
+			case GL_TESS_CONTROL_SHADER: return upperCase ? "Tessellation control" : "tessellation control";
 		}
 		return "NULL";
 	}
 
 	static String_t GetFBOStatus(GLenum status) {
 		switch (status) {
-		case GL_FRAMEBUFFER_COMPLETE_EXT:						return "no error";
-		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:			return "incomplete attachment";
-		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:	return "missing Attachment";
-		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:			return "dimensions do not match";
-		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:				return "formats error";
-		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:			return "draw Buffer";
-		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:			return "read Buffer";
-		case GL_FRAMEBUFFER_UNSUPPORTED_EXT:					return "snsupported Framebuffer configuration";
-		default:												return "unkown Framebuffer Object error";
+			case GL_FRAMEBUFFER_COMPLETE_EXT:						return "no error";
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:			return "incomplete attachment";
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:	return "missing Attachment";
+			case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:			return "dimensions do not match";
+			case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:				return "formats error";
+			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:			return "draw Buffer";
+			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:			return "read Buffer";
+			case GL_FRAMEBUFFER_UNSUPPORTED_EXT:					return "snsupported Framebuffer configuration";
+			default:												return "unkown Framebuffer Object error";
 		}
 	}
 }
@@ -130,15 +148,15 @@ namespace GLUtils {
 
 	static String GLErrorToString(int error) {
 		switch (error) {
-		case 0x500: return "GL_INVALID_ENUM";
-		case 0x501: return "GL_INVALID_VALUE";
-		case 0x502: return "GL_INVALID_OPERATION";
-		case 0x503: return "GL_STACK_OVERFLOW";
-		case 0x504: return "GL_STACK_UNDERFLOW";
-		case 0x505: return "GL_OUT_OF_MEMORY";
-		case 0x506: return "GL_INVALID_FRAMEBUFFER_OPERATION";
-		case 0x507: return "GL_CONTEXT_LOST";
-		case 0x5031: return "GL_TABLE_TOO_LARGE1";
+			case 0x500: return "GL_INVALID_ENUM";
+			case 0x501: return "GL_INVALID_VALUE";
+			case 0x502: return "GL_INVALID_OPERATION";
+			case 0x503: return "GL_STACK_OVERFLOW";
+			case 0x504: return "GL_STACK_UNDERFLOW";
+			case 0x505: return "GL_OUT_OF_MEMORY";
+			case 0x506: return "GL_INVALID_FRAMEBUFFER_OPERATION";
+			case 0x507: return "GL_CONTEXT_LOST";
+			case 0x5031: return "GL_TABLE_TOO_LARGE1";
 		}
 		return "";
 	}

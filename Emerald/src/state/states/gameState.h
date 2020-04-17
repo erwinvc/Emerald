@@ -20,9 +20,9 @@ public:
 		m_model = GetAssetManager()->Get<Model>("Sphere");
 		m_turtle = GetAssetManager()->Get<Model>("Turtle");
 		m_turtleEntity = new Entity(m_turtle);
-		BasicMaterial* mat = GetMaterialManager()->Create<BasicMaterial>("Test");
-		mat->SetAlbedo(texIri);
-		mat->SetRoughness(GetTextureManager()->GetBlackTexture());
+		//Material* mat = GetMaterialManager()->Create("Test");
+		//mat->SetAlbedo(texIri);
+		//mat->SetRoughness(GetTextureManager()->GetBlackTexture());
 		//m_turtle->SetMaterial(mat);
 		//m_model->SetMaterial(mat);
 		for (int i = 0; i < 4; i++) {
@@ -55,10 +55,10 @@ public:
 		m_entities[3]->m_transform.m_position = positions.BL;
 		
 		for (int i = 0; i < 4; i++) {
-			m_entities[i]->Draw(m_geometryShader);
+			m_entities[i]->Draw();
 		}
-		m_entities[0]->Draw(m_geometryShader);
-		m_turtleEntity->Draw(m_geometryShader);
+		m_entities[0]->Draw();
+		m_turtleEntity->Draw();
 
 		m_world->RenderGeometry();
 

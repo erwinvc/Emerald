@@ -3,7 +3,7 @@
 class Model : public AssetBase {
 private:
 	vector<AssetRef<Mesh>> m_meshes;
-	vector<AssetRef<BasicMaterial>> m_materials;
+	vector<AssetRef<Material>> m_materials;
 	String m_name;
 	String m_dir;
 
@@ -70,7 +70,7 @@ private:
 
 	void LoadMaterials(const aiScene *scene);
 	bool LoadTexture(int index, aiMaterial* mat, aiTextureType type, Texture*& texture);
-
+	
 public:
 	void LoadModel(const String& path);
 	Model(vector<AssetRef<Mesh>> meshes) : m_meshes(meshes) {}
@@ -79,23 +79,24 @@ public:
 	~Model() {}
 
 	vector<AssetRef<Mesh>> GetMeshes() { return m_meshes; }
+	vector<AssetRef<Material>> GetMaterials() { return m_materials; }
 
 
-	void SetMaterial(AssetRef<BasicMaterial> material) {
+	void SetMaterial(AssetRef<Material> material) {
 		for (auto& mesh : m_meshes) {
 			mesh->SetMaterial(material);
 		}
 	}
 
-	void Draw(AssetRef<Shader> shader, uint mode = GL_TRIANGLES) {
+	void Draw(uint mode = GL_TRIANGLES) {
 		for (auto& mesh : m_meshes) {
-			mesh->GetMaterial()->Bind(shader);
+			mesh->GetMaterial()->Bind();
 			mesh->Draw(mode);
 		}
 	}
 
-	void DrawIndex(AssetRef<Shader> shader, int index) {
-		m_meshes[index]->GetMaterial()->Bind(shader);
+	void DrawIndex(int index) {
+		m_meshes[index]->GetMaterial()->Bind();
 		m_meshes[index]->Draw();
 	}
 

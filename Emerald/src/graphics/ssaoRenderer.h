@@ -17,10 +17,10 @@ public:
 
 	const int KERNELCOUNT = 64;
 
-	float m_radius = 0.5f;
-	float m_bias = 0.085f;
-	int m_power = 5;
-	int m_sampleCount = 32;
+	float m_radius = 1.0f;
+	float m_bias = 0.09f;
+	int m_power = 2;
+	int m_sampleCount = 64;
 
 	SSAORenderer();
 	~SSAORenderer();

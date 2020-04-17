@@ -32,7 +32,7 @@ float ClosestDistanceBetweenLines(Ray& l1, Ray& l2) {
 		float l1t = inv_det * (v22 * dpv1 - v1v2 * dpv2);
 		float l2t = inv_det * (v1v2 * dpv1 - v12 * dpv2);
 
-		return (dp + l2.direction * l2t - l1.direction * l1t).length();
+		return (float) (dp + l2.direction * l2t - l1.direction * l1t).length();
 	} else {
 		const glm::vec3 a = glm::cross(dp,l1.direction);
 		return Math::Sqrt(glm::dot(a, a) / v12);
@@ -60,9 +60,9 @@ void draw_translation_gizmo(const Transform& transform) {
 
 void EditorState::Initialize() {
 	m_mori = GetAssetManager()->Get<Model>("Mori");
-	BasicMaterial* mat = GetMaterialManager()->Create<BasicMaterial>("Turtle");
-	mat->SetPBR("gold");
-	m_mori->SetMaterial(mat);
+	//BasicMaterial* mat = GetMaterialManager()->Create<BasicMaterial>("Turtle");
+	//mat->SetPBR("gold");
+	//m_mori->SetMaterial(mat);
 	m_moriEntity = new Entity(m_mori);
 	m_geometryShader = GetShaderManager()->Get("Geometry");
 	iri = GetAssetManager()->Get<Texture>("Iridescence");
@@ -89,7 +89,7 @@ void EditorState::RenderGeometry() {
 	m_geometryShader->Set("_TransformationMatrix", glm::mat4(1.0f));
 	m_geometryShader->Set("_CameraPosition", GetCamera()->transform.m_position);
 
-	m_moriEntity->Draw(m_geometryShader);
+	m_moriEntity->Draw();
 
 	//CornerRayPositions positions = Camera::GetCornerRays(0);
 	//m_entities[0]->m_position = positions.TL;
@@ -170,8 +170,8 @@ void EditorState::OnImGuiViewport() {
 	GetCamera()->UpdateProjectionMatrix();
 
 	//Hardcoded 19 because we can't get this value from the parent window with ImGui::GetCurrentWindowRead()->ParentWindow->MenuBarHeight(); 
-	GetCamera()->SetViewport(pos.x - parentPos.x, pos.y - parentPos.y + 19, viewportSize.x, viewportSize.y);
-	ImGui::Image((void*)GetPipeline()->GetFinalTexture()->GetHandle(), viewportSize, { 0, 1 }, { 1, 0 });
+	GetCamera()->SetViewport((uint)(pos.x - parentPos.x), (uint)(pos.y - parentPos.y + 19), (uint)viewportSize.x, (uint)viewportSize.y);
+	ImGui::Image((void*)(uint64)GetPipeline()->GetFinalTexture()->GetHandle(), viewportSize, { 0, 1 }, { 1, 0 });
 	ImGui::End();
 
 	ImGui::SetNextWindowDockID(m_dockspaceLeft, ImGuiCond_Always);

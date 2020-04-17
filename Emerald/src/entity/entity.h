@@ -10,9 +10,11 @@ public:
 	Entity(AssetRef<Model> model) : m_model(model) {}
 	virtual ~Entity() {}
 
-	void Draw(AssetRef<Shader> shader, uint mode = GL_TRIANGLES) {
-		shader->Set("_TransformationMatrix", m_transform.GetTransformationMatrix());
-		m_model->Draw(shader, mode);
+	void Draw(uint mode = GL_TRIANGLES) {
+		//#Dirty
+		m_model->GetMaterials()[0]->Bind();
+		m_model->GetMaterials()[0]->GetShader()->Set("_TransformationMatrix", m_transform.GetTransformationMatrix());
+		m_model->Draw(mode);
 	}
 
 	void OnImGui() {

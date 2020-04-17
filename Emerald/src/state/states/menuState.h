@@ -12,7 +12,7 @@ private:
 	Shader* m_geometryShader;
 	Texture* iri;
 	Texture* noise;
-	BasicMaterial* mat;
+	//BasicMaterial* mat;
 	//Model* sponza;
 	Entity* sponzaEntity;
 	vector<Pointlight> m_pointLights;
@@ -22,12 +22,12 @@ public:
 	const String& GetName() override { return m_name; }
 
 	void Initialize() override {
-		m_mori = GetAssetManager()->Get<Model>("Mori");
-		mat = GetMaterialManager()->Create<BasicMaterial>("MoriMaterial");
-		mat->SetPBR("planks");
-		m_mori->SetMaterial(mat);
-		m_moriEntity = new Entity(m_mori);
 		m_geometryShader = GetShaderManager()->Get("Geometry");
+		m_mori = GetAssetManager()->Get<Model>("Mori");
+		//mat = GetMaterialManager()->Create("MoriMaterial", m_geometryShader);
+		//mat->SetPBR("planks");
+		//m_mori->SetMaterial(mat);
+		m_moriEntity = new Entity(m_mori);
 		iri = GetAssetManager()->Get<Texture>("Iridescence");
 		noise = GetAssetManager()->Get<Texture>("Noise");
 		//sponza = GetAssetManager()->Get<Model>("Sponza");
@@ -79,19 +79,35 @@ public:
 		m_geometryShader->Set("_CameraPosition", GetCamera()->transform.m_position);
 
 		m_geometryShader->Set("Iri", irid ? 1.0f : 0.0f);
-		if (!disableMori) m_moriEntity->Draw(m_geometryShader);
+		//if (!disableMori) m_moriEntity->Draw();
 		m_geometryShader->Set("Iri", 0);
 
-		sponzaEntity->Draw(m_geometryShader);
+		sponzaEntity->Draw();
 
 		GetPointlightRenderer()->Submit(m_pointLights.data(), m_pointLights.size());
 
 	}
 	void RenderUI() override {}
 	void OnStateImGUI() override {
-		if (ImGui::Button("Planks")) mat->SetPBR("planks");
-		if (ImGui::Button("Gold")) mat->SetPBR("gold");
-		if (ImGui::Button("Metal")) mat->SetPBR("metal");
+
+		static int currentlySelectedShader = 0;
+		if (ImGui::BeginCombo("Shader", sponzaEntity->m_model->GetMaterials()[currentlySelectedShader]->GetName().c_str())) {
+			for (int n = 0; n < sponzaEntity->m_model->GetMaterials().size(); n++) {
+				bool is_selected = (currentlySelectedShader == n);
+				if (ImGui::Selectable(sponzaEntity->m_model->GetMaterials()[n]->GetName().c_str(), is_selected))
+					currentlySelectedShader = n;
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		sponzaEntity->m_model->GetMaterials()[currentlySelectedShader]->OnImGui();
+		ImGui::Separator();
+		
+		//if (ImGui::Button("Planks")) mat->SetPBR("planks");
+		//if (ImGui::Button("Gold")) mat->SetPBR("gold");
+		//if (ImGui::Button("Metal")) mat->SetPBR("metal");
 		ImGui::DragFloat3("pos", (float*)&sponzaEntity->m_transform.m_position);
 		ImGui::DragFloat3("rot", (float*)&sponzaEntity->m_transform.m_rotation, 0.02f);
 		ImGui::DragFloat3("size", (float*)&sponzaEntity->m_transform.m_size, 0.02f);
@@ -104,10 +120,10 @@ public:
 		if (ImGui::Button("Start")) {
 			if (!started) {
 				Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
-					mat->SetPBR("gold");
+					//mat->SetPBR("gold");
 
 					Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
-						mat->SetPBR("metal");
+						//mat->SetPBR("metal");
 						Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
 							irid = true;
 							Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
@@ -160,6 +176,7 @@ public:
 		}
 	}
 	void OnImGUI() override {
+
 	}
 	void Cleanup() override {}
 

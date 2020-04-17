@@ -21,7 +21,7 @@ void Texture::SetData(byte* data) {
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_params.GetFilter(GL_TEXTURE_MIN_FILTER, m_hasMipmaps)));
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_params.GetFilter(GL_TEXTURE_MAG_FILTER, m_hasMipmaps)));
 	if (m_hasMipmaps) {
-		m_mipmapCount = static_cast<int>(1 + Math::Floor(log2(Math::Min(m_width, m_height))));
+		m_mipmapCount = static_cast<int>(1 + Math::Floor((float)log2(Math::Min(m_width, m_height))));
 		GL(glGenerateMipmap(GL_TEXTURE_2D));
 	}else
 	{

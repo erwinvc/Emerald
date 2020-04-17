@@ -65,6 +65,7 @@ using namespace std;
 #define BUFFEROFFSET(i) ((char *)NULL + (i))
 
 #include "vendor/glm/glm.hpp"
+#include "vendor/glm/gtc/type_ptr.hpp"
 #include "vendor/glm/gtx/transform.hpp"
 #include "vendor/glm/gtc/matrix_transform.hpp"
 #include "vendor/glm/gtx/quaternion.hpp"
@@ -123,6 +124,8 @@ using namespace std;
 #include "graphics/buffers/gBuffer.h"
 
 #include "graphics/shaders/shaderUniformBuffer.h"
+#include "graphics/shaders/shaderProgram.h"
+#include "graphics/shaders/shaderProperties.h"
 #include "graphics/shaders/shader.h"
 #include "graphics/shaders/shaderManager.h"
 #include "graphics/vertex.h"
@@ -155,6 +158,7 @@ using namespace std;
 
 #include "graphics/window.h"
 #include "graphics/shaders/UIRenderer.h"
+#include "graphics/shadowRenderer.h"
 #include "graphics/renderer.h"
 
 #include "graphics/ssaoRenderer.h"

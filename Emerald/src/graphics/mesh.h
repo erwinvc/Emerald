@@ -8,7 +8,9 @@ protected:
 
 public:
 	Mesh();
-	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo, Material* mat) : m_vao(vao), m_ibo(ibo), m_material(mat) {}
+	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo, Material* material) : m_vao(vao), m_ibo(ibo) {
+		m_material = material;
+	}
 	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo);
 	virtual ~Mesh() {}
 	AssetRef<Material> GetMaterial() { return m_material; }

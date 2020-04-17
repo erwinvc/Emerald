@@ -24,7 +24,6 @@ private:
 	uint m_offset;
 	uint m_location;
 
-
 	ShaderUniformType m_type;
 
 public:
@@ -95,10 +94,10 @@ private:
 		switch (uniform.GetType()) {
 			case ShaderUniformType::INT: SetGL(location, (int*)&m_data[offset], count); break;
 			case ShaderUniformType::FLOAT: SetGL(location, (float*)&m_data[offset], count); break;
-			case ShaderUniformType::VEC2: SetGL(location, (glm::vec2*)&m_data[offset], count); break;
-			case ShaderUniformType::VEC3: SetGL(location, (glm::vec3*)&m_data[offset], count); break;
-			case ShaderUniformType::VEC4: SetGL(location, (glm::vec4*)&m_data[offset], count); break;
-			case ShaderUniformType::MAT4: SetGL(location, (glm::mat4*)&m_data[offset], count); break;
+			case ShaderUniformType::VEC2: SetGL(location, (glm::vec2*) & m_data[offset], count); break;
+			case ShaderUniformType::VEC3: SetGL(location, (glm::vec3*) & m_data[offset], count); break;
+			case ShaderUniformType::VEC4: SetGL(location, (glm::vec4*) & m_data[offset], count); break;
+			case ShaderUniformType::MAT4: SetGL(location, (glm::mat4*) & m_data[offset], count); break;
 		}
 	}
 
@@ -109,7 +108,7 @@ private:
 	void SetGL(uint location, const glm::vec2* value, uint count) { glUniform2fv(location, count, (float*)value); }
 	void SetGL(uint location, const glm::vec3* value, uint count) { glUniform3fv(location, count, (float*)value); }
 	void SetGL(uint location, const glm::vec4* value, uint count) { glUniform4fv(location, count, (float*)value); }
-	void SetGL(uint location, const glm::mat4* value, uint count) { glUniformMatrix4fv(location, count, GL_FALSE, (float*)value); }
+	void SetGL(uint location, const glm::mat4* value, uint count) { glUniformMatrix4fv(location, count, GL_FALSE, glm::value_ptr(*value)); }
 
 public:
 	~ShaderUniformBuffer() {
@@ -168,6 +167,15 @@ public:
 	void RegisterUniforms(ShaderProgram* shaderProgram, map<String, ShaderUniform>* oldMap = nullptr);
 
 	void Reload(ShaderProgram* shaderProgram);
+
+	const map<ShaderUniformType, vector<ShaderUniform>> GetUniforms() {
+		map<ShaderUniformType, vector<ShaderUniform>> m_typeMap;
+		for (auto& [name, uniform] : m_uniforms) {
+			m_typeMap[uniform.GetType()].push_back(uniform);
+		}
+
+		return m_typeMap;
+	}
 
 	void OnImGUI() {
 		ImGui::Columns(2, NULL, true);

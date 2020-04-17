@@ -23,7 +23,8 @@ void Model::LoadModel(const String& path) {
 	m_meshes.reserve(scene->mNumMeshes);
 
 	for (int i = 0; i < (int)scene->mNumMaterials; i++) {
-		m_materials.push_back(GetMaterialManager()->Create<BasicMaterial>(Format("%s[%d]", shortName, i)));
+		Material* mat = GetMaterialManager()->Create(Format("%s_%s", shortName, scene->mMaterials[i]->GetName().C_Str()));
+		m_materials.push_back(mat);
 	}
 
 	m_dir = path.substr(0, path.find_last_of('/'));
@@ -44,10 +45,10 @@ void Model::LoadMaterials(const aiScene* scene) {
 		}
 
 		Texture* tempTex = nullptr;
-		if (LoadTexture(i, mat, aiTextureType_SHININESS, tempTex))	m_materials[i]->SetRoughness(tempTex);
-		if (LoadTexture(i, mat, aiTextureType_DIFFUSE, tempTex))	m_materials[i]->SetAlbedo(tempTex);
-		if (LoadTexture(i, mat, aiTextureType_HEIGHT, tempTex))		m_materials[i]->SetNormal(tempTex);
-		if (LoadTexture(i, mat, aiTextureType_AMBIENT, tempTex))	m_materials[i]->SetMetallic(tempTex);
+		if (LoadTexture(i, mat, aiTextureType_SHININESS, tempTex))	m_materials[i]->SetRoughnessIfAvailable(tempTex);
+		if (LoadTexture(i, mat, aiTextureType_DIFFUSE, tempTex))	m_materials[i]->SetAlbedoIfAvailable(tempTex);
+		if (LoadTexture(i, mat, aiTextureType_HEIGHT, tempTex))		m_materials[i]->SetNormalIfAvailable(tempTex);
+		if (LoadTexture(i, mat, aiTextureType_AMBIENT, tempTex))	m_materials[i]->SetMetallicIfAvailable(tempTex);
 	}
 
 	const String_t lookupTable[] = {
@@ -64,6 +65,7 @@ bool Model::LoadTexture(int index, aiMaterial* mat, aiTextureType type, Texture*
 	if (mat->GetTextureCount(type) > 0) {
 		aiString path;
 		mat->GetTexture(type, 0, &path);
+		LOG("%s %s", m_dir.c_str(), path.C_Str());
 		String fullPath = m_dir + "\\" + path.C_Str();
 		AssetRef<Texture> tex = GetAssetManager()->Get<Texture>(fullPath);
 		if (tex.Get()) {
@@ -77,6 +79,6 @@ bool Model::LoadTexture(int index, aiMaterial* mat, aiTextureType type, Texture*
 				return true;
 			} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
 		}
-		return false;
 	}
+	return false;
 }
