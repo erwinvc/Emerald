@@ -31,7 +31,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = PI * denom * denom;
 
-    return nom / denom;
+    return nom / max(denom, 0.001);
 }
 
 float GeometrySchlickGGX(float NdotV, float roughness)
@@ -66,34 +66,38 @@ vec3 GetPosition(vec2 coord){
 	vec4 viewSpacePosition = inverse(_Projection) * clipSpacePosition;
 	viewSpacePosition /= viewSpacePosition.w;
 	vec4 worldSpacePosition = inverse(_View) * viewSpacePosition;
-	return worldSpacePosition.xyz;
+	return viewSpacePosition.xyz;
 }
 
 void main(){
 	vec4 misc = texture(_GMisc, fsUV);
-	vec3 albedo = texture(_GAlbedo, fsUV).rgb;
-	vec3 N = mat3(inverse(_View)) * normalize(texture(_GNormal, fsUV).xyz);
-	vec3 position = GetPosition(fsUV);
-	float ssao = texture(_SSAO, fsUV).x;
-	float roughness = max(misc.x, 0.05);
 	float metallic = misc.y;
+	float roughness = misc.x;
 	float lightInfluence = misc.w;
+
+	vec3 albedo = texture(_GAlbedo, fsUV).rgb;
+	vec3 N = texture(_GNormal, fsUV).xyz;
+    N =  vec3(inverse(_View) * vec4(N, 0.0));
+	vec3 viewPos = GetPosition(fsUV);
+    vec3 worldPos = vec3(inverse(_View) * vec4(viewPos, 1.0));
+	float ssao = texture(_SSAO, fsUV).x;
 
 	vec3 F0 = vec3(0.04); 
 	F0 = mix(F0, albedo, metallic);
 
-	vec3 V = normalize(_CameraPosition - position);
-    vec3 L = normalize(_Directional);
+	vec3 V = normalize(_CameraPosition - worldPos); 
+    vec3 L = normalize(-_Directional);
     vec3 H = normalize(V + L);
+
     vec3 radiance = _Color.rgb;
 
     float NDF = DistributionGGX(N, H, roughness);   
     float G   = GeometrySmith(N, V, L, roughness);      
-    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
        
     vec3 nominator    = NDF * G * F; 
-    float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
-    vec3 specular = nominator / denominator;
+    float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+    vec3 specular = nominator / max(denominator, 0.001);
     
     vec3 kD = vec3(1.0) - F;
     kD *= 1.0 - metallic;	  
@@ -102,7 +106,7 @@ void main(){
 
     vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 
-	vec3 color = Lo* ssao;
+	vec3 color = Lo * ssao;
 
 	outColor[0] = vec3(mix(albedo, color, lightInfluence));
 	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);

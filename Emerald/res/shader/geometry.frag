@@ -37,7 +37,7 @@ void main(){
 	vec3 normalTex = (255.0/128.0 * (texture(_Normal, fsData.uv).rgb) - 1);
 	vec3 normal = vec3(fsData.TBNMatrix * normalTex);
 	normal = mix(fsData.normal, normal, _NormalStrength);
-    vec4 finalNormal = _ViewMatrix * vec4(normal, 0.0);
+    vec4 finalNormal = normalize(_ViewMatrix * vec4(normal, 0.0));
 
 	float roughness = texture(_Roughness, fsData.uv).x * _RoughnessStrength;
 	float metallic = texture(_Metallic, fsData.uv).x * _MetallicStrength;
@@ -54,7 +54,7 @@ void main(){
 	//geoData[1] = vec4(mix(albedo.rgb, iridescence * noise, Iri), 1.0);
 	geoData[1] = vec4(mix(albedo.rgb, _AlbedoColor.rgb, _AlbedoColor.a), 1.0);
 	//geoData[1] = vec4((iridescence * noise), 1.0);
-	geoData[2] = vec4(finalNormal);
+	geoData[2] = finalNormal;
 }
 
 

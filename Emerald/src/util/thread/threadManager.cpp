@@ -8,14 +8,14 @@ Thread* ThreadManager::RegisterThread(String name, void(*func)()) {
 	c_thread->m_handle = CreateThread(0, 0, [](void* lpFiberParameter) -> DWORD {
 		uint64* arguments = (uint64*)lpFiberParameter;
 		Thread* thread = (Thread*)arguments[1];
-		try {
-			while (!thread->m_shutDown) {
-				((void(*)(void)) arguments[2])();
-			}
-			LOG("[~rThreads~x] shut down ~1%s~x thread", thread->GetName().c_str());
-			thread->m_finished = true;
+		//try {
+		while (!thread->m_shutDown) {
+			((void(*)(void)) arguments[2])();
+		}
+		LOG("[~rThreads~x] shut down ~1%s~x thread", thread->GetName().c_str());
+		thread->m_finished = true;
 
-		} catch (...) { LOG_ERROR("[~rThreads~x] caught exception in ~1%s ~rthread", thread->m_name.c_str()); }
+		//} catch (...) { LOG_ERROR("[~rThreads~x] caught exception in ~1%s ~rthread", thread->m_name.c_str()); }
 		DELETE(thread);
 		DELETEARRAY(arguments);
 		return 1;

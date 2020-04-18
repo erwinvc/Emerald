@@ -37,7 +37,7 @@ public:
 		GetCamera()->Update(time);
 		m_world->Update(time);
 	}
-	void RenderGeometry() override {
+	void RenderGeometry(Shader* overrideShader) override {
 
 		m_geometryShader->Bind();
 		m_geometryShader->Set("_Iridescence", 5);

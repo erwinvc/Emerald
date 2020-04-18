@@ -14,7 +14,7 @@ SSRRenderer::SSRRenderer() {
 	m_simpleShader->Set("_SSR", 0);
 
 	m_fbo = GetFrameBufferManager()->Create("SSR", FBOScale::FULL, false);
-	m_texture = m_fbo->AddBuffer("SSR", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_texture = m_fbo->AddBuffer("SSR", TextureParameters(RGB16, RGB, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
 	m_quad = MeshGenerator::Quad();
 }
@@ -32,16 +32,15 @@ void SSRRenderer::Draw(RenderingPipeline* pipeline) {
 	m_shader->Set("_InverseProjection", GetCamera()->GetInverseProjectionMatrix());
 	m_shader->Set("_InverseView", GetCamera()->GetInverseViewMatrix());
 	m_shader->Set("_CameraPosition", GetCamera()->transform.m_position);
-
 	m_quad->Bind();
 	m_quad->Draw();
 
 	m_fbo->Unbind();
 
-
 	m_simpleShader->Bind();
+	m_simpleShader->Set("_BloomFactor", pipeline->m_bloomFactor);
 	pipeline->m_hdrBuffer->Bind();
-	
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE);
 	glDepthMask(GL_FALSE);

@@ -9,7 +9,7 @@ public:
 
 	virtual void Initialize() = 0;
 	virtual void Update(const TimeStep& time) = 0;
-	virtual void RenderGeometry() = 0;
+	virtual void RenderGeometry(Shader* overrideShader = nullptr) = 0;
 	virtual void RenderUI() = 0;
 	virtual void OnStateImGUI() = 0;
 	virtual void OnImGUI() = 0;

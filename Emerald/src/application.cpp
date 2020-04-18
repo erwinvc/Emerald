@@ -131,6 +131,15 @@ void Application::Render() {
 	m_window->ClearColor(Color(0, 0, 0, 1));
 
 	if (m_pipeline->Initialized()) {
+		//m_pipeline->PreShadowRender();
+		//
+		//GetLineRenderer()->Begin();
+		//GetStateManager()->RenderGeometry();
+		//GetLineRenderer()->End();
+		//GetLineRenderer()->Draw();
+		//
+		//m_pipeline->PostShadowRender();
+
 		m_pipeline->PreGeometryRender();
 
 		GetLineRenderer()->Begin();
@@ -139,7 +148,7 @@ void Application::Render() {
 		GetLineRenderer()->Draw();
 
 		m_pipeline->PostGeometryRender();
-
+		
 		m_pipeline->PreUIRender();
 		GetStateManager()->RenderUI();
 		m_pipeline->PostUIRender();

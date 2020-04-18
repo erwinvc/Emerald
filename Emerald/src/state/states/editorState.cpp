@@ -76,7 +76,7 @@ void EditorState::Initialize() {
 	m_world = new World();
 }
 
-void EditorState::RenderGeometry() {
+void EditorState::RenderGeometry(Shader* overrideShader) {
 	draw_translation_gizmo(m_moriEntity->m_transform);
 	m_geometryShader->Bind();
 	m_geometryShader->Set("_Iridescence", 5);

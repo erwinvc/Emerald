@@ -8,7 +8,7 @@ public:
 
 	void Initialize() override {}
 	void Update(const TimeStep& time) override {}
-	void RenderGeometry() override {}
+	void RenderGeometry(Shader* overrideShader = nullptr) override {}
 	void RenderUI() override {}
 	void OnStateImGUI() override {}
 	void OnImGUI() override {}

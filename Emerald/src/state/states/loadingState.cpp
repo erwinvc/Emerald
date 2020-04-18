@@ -91,7 +91,7 @@ void LoadingState::Update(const TimeStep& time) {
 		GetStateManager()->RemoveState(this);
 	}
 }
-void LoadingState::RenderGeometry() {}
+void LoadingState::RenderGeometry(Shader* overrideShader) {}
 
 void LoadingState::RenderUI() {
 	float progress = GetAssetManager()->GetProgress();

@@ -41,7 +41,6 @@ void RenderingPipeline::Initialize() {
 	m_hdrShader->Bind();
 	m_hdrShader->Set("_HDRBuffer", 0);
 	m_hdrShader->Set("_HDRBloom", 1);
-
 	
 	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", FBOScale::FULL, false);
 	m_hdrTexture = m_hdrBuffer->AddBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
@@ -56,6 +55,7 @@ void RenderingPipeline::Initialize() {
 
 	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer());
+	
 	//SSR
 	m_ssrRenderer = NEW(SSRRenderer());
 
@@ -82,6 +82,21 @@ void RenderingPipeline::Initialize() {
 	//m_projectionMatrix = glm::mat4::Lerp(m_projectionMatrix, m_perspective ? m_perspectiveMatrix : m_orthoMatrix, m_lerpAmount);
 //}
 
+void RenderingPipeline::PreShadowRender()
+{
+	GL(glEnable(GL_DEPTH_TEST));
+	GL(glDepthMask(true));
+	GL(glDisable(GL_BLEND));
+	GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
+	GL(glEnable(GL_CULL_FACE));
+	GL(glFrontFace(GL_CCW));
+	
+	m_shadowRenderer->Begin(this);
+}
+void RenderingPipeline::PostShadowRender()
+{
+	m_shadowRenderer->End(this);
+}
 void RenderingPipeline::PreGeometryRender() {
 	//glPatchParameteri(GL_PATCH_VERTICES, 3);
 
@@ -103,8 +118,6 @@ void RenderingPipeline::PreGeometryRender() {
 	}
 }
 
-float roughness = 1;
-float metalic = 0;
 void RenderingPipeline::PostGeometryRender() {
 	if (m_wireFrame) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 
@@ -165,7 +178,7 @@ void RenderingPipeline::PostGeometryRender() {
 	GetPointlightRenderer()->Draw();
 
 	m_hdrBuffer->Unbind();
-	
+
 	//Draw to screen
 	GL(glDisable(GL_BLEND));
 

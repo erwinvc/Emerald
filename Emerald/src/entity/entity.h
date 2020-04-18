@@ -10,10 +10,15 @@ public:
 	Entity(AssetRef<Model> model) : m_model(model) {}
 	virtual ~Entity() {}
 
-	void Draw(uint mode = GL_TRIANGLES) {
+	void Draw(Shader* overrideShader = nullptr, uint mode = GL_TRIANGLES) {
 		//#Dirty
-		m_model->GetMaterials()[0]->Bind();
-		m_model->GetMaterials()[0]->GetShader()->Set("_TransformationMatrix", m_transform.GetTransformationMatrix());
+		if (overrideShader) {
+			overrideShader->Bind();
+			overrideShader->Set("_TransformationMatrix", m_transform.GetTransformationMatrix());
+		} else {
+			m_model->GetMaterials()[0]->Bind();
+			m_model->GetMaterials()[0]->GetShader()->Set("_TransformationMatrix", m_transform.GetTransformationMatrix());
+		}
 		m_model->Draw(mode);
 	}
 

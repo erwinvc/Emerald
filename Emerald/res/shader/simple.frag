@@ -1,10 +1,14 @@
 #version 330 core
-out vec4 outColor;
+
+out vec3 outColor[2];
   
 in vec2 fsUv;
   
 uniform sampler2D _SSR;
+uniform float _BloomFactor;
 
 void main() {
-	outColor = texture(_SSR, fsUv);
+	vec3 col = texture(_SSR, fsUv).rgb;
+	outColor[0] = col;
+	outColor[1] = max(col - _BloomFactor, 0.0f);
 }  

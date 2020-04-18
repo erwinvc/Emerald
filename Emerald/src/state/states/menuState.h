@@ -66,26 +66,18 @@ public:
 			}
 		}
 	}
-	void RenderGeometry() override {
+	void RenderGeometry(Shader* overrideShader) override {
 		m_geometryShader->Bind();
-		m_geometryShader->Set("_Iridescence", 5);
-		m_geometryShader->Set("_Noise", 6);
-		iri->Bind(5);
-		noise->Bind(6);
-		m_geometryShader->Set("_IridescenceStrength", 0);
 		m_geometryShader->Set("_ProjectionMatrix", GetCamera()->GetProjectionMatrix());
 		m_geometryShader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
 		m_geometryShader->Set("_TransformationMatrix", glm::mat4(1.0));
 		m_geometryShader->Set("_CameraPosition", GetCamera()->transform.m_position);
 
-		m_geometryShader->Set("Iri", irid ? 1.0f : 0.0f);
 		//if (!disableMori) m_moriEntity->Draw();
-		m_geometryShader->Set("Iri", 0);
 
-		sponzaEntity->Draw();
+		sponzaEntity->Draw(overrideShader);
 
 		GetPointlightRenderer()->Submit(m_pointLights.data(), m_pointLights.size());
-
 	}
 	void RenderUI() override {}
 	void OnStateImGUI() override {

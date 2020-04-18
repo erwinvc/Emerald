@@ -71,6 +71,8 @@ public:
 
 	void Initialize();
 
+	void PreShadowRender();
+	void PostShadowRender();
 	void PreGeometryRender();
 	void PostGeometryRender();
 	void PreUIRender();
