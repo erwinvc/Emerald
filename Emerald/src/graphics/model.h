@@ -51,7 +51,8 @@ private:
 		}
 
 		ManagedRef<VertexArray> vaoModel(new VertexArray());
-		vaoModel->AddBuffer(NEW(VertexBuffer((float*)vertices, mesh->mNumVertices, layout)));
+		VertexBuffer* buff = NEW(VertexBuffer((float*)vertices, mesh->mNumVertices, layout));
+		vaoModel->AddBuffer(ManagedRef<VertexBuffer>(buff));
 		vaoModel->ApplyLayouts();
 
 		delete[] vertices;

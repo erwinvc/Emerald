@@ -1,4 +1,4 @@
-#version 330 core
+#version 330
 out vec4 out_color;
   
 in vec2 fsUv;
@@ -234,6 +234,21 @@ vec3 ToGreyScale(vec3 colorIn)
 	return vec3(grey, grey, grey);
 }
 
+float r(in vec2 p)
+{
+    return fract(cos(p.x*42.98 + p.y*43.23) * 1127.53);
+}
+
+float n(in vec2 p)
+{
+    vec2 fn = floor(p);
+    vec2 sn = smoothstep(vec2(0), vec2(1), fract(p));
+    
+    float h1 = mix(r(fn), r(fn + vec2(1,0)), sn.x);
+    float h2 = mix(r(fn + vec2(0,1)), r(fn + vec2(1)), sn.x);
+    return mix(h1 ,h2, sn.y);
+}
+
 void main(){
 	vec3 color = texture(_HDRBuffer, fsUv).rgb;
 	vec3 bloom = texture(_HDRBloom, fsUv).rgb;
@@ -271,6 +286,7 @@ void main(){
 		case 11: color = Standard(color); break;
 		case 12: color = Cherno(color); break;
 	}
+
 
 	//color = ToGreyScale(color);
 	out_color = vec4(Vignette(color, vec3(0), 0.3, 0.8), 1);

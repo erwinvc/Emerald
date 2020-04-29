@@ -1,4 +1,4 @@
-#version 400 core
+#version 330
 
 uniform sampler2D _Depth;
 uniform sampler2D _GAlbedo;

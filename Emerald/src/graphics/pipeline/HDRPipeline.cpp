@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <random>
 
-void RenderingPipeline::Initialize() {
+void HDRPipeline::Initialize() {
 
 	//Deferred
 	m_gBuffer = NEW(GBuffer());
@@ -35,13 +35,13 @@ void RenderingPipeline::Initialize() {
 
 	//Shadow
 	m_shadowRenderer = NEW(ShadowRenderer(1024, 1024));
-	
+
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
 	m_hdrShader->Bind();
 	m_hdrShader->Set("_HDRBuffer", 0);
 	m_hdrShader->Set("_HDRBloom", 1);
-	
+
 	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", FBOScale::FULL, false);
 	m_hdrTexture = m_hdrBuffer->AddBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 	m_hdrBrightTexture = m_hdrBuffer->AddBuffer("HDRBloom", TextureParameters(RGB, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
@@ -55,18 +55,21 @@ void RenderingPipeline::Initialize() {
 
 	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer());
-	
+
 	//SSR
 	m_ssrRenderer = NEW(SSRRenderer());
 
 	m_freeCam = NEW(FreeCam(70, 0.1f, 1000.0f));
+	m_freeCam->SetViewport(0, 0, 1920, 1080);
 	m_firstPersonCamera = NEW(FirstPersonCam(70, 0.1f, 1000.0f));
-	m_camera = m_freeCam;
+	m_firstPersonCamera->SetViewport(0, 0, 1920, 1080);
+
+	Camera::active = m_freeCam;
 
 	m_firstPersonCamera->transform.m_position = glm::vec3(14, 0, -2);
 	m_firstPersonCamera->transform.m_rotation = glm::vec3(0, Math::PI, 0);
-	m_camera->transform.m_position = glm::vec3(0.0f, 0.5f, -1.5f);
-	m_camera->transform.m_rotation = glm::vec3(0.4f, Math::PI, 0.0f);
+	Camera::active->transform.m_position = glm::vec3(0.0f, 0.5f, -1.5f);
+	Camera::active->transform.m_rotation = glm::vec3(0.4f, Math::PI, 0.0f);
 
 	//Final
 	m_finalFBO = GetFrameBufferManager()->Create("Final", FBOScale::FULL, false);
@@ -77,27 +80,60 @@ void RenderingPipeline::Initialize() {
 	m_initialized = true;
 }
 
-//void RenderingPipeline::Update(const TimeStep& time) {
-	//m_lerpAmount = Math::Clamp(m_lerpAmount + time.GetSeconds(), 0.0f, 1.0f);
-	//m_projectionMatrix = glm::mat4::Lerp(m_projectionMatrix, m_perspective ? m_perspectiveMatrix : m_orthoMatrix, m_lerpAmount);
-//}
+void HDRPipeline::Render() {
+	m_spriteRenderer->Begin();
+	if (m_initialized) {
+		PreGeometryRender();
 
-void RenderingPipeline::PreShadowRender()
-{
+		GetLineRenderer()->Begin();
+		GetStateManager()->RenderGeometry(this);
+		GetLineRenderer()->End();
+		GetLineRenderer()->Draw();
+
+		PostGeometryRender();
+	} else GetStateManager()->RenderGeometry(this);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GL(glViewport(0, 0, m_width, m_height));
+
+	m_spriteRenderer->End();
+	GLUtils::EnableBlending();
+	m_spriteRenderer->Draw();
+	GLUtils::DisableBlending();
+
+	if (GetImGuiManager()->IsInitialized()) {
+		GetImGuiManager()->Begin();
+	
+		if (ImGui::Begin("Emerald###Window", &m_ImGuiOpen, ImVec2(576, 680), -1)) {
+			if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
+				OnImGUI();
+				GetStateManager()->OnStateImGUI();
+				GetFrameBufferManager()->OnImGUI();
+				GetShaderManager()->OnImGUI();
+				ImGui::EndTabBar();
+			}
+		}
+		ImGui::End();
+	
+		GetStateManager()->OnImGUI();
+		GetImGuiManager()->End();
+	}
+}
+
+void HDRPipeline::PreShadowRender() {
 	GL(glEnable(GL_DEPTH_TEST));
 	GL(glDepthMask(true));
 	GL(glDisable(GL_BLEND));
 	GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
 	GL(glEnable(GL_CULL_FACE));
 	GL(glFrontFace(GL_CCW));
-	
+
 	m_shadowRenderer->Begin(this);
 }
-void RenderingPipeline::PostShadowRender()
-{
+void HDRPipeline::PostShadowRender() {
 	m_shadowRenderer->End(this);
 }
-void RenderingPipeline::PreGeometryRender() {
+void HDRPipeline::PreGeometryRender() {
 	//glPatchParameteri(GL_PATCH_VERTICES, 3);
 
 	GL(glEnable(GL_DEPTH_TEST));
@@ -106,7 +142,6 @@ void RenderingPipeline::PreGeometryRender() {
 	GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
 	GL(glEnable(GL_CULL_FACE));
 	GL(glFrontFace(GL_CCW));
-
 	//Draw to gBuffer
 	m_gBuffer->Bind();
 	m_gBuffer->Clear();
@@ -118,7 +153,7 @@ void RenderingPipeline::PreGeometryRender() {
 	}
 }
 
-void RenderingPipeline::PostGeometryRender() {
+void HDRPipeline::PostGeometryRender() {
 	if (m_wireFrame) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 
 	m_gBuffer->Unbind();
@@ -151,13 +186,13 @@ void RenderingPipeline::PostGeometryRender() {
 	m_ssaoRenderer->GetTexture()->Bind(4);
 	m_directionalLightShader->Set("_Color", m_directionalLight.GetColor());
 	m_directionalLightShader->Set("_Directional", m_directionalLight.GetDirection());
-	m_directionalLightShader->Set("_CameraPosition", m_camera->transform.m_position);
+	m_directionalLightShader->Set("_CameraPosition", Camera::active->transform.m_position);
 	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoRenderer->m_enabled);
 	m_directionalLightShader->Set("_Roughness", roughness);
 	m_directionalLightShader->Set("_Metallic", metallic);
 	m_directionalLightShader->Set("_BloomFactor", m_bloomFactor);
-	m_directionalLightShader->Set("_Projection", m_camera->GetProjectionMatrix());
-	m_directionalLightShader->Set("_View", m_camera->GetViewMatrix());
+	m_directionalLightShader->Set("_Projection", Camera::active->GetProjectionMatrix());
+	m_directionalLightShader->Set("_View", Camera::active->GetViewMatrix());
 	m_quad->Bind();
 	m_quad->Draw();
 
@@ -167,9 +202,9 @@ void RenderingPipeline::PostGeometryRender() {
 	m_pointLightShader->Bind();
 	m_gBuffer->BindTextures();
 	m_ssaoRenderer->GetTexture()->Bind(4);
-	m_pointLightShader->Set("_Projection", m_camera->GetProjectionMatrix());
-	m_pointLightShader->Set("_View", m_camera->GetViewMatrix());
-	m_pointLightShader->Set("_CameraPosition", m_camera->transform.m_position);
+	m_pointLightShader->Set("_Projection", Camera::active->GetProjectionMatrix());
+	m_pointLightShader->Set("_View", Camera::active->GetViewMatrix());
+	m_pointLightShader->Set("_CameraPosition", Camera::active->transform.m_position);
 	m_pointLightShader->Set("_SSAOEnabled", m_ssaoRenderer->m_enabled);
 	//m_pointLightShader->Set("_Roughness", roughness);
 	//m_pointLightShader->Set("_Metallic", metallic);
@@ -183,7 +218,7 @@ void RenderingPipeline::PostGeometryRender() {
 	GL(glDisable(GL_BLEND));
 
 	m_ssrRenderer->Draw(this);
-	
+
 	bool horizontal = true, first_iteration = true;
 	int amount = 8;
 	m_gaussianShader->Bind();
@@ -215,7 +250,7 @@ void RenderingPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_Gamma", m_gamma);
 	m_hdrShader->Set("_Exposure", m_exposure);
 	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
-	m_hdrShader->Set("_ScreenSize", glm::vec2(GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>()));
+	m_hdrShader->Set("_ScreenSize", glm::vec2(m_width, m_height));
 	m_hdrShader->Set("_Chromatic", m_chromatic);
 	m_hdrShader->Set("_Bloom", m_bloom);
 	GetFrameBufferManager()->GetSelectedTexture()->Bind(0);
@@ -229,15 +264,7 @@ void RenderingPipeline::PostGeometryRender() {
 	glBlitFramebuffer(0, 0, m_finalFBO->GetWidth(), m_finalFBO->GetHeight(), 0, 0, m_finalFBO->GetWidth(), m_finalFBO->GetHeight(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 }
 
-void RenderingPipeline::PreUIRender() {
-	GLUtils::EnableBlending();
-}
-
-void RenderingPipeline::PostUIRender() {
-	GLUtils::DisableBlending();
-}
-
-void RenderingPipeline::OnImGUI() {
+void HDRPipeline::OnImGUI() {
 	if (ImGui::BeginTabItem("Pipeline")) {
 		const String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard" };
 		ImGui::DragFloat3("Directional", (float*)&m_directionalLight, 0.01f);
@@ -283,15 +310,15 @@ void RenderingPipeline::OnImGUI() {
 
 		if (ImGui::CollapsingHeader("Camera")) {
 			if (ImGui::Button("Freecam")) {
-				m_camera = m_freeCam;
+				Camera::active = m_freeCam;
 				m_selectedCamera = 0;
 				glfwSetInputMode(GetApp()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
 			if (ImGui::Button("First person")) {
-				m_camera = m_firstPersonCamera;
+				Camera::active = m_firstPersonCamera;
 				m_selectedCamera = 1;
 			}
-			m_camera->OnImGui();
+			Camera::active->OnImGui();
 		}
 
 		if (ImGui::CollapsingHeader("Memory")) {
@@ -307,10 +334,10 @@ void RenderingPipeline::OnImGUI() {
 
 
 //#TODO properly resize fbos
-void RenderingPipeline::OnResize(uint width, uint height) {
+void HDRPipeline::OnResize(uint width, uint height) {
+	m_width = width;
+	m_height = height;
+	Camera::uiActive->SetViewport(0, 0, width, height);
 	if (!m_initialized) return;
-	//m_gBuffer->Resize(width, height);
-	// m_hdrBuffer->Resize(width, height);
-	//m_ssaoRenderer->Resize(width, height);
-	m_camera->SetViewport(0, 0, width, height);
+	Camera::active->SetViewport(0, 0, width, height);
 }

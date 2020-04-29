@@ -51,7 +51,7 @@ void draw_translation_gizmo(const Transform& transform) {
 		//}
 
 		glm::vec3 ray = GroundRaycast::GetMousePosition();
-		float dist = ClosestDistanceBetweenLines(Ray(transform.m_position, glm::normalize(axis_end)), Ray(GetCamera()->transform.m_position, glm::normalize(ray)));
+		float dist = ClosestDistanceBetweenLines(Ray(transform.m_position, glm::normalize(axis_end)), Ray(Camera::active->transform.m_position, glm::normalize(ray)));
 		LOG("%f", dist);
 		GetLineRenderer()->Submit(transform.m_position, axis_end + transform.m_position, axis_color);
 	}
@@ -76,7 +76,7 @@ void EditorState::Initialize() {
 	m_world = new World();
 }
 
-void EditorState::RenderGeometry(Shader* overrideShader) {
+void EditorState::RenderGeometry(HDRPipeline* pipeline) {
 	draw_translation_gizmo(m_moriEntity->m_transform);
 	m_geometryShader->Bind();
 	m_geometryShader->Set("_Iridescence", 5);
@@ -84,10 +84,10 @@ void EditorState::RenderGeometry(Shader* overrideShader) {
 	iri->Bind(5);
 	noise->Bind(6);
 	m_geometryShader->Set("_IridescenceStrength", 0);
-	m_geometryShader->Set("_ProjectionMatrix", GetCamera()->GetProjectionMatrix());
-	m_geometryShader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
+	m_geometryShader->Set("_ProjectionMatrix", Camera::active->GetProjectionMatrix());
+	m_geometryShader->Set("_ViewMatrix", Camera::active->GetViewMatrix());
 	m_geometryShader->Set("_TransformationMatrix", glm::mat4(1.0f));
-	m_geometryShader->Set("_CameraPosition", GetCamera()->transform.m_position);
+	m_geometryShader->Set("_CameraPosition", Camera::active->transform.m_position);
 
 	m_moriEntity->Draw();
 
@@ -122,7 +122,7 @@ void EditorState::RenderGeometry(Shader* overrideShader) {
 }
 
 void EditorState::Update(const TimeStep& time) {
-	GetCamera()->Update(time);
+	Camera::active->Update(time);
 
 	m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
 	
@@ -165,13 +165,12 @@ void EditorState::OnImGuiViewport() {
 	ImVec2 pos = ImGui::GetCursorScreenPos();
 	ImVec2 parentPos = ImGui::GetCurrentWindowRead()->ParentWindow->Pos;
 
-	GetPipeline()->OnResize((uint)viewportSize.x, (uint)viewportSize.y);
+	GetApp()->pipeline->OnResize((uint)viewportSize.x, (uint)viewportSize.y);
 	GetFrameBufferManager()->OnResize((uint)viewportSize.x, (uint)viewportSize.y);
-	GetCamera()->UpdateProjectionMatrix();
 
 	//Hardcoded 19 because we can't get this value from the parent window with ImGui::GetCurrentWindowRead()->ParentWindow->MenuBarHeight(); 
-	GetCamera()->SetViewport((uint)(pos.x - parentPos.x), (uint)(pos.y - parentPos.y + 19), (uint)viewportSize.x, (uint)viewportSize.y);
-	ImGui::Image((void*)(uint64)GetPipeline()->GetFinalTexture()->GetHandle(), viewportSize, { 0, 1 }, { 1, 0 });
+	Camera::active->SetViewport((uint)(pos.x - parentPos.x), (uint)(pos.y - parentPos.y + 19), (uint)viewportSize.x, (uint)viewportSize.y);
+	ImGui::Image((void*)(uint64)GetApp()->pipeline->GetFinalTexture()->GetHandle(), viewportSize, { 0, 1 }, { 1, 0 });
 	ImGui::End();
 
 	ImGui::SetNextWindowDockID(m_dockspaceLeft, ImGuiCond_Always);

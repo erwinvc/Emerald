@@ -1,5 +1,6 @@
 #pragma once
 
+class Mesh;
 class SSAORenderer {
 private:
 	AssetRef<FrameBuffer> m_fbo;

@@ -1,6 +1,7 @@
 #pragma once
 
-class RenderingPipeline;
+class HDRPipeline;
+class Mesh;
 class SSRRenderer
 {
 private:
@@ -13,6 +14,6 @@ private:
 public:
 	bool m_enabled = true;
 	SSRRenderer();
-	void Draw(RenderingPipeline* pipeline);
+	void Draw(HDRPipeline* pipeline);
 	void OnImGui();
 };

@@ -17,12 +17,12 @@ public:
 		if (KeyDown(' ') && body.m_position.y == 0) body.m_velocity.y += 0.2f;
 		if (KeyDown(LSHIFT)) {
 			vel *= 2;
-			if (vel.x != 0 || vel.y != 0)
-				GetPipeline()->m_chromatic = Math::Ease(GetPipeline()->m_chromatic, 0.015f, 6);
-		} else GetPipeline()->m_chromatic = Math::Ease(GetPipeline()->m_chromatic, 0, 6);
+			//if (vel.x != 0 || vel.y != 0)
+			//	GetPipeline()->m_chromatic = Math::Ease(GetPipeline()->m_chromatic, 0.015f, 6);
+		} //else GetPipeline()->m_chromatic = Math::Ease(GetPipeline()->m_chromatic, 0, 6);
 
-		float _sin = Math::Sin(GetCamera()->transform.m_rotation.y - Math::HALF_PI);
-		float _cos = Math::Cos(GetCamera()->transform.m_rotation.y - Math::HALF_PI);
+		float _sin = Math::Sin(Camera::active->transform.m_rotation.y - Math::HALF_PI);
+		float _cos = Math::Cos(Camera::active->transform.m_rotation.y - Math::HALF_PI);
 
 		float x = vel.x * _cos - vel.z * _sin;
 		float z = vel.x * _sin + vel.z * _cos;
@@ -32,7 +32,7 @@ public:
 
 		body.Update(time, m_surroundingTiles);
 
-		GetCamera()->transform.m_position = glm::vec3(body.m_position.x, body.m_position.y + 0.9f, body.m_position.z);
+		Camera::active->transform.m_position = glm::vec3(body.m_position.x, body.m_position.y + 0.9f, body.m_position.z);
 
 		if (GetApp()->GetWindow()->GetFocussed()) {
 			glfwSetInputMode(GetApp()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);

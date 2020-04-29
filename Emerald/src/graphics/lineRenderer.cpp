@@ -46,7 +46,7 @@ void LineRenderer::End() {
 }
 void LineRenderer::Draw() {
 	m_shader->Bind();
-	m_shader->Set("projectionMatrix", GetCamera()->GetProjectionMatrix());
-	m_shader->Set("viewMatrix", GetCamera()->GetViewMatrix());
+	m_shader->Set("projectionMatrix", Camera::active->GetProjectionMatrix());
+	m_shader->Set("viewMatrix", Camera::active->GetViewMatrix());
 	m_renderer->Draw(GL_LINES);
 }

@@ -4,6 +4,7 @@ class LoadingState : public State {
 private:
 	String m_name = "Loading";
 	AssetRef<Texture> m_logo;
+	AssetRef<Texture> m_animatedLogo;
 	AssetRef<Texture> m_loadingTexture;
 	AssetRef<BasicAssetBatch> m_batch;
 public:
@@ -11,8 +12,7 @@ public:
 
 	void Initialize() override;
 	void Update(const TimeStep& time) override;
-	void RenderGeometry(Shader* overrideShader = nullptr) override;
-	void RenderUI() override;
+	void RenderGeometry(HDRPipeline* pipeline) override;
 	void OnStateImGUI() override;
 	void OnImGUI() override;
 	void Cleanup() override;

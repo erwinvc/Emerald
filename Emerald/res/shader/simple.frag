@@ -1,5 +1,4 @@
-#version 330 core
-
+#version 330
 out vec3 outColor[2];
   
 in vec2 fsUv;

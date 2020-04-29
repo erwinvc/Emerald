@@ -4,7 +4,7 @@ class Window {
 private:
 	GLFWwindow* m_window;
 	String m_title;
-	int m_width, m_height;
+	uint m_width, m_height;
 	bool m_vSync;
 	bool m_focussed;
 
@@ -23,11 +23,8 @@ public:
 	inline void SetWidth(uint width) { m_width = width; }
 	inline void SetHeight(uint height) { m_height = height; }
 
-	template<typename T>
-	inline T GetWidth() { return (T)m_width; }
-
-	template<typename T>
-	inline T GetHeight() { return (T)m_height; }
+	uint GetWidth() { return m_width; }
+	uint GetHeight() { return m_height; }
 
 	inline float GetAspect() { return (float)(m_width) / m_height; }
 

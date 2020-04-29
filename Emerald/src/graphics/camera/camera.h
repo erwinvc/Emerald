@@ -15,7 +15,7 @@ struct CornerRayPositions {
 };
 
 class Camera {
-private:
+protected:
 	glm::mat4 m_projectionMatrix;
 	glm::mat4 m_viewMatrix;
 	glm::mat4 m_inverseProjectionMatrix;
@@ -24,11 +24,13 @@ private:
 	float m_nearPlane;
 	float m_farPlane;
 	glm::vec4 m_viewPort;
-
-protected:
+	
 	void UpdateViewMatrix();
+	virtual void UpdateProjectionMatrix();
 
 public:
+	static Camera* active;
+	static Camera* uiActive;
 	Transform transform;
 
 	Camera(float fov, float nearPlane, float farPlane) { SetProjectionMatrix(fov, nearPlane, farPlane); UpdateViewMatrix(); }
@@ -37,7 +39,6 @@ public:
 	virtual void Update(const TimeStep& time) {}
 	virtual void FixedUpdate() {}
 
-	void UpdateProjectionMatrix();
 	void SetProjectionMatrix(float fov, float nearPlane, float farPlane);
 	void SetViewport(uint x, uint y, uint width, uint height);
 	

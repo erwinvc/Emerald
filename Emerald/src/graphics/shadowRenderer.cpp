@@ -9,12 +9,12 @@ ShadowRenderer::ShadowRenderer(uint width, uint height) {
 	glReadBuffer(GL_NONE);
 }
 
-void ShadowRenderer::Begin(RenderingPipeline* pipeline)
+void ShadowRenderer::Begin(HDRPipeline* pipeline)
 {
 	m_fbo->Bind();
 	m_fbo->ClearDepthOnly();
 }
-void ShadowRenderer::End(RenderingPipeline* pipeline) {
+void ShadowRenderer::End(HDRPipeline* pipeline) {
 
 }
 void ShadowRenderer::OnImGui()

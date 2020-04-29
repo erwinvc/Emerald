@@ -1,5 +1,8 @@
 #include "stdafx.h"
 
+Camera* Camera::active = nullptr;
+Camera* Camera::uiActive = nullptr;
+
 void Camera::UpdateViewMatrix() {
 	m_viewMatrix = glm::translate(glm::mat4(1.0f), transform.m_position) * glm::toMat4(transform.GetOrientation());
 	m_inverseViewMatrix = m_viewMatrix;
@@ -21,6 +24,7 @@ void Camera::SetProjectionMatrix(float fov, float nearPlane, float farPlane) {
 }
 
 void Camera::SetViewport(uint x, uint y, uint width, uint height) {
+	if (m_viewPort.x == x && m_viewPort.y == y && m_viewPort.z == width && m_viewPort.w == height) return;
 	m_viewPort.x = (float)x;
 	m_viewPort.y = (float)y;
 	m_viewPort.z = (float)width;

@@ -1,5 +1,4 @@
-#version 400 core
-
+#version 330
 in vec2 position;
 
 out vec2 fsUv;

@@ -10,7 +10,7 @@ private:
 	friend Singleton;
 
 public:
-	static const int32 MAX_LIGHTS = 32768;
+	static const int32 MAX_LIGHTS = 256;
 	void Initialize(Mesh* mesh, uint32 maxLights = MAX_LIGHTS) {
 		if (maxLights > MAX_LIGHTS)LOG_ERROR("[Rendering] Too many lights. Engine max is 32768");
 

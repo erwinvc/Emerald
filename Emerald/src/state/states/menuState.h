@@ -37,12 +37,12 @@ public:
 		sponzaEntity->m_transform.m_size = glm::vec3(0.1f, 0.1f, 0.1f);
 		sponzaEntity->m_transform.m_position.z = 4;
 		//GetCamera()->m_position.y = -2;
-		GetCamera()->transform.m_position = glm::vec3(-1.3f, 0.96f, 0);
-		GetCamera()->transform.m_rotation.y = Math::HALF_PI;
+		Camera::active->transform.m_position = glm::vec3(-1.3f, 0.96f, 0);
+		Camera::active->transform.m_rotation.y = Math::HALF_PI;
 		m_moriEntity->m_transform.m_position.y = 5.0f;
 		m_moriEntity->m_transform.m_position.x = -6.0f;
 		m_moriEntity->m_transform.m_size = glm::vec3(10.0f);
-		GetPipeline()->m_directionalLight.m_multiplier = 5.0f;
+		//GetPipeline()->m_directionalLight.m_multiplier = 5.0f;
 		for (int i = 0; i < LIGHTCOUNT; i++) {
 			m_positions.push_back(glm::vec3(Math::RandomFloat(-150.0f, 130.0f), Math::RandomFloat(0.0f, 90.0f), Math::RandomFloat(-60.0f, 60.0f)));
 		}
@@ -53,7 +53,7 @@ public:
 	bool irid = false;
 	int amount = 0;
 	void Update(const TimeStep& time) override {
-		GetCamera()->Update(time);
+		Camera::active->Update(time);
 		static float seconds = 0;
 		seconds += time.GetSeconds();
 		//m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
@@ -66,23 +66,23 @@ public:
 			}
 		}
 	}
-	void RenderGeometry(Shader* overrideShader) override {
+	void RenderGeometry(HDRPipeline* pipeline) override {
 		m_geometryShader->Bind();
-		m_geometryShader->Set("_ProjectionMatrix", GetCamera()->GetProjectionMatrix());
-		m_geometryShader->Set("_ViewMatrix", GetCamera()->GetViewMatrix());
+		m_geometryShader->Set("_ProjectionMatrix", Camera::active->GetProjectionMatrix());
+		m_geometryShader->Set("_ViewMatrix", Camera::active->GetViewMatrix());
 		m_geometryShader->Set("_TransformationMatrix", glm::mat4(1.0));
-		m_geometryShader->Set("_CameraPosition", GetCamera()->transform.m_position);
+		m_geometryShader->Set("_CameraPosition", Camera::active->transform.m_position);
 
 		//if (!disableMori) m_moriEntity->Draw();
 
-		sponzaEntity->Draw(overrideShader);
+		sponzaEntity->Draw();
 
 		GetPointlightRenderer()->Submit(m_pointLights.data(), m_pointLights.size());
 	}
-	void RenderUI() override {}
+	//void RenderUI() override {}
 	void OnStateImGUI() override {
-
 		static int currentlySelectedShader = 0;
+		
 		if (ImGui::BeginCombo("Shader", sponzaEntity->m_model->GetMaterials()[currentlySelectedShader]->GetName().c_str())) {
 			for (int n = 0; n < sponzaEntity->m_model->GetMaterials().size(); n++) {
 				bool is_selected = (currentlySelectedShader == n);
@@ -120,28 +120,28 @@ public:
 							irid = true;
 							Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
 
-								Tween::To(GetCamera()->transform.m_position, glm::vec3(-105, 32, 0), 5000)->SetEase(Ease::INOUTEXPO);
-								Tween::To(GetCamera()->transform.m_rotation, glm::vec3(0.2f, Math::HALF_PI, 0), 5000)->SetEase(Ease::INOUTEXPO);
+								Tween::To(Camera::active->transform.m_position, glm::vec3(-105, 32, 0), 5000)->SetEase(Ease::INOUTEXPO);
+								Tween::To(Camera::active->transform.m_rotation, glm::vec3(0.2f, Math::HALF_PI, 0), 5000)->SetEase(Ease::INOUTEXPO);
 								Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
 									disableMori = true;
-									GetPipeline()->m_applyPostProcessing = false;
-									GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetGBuffer()->m_colorTexture);
+									GetApp()->pipeline->m_applyPostProcessing = false;
+									GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->GetGBuffer()->m_colorTexture);
 
 									Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-										GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetGBuffer()->m_normalTexture);
+										GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->GetGBuffer()->m_normalTexture);
 
 										Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-											GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetGBuffer()->m_attributesTexture);
+											GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->GetGBuffer()->m_attributesTexture);
 
 											Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-												GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->m_ssaoRenderer->GetRawTexture());
+												GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->m_ssaoRenderer->GetRawTexture());
 
 												Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-													GetPipeline()->m_applyPostProcessing = true;
-													GetFrameBufferManager()->SetSelectedTexture(GetPipeline()->GetHDRTexture());
+													GetApp()->pipeline->m_applyPostProcessing = true;
+													GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->GetHDRTexture());
 
-													Tween::To(GetPipeline()->m_ambientIntensity, 0.01f, 2500);
-													Tween::To(GetPipeline()->m_directionalLight.m_multiplier, 0.0f, 2500);
+													Tween::To(GetApp()->pipeline->m_ambientIntensity, 0.01f, 2500);
+													Tween::To(GetApp()->pipeline->m_directionalLight.m_multiplier, 0.0f, 2500);
 													Tween::To(temp, 0.0f, 2000)->SetOnComplete([&] {
 
 														for (int i = 0; i < LIGHTCOUNT; i++) {
@@ -149,7 +149,7 @@ public:
 														}
 														Tween::To(temp, 0.0f, 1000)->SetOnComplete([&] {
 															moveLights = true;
-															Tween::To(GetPipeline()->m_exposure, 4.0f, 1000)->SetOnComplete([&] {
+															Tween::To(GetApp()->pipeline->m_exposure, 4.0f, 1000)->SetOnComplete([&] {
 
 															});
 														});

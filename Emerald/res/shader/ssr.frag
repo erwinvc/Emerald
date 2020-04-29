@@ -1,4 +1,4 @@
-#version 400 core
+#version 330
 
 in vec2 fsUv;
 
@@ -93,7 +93,7 @@ vec4 RayMarch(in vec3 dir, inout vec3 hitCoord, out float dDepth, vec3 alb) {
 		steps++;
 	}
 
-    return depth>1000 ? vec4(projectedCoord.xy, 0.0, 0.0) : vec4(0.0);
+    return depth > 1000 ? vec4(projectedCoord.xy, 0.0, 0.0) : vec4(0.0);
 }
 
 float saturate(float x) {

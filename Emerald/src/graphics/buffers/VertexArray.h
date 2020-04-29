@@ -1,6 +1,6 @@
 #pragma once
 
-class VertexArray {
+class VertexArray : public Ref<VertexArray> {
 private:
 	GLuint m_arrayID;
 	vector<ManagedRef<VertexBuffer>> m_buffers;

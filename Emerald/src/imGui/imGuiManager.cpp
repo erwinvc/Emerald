@@ -56,7 +56,8 @@ void ImGuiManager::Initialize(Window* window) {
 		if (c > 0 && c < 0x10000)
 			io.AddInputCharacter((unsigned short)c);
 	});
-
+	
+	m_initialized = true;
 }
 
 void ImGuiManager::Begin() {

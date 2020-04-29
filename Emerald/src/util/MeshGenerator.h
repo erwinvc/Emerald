@@ -41,7 +41,7 @@ namespace MeshGenerator {
 
 		BufferLayout layout = {
 			{VertexBufferDataType::Float3, "position", 0} };
-		vao->AddBuffer(NEW(VertexBuffer(positions.data(), positions.size() / 3, layout)));
+		vao->AddBuffer(ManagedRef<VertexBuffer>(NEW(VertexBuffer(positions.data(), positions.size() / 3, layout))));
 		vao->ApplyLayouts();
 		return NEW(Mesh(vao, ibo));
 	}
@@ -72,7 +72,7 @@ namespace MeshGenerator {
 			{VertexBufferDataType::Float3, "position", 0},
 			{VertexBufferDataType::Float2, "uv", 1}
 		};
-		vao->AddBuffer(NEW(VertexBuffer(vertices, NUMOF(vertices), layout)));
+		vao->AddBuffer(ManagedRef<VertexBuffer>(NEW(VertexBuffer(vertices, NUMOF(vertices), layout))));
 		vao->ApplyLayouts();
 		return NEW(Mesh(vao, ibo));
 	}

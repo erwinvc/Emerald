@@ -1,6 +1,6 @@
 #pragma once
 
-class Mesh {
+class Mesh : public AssetBase {
 protected:
 	ManagedRef<VertexArray> m_vao;
 	ManagedRef<IndexBuffer> m_ibo;
@@ -8,10 +8,10 @@ protected:
 
 public:
 	Mesh();
-	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo, Material* material) : m_vao(vao), m_ibo(ibo) {
+	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo, Material* material) : m_vao(vao), m_ibo(ibo) {
 		m_material = material;
 	}
-	Mesh(ManagedRef<VertexArray>& vao, ManagedRef<IndexBuffer>& ibo);
+	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo);
 	virtual ~Mesh() {}
 	AssetRef<Material> GetMaterial() { return m_material; }
 	void SetMaterial(Material* mat) { m_material = mat; }
@@ -50,4 +50,6 @@ public:
 
 	inline ManagedRef<VertexArray> GetVAO() { return m_vao; }
 	inline ManagedRef<IndexBuffer> GetIBO() { return m_ibo; }
+
+	static const String GetAssetTypeName() { return "Mesh"; }
 };

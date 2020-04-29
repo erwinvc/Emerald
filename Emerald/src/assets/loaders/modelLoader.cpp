@@ -5,7 +5,7 @@ void ModelLoader::SyncLoad(AssetManager* manager) {
 	meshes.reserve(m_preloadedMeshes.size());
 	for (PreloadedMesh& preloadedMesh : m_preloadedMeshes) {
 		ManagedRef<VertexArray> vaoModel(new VertexArray());
-		vaoModel->AddBuffer(NEW(VertexBuffer((float*)preloadedMesh.m_vertices, preloadedMesh.m_numVertices, m_layout)));
+		vaoModel->AddBuffer(ManagedRef<VertexBuffer>(NEW(VertexBuffer((float*)preloadedMesh.m_vertices, preloadedMesh.m_numVertices, m_layout))));
 		vaoModel->ApplyLayouts();
 
 		ManagedRef<IndexBuffer> ibo(new IndexBuffer(preloadedMesh.m_indices, preloadedMesh.m_numIndices));

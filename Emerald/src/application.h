@@ -8,13 +8,13 @@ private:
 	bool m_initialized = false;
 	Window* m_window = nullptr;
 	Timer m_timer;
-	uint64_t m_frameCount = 0;
+	
+	float m_totalFrameTime = 0;
+	uint64 m_frameCount = 0;
 	float m_lastFrameTime = 0;
 	int m_fps = 0;
 
-	RenderingPipeline* m_pipeline = nullptr;
 	bool m_running = true;
-	bool m_ImGuiOpen = true;
 
 	HWND m_hwndHandle = 0;
 	AsyncQueue<function<void()>> m_queue;
@@ -22,6 +22,9 @@ private:
 	void HandleQueue();
 
 public:
+	HDRPipeline* pipeline = nullptr;
+	
+	float GetTotalFrameTime() { return m_totalFrameTime; }
 	Window* GetWindow() { return m_window; }
 
 	void Initialize();
@@ -38,21 +41,16 @@ public:
 		m_queue.Add(task);
 	}
 	uint64_t GetFrameCount() { return m_frameCount; }
-	RenderingPipeline* GetPipeline() { return m_pipeline; }
 
-	template<typename T>
-	inline T GetWidth() { return m_window->GetWidth<T>(); }
-
-	template<typename T>
-	inline T GetHeight() { return m_window->GetHeight<T>(); }
-	inline float GetAspect() { return m_window->GetAspect(); }
-
+	uint GetWidth() { return m_window->GetWidth(); }
+	uint GetHeight() { return m_window->GetHeight(); }
+	
+	float GetAspect() { return m_window->GetAspect(); }
 };
 
 static Application* GetApp() {
 	return Application::GetInstance();
 }
 
-static RenderingPipeline* GetPipeline() { return Application::GetInstance()->GetPipeline(); }
-static Camera* GetCamera() { return Application::GetInstance()->GetPipeline()->GetCamera(); }
+//static GraphicsPipeline* GetPipeline() { return Application::GetInstance()->GetPipeline(); }
 //static GBuffer* GetGBuffer() { return Application::GetInstance()->GetPipeline()->GetGBuffer(); }

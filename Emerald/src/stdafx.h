@@ -132,6 +132,7 @@ using namespace std;
 
 #include "assets/assetBase.h"
 #include "assets/texture/texture.h"
+#include "assets/texture/sprite.h"
 #include "assets/material/material.h"
 #include "assets/material/basicMaterial.h"
 #include "assets/material/tileMaterial.h"
@@ -152,12 +153,12 @@ using namespace std;
 #include "input/mouse.h"
 
 #include "math/groundRaycast.h"
+#include "graphics/camera/orthoCamera.h"
 #include "graphics/camera/freeCam.h"
 #include "graphics/camera/firstPersonCam.h"
 #include "math/rasterization.h"
 
 #include "graphics/window.h"
-#include "graphics/shaders/UIRenderer.h"
 #include "graphics/shadowRenderer.h"
 #include "graphics/renderer.h"
 
@@ -173,9 +174,12 @@ using namespace std;
 #include "assets/assetManager.h"
 #include "assets/assetWatcher.h"
 
+#include "graphics/elementsRenderer.h"
 #include "graphics/instancedRenderer.h"
 #include "graphics/lineRenderer.h"
 #include "graphics/tileRenderer.h"
+#include "graphics/spriteRenderer.h"
+
 
 #include "graphics/lighting/directionalLight.h"
 #include "graphics/lighting/pointlight.h"
@@ -191,7 +195,7 @@ using namespace std;
 #include "assets/textureManager.h"
 
 #include "deferred.h"
-#include "graphics/RenderingPipeline.h"
+#include "graphics/pipeline/HDRPipeline.h"
 #include "application.h"
 
 #include "physics/rigidBody.h"

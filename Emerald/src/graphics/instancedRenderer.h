@@ -1,5 +1,6 @@
 #pragma once
 
+//InstancedRenderer uses glDrawElementsInstanced to draw T stored in the buffer
 template<typename T>
 class InstancedRenderer {
 private:
@@ -14,7 +15,6 @@ private:
 	BufferLayout m_layout;
 
 	void Initialize() {
-		ASSERT(m_mesh, "InstancedRenderer mesh is a null pointer");
 		m_offsets = new T[m_maxObjects];
 		m_offsetsBuffer = NEW(VertexBuffer((float*)m_offsets, m_maxObjects, m_layout, GL_DYNAMIC_DRAW));
 		m_mesh->GetVAO()->AddBuffer(m_offsetsBuffer);
@@ -27,16 +27,16 @@ public:
 		m_amount = 0;
 		m_ended = false;
 		m_started = true;
-
+		
 		m_offsetsBuffer->Bind();
 		GL(m_buffer = (T*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
 		m_offsetsBuffer->Unbind();
 	}
 
-	void Submit(T* data, int size) {
+	void Submit(T* data, int size, int count) { //Count is either instance count or indices count
 		memcpy(m_buffer, data, size * sizeof(T));
 		m_buffer += size;
-		m_amount += size;
+		m_amount += count;
 	}
 
 	void Submit(T& offset) {
@@ -72,14 +72,9 @@ public:
 		m_ended = true;
 	}
 
-	void Draw(AssetRef<Shader> shader, uint mode = GL_TRIANGLES) {
-		ASSERT(m_ended, "Call InstancedRenderer::End before calling InstancedRenderer::Draw");
-		m_mesh->GetMaterial()->Bind(shader);
-		m_mesh->DrawInstanced(m_amount, mode);
-	}
-
 	void Draw(uint mode = GL_TRIANGLES) {
 		ASSERT(m_ended, "Call InstancedRenderer::End before calling InstancedRenderer::Draw");
+		m_mesh->GetMaterial()->Bind();
 		m_mesh->DrawInstanced(m_amount, mode);
 	}
 

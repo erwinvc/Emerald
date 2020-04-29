@@ -1,6 +1,6 @@
 #pragma once
 
-class RenderingPipeline;
+class HDRPipeline;
 class ShadowRenderer
 {
 private:
@@ -10,7 +10,7 @@ private:
 	
 public:
 	ShadowRenderer(uint width, uint height);
-	void Begin(RenderingPipeline* pipeline);
-	void End(RenderingPipeline* pipeline);
+	void Begin(HDRPipeline* pipeline);
+	void End(HDRPipeline* pipeline);
 	void OnImGui();
 };

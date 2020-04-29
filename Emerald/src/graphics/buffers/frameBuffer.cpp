@@ -1,8 +1,8 @@
 #include "stdafx.h"
 
 FrameBuffer::FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clearColor) : m_name(name), m_scale(scale), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(hasDepth) {
-	m_realWidth = GetApp()->GetWindow()->GetWidth<uint>();
-	m_realHeight = GetApp()->GetWindow()->GetHeight<uint>();
+	m_realWidth = GetApp()->GetWidth();
+	m_realHeight = GetApp()->GetHeight();
 	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
 	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
 
@@ -118,5 +118,5 @@ void FrameBufferManager::OnImGUI() {
 
 void FrameBufferManager::BindDefaultFBO() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	GL(glViewport(0, 0, GetApp()->GetWidth<GLsizei>(), GetApp()->GetHeight<GLsizei>()));
+	GL(glViewport(0, 0, GetApp()->GetWidth(), GetApp()->GetHeight()));
 }

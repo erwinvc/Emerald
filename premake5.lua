@@ -20,7 +20,7 @@ project "Emerald"
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 	
-		files
+	files
 	{
 		"%{prj.name}/**.h",
 		"%{prj.name}/**.hpp",
@@ -72,6 +72,9 @@ project "Emerald"
 		{
 			"GLEW_STATIC"
 		}
+		
+	configuration "vs*"
+		defines     { "_CRT_SECURE_NO_WARNINGS" }
 
 	filter "configurations:Debug"
 		defines "EE_DEBUG"

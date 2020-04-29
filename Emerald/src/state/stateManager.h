@@ -37,8 +37,8 @@ public:
 	}
 
 	void Update(TimeStep time) { m_currentState->Update(time); }
-	void RenderGeometry() { m_currentState->RenderGeometry(); }
-	void RenderUI() { m_currentState->RenderUI(); }
+	void RenderGeometry(HDRPipeline* pipeline) { m_currentState->RenderGeometry(pipeline); }
+	//void RenderUI() { m_currentState->RenderUI(); }
 	void OnStateImGUI() {
 		if (ImGui::BeginTabItem("State")) {
 			int i = 0;

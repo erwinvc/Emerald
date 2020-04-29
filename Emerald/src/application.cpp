@@ -11,7 +11,6 @@ static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity
 }
 
 void Application::OnResize(int width, int height) {
-	if (!m_initialized) return;
 	toResize = glm::ivec2(width, height);
 }
 
@@ -54,7 +53,6 @@ void Application::Initialize() {
 	//glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	//glDebugMessageCallback(DebugCallback, nullptr);
 
-	GetGLCallbackManager()->AddOnResizeCallback(this, &Application::OnResize);
 	GetGLCallbackManager()->AddOnCloseCallback(this, &Application::OnWindowClose);
 
 	LOG("[~cGPU~x] %-26s %s", "GPU manufacturer~1", glGetString(GL_VENDOR));
@@ -63,20 +61,23 @@ void Application::Initialize() {
 
 	CapabilitiesCheck();
 
-	m_pipeline = NEW(RenderingPipeline());
 
 	m_window->SetIcon(Icon("icon32"));
 
 	GetStateManager()->RegisterStates();
 
+	pipeline = NEW(HDRPipeline());
+	pipeline->EarlyInitialize(m_window->GetWidth(), m_window->GetHeight());
+	
 	GetGLFiberManager()->Initialize();
 	GetGLFiberManager()->AddFiber("Main", [] {GetApp()->Run(); });
 	GetGLFiberManager()->AddFiber("AssetManager", [] {GetAssetManager()->Update(); });
 
 	m_window->Show();
 
-	m_initialized = true;
+	GetGLCallbackManager()->AddOnResizeCallback(this, &Application::OnResize);
 
+	m_initialized = true;
 
 	while (m_running) {
 		GetGLFiberManager()->Tick();
@@ -94,7 +95,8 @@ void Application::Run() {
 		m_window->Clear();
 		float time = m_timer.Get();
 		if (time - updateTimer > updateTick) {
-			Update(time - m_lastFrameTime);
+			m_totalFrameTime += time - m_lastFrameTime;
+			Update(TimeStep(time - m_lastFrameTime, m_totalFrameTime, m_frameCount));
 			m_lastFrameTime = time;
 			updates++;
 			updateTimer += updateTick;
@@ -130,47 +132,8 @@ void Application::HandleQueue() {
 void Application::Render() {
 	m_window->ClearColor(Color(0, 0, 0, 1));
 
-	if (m_pipeline->Initialized()) {
-		//m_pipeline->PreShadowRender();
-		//
-		//GetLineRenderer()->Begin();
-		//GetStateManager()->RenderGeometry();
-		//GetLineRenderer()->End();
-		//GetLineRenderer()->Draw();
-		//
-		//m_pipeline->PostShadowRender();
 
-		m_pipeline->PreGeometryRender();
-
-		GetLineRenderer()->Begin();
-		GetStateManager()->RenderGeometry();
-		GetLineRenderer()->End();
-		GetLineRenderer()->Draw();
-
-		m_pipeline->PostGeometryRender();
-		
-		m_pipeline->PreUIRender();
-		GetStateManager()->RenderUI();
-		m_pipeline->PostUIRender();
-
-		GetImGuiManager()->Begin();
-		if (ImGui::Begin("Emerald###Window", &m_ImGuiOpen, ImVec2(576, 680), -1)) {
-			if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
-				m_pipeline->OnImGUI();
-				GetStateManager()->OnStateImGUI();
-				GetFrameBufferManager()->OnImGUI();
-				GetShaderManager()->OnImGUI();
-				ImGui::EndTabBar();
-			}
-		}
-		ImGui::End();
-		GetStateManager()->OnImGUI();
-		GetImGuiManager()->End();
-	} else {
-		GLUtils::EnableBlending();
-		GetStateManager()->RenderUI();
-		GLUtils::DisableBlending();
-	}
+	pipeline->Render();
 
 	if (toResize.x != -1) {
 		uint width = toResize.x;
@@ -178,7 +141,7 @@ void Application::Render() {
 		glViewport(0, 0, width, height);
 		m_window->SetWidth(width);
 		m_window->SetHeight(height);
-		m_pipeline->OnResize(width, height);
+		pipeline->OnResize(width, height);
 		GetFrameBufferManager()->OnResize(width, height);
 		GetStateManager()->OnResize(width, height);
 		toResize = glm::ivec2(-1, -1);
@@ -204,7 +167,7 @@ void Application::CapabilitiesCheck() {
 void Application::Cleanup() {
 	GetStateManager()->Cleanup();
 	GetThreadManager()->Cleanup();
+	DELETE(pipeline);
 	DELETE(m_window);
-	DELETE(m_pipeline);
 	GetMemory()->CheckAllocations();
 }

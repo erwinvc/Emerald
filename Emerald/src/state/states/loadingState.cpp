@@ -1,20 +1,25 @@
 #include "stdafx.h"
 
+#define MAX 256
+Sprite loadingSprite;
 void LoadingState::Initialize() {
+
+	TextureLoader* loader = new TextureLoader("Logo", "res/logo.png", false, TextureParameters(RGBA, RGBA, NEAREST, REPEAT));
+	m_logo = GetAssetManager()->ForceLoad<Texture>(loader);
+	m_animatedLogo = GetAssetManager()->ForceLoad<Texture>(new TextureLoader("AnimatedLogo", "res/animatedLogo.png", false));
+	loadingSprite = Sprite(m_animatedLogo, Color::White(), 8, 62, 0, 1.0f/31.0f);
+	GetTileMaterialManager()->Initialize();
+
+	GetImGuiManager()->Initialize(GetApp()->GetWindow());
 
 	GetTextureManager()->Initialize();
 
-	TextureLoader* loader = NEW(TextureLoader("Logo", "res/logo.png", false), TextureParameters(RGBA, RGBA, NEAREST, REPEAT));
-	m_logo = GetAssetManager()->ForceLoad<Texture>(loader);
-	GetTileMaterialManager()->Initialize();
-
 	GetShaderManager()->Create("Geometry", "res/shader/geometry");
 	GetShaderManager()->Create("UI", "res/shader/UI");
-	GetUIRenderer()->Initialize();
+	//GetUIRenderer()->Initialize();
 
 	m_batch = GetAssetManager()->CreateBatch<BasicAssetBatch>("Main Assets");
 
-	m_batch->Add(NEW(CustomLoader("ImGui", [] {GetImGuiManager()->Initialize(GetApp()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Mouse", [] {GetMouse()->Initialize(GetApp()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetApp()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Thread Pool", [] {GetThreadPool()->Initialize(3); })));
@@ -72,7 +77,7 @@ void LoadingState::Initialize() {
 
 	//m_batch->Add(NEW(CustomLoader("Tile Renderer", [] {GetTileRenderer()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Pointlight Renderer", [] {GetPointlightRenderer()->Initialize(MeshGenerator::Sphere(10, 10), PointlightRenderer::MAX_LIGHTS); })));
-	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetPipeline()->Initialize(); })));
+	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetApp()->pipeline->Initialize(); })));
 	//m_batch->Add(NEW(CustomLoader("Tile manager", [] {GetTileManager()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Asset Watcher", [] {GetAssetWatcher()->Initialize(); })));
 
@@ -84,25 +89,44 @@ void LoadingState::Initialize() {
 	}
 }
 
+float p = 0;
 void LoadingState::Update(const TimeStep& time) {
+	p += 0.1f * time.GetSeconds();
 	if (m_batch->IsFinished() && GetAssetManager()->GetProgress() >= GetAssetManager()->GetProgress() - 0.01f) {
 		GetTileMaterialManager()->GenerateMipmaps();
 		GetStateManager()->SetState(GameStates::MENU);
 		GetStateManager()->RemoveState(this);
 	}
-}
-void LoadingState::RenderGeometry(Shader* overrideShader) {}
 
-void LoadingState::RenderUI() {
+}
+void LoadingState::RenderGeometry(HDRPipeline* pipeline) {
 	float progress = GetAssetManager()->GetProgress();
 	Color color = Color::Mix(Color(0xFF0029), Color(0x007AFF), progress);
-	GetUIRenderer()->Rect(Origin::CENTER, GetApp()->GetWidth<float>() / 2.0f, GetApp()->GetHeight<float>() / 2.0f, GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>(), Color::Black());
-	GetUIRenderer()->Rect(Origin::LEFT, glm::vec2(0.248f * GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>() / 2.0f), glm::vec2(0.502f * GetApp()->GetWidth<float>(), 0.022f * GetApp()->GetHeight<float>()), Color::White());
-	GetUIRenderer()->Rect(Origin::LEFT, glm::vec2(0.25f * GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>() / 2.0f), glm::vec2(progress * 0.5f * GetApp()->GetWidth<float>(), 0.02f  * GetApp()->GetHeight<float>()), color);
 
-	GetUIRenderer()->RenderTexture(m_logo, Origin::CENTER, GetApp()->GetWidth<float>() / 2, GetApp()->GetHeight<float>() * 0.85f, 0.4095f * GetApp()->GetWidth<float>(), 0.0945f * GetApp()->GetWidth<float>());
+
+	//pipeline->Rect(Origin::CENTER, GetApp()->GetWidth<float>() / 2.0f, GetApp()->GetHeight<float>() / 2.0f, GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>(), Color::Black());
+	//pipeline->Rect(Origin::LEFT, glm::vec2(0.248f * GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>() / 2.0f), glm::vec2(0.502f * GetApp()->GetWidth<float>(), 0.022f * GetApp()->GetHeight<float>()), Color::White());
+	//pipeline->Rect(Origin::LEFT, glm::vec2(0.25f * GetApp()->GetWidth<float>(), GetApp()->GetHeight<float>() / 2.0f), glm::vec2(progress * 0.5f * GetApp()->GetWidth<float>(), 0.02f * GetApp()->GetHeight<float>()), color);
+	//
+	//GetUIRenderer()->RenderTexture(m_loadingFBOTexture, Origin::CENTER, GetApp()->GetWidth<float>() / 2.0f, GetApp()->GetHeight<float>() / 2.0f, GetApp()->GetWidth<float>(), GetApp()->GetWidth<float>());
+	//GetUIRenderer()->RenderTexture(m_logo, Origin::CENTER, position, sizee);
+
+	loadingSprite.Draw(pipeline, Origin::CENTER, pipeline->Width() - 100, 100, 100, 100, 0);
 }
+
+glm::vec2 origin = glm::vec2(0, 0);
+float rot = 0;
+glm::vec2 position = glm::vec2(0, 0);
+glm::vec2 sizee = glm::vec2(1, 1);
+
+//void LoadingState::RenderUI() {
+//
+//}
 void LoadingState::OnStateImGUI() {
+	ImGui::SliderFloat2("origin", (float*)&origin, -1, 1);
+	ImGui::SliderFloat("rot", (float*)&rot, 0, Math::PI);
+	ImGui::SliderFloat2("position", (float*)&position, 0, 1);
+	ImGui::SliderFloat2("size", (float*)&sizee, 0, 1);
 }
 void LoadingState::OnImGUI() {
 }

@@ -1,14 +1,18 @@
-#version 400 core
+#version 330
 
-in vec2 textureCoords;
+struct Data {
+	vec2 uv;
+	float textureID;
+	vec4 color;
+};
 
-out vec4 out_Color;
+in Data fsData;
 
-uniform sampler2D _Texture;
-uniform vec4 _Color;
+uniform sampler2D _Textures[32];
 
-void main() {
-	vec4 sampledColor = texture(_Texture, textureCoords);
-	vec3 color = mix(sampledColor.xyz, _Color.xyz, _Color.a); 
-    out_Color = vec4(color, sampledColor.a);
+out vec4 outColor;
+void main(){
+	vec4 color = texture(_Textures[int(fsData.textureID)], fsData.uv);
+	outColor = vec4(color.rgb * fsData.color.rgb, fsData.color.a * color.a);
+	//outColor = vec4(1.0, 1.0, 1.0, 1.0);
 }

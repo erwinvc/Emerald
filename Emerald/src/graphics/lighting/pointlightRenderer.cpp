@@ -12,7 +12,7 @@ void PointlightRenderer::Draw() {
 }
 
 void PointlightRenderer::Submit(Pointlight* pointlights, int count) {
-	m_renderer->Submit(pointlights, count);
+	m_renderer->Submit(pointlights, count, count);
 
 }
 void PointlightRenderer::Submit(Pointlight& pointlight) {
