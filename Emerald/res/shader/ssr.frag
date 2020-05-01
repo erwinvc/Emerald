@@ -10,11 +10,15 @@ uniform sampler2D _GNormal;
 uniform sampler2D _GMisc;
 uniform sampler2D _HDR;
 
-uniform mat4 _Projection;
-uniform mat4 _View;
-uniform mat4 _InverseProjection;
-uniform mat4 _InverseView;
-uniform vec3 _CameraPosition;
+layout (std140) uniform GlobalUniforms {
+	vec3 _CameraPosition;
+	mat4 _Projection;
+	mat4 _View;
+	mat4 _InverseProjection;
+	mat4 _InverseView;
+    float _BloomFactor;
+    bool _SSAOEnabled;
+};
 
 const float screenEdgeFadeStart = 0.5;
 const float rayStep = 0.1f;

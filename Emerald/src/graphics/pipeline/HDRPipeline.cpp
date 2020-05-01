@@ -68,8 +68,8 @@ void HDRPipeline::Initialize() {
 
 	m_firstPersonCamera->transform.m_position = glm::vec3(14, 0, -2);
 	m_firstPersonCamera->transform.m_rotation = glm::vec3(0, Math::PI, 0);
-	Camera::active->transform.m_position = glm::vec3(0.0f, 0.5f, -1.5f);
-	Camera::active->transform.m_rotation = glm::vec3(0.4f, Math::PI, 0.0f);
+	Camera::active->transform.m_position = glm::vec3(0.0f, 20.0f, 0.0f);
+	Camera::active->transform.m_rotation = glm::vec3(0.0f, Math::PI, 0.0f);
 
 	//Final
 	m_finalFBO = GetFrameBufferManager()->Create("Final", FBOScale::FULL, false);
@@ -103,7 +103,7 @@ void HDRPipeline::Render() {
 
 	if (GetImGuiManager()->IsInitialized()) {
 		GetImGuiManager()->Begin();
-	
+
 		if (ImGui::Begin("Emerald###Window", &m_ImGuiOpen, ImVec2(576, 680), -1)) {
 			if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
 				OnImGUI();
@@ -114,7 +114,7 @@ void HDRPipeline::Render() {
 			}
 		}
 		ImGui::End();
-	
+
 		GetStateManager()->OnImGUI();
 		GetImGuiManager()->End();
 	}
@@ -142,6 +142,16 @@ void HDRPipeline::PreGeometryRender() {
 	GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
 	GL(glEnable(GL_CULL_FACE));
 	GL(glFrontFace(GL_CCW));
+
+	m_ubo->data._CameraPosition = Camera::active->transform.m_position;
+	m_ubo->data._Projection = Camera::active->GetProjectionMatrix();
+	m_ubo->data._View = Camera::active->GetViewMatrix();
+	m_ubo->data._InverseProjection = Camera::active->GetInverseProjectionMatrix();
+	m_ubo->data._InverseView = Camera::active->GetInverseViewMatrix();
+	m_ubo->data._BloomFactor = m_bloomFactor;
+	m_ubo->data._SSAOEnabled = m_ssaoRenderer->m_enabled;
+	
+	
 	//Draw to gBuffer
 	m_gBuffer->Bind();
 	m_gBuffer->Clear();
@@ -173,9 +183,7 @@ void HDRPipeline::PostGeometryRender() {
 	m_gBuffer->BindTextures();
 	m_ssaoRenderer->GetTexture()->Bind(2);
 	m_emissionAmbientShader->Bind();
-	m_emissionAmbientShader->Set("_BloomFactor", m_bloomFactor);
 	m_emissionAmbientShader->Set("_AmbientIntensity", m_ambientIntensity);
-	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoRenderer->m_enabled);
 	m_quad->Bind();
 	m_quad->Draw();
 
@@ -186,13 +194,6 @@ void HDRPipeline::PostGeometryRender() {
 	m_ssaoRenderer->GetTexture()->Bind(4);
 	m_directionalLightShader->Set("_Color", m_directionalLight.GetColor());
 	m_directionalLightShader->Set("_Directional", m_directionalLight.GetDirection());
-	m_directionalLightShader->Set("_CameraPosition", Camera::active->transform.m_position);
-	m_directionalLightShader->Set("_SSAOEnabled", m_ssaoRenderer->m_enabled);
-	m_directionalLightShader->Set("_Roughness", roughness);
-	m_directionalLightShader->Set("_Metallic", metallic);
-	m_directionalLightShader->Set("_BloomFactor", m_bloomFactor);
-	m_directionalLightShader->Set("_Projection", Camera::active->GetProjectionMatrix());
-	m_directionalLightShader->Set("_View", Camera::active->GetViewMatrix());
 	m_quad->Bind();
 	m_quad->Draw();
 
@@ -202,13 +203,6 @@ void HDRPipeline::PostGeometryRender() {
 	m_pointLightShader->Bind();
 	m_gBuffer->BindTextures();
 	m_ssaoRenderer->GetTexture()->Bind(4);
-	m_pointLightShader->Set("_Projection", Camera::active->GetProjectionMatrix());
-	m_pointLightShader->Set("_View", Camera::active->GetViewMatrix());
-	m_pointLightShader->Set("_CameraPosition", Camera::active->transform.m_position);
-	m_pointLightShader->Set("_SSAOEnabled", m_ssaoRenderer->m_enabled);
-	//m_pointLightShader->Set("_Roughness", roughness);
-	//m_pointLightShader->Set("_Metallic", metallic);
-	m_pointLightShader->Set("_BloomFactor", m_bloomFactor);
 	GetPointlightRenderer()->End();
 	GetPointlightRenderer()->Draw();
 
@@ -252,7 +246,7 @@ void HDRPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
 	m_hdrShader->Set("_ScreenSize", glm::vec2(m_width, m_height));
 	m_hdrShader->Set("_Chromatic", m_chromatic);
-	m_hdrShader->Set("_Bloom", m_bloom);
+	m_hdrShader->Set("_Bloom", m_bloomEnabled);
 	GetFrameBufferManager()->GetSelectedTexture()->Bind(0);
 
 	m_pingPongTexture[1]->Bind(1);
@@ -267,43 +261,56 @@ void HDRPipeline::PostGeometryRender() {
 void HDRPipeline::OnImGUI() {
 	if (ImGui::BeginTabItem("Pipeline")) {
 		const String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard" };
-		ImGui::DragFloat3("Directional", (float*)&m_directionalLight, 0.01f);
-		if (ImGui::CollapsingHeader("HDR")) {
-			ImGui::Checkbox("Post processing", &m_applyPostProcessing);
-			ImGui::Checkbox("FXAA", &m_FXAA);
-
-			if (ImGui::TreeNode("Bloom##1")) {
-				ImGui::Checkbox("Bloom##2", &m_bloom);
-				ImGui::SliderFloat("Bloom factor", &m_bloomFactor, 0, 2.0f);
-				ImGui::SliderFloat("Bloom multiplier", &m_bloomMultiplier, 0, 5.0f);
-				ImGui::SliderFloat("Chromatic", &m_chromatic, -0.01f, 0.01f);
-				ImGui::TreePop();
-				ImGui::Separator();
-			}
-
-			if (ImGui::TreeNode("Tonemapping")) {
-				ImGui::SliderFloat("Gamma", &m_gamma, 0, 5);
-				ImGui::SliderFloat("Exposure", &m_exposure, 0, 5);
-				ImGui::Combo("Tonemapping", &m_selectedTonemapping, tonemapping, NUMOF(tonemapping));
-				ImGui::TreePop();
-				ImGui::Separator();
-			}
-		}
-		if (ImGui::CollapsingHeader("Scene")) {
-			if (ImGui::TreeNode("Lighting")) {
-				ImGui::SliderFloat("Ambient", &m_ambientIntensity, 0, 1);
-				ImGui::Text("Directional");
-				m_directionalLight.OnImGui();
+		if (ImGui::CollapsingHeader("Post Processing")) {
+			UI::Begin();
+			UI::Bool("Post processing", &m_applyPostProcessing);
+			UI::Bool("FXAA", &m_FXAA);
+			UI::Bool("Bloom", &m_bloomEnabled);
+			UI::Bool("SSAO", &m_ssaoRenderer->m_enabled);
+			UI::Bool("SSR", &m_ssrRenderer->m_enabled);
+			UI::Separator();
+			UI::Float("Gamma", &m_gamma, 0, 5);
+			UI::Float("Exposure", &m_exposure, 0, 5);
+			UI::Combo("Tonemapping", &m_selectedTonemapping, tonemapping, NUMOF(tonemapping));
+			UI::End();
+			if (ImGui::TreeNode("Bloom")) {
+				UI::Begin();
+				UI::Float("Factor", &m_bloomFactor, 0, 2.0f);
+				UI::Float("Multiplier", &m_bloomMultiplier, 0, 5.0f);
+				UI::Float("Chromatic", &m_chromatic, -0.01f, 0.01f);
+				static Color col;
+				UI::Color4("Test", &col);
+				UI::End();
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("SSAO")) {
-				ImGui::Checkbox("Enabled", &m_ssaoRenderer->m_enabled);
+				UI::Begin();
 				m_ssaoRenderer->OnImGui();
+				UI::End();
 				ImGui::TreePop();
 			}
-			if (ImGui::TreeNode("SSR")) {
-				ImGui::Checkbox("Enabled", &m_ssrRenderer->m_enabled);
-				m_ssrRenderer->OnImGui();
+
+			UI::Dummy();
+			//if (ImGui::TreeNode("SSR")) {
+			//	UI::Begin();
+			//	m_ssrRenderer->OnImGui();
+			//	UI::End();
+			//	ImGui::TreePop();
+			//}
+			//if (ImGui::TreeNode("Tonemapping")) {
+			//	UI::Begin();
+			//
+			//	UI::End();
+			//	ImGui::TreePop();
+			//	ImGui::Separator();
+			//}
+		}
+		if (ImGui::CollapsingHeader("Scene")) {
+			if (ImGui::TreeNode("Lighting")) {
+				UI::Begin();
+				UI::Float("Ambient", &m_ambientIntensity, 0.0f, 1.0f);
+				m_directionalLight.OnImGui();
+				UI::End();
 				ImGui::TreePop();
 			}
 		}
@@ -326,8 +333,6 @@ void HDRPipeline::OnImGUI() {
 		}
 
 		if (ImGui::Checkbox("Wireframe", &m_wireFrame)) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-		ImGui::SliderFloat("Roughness", &roughness, 0, 1);
-		ImGui::SliderFloat("Metallic", &metallic, 0, 1);
 		ImGui::EndTabItem();
 	}
 }

@@ -7,6 +7,7 @@ public:
 	bool m_ImGuiOpen = true;
 	uint m_width = 0;
 	uint m_height = 0;
+	
 	//UI
 	AssetRef<SpriteRenderer> m_spriteRenderer;
 
@@ -44,6 +45,7 @@ public:
 	AssetRef<FrameBuffer> m_finalFBO;
 	AssetRef<Texture> m_finalTexture;
 
+	AssetRef<UniformBuffer<GlobalUniforms>> m_ubo;
 	glm::mat4 m_orthoMatrix;
 	glm::mat4 m_perspectiveMatrix;
 	bool m_perspective = true;
@@ -53,12 +55,12 @@ public:
 	float m_exposure = 1;
 	int m_selectedTonemapping = 11;
 
-	bool m_bloom = true;
+	bool m_bloomEnabled = true;
 	float m_bloomFactor = 1.0f;
 	float m_bloomMultiplier = 1.0f;
 
 public:
-	float m_ambientIntensity = 0.5f;
+	float m_ambientIntensity = 0.2f;
 
 	DirectionalLight m_directionalLight;
 	int m_selectedCamera = 0;
@@ -82,6 +84,7 @@ public:
 		m_uiCamera->SetViewport(0, 0, m_width, m_height);
 		Camera::uiActive = m_uiCamera;
 		m_spriteRenderer = NEW(SpriteRenderer());
+		m_ubo = NEW(UniformBuffer<GlobalUniforms>(GetShaderManager()->Get("Geometry")));
 	}
 
 	float Width() { return (float)m_width; }

@@ -19,11 +19,21 @@ uniform sampler2D _Metallic;		//(TEXTURE, Metallic) = (black, 3)
 uniform float _MetallicStrength;	//(FLOAT, Metallic strength) = (1.0, 0.0, 1.0)
 uniform sampler2D _Emission;		//(TEXTURE, Emission) = (white, 4)
 uniform float _EmissionStrength;	//(FLOAT, Emission strength) = (0.0, 0.0, 1.0)
+
 //uniform float Iri;					//(FLOAT, Iridescence) = (0.0, 0.0, 1.0)
 //uniform sampler2D _Iridescence;		//(TEXTURE, Iridescence) = (black, 5)
 //uniform sampler2D _Noise;			//(TEXTURE, Iridescence Noise) = (black, 6)
 //uniform float _IridescenceStrength; //(FLOAT, Iridescence Strength) = (1.0, 0.0, 1.0)
-uniform mat4 _ViewMatrix;
+
+layout (std140) uniform GlobalUniforms {
+	vec3 _CameraPosition;
+	mat4 _Projection;
+	mat4 _View;
+	mat4 _InverseProjection;
+	mat4 _InverseView;
+    float _BloomFactor;
+    bool _SSAOEnabled;
+};
 
 out vec4 geoData[3];
 
@@ -37,7 +47,7 @@ void main(){
 	vec3 normalTex = (255.0/128.0 * (texture(_Normal, fsData.uv).rgb) - 1);
 	vec3 normal = vec3(fsData.TBNMatrix * normalTex);
 	normal = mix(fsData.normal, normal, _NormalStrength);
-    vec4 finalNormal = normalize(_ViewMatrix * vec4(normal, 0.0));
+    vec4 finalNormal = normalize(_View * vec4(normal, 0.0));
 
 	float roughness = texture(_Roughness, fsData.uv).x * _RoughnessStrength;
 	float metallic = texture(_Metallic, fsData.uv).x * _MetallicStrength;

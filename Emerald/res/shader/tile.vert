@@ -18,8 +18,15 @@ struct Data {
 };
 out Data fsData;
 
-uniform mat4 _ProjectionMatrix;
-uniform mat4 _ViewMatrix;
+layout (std140) uniform GlobalUniforms {
+	vec3 _CameraPosition;
+	mat4 _Projection;
+	mat4 _View;
+	mat4 _InverseProjection;
+	mat4 _InverseView;
+    float _BloomFactor;
+    bool _SSAOEnabled;
+};
 
 void main(){
     fsData.normal = vsNormal;
@@ -31,6 +38,6 @@ void main(){
 	fsData.uv = vsUv;
 
 	fsData.textureID = vsTextureID;
-	gl_Position = _ProjectionMatrix * _ViewMatrix * viewPos;
+	gl_Position = _Projection * _View * viewPos;
 }
 

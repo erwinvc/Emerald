@@ -7,9 +7,17 @@ uniform sampler2D _GMisc;
 uniform sampler2D _GAlbedo;
 uniform sampler2D _SSAO;
 
-uniform float _BloomFactor;
+layout (std140) uniform GlobalUniforms {
+	vec3 _CameraPosition;
+	mat4 _Projection;
+	mat4 _View;
+	mat4 _InverseProjection;
+	mat4 _InverseView;
+    float _BloomFactor;
+    bool _SSAOEnabled;
+};
+
 uniform float _AmbientIntensity;
-uniform bool _SSAOEnabled;
 
 void main(){
 	vec4 misc = texture(_GMisc, fsUV);

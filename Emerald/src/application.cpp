@@ -65,7 +65,6 @@ void Application::Initialize() {
 	m_window->SetIcon(Icon("icon32"));
 
 	GetStateManager()->RegisterStates();
-
 	pipeline = NEW(HDRPipeline());
 	pipeline->EarlyInitialize(m_window->GetWidth(), m_window->GetHeight());
 	

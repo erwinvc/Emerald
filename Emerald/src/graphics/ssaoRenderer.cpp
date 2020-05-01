@@ -12,8 +12,8 @@ SSAORenderer::SSAORenderer() : m_texture(nullptr), m_textureBlur(nullptr), m_noi
 	m_shaderBlur = GetShaderManager()->Get("SSAOBlur");
 
 	for (int i = 0; i < KERNELCOUNT; ++i) {
-		glm::vec3 sample(Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f));
-		sample = glm::normalize(sample) * Math::RandomFloat(1.0f);
+		glm::vec3 sample(Random::Float(1.0f) * 2.0f - 1.0f, Random::Float(1.0f) * 2.0f - 1.0f, Random::Float(1.0f));
+		sample = glm::normalize(sample) * Random::Float(1.0f);
 		float scale = float(i) / KERNELCOUNT;
 
 		scale = Math::Lerp(0.1f, 1.0f, scale * scale);
@@ -24,7 +24,7 @@ SSAORenderer::SSAORenderer() : m_texture(nullptr), m_textureBlur(nullptr), m_noi
 	//SSAO noise
 	vector<glm::vec3> ssaoNoise;
 	for (unsigned int i = 0; i < 16; i++) {
-		ssaoNoise.push_back(glm::vec3(Math::RandomFloat(1.0f) * 2.0f - 1.0f, Math::RandomFloat(1.0f) * 2.0f - 1.0f, 0.0f));
+		ssaoNoise.push_back(glm::vec3(Random::Float(1.0f) * 2.0f - 1.0f, Random::Float(1.0f) * 2.0f - 1.0f, 0.0f));
 	}
 	m_noiseTexture = NEW(Texture(4, 4, (byte*)ssaoNoise.data(), false, TextureParameters(RGB32, RGB, NEAREST, REPEAT, T_FLOAT)));
 

@@ -30,6 +30,7 @@ void Model::LoadModel(const String& path) {
 	m_dir = path.substr(0, path.find_last_of('/'));
 	m_name = shortName;
 	if (scene->HasMaterials()) LoadMaterials(scene);
+	LOG("%d %d", scene->mNumMeshes, scene->mNumMaterials);
 	LOG("[~g3DModel~x] ~1%s~x loaded in %.2fms", shortName, timer.Get());
 	ProcessNode(scene->mRootNode, scene);
 }

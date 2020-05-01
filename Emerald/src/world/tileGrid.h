@@ -25,7 +25,7 @@ public:
 			{VertexBufferDataType::Int, "vsTextureID", 7, true}
 		};
 
-		m_renderer = new InstancedRenderer<TileBufferData>(GetAssetManager()->Get<Model>("Tile")->GetMeshes().at(0), 8192, layout);
+//		m_renderer = new InstancedRenderer<TileBufferData>(GetAssetManager()->Get<Model>("Tile")->GetMeshes().at(0), 8192, layout);
 
 		m_tileShader = GetShaderManager()->Get("Tile");
 		m_tileShader->Bind();
@@ -37,7 +37,7 @@ public:
 	}
 
 	~TileGrid() {
-		delete m_renderer;
+		//delete m_renderer;
 	}
 
 	void SetTile(int x, int y, int textureID) {

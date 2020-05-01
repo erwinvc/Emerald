@@ -25,13 +25,13 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Thread Pool", [] {GetThreadPool()->Initialize(3); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
-	m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
-	m_batch->Add(NEW(ModelLoader("Sphere", "res/sphere.obj")));
-	m_batch->Add(NEW(ModelLoader("Cube", "res/cube.obj")));
+	//m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
+	//m_batch->Add(NEW(ModelLoader("Sphere", "res/sphere.obj")));
+	//m_batch->Add(NEW(ModelLoader("Cube", "res/cube.obj")));
 	//m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza/sponza.obj")));
 
-	m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
-	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
+	//m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
+	//m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
 	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
 	m_batch->Add(NEW(ShaderLoader("TileOld", "res/shader/tileOld")));
@@ -46,7 +46,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("Simple", "res/shader/simple")));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
-	m_batch->Add(NEW(ModelLoader("Tile", "res/tiles/tile.obj")));
+	//m_batch->Add(NEW(ModelLoader("Tile", "res/tiles/tile.obj")));
 
 	//for (int i = 0; i < 16; i++) {
 	//	m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("res/tiles/new/%d.obj", i))));

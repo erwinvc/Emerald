@@ -27,18 +27,12 @@ void SSRRenderer::Draw(HDRPipeline* pipeline) {
 	m_shader->Bind();
 	pipeline->GetGBuffer()->BindTextures();
 	pipeline->GetHDRTexture()->Bind(4);
-	m_shader->Set("_Projection", Camera::active->GetProjectionMatrix());
-	m_shader->Set("_View", Camera::active->GetViewMatrix());
-	m_shader->Set("_InverseProjection", Camera::active->GetInverseProjectionMatrix());
-	m_shader->Set("_InverseView", Camera::active->GetInverseViewMatrix());
-	m_shader->Set("_CameraPosition", Camera::active->transform.m_position);
 	m_quad->Bind();
 	m_quad->Draw();
 
 	m_fbo->Unbind();
 
 	m_simpleShader->Bind();
-	m_simpleShader->Set("_BloomFactor", pipeline->m_bloomFactor);
 	pipeline->m_hdrBuffer->Bind();
 
 	glEnable(GL_BLEND);

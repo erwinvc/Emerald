@@ -79,15 +79,8 @@ void EditorState::Initialize() {
 void EditorState::RenderGeometry(HDRPipeline* pipeline) {
 	draw_translation_gizmo(m_moriEntity->m_transform);
 	m_geometryShader->Bind();
-	m_geometryShader->Set("_Iridescence", 5);
-	m_geometryShader->Set("_Noise", 6);
 	iri->Bind(5);
 	noise->Bind(6);
-	m_geometryShader->Set("_IridescenceStrength", 0);
-	m_geometryShader->Set("_ProjectionMatrix", Camera::active->GetProjectionMatrix());
-	m_geometryShader->Set("_ViewMatrix", Camera::active->GetViewMatrix());
-	m_geometryShader->Set("_TransformationMatrix", glm::mat4(1.0f));
-	m_geometryShader->Set("_CameraPosition", Camera::active->transform.m_position);
 
 	m_moriEntity->Draw();
 

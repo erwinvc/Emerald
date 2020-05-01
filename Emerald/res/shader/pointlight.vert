@@ -7,11 +7,15 @@ out vec4 fsPos;
 out vec4 newPos;
 out vec4 color;
 
-uniform mat4 _Projection;
-uniform mat4 _View;
-
-//uniform float uLightRadius;
-//uniform vec3 uLightPosition;
+layout (std140) uniform GlobalUniforms {
+	vec3 _CameraPosition;
+	mat4 _Projection;
+	mat4 _View;
+	mat4 _InverseProjection;
+	mat4 _InverseView;
+    float _BloomFactor;
+    bool _SSAOEnabled;
+};
 
 void main(){
 	float uLightRadius = vars.w;

@@ -104,15 +104,15 @@ union
 
 
 	static Color& Random(float min = 0) {
-		float rr = Math::RandomFloat(0, 1);
-		float gg = Math::RandomFloat(0, 1);
-		float bb = Math::RandomFloat(0, 1);
+		float rr = Random::Float(0, 1);
+		float gg = Random::Float(0, 1);
+		float bb = Random::Float(0, 1);
 		if (rr + gg + bb < min) return Random(min);
 		return Color(rr, gg, bb);
 	}
 
 	static Color RandomPrimary() {
-		switch (Math::RandomInt(0, 5)) {
+		switch (Random::Int(0, 5)) {
 		case 0: return Red();
 		case 1: return Green();
 		case 2: return Blue();

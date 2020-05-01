@@ -96,8 +96,12 @@ private:
 	}
 
 	friend class ShaderManager;
-public:
 
+	void BindGlobalUBO();
+
+public:
+	static uint s_boundShader;
+	ShaderProgram* GetShaderProgram() const { return m_shaderProgram; }
 	const ShaderUniformBuffer* GetUniformBuffer() const { return &m_uniformBuffer; }
 	const ShaderProperties* GetShaderProperties() const { return &m_properties; }
 
@@ -127,12 +131,22 @@ public:
 		};
 	}
 
-	void Bind() {
+	void SimpleBind() {
+		if (s_boundShader == m_shaderProgram->GetHandle())return;
 		m_shaderProgram->Bind();
+		s_boundShader = m_shaderProgram->GetHandle();
+	}
+
+	void Bind() {
+		if (s_boundShader == m_shaderProgram->GetHandle())return;
+		m_shaderProgram->Bind();
+		s_boundShader = m_shaderProgram->GetHandle();
+		BindGlobalUBO();
 	}
 
 	void Unbind() {
 		m_shaderProgram->Unbind();
+		s_boundShader = 0xffffffff;
 	}
 
 	void OnImGUI();

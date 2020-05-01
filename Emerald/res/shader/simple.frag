@@ -4,7 +4,16 @@ out vec3 outColor[2];
 in vec2 fsUv;
   
 uniform sampler2D _SSR;
-uniform float _BloomFactor;
+
+layout (std140) uniform GlobalUniforms {
+	vec3 _CameraPosition;
+	mat4 _Projection;
+	mat4 _View;
+	mat4 _InverseProjection;
+	mat4 _InverseView;
+    float _BloomFactor;
+    bool _SSAOEnabled;
+};
 
 void main() {
 	vec3 col = texture(_SSR, fsUv).rgb;

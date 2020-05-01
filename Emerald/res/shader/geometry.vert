@@ -15,13 +15,20 @@ struct Data {
 
 out Data fsData;
 
-uniform vec3 _CameraPosition;
+layout (std140) uniform GlobalUniforms {
+	vec3 _CameraPosition;
+	mat4 _Projection;
+	mat4 _View;
+	mat4 _InverseProjection;
+	mat4 _InverseView;
+    float _BloomFactor;
+    bool _SSAOEnabled;
+};
+
 uniform mat4 _TransformationMatrix;
-uniform mat4 _ProjectionMatrix;
-uniform mat4 _ViewMatrix;
 
 void main(){
-	mat4 MVMatrix = _ViewMatrix * _TransformationMatrix;
+	mat4 MVMatrix = _View * _TransformationMatrix;
 
 	vec4 viewPos = MVMatrix * vec4(vsPos, 1.0);
 
@@ -35,5 +42,5 @@ void main(){
 	fsData.uv = vsUv;
 	fsData.viewDirection = _CameraPosition - viewPos.xyz;
 
-	gl_Position = _ProjectionMatrix * _ViewMatrix * _TransformationMatrix * vec4(vsPos, 1.0);
+	gl_Position = _Projection * _View * _TransformationMatrix * vec4(vsPos, 1.0);
 }

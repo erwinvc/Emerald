@@ -111,23 +111,6 @@ namespace Math {
 		return valMin < max && valMax > min;
 	}
 
-	inline float RandomFloat(float min, float max) {
-		float r = (float)rand() / (float)RAND_MAX;
-		return r * (max - min) + min;
-	}
-
-	inline float RandomFloat(float max) {
-		float r = (float)rand() / (float)RAND_MAX;
-		return r * max;
-	}
-
-	/// <summary> Generates a random integer </summary>
-	/// <param name="min"> Inclusive minimum </param>
-	/// <param name="max"> Inclusive maxmimum </param>
-	inline int RandomInt(int min, int max) {
-		return min + rand() % ((max + 1) - min);
-	}
-
 	inline glm::vec3 PointOnUnitSphere(float u, float v) {
 		float theta = u * 2.0f * Math::PI;
 		float phi = Math::Acos(2.0f * v - 1.0f);
@@ -142,8 +125,8 @@ namespace Math {
 	}
 
 	inline glm::vec3 RandomOnUnitSphere() {
-		float u = Math::RandomFloat(0.0f, 1.0f);
-		float v = Math::RandomFloat(0.0f, 1.0f);
+		float u = Random::Float(0.0f, 1.0f);
+		float v = Random::Float(0.0f, 1.0f);
 		return PointOnUnitSphere(u, v);
 	}
 

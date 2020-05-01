@@ -6,7 +6,7 @@ void Sprite::Draw(HDRPipeline* pipeline, glm::vec2 origin, float x, float y, flo
 		textureIndex = (int)(GetApp()->GetTotalFrameTime() / (1000.0f * m_frameTime)) % m_frameCount;
 		textureIndex += m_frameOffset;
 		float row = (float)(m_numberOfRows - (textureIndex / m_numberOfRows) - 1);
-		float column = textureIndex % m_numberOfRows;
+		float column = (float)(textureIndex % m_numberOfRows);
 		m_atlasValues = glm::vec3(m_numberOfRows, column / m_numberOfRows, row / m_numberOfRows);
 	}
 

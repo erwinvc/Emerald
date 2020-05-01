@@ -11,10 +11,15 @@ uniform sampler2D _GNormal;
 uniform sampler2D _GMisc;
 uniform sampler2D _Noise;
 
-uniform mat4 _Projection;
-uniform mat4 _View;
-uniform mat4 _InverseProjection;
-uniform mat4 _InverseView;
+layout (std140) uniform GlobalUniforms {
+	vec3 _CameraPosition;
+	mat4 _Projection;
+	mat4 _View;
+	mat4 _InverseProjection;
+	mat4 _InverseView;
+    float _BloomFactor;
+    bool _SSAOEnabled;
+};
 
 uniform vec3 _Samples[KERNELSIZE];
 
@@ -24,7 +29,6 @@ uniform float _Bias;
 uniform int _Power;
 
 uniform vec2 _ScreenSize;
-uniform vec2 _CameraPlanes;
 
 vec3 GetPosition(vec2 coord){
 	float z = texture(_Depth, coord).x * 2.0f - 1.0f;

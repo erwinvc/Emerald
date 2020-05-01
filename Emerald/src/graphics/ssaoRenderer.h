@@ -32,9 +32,9 @@ public:
 	Texture* GetRawTexture() { return m_texture; }
 
 	void OnImGui() {
-		ImGui::SliderFloat("Bias", &m_radius, 0, 1);
-		ImGui::SliderFloat("Radius", &m_bias, 0, 1);
-		ImGui::SliderInt("Power", &m_power, 0, 64);
-		ImGui::SliderInt("Sample count", &m_sampleCount, 2, 64);
+		UI::Float("Bias", &m_radius, 0, 1);
+		UI::Float("Radius", &m_bias, 0, 1);
+		UI::Int("Power", &m_power, 0, 64);
+		UI::Int("Sample count", &m_sampleCount, 2, 64);
 	}
 };

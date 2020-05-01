@@ -44,7 +44,7 @@ public:
 		m_moriEntity->m_transform.m_size = glm::vec3(10.0f);
 		//GetPipeline()->m_directionalLight.m_multiplier = 5.0f;
 		for (int i = 0; i < LIGHTCOUNT; i++) {
-			m_positions.push_back(glm::vec3(Math::RandomFloat(-150.0f, 130.0f), Math::RandomFloat(0.0f, 90.0f), Math::RandomFloat(-60.0f, 60.0f)));
+			m_positions.push_back(glm::vec3(Random::Float(-150.0f, 130.0f), Random::Float(0.0f, 90.0f), Random::Float(-60.0f, 60.0f)));
 		}
 	}
 	bool started = false;
@@ -68,10 +68,6 @@ public:
 	}
 	void RenderGeometry(HDRPipeline* pipeline) override {
 		m_geometryShader->Bind();
-		m_geometryShader->Set("_ProjectionMatrix", Camera::active->GetProjectionMatrix());
-		m_geometryShader->Set("_ViewMatrix", Camera::active->GetViewMatrix());
-		m_geometryShader->Set("_TransformationMatrix", glm::mat4(1.0));
-		m_geometryShader->Set("_CameraPosition", Camera::active->transform.m_position);
 
 		//if (!disableMori) m_moriEntity->Draw();
 

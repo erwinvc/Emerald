@@ -2,11 +2,11 @@
 
 class DirectionalLight {
 private:
-	Color m_color = Color::White();
-	glm::vec3 m_rotation = glm::vec3(0.3f, 0.0f, 0.3f);
+	Color m_color = Color(1.0f, 0.95f, 0.95f);
+	glm::vec3 m_rotation = glm::vec3(-0.5f, -0.5f, 1.0f);
 
 public:
-	float m_multiplier = 2;
+	float m_multiplier = 5.0f;
 
 	Color GetColor() { return m_color * m_multiplier; }
 	glm::vec3 GetDirection() {
@@ -27,11 +27,13 @@ public:
 	}
 
 	void OnImGui() {
-		ImGui::InputFloat3("Direction###1", (float*)&m_rotation, -3, 3);
-		ImGui::SliderFloat3("Direction###2", (float*)&m_rotation, -3, 3);
-		ImGui::SliderFloat("Multiplier", &m_multiplier, 0, 10);
+		UI::Header("Directional");
+		//		ImGui::Property("Ambient", &m_ambientIntensity, 0.0f, 1.0f);
+
+		UI::Vec3("Direction", &m_rotation, -3.0f, 3.0f);
+		UI::Float("Multiplier", &m_multiplier, 0.0f, 10.0f);
 		glm::vec3& direction = GetDirection();
-		ImGui::LabelText("euler", "%.3f %.3f %.3f", direction.x, direction.y, direction.z);
-		ImGui::ColorEdit3("Color", (float*)&m_color);
+		//ImGui::LabelText("euler", "%.3f %.3f %.3f", direction.x, direction.y, direction.z);
+		UI::Color3("Color", &m_color);
 	}
 };

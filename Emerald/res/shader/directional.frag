@@ -9,14 +9,18 @@ uniform sampler2D _GNormal;
 uniform sampler2D _GMisc;
 uniform sampler2D _SSAO;
 
-uniform mat4 _Projection;
-uniform mat4 _View;
+layout (std140) uniform GlobalUniforms {
+	vec3 _CameraPosition;
+	mat4 _Projection;
+	mat4 _View;
+	mat4 _InverseProjection;
+	mat4 _InverseView;
+    float _BloomFactor;
+    bool _SSAOEnabled;
+};
 
 uniform vec4 _Color;
 uniform vec3 _Directional;
-uniform vec3 _CameraPosition;
-uniform bool _SSAOEnabled;
-uniform float _BloomFactor;
 
 const float PI = 3.14159265359;
 

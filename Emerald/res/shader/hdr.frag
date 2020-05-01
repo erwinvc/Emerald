@@ -259,15 +259,16 @@ void main(){
 	}
 	if(_FXAA) color = computeFxaa();
 
-	float o1 = -_Chromatic;
-	float o2 = 0.0f;
-	float o3 = _Chromatic;
-	float rbloomColor = texture2D(_HDRBloom, fsUv + o1 * (fsUv - 0.5f)).r;
-    float gbloomColor = texture2D(_HDRBloom, fsUv + o2 * (fsUv - 0.5f)).g;
-    float bbloomColor = texture2D(_HDRBloom, fsUv + o3 * (fsUv - 0.5f)).b;  
+	//float o1 = -_Chromatic;
+	//float o2 = 0.0f;
+	//float o3 = _Chromatic;
+	//float rbloomColor = texture2D(_HDRBloom, fsUv + o1 * (fsUv - 0.5f)).r;
+    //float gbloomColor = texture2D(_HDRBloom, fsUv + o2 * (fsUv - 0.5f)).g;
+    //float bbloomColor = texture2D(_HDRBloom, fsUv + o3 * (fsUv - 0.5f)).b;  
+    vec3 bloomCol = texture2D(_HDRBloom, fsUv).rgb;  
 
 	//vec3 bloomColor = texture(_HDRBloom, fsUv).rgb * _BloomMultiplier;
-    if(_Bloom) color += vec3(rbloomColor, gbloomColor, bbloomColor)* _BloomMultiplier;
+    if(_Bloom) color += bloomCol * _BloomMultiplier;
 
 	color *= _Exposure;
 

@@ -26,7 +26,7 @@ public:
 	}
 
 	void OnImGui() override {
-		ImGui::ColorEdit3(m_name.c_str(), (float*)&m_value);
+		UI::Color3(m_name.c_str(), &m_value);
 	}
 };
 
@@ -38,7 +38,7 @@ public:
 	}
 
 	void OnImGui() override {
-		ImGui::ColorEdit4(m_name.c_str(), (float*)&m_value);
+		UI::Color4(m_name.c_str(), &m_value);
 	}
 };
 
@@ -50,7 +50,7 @@ public:
 	}
 
 	void OnImGui() override {
-		ImGui::InputFloat(m_name.c_str(), &m_value);
+		UI::Float(m_name.c_str(), &m_value);
 	}
 };
 
@@ -64,7 +64,7 @@ public:
 	}
 
 	void OnImGui() override {
-		ImGui::SliderFloat(m_uniform.c_str(), &m_value, m_min, m_max);
+		UI::Float(m_uniform.c_str(), &m_value, m_min, m_max);
 	}
 };
 
@@ -76,7 +76,7 @@ public:
 	}
 
 	void OnImGui() override {
-		ImGui::InputInt(m_name.c_str(), &m_value);
+		UI::Int(m_name.c_str(), &m_value);
 	}
 };
 
@@ -88,7 +88,7 @@ public:
 	}
 
 	void OnImGui() override {
-		ImGui::Checkbox(m_name.c_str(), &m_value);
+		UI::Bool(m_name.c_str(), &m_value);
 	}
 };
 
@@ -100,7 +100,7 @@ public:
 	}
 
 	void OnImGui() override {
-		ImGui::InputFloat2(m_name.c_str(), (float*)&m_value);
+		UI::Vec2(m_name.c_str(), &m_value);
 	}
 };
 
@@ -112,7 +112,7 @@ public:
 	}
 
 	void OnImGui() override {
-		ImGui::InputFloat3(m_name.c_str(), (float*)&m_value);
+		UI::Vec3(m_name.c_str(), &m_value);
 	}
 };
 
@@ -124,7 +124,7 @@ public:
 	}
 
 	void OnImGui() override {
-		ImGui::InputFloat4(m_name.c_str(), (float*)&m_value);
+		UI::Vec4(m_name.c_str(), &m_value);
 	}
 };
 
