@@ -1,6 +1,7 @@
 class ShaderProgram {
 private:
-	GLuint m_handle = 0xffffffff;
+	GLuint m_handle = GL_INVALID_INDEX;
+	GLuint m_globalUniformsBlockIndex = GL_INVALID_INDEX;
 	int m_uniformCount = 0;
 	vector<GLuint> m_attachedShaders;
 
@@ -22,18 +23,7 @@ public:
 		m_attachedShaders.push_back(shader);
 	}
 
-	void LinkAndValidate() {
-		ASSERT(HasValidHandle(), "[~bShaders~x] Invalid shader program handle. Did you call CreateProgram?");
-
-		GL(glLinkProgram(m_handle));
-		GL(glValidateProgram(m_handle));
-
-		int count;
-		GL(glGetProgramiv(m_handle, GL_ACTIVE_UNIFORMS, &count));
-		m_uniformCount = count;
-
-		DeleteAttachedShaders();
-	}
+	void LinkAndValidate();
 
 	void DeleteAttachedShaders() {
 		for (GLuint shader : m_attachedShaders) {

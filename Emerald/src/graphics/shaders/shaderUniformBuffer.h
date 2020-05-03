@@ -102,13 +102,25 @@ private:
 	}
 
 	void SetGL(uint location, const int* value, uint count) { glUniform1iv(location, count, (int*)value); }
-	//void SetGL(uint location, const bool* value, uint count) { glUniform1i(location, 1, value); }
 	void SetGL(uint location, const glm::ivec2* value, uint count) { glUniform2iv(location, count, (int*)value); }
 	void SetGL(uint location, const float* value, uint count) { glUniform1fv(location, count, (float*)value); }
 	void SetGL(uint location, const glm::vec2* value, uint count) { glUniform2fv(location, count, (float*)value); }
 	void SetGL(uint location, const glm::vec3* value, uint count) { glUniform3fv(location, count, (float*)value); }
 	void SetGL(uint location, const glm::vec4* value, uint count) { glUniform4fv(location, count, (float*)value); }
-	void SetGL(uint location, const glm::mat4* value, uint count) { glUniformMatrix4fv(location, count, GL_FALSE, glm::value_ptr(*value)); }
+	void SetGL(uint location, const Color* value, uint count) { glUniform4fv(location, count, (float*)value); }
+	void SetGL(uint location, const glm::mat4* value, uint count) { glUniformMatrix4fv(location, count, GL_FALSE, (float*)value); }
+
+	void Allocate() {
+		m_data = new byte[m_offset];
+		for (uint i = 0; i < m_offset; i++) m_data[i] = 1;
+		m_allocated = true;
+	}
+
+	void DeAllocate() {
+		if (!m_allocated) return;
+		delete[] m_data;
+		m_allocated = false;
+	}
 
 public:
 	~ShaderUniformBuffer() {
@@ -126,16 +138,26 @@ public:
 		AddUniform(name, GLTypeToShaderUniformType(glType), location, count, existsInShader);
 	}
 
-	void Allocate() {
-		m_data = new byte[m_offset];
-		for (uint i = 0; i < m_offset; i++) m_data[i] = 1;
-		m_allocated = true;
+	void SetFloat(uint location, const float value) {
+		SetGL(location, &value, 1);
 	}
-
-	void DeAllocate() {
-		if (!m_allocated) return;
-		delete[] m_data;
-		m_allocated = false;
+	void SetInt(uint location, const int& value) {
+		SetGL(location, (int*)&value, 1);
+	}
+	void SetVec2(uint location, const glm::ivec2& value) {
+		SetGL(location, &value, 1);
+	}
+	void SetVec3(uint location, const glm::vec2& value) {
+		SetGL(location, &value, 1);
+	}
+	void SetVec4(uint location, const glm::vec3& value) {
+		SetGL(location, &value, 1);
+	}
+	void SetColor(uint location, const Color& value) {
+		SetGL(location, &value, 1);
+	}
+	void SetMat4(uint location, const glm::mat4& value) {
+		SetGL(location, &value, 1);
 	}
 
 	template<typename T>
@@ -157,6 +179,12 @@ public:
 			SetUniformGL(uniform);
 			uniform.m_firstUpload = false;
 		}
+	}
+
+	uint GetUniformLocation(const String_t location) {
+		auto res = m_uniforms.find(location);
+		if (res == m_uniforms.end()) return 0xFFFFFFFF;
+		return res->second.GetLocation();
 	}
 
 	template<typename T>

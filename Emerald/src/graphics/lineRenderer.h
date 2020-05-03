@@ -1,48 +1,46 @@
 #pragma once
 
-class LineRenderer : public Singleton<LineRenderer> {
+class LineRenderer {
 private:
-	struct Line {
-		glm::vec3 m_begin;
-		glm::vec3 m_end;
+	struct LineVertex {
+		glm::vec3 m_pos;
 		Color m_color;
 
-		Line(const float x1, const float y1, const float z1, const float x2, const  float y2, const  float z2, Color& color) : m_begin(x1, y1, z1), m_end(x2, y2, z2), m_color(color) {}
-		Line(const glm::vec3 begin, const glm::vec3 end, Color& color) : m_begin(begin), m_end(end), m_color(color) {}
-		Line() : m_begin(), m_end(), m_color() {}
+		LineVertex(const float x1, const float y1, const float z1, Color& color) : m_pos(glm::vec3(x1, y1, z1)), m_color(color) {}
+		LineVertex(const glm::vec3 pos, Color& color) : m_pos(pos), m_color(color) {}
+		LineVertex() : m_pos(glm::vec3(0.0f, 0.0f, 0.0f)), m_color(Color::White()) {}
 	};
 
-	InstancedRenderer<Line>* m_renderer;
-	const uint MAX_OBJECTS = 256;
+	ElementsRenderer<LineVertex>* m_depthRenderer;
+	ElementsRenderer<LineVertex>* m_overlayRenderer;
+	const uint MAX_OBJECTS = 512;
+	const uint INDICES_COUNT = 2;
+	const uint VERTICES_COUNT = 2;
+	const uint INDICES_SIZE = MAX_OBJECTS * INDICES_COUNT;
 	AssetRef<Shader> m_shader;
-	void Initialize();
 
-	LineRenderer() { Initialize(); }
+public:
+	LineRenderer();
 	~LineRenderer();
 
-	friend Singleton;
-public:
 	void Begin();
-	void Submit(glm::vec3 begin, glm::vec3 end, Color color);
-	void Submit(float x1, float y1, float z1, float x2, float y2, float z2, Color& color);
+	void Bounds(glm::vec3 position, glm::vec3 size, Color& color, bool overlay = false);
+	void Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay = false);
+	void Line(float x1, float y1, float z1, float x2, float y2, float z2, Color& color, bool overlay = false);
 	void End();
 	void Draw();
 	void DrawRect(const Rectangle& rect, Color& color, float y = 1.01f) {
 		glm::vec4 c = rect.GetCornerPositions();
-		Submit(c.x, y, c.y, c.z, y, c.y, color);
-		Submit(c.z, y, c.y, c.z, y, c.w, color);
-		Submit(c.z, y, c.w, c.x, y, c.w, color);
-		Submit(c.x, y, c.w, c.x, y, c.y, color);
+		Line(c.x, y, c.y, c.z, y, c.y, color);
+		Line(c.z, y, c.y, c.z, y, c.w, color);
+		Line(c.z, y, c.w, c.x, y, c.w, color);
+		Line(c.x, y, c.w, c.x, y, c.y, color);
 	}
 	void DrawRectCentered(const Rectangle& rect, Color& color, float y = 1.01f) {
 		glm::vec4 c = glm::vec4(rect.m_position.x, rect.m_position.y, rect.m_size.x, rect.m_size.y);
-		Submit(c.x, y, c.y, c.z, y, c.y, color);
-		Submit(c.z, y, c.y, c.z, y, c.w, color);
-		Submit(c.z, y, c.w, c.x, y, c.w, color);
-		Submit(c.x, y, c.w, c.x, y, c.y, color);
+		Line(c.x, y, c.y, c.z, y, c.y, color);
+		Line(c.z, y, c.y, c.z, y, c.w, color);
+		Line(c.z, y, c.w, c.x, y, c.w, color);
+		Line(c.x, y, c.w, c.x, y, c.y, color);
 	}
 };
-
-static LineRenderer* GetLineRenderer() {
-	return LineRenderer::GetInstance();
-}

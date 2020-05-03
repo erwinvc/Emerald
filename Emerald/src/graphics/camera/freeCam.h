@@ -4,7 +4,7 @@
 class FreeCam : public Camera {
 private:
 public:
-	FreeCam(float fov, float nearPlane, float farPlane) : Camera(fov, nearPlane, farPlane) {}
+	FreeCam(glm::vec2 viewportSize, float fov, float nearPlane, float farPlane) : Camera(viewportSize, fov, nearPlane, farPlane) {}
 
     const float movementSpeed = 10.0f;
 

@@ -49,7 +49,7 @@ public:
 	}
 
 	vector<Tile*>& GetTiles() { return m_surroundingTiles; }
-	void DebugDraw() {
-		body.DebugDraw();
-	}
+	//void DebugDraw() {
+	//	body.DebugDraw();
+	//}
 };

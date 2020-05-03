@@ -243,11 +243,12 @@ void Logger::ProcessMessage(QueuedMessage& message) {
 	SetTextColor((int)ConsoleColor::WHITE);
 }
 
-void Logger::Message(int color, const char* type, const char* fmt, ...) {
+ void Logger::Message(int color, const char* type, const char* fmt, ...) {
 	if (m_stopping) return;
-	if (m_queue.size() > MAXQUEUESIZE) {
-		LOG_ERROR("[~2Logging~x] Console queue size exceeded 100. Too many messages are being sent");
-		return;
+	while (m_queue.size() > MAXQUEUESIZE) {
+		Sleep(0);
+		//LOG_ERROR("[~2Logging~x] Console queue size exceeded 1000. Too many messages are being sent");
+		//return;
 	}
 	char buffer[0xffff] = { 0 };
 	va_list va_alist;

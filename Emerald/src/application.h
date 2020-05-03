@@ -22,6 +22,7 @@ private:
 	void HandleQueue();
 
 public:
+	//static uint s_globalLogValue;
 	HDRPipeline* pipeline = nullptr;
 	
 	float GetTotalFrameTime() { return m_totalFrameTime; }

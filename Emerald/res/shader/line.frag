@@ -1,13 +1,23 @@
 #version 330
 
-in vec3 fsPos;
+in vec2 fsUv;
 in vec4 fsColor;
 
-out vec4 geoData[4];
+out vec3 outColor;
+
+layout (std140) uniform GlobalUniforms {
+	vec3 _CameraPosition;
+	mat4 _Projection;
+	mat4 _View;
+	mat4 _InverseProjection;
+	mat4 _InverseView;
+    float _BloomFactor;
+    bool _SSAOEnabled;
+	vec2 _CameraPlanes;
+	vec2 _ViewPort;
+};
 
 void main(){
-	geoData[0] = vec4(0, 1, 0, 0);
-	geoData[1] = fsColor;
-	//geoData[2] = vec4(0, 0, 0, 1);
-	//geoData[3] = vec4(0, 0, 0, ); Ignore position for SSAO and stuff
+	outColor = vec3(fsColor);
+	//outColor[1] = vec3(0.0, 0.0, 0.0);
 }

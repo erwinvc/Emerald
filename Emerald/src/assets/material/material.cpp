@@ -1,6 +1,20 @@
 #include "stdafx.h"
 
-Material::Material(const String& name, Shader* shader) : m_name(name), m_shader(shader) {
+uint Material::s_boundMaterial = 0xFFFFFFFFu;
+
+void Material::Bind() {
+	m_shader->Bind();
+	if (s_boundMaterial == m_ID) {
+		//Application::s_globalLogValue++;
+		return;
+	}
+	for (auto& member : m_members) {
+		member->Set(m_shader);
+	}
+	s_boundMaterial = m_ID;
+}
+
+Material::Material(const String& name, Shader* shader, uint ID) : m_name(name), m_shader(shader), m_ID(ID) {
 	const ShaderProperties* properties = shader->GetShaderProperties();
 	for (auto& prop : properties->GetProperties()) {
 		switch (prop->m_type) {
@@ -106,4 +120,5 @@ Material::Material(const String& name, Shader* shader) : m_name(name), m_shader(
 			} break;
 		}
 	}
+	for (auto& member : m_members) member->GetUniformLocation(m_shader);
 }

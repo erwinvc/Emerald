@@ -91,6 +91,13 @@ public:
 		GL(glClear(GL_DEPTH_BUFFER_BIT));
 	}
 
+	void ClearColorOnly() const {
+		GL(glClear(GL_DEPTH_BUFFER_BIT));
+	}
+
+	void Blit(FrameBuffer* targetFBO);
+	void BlitDepthOnly(FrameBuffer* targetFBO);
+
 	void Resize(uint width, uint height);
 
 	uint GetWidth() const { return m_width; }

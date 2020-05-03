@@ -38,12 +38,12 @@ public:
 		return false;
 	}
 
-	void DebugDraw() {
-		for (Rectangle& rect : m_rects) {
-			GetLineRenderer()->DrawRect(rect, Color::Cyan());
-		}
-		GetLineRenderer()->DrawRect(Rectangle(m_position.x, m_position.z, 0.2f, 0.2f), Color::Yellow());
-	}
+	//void DebugDraw() {
+	//	for (Rectangle& rect : m_rects) {
+	//		GetLineRenderer()->DrawRect(rect, Color::Cyan());
+	//	}
+	//	GetLineRenderer()->DrawRect(Rectangle(m_position.x, m_position.z, 0.2f, 0.2f), Color::Yellow());
+	//}
 
 	void Move(vector<Rectangle>& entityList, const glm::vec3& vel) {
 		bool contactX = MoveDirection(entityList, m_position.x, vel.x, glm::vec3(1, 0, 0));

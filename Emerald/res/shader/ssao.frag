@@ -19,6 +19,8 @@ layout (std140) uniform GlobalUniforms {
 	mat4 _InverseView;
     float _BloomFactor;
     bool _SSAOEnabled;
+	vec2 _CameraPlanes;
+	vec2 _ViewPort;
 };
 
 uniform vec3 _Samples[KERNELSIZE];

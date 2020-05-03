@@ -67,6 +67,14 @@ namespace GLUtils {
 		GL(glEnable(GL_DEPTH_TEST));
 		GL(glDisable(GL_BLEND));
 	}
+
+	void EnableDepthTest() {
+		GL(glEnable(GL_DEPTH_TEST));
+	}
+	
+	void DisableDepthTest() {
+		GL(glDisable(GL_DEPTH_TEST));
+	}
 }
 
 namespace TextureUtils {

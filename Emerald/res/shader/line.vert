@@ -1,9 +1,7 @@
 #version 330
-layout(location = 0) in vec3 vsLineBegin;
-layout(location = 1) in vec3 vsLineEnd;
-layout(location = 2) in vec4 vsColor;
+layout(location = 0) in vec3 vsPos;
+layout(location = 1) in vec4 vsColor;
 
-out vec3 fsPos;
 out vec4 fsColor;
 
 layout (std140) uniform GlobalUniforms {
@@ -14,10 +12,11 @@ layout (std140) uniform GlobalUniforms {
 	mat4 _InverseView;
     float _BloomFactor;
     bool _SSAOEnabled;
+	vec2 _CameraPlanes;
+	vec2 _ViewPort;
 };
 
 void main(){
 	fsColor = vsColor;
-    fsPos = gl_VertexID == 0 ? vsLineBegin : vsLineEnd;
-    gl_Position = _Projection * _View * vec4(fsPos, 1.0);
+    gl_Position = _Projection * _View * vec4(vsPos, 1.0);
 }

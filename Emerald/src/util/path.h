@@ -41,4 +41,8 @@ public:
 	String GetExtention() const {
 		return m_extention;
 	}
+
+	bool Exists() const {
+		return FileSystem::DoesFileExist(GetFullPath());
+	}
 };

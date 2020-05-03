@@ -42,9 +42,9 @@ void HDRPipeline::Initialize() {
 	m_hdrShader->Set("_HDRBuffer", 0);
 	m_hdrShader->Set("_HDRBloom", 1);
 
-	m_hdrBuffer = GetFrameBufferManager()->Create("HDR", FBOScale::FULL, false);
-	m_hdrTexture = m_hdrBuffer->AddBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
-	m_hdrBrightTexture = m_hdrBuffer->AddBuffer("HDRBloom", TextureParameters(RGB, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrFBO = GetFrameBufferManager()->Create("HDR", FBOScale::FULL, false);
+	m_hdrTexture = m_hdrFBO->AddBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrBrightTexture = m_hdrFBO->AddBuffer("HDRBloom", TextureParameters(RGB, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
 
 	//Bloom
@@ -59,10 +59,10 @@ void HDRPipeline::Initialize() {
 	//SSR
 	m_ssrRenderer = NEW(SSRRenderer());
 
-	m_freeCam = NEW(FreeCam(70, 0.1f, 1000.0f));
-	m_freeCam->SetViewport(0, 0, 1920, 1080);
-	m_firstPersonCamera = NEW(FirstPersonCam(70, 0.1f, 1000.0f));
-	m_firstPersonCamera->SetViewport(0, 0, 1920, 1080);
+	m_lineRenderer = NEW(LineRenderer());
+
+	m_freeCam = NEW(FreeCam(glm::vec2(1920, 1080), 70, 0.5f, 500.0f));
+	m_firstPersonCamera = NEW(FirstPersonCam(glm::vec2(1920, 1080), 70, 0.5f, 500.0f));
 
 	Camera::active = m_freeCam;
 
@@ -81,25 +81,33 @@ void HDRPipeline::Initialize() {
 }
 
 void HDRPipeline::Render() {
-	m_spriteRenderer->Begin();
-	if (m_initialized) {
-		PreGeometryRender();
-
-		GetLineRenderer()->Begin();
+	if (!m_initialized) {
+		m_spriteRenderer->Begin();
 		GetStateManager()->RenderGeometry(this);
-		GetLineRenderer()->End();
-		GetLineRenderer()->Draw();
+		GetFrameBufferManager()->BindDefaultFBO();
+		m_spriteRenderer->End();
+		GLUtils::EnableBlending();
+		m_spriteRenderer->Draw();
+		GLUtils::DisableBlending();
 
-		PostGeometryRender();
-	} else GetStateManager()->RenderGeometry(this);
+		return;
+	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	GL(glViewport(0, 0, m_width, m_height));
+	m_spriteRenderer->Begin();
+	m_lineRenderer->Begin();
+
+	PreGeometryRender();
+	GetStateManager()->RenderGeometry(this);
+	PostGeometryRender();
 
 	m_spriteRenderer->End();
 	GLUtils::EnableBlending();
 	m_spriteRenderer->Draw();
 	GLUtils::DisableBlending();
+
+	m_finalFBO->Blit(nullptr);
+	GetFrameBufferManager()->BindDefaultFBO();
+
 
 	if (GetImGuiManager()->IsInitialized()) {
 		GetImGuiManager()->Begin();
@@ -121,7 +129,7 @@ void HDRPipeline::Render() {
 }
 
 void HDRPipeline::PreShadowRender() {
-	GL(glEnable(GL_DEPTH_TEST));
+	GLUtils::EnableDepthTest();
 	GL(glDepthMask(true));
 	GL(glDisable(GL_BLEND));
 	GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
@@ -150,8 +158,10 @@ void HDRPipeline::PreGeometryRender() {
 	m_ubo->data._InverseView = Camera::active->GetInverseViewMatrix();
 	m_ubo->data._BloomFactor = m_bloomFactor;
 	m_ubo->data._SSAOEnabled = m_ssaoRenderer->m_enabled;
-	
-	
+	m_ubo->data._CameraPlanes = glm::vec2(Camera::active->GetNear(), Camera::active->GetFar());
+	m_ubo->data._ViewPort = glm::vec2(Camera::active->GetViewport().z, Camera::active->GetViewport().w);
+	m_ubo->SetData();
+
 	//Draw to gBuffer
 	m_gBuffer->Bind();
 	m_gBuffer->Clear();
@@ -166,16 +176,16 @@ void HDRPipeline::PreGeometryRender() {
 void HDRPipeline::PostGeometryRender() {
 	if (m_wireFrame) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 
-	m_gBuffer->Unbind();
-
-	GL(glDisable(GL_DEPTH_TEST));
-
+	GLUtils::DisableDepthTest();
 	m_ssaoRenderer->Render(m_gBuffer);
 
-	//Draw to HDR
-	m_hdrBuffer->Bind();
-	m_hdrBuffer->Clear();
+	//Blit depth to HDR FBO
+	m_hdrFBO->Bind();
+	m_hdrFBO->Clear();
+	m_gBuffer->GetFBO()->BlitDepthOnly(m_hdrFBO);
+	m_hdrFBO->Bind();
 
+	//Draw to HDR
 	GL(glEnable(GL_BLEND));
 	GL(glBlendFunc(GL_ONE, GL_ONE));
 
@@ -206,13 +216,15 @@ void HDRPipeline::PostGeometryRender() {
 	GetPointlightRenderer()->End();
 	GetPointlightRenderer()->Draw();
 
-	m_hdrBuffer->Unbind();
+	m_hdrFBO->Unbind();
 
-	//Draw to screen
+	//Draw to finalFBO
 	GL(glDisable(GL_BLEND));
 
+	//SSAO and SSR
 	m_ssrRenderer->Draw(this);
 
+	//Bloom
 	bool horizontal = true, first_iteration = true;
 	int amount = 8;
 	m_gaussianShader->Bind();
@@ -234,8 +246,11 @@ void HDRPipeline::PostGeometryRender() {
 			first_iteration = false;
 	}
 
+	//Blit depth to final FBO
 	m_finalFBO->Bind();
 	m_finalFBO->Clear();
+	m_hdrFBO->BlitDepthOnly(m_finalFBO);
+	m_finalFBO->Bind();
 
 	m_hdrShader->Bind();
 	m_hdrShader->Set("_BloomMultiplier", m_bloomMultiplier);
@@ -247,15 +262,15 @@ void HDRPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_ScreenSize", glm::vec2(m_width, m_height));
 	m_hdrShader->Set("_Chromatic", m_chromatic);
 	m_hdrShader->Set("_Bloom", m_bloomEnabled);
-	GetFrameBufferManager()->GetSelectedTexture()->Bind(0);
 
+	GetFrameBufferManager()->GetSelectedTexture()->Bind(0);
 	m_pingPongTexture[1]->Bind(1);
 	m_quad->Bind();
 	m_quad->Draw();
 
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_finalFBO->GetHandle());
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBlitFramebuffer(0, 0, m_finalFBO->GetWidth(), m_finalFBO->GetHeight(), 0, 0, m_finalFBO->GetWidth(), m_finalFBO->GetHeight(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	//Draw lines
+	m_lineRenderer->End();
+	m_lineRenderer->Draw();
 }
 
 void HDRPipeline::OnImGUI() {

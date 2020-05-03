@@ -97,8 +97,6 @@ private:
 
 	friend class ShaderManager;
 
-	void BindGlobalUBO();
-
 public:
 	static uint s_boundShader;
 	ShaderProgram* GetShaderProgram() const { return m_shaderProgram; }
@@ -107,6 +105,42 @@ public:
 
 	const String& GetName() { return m_name; }
 
+	uint GetUniformLocation(const String_t location) {
+		return m_uniformBuffer.GetUniformLocation(location);
+	}
+
+	void SetFloat(uint location, const float value) {
+		m_uniformBuffer.SetFloat(location, value);
+	}
+
+	void SetInt(uint location, const int value) {
+		m_uniformBuffer.SetInt(location, value);
+	}
+
+	void SetBool(uint location, const bool value) {
+		m_uniformBuffer.SetInt(location, value);
+	}
+
+	void SetVec2(uint location, const glm::vec2& value) {
+		m_uniformBuffer.SetVec2(location, value);
+	}
+
+	void SetVec3(uint location, const glm::vec3& value) {
+		m_uniformBuffer.SetVec3(location, value);
+	}
+
+	void SetVec4(uint location, const glm::vec4& value) {
+		m_uniformBuffer.SetVec4(location, value);
+	}
+
+	void SetColor(uint location, const Color& value) {
+		m_uniformBuffer.SetColor(location, value);
+	}
+
+	void SetMat4(uint location, const glm::mat4& value) {
+		m_uniformBuffer.SetMat4(location, value);
+	}
+	
 	template<typename T>
 	void Set(const String_t location, const T* value, uint count) {
 		m_uniformBuffer.Set(location, value, count);
@@ -131,17 +165,10 @@ public:
 		};
 	}
 
-	void SimpleBind() {
-		if (s_boundShader == m_shaderProgram->GetHandle())return;
-		m_shaderProgram->Bind();
-		s_boundShader = m_shaderProgram->GetHandle();
-	}
-
 	void Bind() {
 		if (s_boundShader == m_shaderProgram->GetHandle())return;
 		m_shaderProgram->Bind();
 		s_boundShader = m_shaderProgram->GetHandle();
-		BindGlobalUBO();
 	}
 
 	void Unbind() {

@@ -16,6 +16,7 @@ void LoadingState::Initialize() {
 
 	GetShaderManager()->Create("Geometry", "res/shader/geometry");
 	GetShaderManager()->Create("UI", "res/shader/UI");
+	GetShaderManager()->Create("Line", "res/shader/line");
 	//GetUIRenderer()->Initialize();
 
 	m_batch = GetAssetManager()->CreateBatch<BasicAssetBatch>("Main Assets");
@@ -25,6 +26,8 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Thread Pool", [] {GetThreadPool()->Initialize(3); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
+	m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza2/sponzaPBR.obj")));
+
 	//m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
 	//m_batch->Add(NEW(ModelLoader("Sphere", "res/sphere.obj")));
 	//m_batch->Add(NEW(ModelLoader("Cube", "res/cube.obj")));
@@ -32,7 +35,7 @@ void LoadingState::Initialize() {
 
 	//m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
 	//m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
-	m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
+	//m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
 	m_batch->Add(NEW(ShaderLoader("TileOld", "res/shader/tileOld")));
 	m_batch->Add(NEW(ShaderLoader("Directional", "res/shader/directional")));

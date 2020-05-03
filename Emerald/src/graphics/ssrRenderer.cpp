@@ -33,7 +33,7 @@ void SSRRenderer::Draw(HDRPipeline* pipeline) {
 	m_fbo->Unbind();
 
 	m_simpleShader->Bind();
-	pipeline->m_hdrBuffer->Bind();
+	pipeline->m_hdrFBO->Bind();
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE);

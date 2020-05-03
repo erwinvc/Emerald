@@ -31,11 +31,10 @@ public:
 		iri = GetAssetManager()->Get<Texture>("Iridescence");
 		noise = GetAssetManager()->Get<Texture>("Noise");
 		//sponza = GetAssetManager()->Get<Model>("Sponza");
-		Model* model = new Model();
-		model->LoadModel("res/sponza2/sponzaPBR.obj");
+		Model* model = GetAssetManager()->Get<Model>("Sponza");
 		sponzaEntity = new Entity(model);
 		sponzaEntity->m_transform.m_size = glm::vec3(0.1f, 0.1f, 0.1f);
-		sponzaEntity->m_transform.m_position.z = 4;
+
 		//GetCamera()->m_position.y = -2;
 		Camera::active->transform.m_position = glm::vec3(-1.3f, 0.96f, 0);
 		Camera::active->transform.m_rotation.y = Math::HALF_PI;
@@ -73,16 +72,20 @@ public:
 
 		sponzaEntity->Draw();
 
+		//for (auto& mesh : sponzaEntity->m_model->GetMeshes()) {
+		//	pipeline->Bounds(mesh->m_center * sponzaEntity->m_transform.m_size, mesh->m_size * sponzaEntity->m_transform.m_size, Color::Blue(), true);
+		//}
+
 		GetPointlightRenderer()->Submit(m_pointLights.data(), m_pointLights.size());
 	}
 	//void RenderUI() override {}
 	void OnStateImGUI() override {
 		static int currentlySelectedShader = 0;
-		
-		if (ImGui::BeginCombo("Shader", sponzaEntity->m_model->GetMaterials()[currentlySelectedShader]->GetName().c_str())) {
-			for (int n = 0; n < sponzaEntity->m_model->GetMaterials().size(); n++) {
+
+		if (ImGui::BeginCombo("Shader", sponzaEntity->m_model->GetMeshes()[currentlySelectedShader]->GetMaterial()->GetName().c_str())) {
+			for (int n = 0; n < sponzaEntity->m_model->GetMeshes().size(); n++) {
 				bool is_selected = (currentlySelectedShader == n);
-				if (ImGui::Selectable(sponzaEntity->m_model->GetMaterials()[n]->GetName().c_str(), is_selected))
+				if (ImGui::Selectable(sponzaEntity->m_model->GetMeshes()[n]->GetMaterial()->GetName().c_str(), is_selected))
 					currentlySelectedShader = n;
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();
@@ -90,9 +93,9 @@ public:
 			ImGui::EndCombo();
 		}
 
-		sponzaEntity->m_model->GetMaterials()[currentlySelectedShader]->OnImGui();
+		//sponzaEntity->m_model->GetMaterials()[currentlySelectedShader]->OnImGui();
 		ImGui::Separator();
-		
+
 		//if (ImGui::Button("Planks")) mat->SetPBR("planks");
 		//if (ImGui::Button("Gold")) mat->SetPBR("gold");
 		//if (ImGui::Button("Metal")) mat->SetPBR("metal");

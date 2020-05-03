@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+//uint Application::s_globalLogValue = 0;
+
 glm::ivec2 toResize(-1, -1);
 
 static void ErrorCallback(int error, const char* description) {
@@ -96,12 +98,15 @@ void Application::Run() {
 		if (time - updateTimer > updateTick) {
 			m_totalFrameTime += time - m_lastFrameTime;
 			Update(TimeStep(time - m_lastFrameTime, m_totalFrameTime, m_frameCount));
+
 			m_lastFrameTime = time;
 			updates++;
 			updateTimer += updateTick;
 			m_frameCount++;
 		}
 		delta += (time - updateTimer) / updateTick;
+		//LOG("GlobalLogValue: %d", s_globalLogValue);
+		//s_globalLogValue = 0;
 		Render();
 		frames++;
 		if (glfwGetTime() - timer > 1.0) {

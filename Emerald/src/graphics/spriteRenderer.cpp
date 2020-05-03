@@ -16,11 +16,11 @@ SpriteRenderer::SpriteRenderer() {
 		offset += 4;
 	}
 	m_shader = GetShaderManager()->Get("UI");
-	m_shader->SimpleBind();
+	m_shader->Bind();
 	uint32 textures[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
 	m_shader->Set("_Textures", textures, 32);
 
-	Mesh* mesh = new Mesh(ManagedRef<VertexArray>(NEW(VertexArray())), ManagedRef<IndexBuffer>(new IndexBuffer(indicesBuffer, INDICES_SIZE)), GetMaterialManager()->Create("UI", m_shader));
+	Mesh* mesh = new Mesh(NEW(VertexArray()), new IndexBuffer(indicesBuffer, INDICES_SIZE), GetMaterialManager()->GetBasicMaterial(m_shader));
 	m_elementsRenderer = new ElementsRenderer<Vertex>(mesh, VERTEX_COUNT, INDICES_COUNT, MAX_SPRITES, m_layout);
 
 	delete mesh;

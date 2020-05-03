@@ -15,11 +15,8 @@ public:
 		if (overrideShader) {
 			overrideShader->Bind();
 			overrideShader->Set("_TransformationMatrix", m_transform.GetTransformationMatrix());
-		} else {
-			m_model->GetMaterials()[0]->Bind();
-			m_model->GetMaterials()[0]->GetShader()->Set("_TransformationMatrix", m_transform.GetTransformationMatrix());
-		}
-		m_model->Draw(mode);
+		} 
+		m_model->Draw(m_transform.GetTransformationMatrix(), mode);
 	}
 
 	void OnImGui() {

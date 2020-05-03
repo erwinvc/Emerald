@@ -2,6 +2,7 @@
 
 class MaterialManager : public Singleton<MaterialManager> {
 private:
+	uint m_globalID = 0;
 	map<String, Material*> m_materials;
 	map<String, Material*> m_defaultMaterials;
 	bool m_initialized = false;
@@ -27,7 +28,7 @@ public:
 
 	Material* GetBasicMaterial(Shader* shader) {
 		if (m_defaultMaterials.find(shader->GetName()) == m_defaultMaterials.end()) {
-			m_defaultMaterials[shader->GetName()] = NEW(Material(Format("%s_Default", shader->GetName().c_str()), shader));
+			m_defaultMaterials[shader->GetName()] = NEW(Material(Format("%s_Default", shader->GetName().c_str()), shader, m_globalID++));
 		}
 		return m_defaultMaterials[shader->GetName()];
 	}

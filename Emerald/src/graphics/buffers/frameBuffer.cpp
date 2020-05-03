@@ -5,9 +5,10 @@ FrameBuffer::FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clea
 	m_realHeight = GetApp()->GetHeight();
 	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
 	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
+	
 
 	GL(glGenFramebuffers(1, &m_fbo));
-	AddBuffer("Depth", TextureParameters(DEPTH24, DEPTH, NEAREST, REPEAT, T_FLOAT), FBOAttachment::DEPTH);
+	AddBuffer("Depth", TextureParameters(DEPTH24, DEPTH, NEAREST, REPEAT, T_UNSIGNED_BYTE), FBOAttachment::DEPTH);
 
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 	GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
@@ -22,7 +23,7 @@ FrameBuffer::FrameBuffer(String name, uint width, uint height, bool hasDepth, Co
 	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
 
 	GL(glGenFramebuffers(1, &m_fbo));
-	AddBuffer("Depth", TextureParameters(DEPTH24, DEPTH, NEAREST, REPEAT, T_FLOAT), FBOAttachment::DEPTH);
+	AddBuffer("Depth", TextureParameters(DEPTH24, DEPTH, NEAREST, REPEAT, T_UNSIGNED_BYTE), FBOAttachment::DEPTH);
 
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 	GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
@@ -79,6 +80,19 @@ AssetRef<Texture> FrameBuffer::AddBuffer(const String& name, const TextureParame
 
 	return texture;
 }
+
+void FrameBuffer::Blit(FrameBuffer* targetFBO) {
+	GL(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo));
+	GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO ? targetFBO->GetHandle() : 0));
+	GL(glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, targetFBO ? targetFBO->GetWidth() : GetApp()->GetWidth(), targetFBO ? targetFBO->GetHeight() : GetApp()->GetHeight(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST));
+}
+
+void FrameBuffer::BlitDepthOnly(FrameBuffer* targetFBO) {
+	GL(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo));
+	GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO ? targetFBO->GetHandle() : 0));
+	GL(glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, targetFBO ? targetFBO->GetWidth() : GetApp()->GetWidth(), targetFBO ? targetFBO->GetHeight() : GetApp()->GetHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST));
+}
+
 
 void FrameBufferManager::OnImGUI() {
 	if (ImGui::BeginTabItem("Framebuffers")) {

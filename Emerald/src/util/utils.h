@@ -132,20 +132,13 @@ namespace GLUtils {
 			default:												return "unkown Framebuffer Object error";
 		}
 	}
-}
 
-namespace ImGui {
-	static void Tooltip(String_t tooltip) {
-		if (ImGui::IsItemHovered() && GImGui->HoveredIdTimer > 0.5f) {
-			ImGui::SetTooltip(tooltip);
-		}
-	}
-}
-
-namespace GLUtils {
 	void EnableBlending();
 	void DisableBlending();
 
+	void EnableDepthTest();
+	void DisableDepthTest();
+	
 	static String GLErrorToString(int error) {
 		switch (error) {
 			case 0x500: return "GL_INVALID_ENUM";

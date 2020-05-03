@@ -10,6 +10,6 @@ void Sprite::Draw(HDRPipeline* pipeline, glm::vec2 origin, float x, float y, flo
 		m_atlasValues = glm::vec3(m_numberOfRows, column / m_numberOfRows, row / m_numberOfRows);
 	}
 
-	pipeline->Rect(origin, x, y, w, h, rotation, m_color, m_texture, m_atlasValues);
+	pipeline->UIRect(origin, x, y, w, h, rotation, m_color, m_texture, m_atlasValues);
 	//GetUIRenderer()->RenderTexture(transform.m_position.x, transform.m_position.y, transform.m_size.x, transform.m_size.y, transform.m_rotation, m_color, tex, m_atlasValues);
 }

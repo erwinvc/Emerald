@@ -7,13 +7,16 @@ protected:
 	AssetRef<Material> m_material;
 
 public:
+	glm::vec3 m_size;
+	glm::vec3 m_center;
+	
 	Mesh();
 	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo, Material* material) : m_vao(vao), m_ibo(ibo) {
 		m_material = material;
 	}
 	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo);
 	virtual ~Mesh() {}
-	AssetRef<Material> GetMaterial() { return m_material; }
+	Material* GetMaterial() { return m_material; }
 	void SetMaterial(Material* mat) { m_material = mat; }
 
 	void Bind() {
@@ -29,19 +32,16 @@ public:
 	void DrawInstanced(int amount, uint mode = GL_TRIANGLES) {
 		Bind();
 		m_ibo->DrawInstanced(amount, mode);
-		//Unbind();
 	}
 
 	void Draw(uint mode = GL_TRIANGLES) {
 		Bind();
 		m_ibo->Draw(mode);
-		//Unbind();
 	}
 
 	void DrawCount(uint32 count, uint mode = GL_TRIANGLES) {
 		Bind();
 		m_ibo->Draw(count, mode);
-		//Unbind();
 	}
 
 	AssetRef<Mesh> Copy() {

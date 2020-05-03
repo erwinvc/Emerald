@@ -21,6 +21,8 @@ layout (std140) uniform GlobalUniforms {
 	mat4 _InverseView;
     float _BloomFactor;
     bool _SSAOEnabled;
+	vec2 _CameraPlanes;
+	vec2 _ViewPort;
 };
 
 const float PI = 3.14159265359;

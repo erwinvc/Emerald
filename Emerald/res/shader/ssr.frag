@@ -18,6 +18,8 @@ layout (std140) uniform GlobalUniforms {
 	mat4 _InverseView;
     float _BloomFactor;
     bool _SSAOEnabled;
+	vec2 _CameraPlanes;
+	vec2 _ViewPort;
 };
 
 const float screenEdgeFadeStart = 0.5;
@@ -118,7 +120,8 @@ vec3 hash(vec3 a)
 }
 
 void main(){
-	vec3 misc = texture(_GMisc, fsUv).rgb;
+	vec4 misc = texture(_GMisc, fsUv);
+	float lightInfluence = misc.w;
 	float metallic = misc.y;
 	float roughness = misc.x;
 	vec3 viewPos = GetPosition(fsUv);
@@ -160,6 +163,6 @@ void main(){
 	            screenEdgefactor * 
 	            -reflected.z;
 	
-    vec3 SSR = texture(_HDR, coords.xy).rgb * clamp(ReflectionMultiplier, 0.0, 0.9) * fresnel;  
+    vec3 SSR = mix(vec3(0.0, 0.0, 0.0), texture(_HDR, coords.xy).rgb * clamp(ReflectionMultiplier, 0.0, 0.9) * fresnel, lightInfluence);  
     outColor = SSR;
 }

@@ -9,7 +9,3 @@ void Shader::OnImGUI() {
 	}
 	m_uniformBuffer.OnImGUI();
 }
-
-void Shader::BindGlobalUBO() {
-	GetApp()->pipeline->m_ubo->Bind(this);
-}

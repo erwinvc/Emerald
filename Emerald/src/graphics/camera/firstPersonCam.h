@@ -4,7 +4,7 @@
 class FirstPersonCam : public Camera {
 private:
 public:
-	FirstPersonCam(float fov, float nearPlane, float farPlane) : Camera(fov, nearPlane, farPlane) {}
+	FirstPersonCam(glm::vec2 viewportSize, float fov, float nearPlane, float farPlane) : Camera(viewportSize, fov, nearPlane, farPlane){}
 	float movementSpeed = 4;
 	float cameraHeight = 0.9f;
 

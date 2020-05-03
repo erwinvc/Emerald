@@ -11,6 +11,7 @@ private:
 	int m_channelCount = 0;
 	bool m_mipmaps;
 public:
+	TextureLoader() : AssetLoader(""), m_filePath(""), m_params(TextureParameters()), m_mipmaps(false) {}
 	TextureLoader(const String& name, const Path& filePath, bool mipmaps, const TextureParameters& params = TextureParameters()) : AssetLoader(name), m_filePath(filePath), m_params(params), m_mipmaps(mipmaps) {}
 	~TextureLoader() {
 		delete[] m_data;

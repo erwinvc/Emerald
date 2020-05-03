@@ -65,6 +65,8 @@ struct GlobalUniforms {
 	UBOMat4 _InverseView;
 	UBOFloat _BloomFactor;
 	UBOBool _SSAOEnabled;
+	UBOVec2 _CameraPlanes;
+	UBOVec2 _ViewPort;
 };
 
 template<typename T>
@@ -78,13 +80,9 @@ public:
 	UniformBuffer(const Shader* shader) {
 		GL(glGenBuffers(1, &m_bufferID));
 		GL(glBindBuffer(GL_UNIFORM_BUFFER, m_bufferID));
-		GL(glBufferData(GL_UNIFORM_BUFFER, sizeof(T), NULL, GL_DYNAMIC_DRAW));
+		GL(glBufferData(GL_UNIFORM_BUFFER, sizeof(T), &data, GL_DYNAMIC_DRAW));
 
-		GLuint bindingPoint = 1, blockIndex;
-		blockIndex = glGetUniformBlockIndex(shader->GetShaderProgram()->GetHandle(), "GlobalUniforms");
-		GL(glUniformBlockBinding(shader->GetShaderProgram()->GetHandle(), blockIndex, bindingPoint));
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(T), &data, GL_DYNAMIC_DRAW);
-		glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, m_bufferID);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_bufferID);
 	}
 
 
@@ -92,13 +90,9 @@ public:
 		GL(glDeleteBuffers(1, &m_bufferID));
 	}
 
-	void Bind(const Shader* shader) {
+	void SetData() {
 		GL(glBindBuffer(GL_UNIFORM_BUFFER, m_bufferID));
 		GL(glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), &data));
 		GL(glBindBuffer(GL_UNIFORM_BUFFER, 0));
-
-		GLuint bindingPoint = 1, blockIndex;
-		blockIndex = glGetUniformBlockIndex(shader->GetShaderProgram()->GetHandle(), "GlobalUniforms");
-		GL(glUniformBlockBinding(shader->GetShaderProgram()->GetHandle(), blockIndex, bindingPoint));
 	}
 };

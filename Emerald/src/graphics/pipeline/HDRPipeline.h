@@ -7,9 +7,11 @@ public:
 	bool m_ImGuiOpen = true;
 	uint m_width = 0;
 	uint m_height = 0;
-	
+
 	//UI
 	AssetRef<SpriteRenderer> m_spriteRenderer;
+	
+	AssetRef<LineRenderer> m_lineRenderer;
 
 	//Deferred
 	GBuffer* m_gBuffer = nullptr;
@@ -27,7 +29,7 @@ public:
 	//HDR
 	bool m_applyPostProcessing = true;
 	bool m_FXAA = true;
-	AssetRef<FrameBuffer> m_hdrBuffer;
+	AssetRef<FrameBuffer> m_hdrFBO;
 	AssetRef<Texture> m_hdrTexture;
 	AssetRef<Texture> m_hdrBrightTexture;
 	AssetRef<Shader> m_hdrShader;
@@ -75,6 +77,7 @@ public:
 		DELETE(m_ssrRenderer);
 		DELETE(m_shadowRenderer);
 		DELETE(m_spriteRenderer);
+		DELETE(m_lineRenderer);
 	}
 
 	void EarlyInitialize(uint width, uint height) {
@@ -105,15 +108,27 @@ public:
 	AssetRef<Texture> GetHDRTexture() { return m_hdrTexture; }
 	AssetRef<Texture> GetFinalTexture() { return m_finalTexture; }
 
-	inline void LineRect(Rectangle& rect, Color& color = Color::White(), float lineSize = 1.0f) {
+	inline void UILineRect(Rectangle& rect, Color& color = Color::White(), float lineSize = 1.0f) {
 		m_spriteRenderer->LineRect(rect, color, lineSize);
 	}
 
-	inline void Rect(glm::vec2 origin, float x, float y, float w, float h, float rotation = 0, const Color& color = Color::White(), Texture* texture = nullptr, const glm::vec3 atlasValues = glm::vec3(1.0f, 0.0f, 0.0f)) {
+	inline void UIRect(glm::vec2 origin, float x, float y, float w, float h, float rotation = 0, const Color& color = Color::White(), Texture* texture = nullptr, const glm::vec3 atlasValues = glm::vec3(1.0f, 0.0f, 0.0f)) {
 		m_spriteRenderer->Rect(origin, x, y, w, h, rotation, color, texture, atlasValues);
 	}
 
-	inline void Line(float x0, float y0, float x1, float y1, Color& color = Color::White(), float size = 1.0f) {
+	inline void UILine(float x0, float y0, float x1, float y1, Color& color = Color::White(), float size = 1.0f) {
 		m_spriteRenderer->Line(x0, y0, x1, y1, color, size);
+	}
+
+	inline void Bounds(glm::vec3 position, glm::vec3 size, Color color, bool overlay = false) {
+		m_lineRenderer->Bounds(position, size, color, overlay);
+	}
+	
+	inline void Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay = false) {
+		m_lineRenderer->Line(begin, end, color, overlay);
+	}
+	
+	inline void Line(float x0, float y0, float z0, float x1, float y1, float z1, Color& color, bool overlay = false) {
+		m_lineRenderer->Line(x0, y0, z0, x1, y1, z1, color, overlay);
 	}
 };

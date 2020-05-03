@@ -130,7 +130,6 @@ using namespace std;
 #include "graphics/shaders/shaderProperties.h"
 #include "graphics/shaders/shader.h"
 #include "graphics/shaders/shaderManager.h"
-#include "graphics/vertex.h"
 
 #include "graphics/buffers/uniformBuffer.h"
 

@@ -1,87 +1,24 @@
 #pragma once
 
+static bool MeshSort(AssetRef<Mesh>& mesh1, AssetRef<Mesh>& mesh2) { return (mesh1->GetMaterial()->GetID() < mesh2->GetMaterial()->GetID()); }
+
 class Model : public AssetBase {
 private:
 	vector<AssetRef<Mesh>> m_meshes;
-	vector<AssetRef<Material>> m_materials;
 	String m_name;
 	String m_dir;
 
-	void ProcessNode(aiNode* node, const aiScene* scene) {
-		for (GLuint i = 0; i < node->mNumMeshes; i++) {
-			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			m_meshes.push_back(ProcessMesh(mesh, scene));
-		}
 
-		for (GLuint i = 0; i < node->mNumChildren; i++) {
-			ProcessNode(node->mChildren[i], scene);
-		}
-	}
-
-	struct Vertex {
-		glm::vec3 m_position;
-		glm::vec3 m_normal;
-		glm::vec2 m_uv;
-		glm::vec3 m_tangents;
-		glm::vec3 m_biTangents;
-	};
-	Mesh* ProcessMesh(aiMesh *mesh, const aiScene *scene) {
-		vector<GLfloat> texcoords;
-		for (uint i = 0; i < mesh[0].mNumVertices; i++) {
-			texcoords.push_back(mesh[0].mTextureCoords[0][i].x);
-			texcoords.push_back(mesh[0].mTextureCoords[0][i].y);
-		}
-
-		BufferLayout layout = {
-			{VertexBufferDataType::Float3, "vsPos", 0},
-			{VertexBufferDataType::Float3, "vsNormal", 0},
-			{VertexBufferDataType::Float2, "vsUv", 0},
-			{VertexBufferDataType::Float3, "vsTangents", 0},
-			{VertexBufferDataType::Float3, "vsBitangents", 0}
-		};
-
-		Vertex* vertices = new Vertex[mesh->mNumVertices];
-
-		for (uint32 i = 0; i < mesh->mNumVertices; i++) {
-			vertices[i].m_position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-			vertices[i].m_normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-			vertices[i].m_uv = glm::vec2(mesh[0].mTextureCoords[0][i].x, mesh[0].mTextureCoords[0][i].y);
-			vertices[i].m_tangents = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
-			vertices[i].m_biTangents = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
-		}
-
-		ManagedRef<VertexArray> vaoModel(new VertexArray());
-		VertexBuffer* buff = NEW(VertexBuffer((float*)vertices, mesh->mNumVertices, layout));
-		vaoModel->AddBuffer(ManagedRef<VertexBuffer>(buff));
-		vaoModel->ApplyLayouts();
-
-		delete[] vertices;
-
-		//IBO
-		vector<GLuint> indices;
-		for (uint i = 0; i < mesh->mNumFaces; i++) {
-			aiFace face = mesh->mFaces[i];
-			for (uint j = 0; j < face.mNumIndices; j++)
-				indices.push_back(face.mIndices[j]);
-		}
-
-		ManagedRef<IndexBuffer> ibo(new IndexBuffer(indices.data(), indices.size()));
-		return NEW(Mesh(vaoModel, ibo, m_materials[mesh->mMaterialIndex]));
-	}
-
-	void LoadMaterials(const aiScene *scene);
-	bool LoadTexture(int index, aiMaterial* mat, aiTextureType type, Texture*& texture);
-	
 public:
-	void LoadModel(const String& path);
-	Model(vector<AssetRef<Mesh>> meshes) : m_meshes(meshes) {}
+	Model(vector<AssetRef<Mesh>> meshes) : m_meshes(meshes) {
+		sort(m_meshes.begin(), m_meshes.end(), MeshSort);
+	}
+
 	Model(AssetRef<Mesh> mesh) : m_meshes({ mesh }) {}
 	Model() {}
 	~Model() {}
 
 	vector<AssetRef<Mesh>> GetMeshes() { return m_meshes; }
-	vector<AssetRef<Material>> GetMaterials() { return m_materials; }
-
 
 	void SetMaterial(AssetRef<Material> material) {
 		for (auto& mesh : m_meshes) {
@@ -89,7 +26,9 @@ public:
 		}
 	}
 
-	void Draw(uint mode = GL_TRIANGLES) {
+	void Draw(glm::mat4 transform, uint mode = GL_TRIANGLES) {
+		m_meshes[0]->GetMaterial()->GetShader()->Set("_TransformationMatrix", transform);
+
 		for (auto& mesh : m_meshes) {
 			mesh->GetMaterial()->Bind();
 			mesh->Draw(mode);

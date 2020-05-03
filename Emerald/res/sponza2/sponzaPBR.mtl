@@ -82,7 +82,6 @@ newmtl bricks
 	Kd 0.5880 0.5880 0.5880
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka textures_pbr\Metallic_metallic.tga
 	map_Kd textures_pbr\Sponza_Bricks_a_Albedo.tga
 	map_bump textures_pbr\Sponza_Bricks_a_Normal.tga
 	map_Ns textures_pbr\Sponza_Bricks_a_Roughness.tga
@@ -150,7 +149,6 @@ newmtl floor
 	Kd 0.5880 0.5880 0.5880
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka textures_pbr\Metallic_metallic.tga
 	map_Kd textures_pbr\Sponza_Floor_diffuse.tga
 	map_bump textures_pbr\Sponza_Floor_normal.tga
 	bump textures_pbr\Sponza_Floor_normal.tga

@@ -14,15 +14,19 @@ public:
 	String m_name;
 	String m_uniform;
 	ShaderPropertyType m_type;
+	uint m_location;
 	virtual void Set(Shader* shader) = 0;
 	virtual void OnImGui() = 0;
+	void GetUniformLocation(Shader* shader) {
+		m_location = shader->GetUniformLocation(m_uniform.c_str());
+	}
 };
 
 class MaterialMemberRGB : public MaterialMember {
 public:
 	Color m_value;
 	void Set(Shader* shader) override {
-		shader->Set(m_uniform.c_str(), glm::vec3(m_value.R, m_value.G, m_value.B));
+		shader->SetVec3(m_location, glm::vec3(m_value.R, m_value.G, m_value.B));
 	}
 
 	void OnImGui() override {
@@ -34,7 +38,7 @@ class MaterialMemberRGBA : public MaterialMember {
 public:
 	Color m_value;
 	void Set(Shader* shader) override {
-		shader->Set(m_uniform.c_str(), m_value);
+		shader->SetColor(m_location, m_value);
 	}
 
 	void OnImGui() override {
@@ -46,7 +50,7 @@ class MaterialMemberFloat : public MaterialMember {
 public:
 	float m_value;
 	void Set(Shader* shader) override {
-		shader->Set(m_uniform.c_str(), m_value);
+		shader->SetFloat(m_location, m_value);
 	}
 
 	void OnImGui() override {
@@ -60,7 +64,7 @@ public:
 	float m_min;
 	float m_max;
 	void Set(Shader* shader) override {
-		shader->Set(m_uniform.c_str(), m_value);
+		shader->SetFloat(m_location, m_value);
 	}
 
 	void OnImGui() override {
@@ -72,7 +76,7 @@ class MaterialMemberInt : public MaterialMember {
 public:
 	int m_value;
 	void Set(Shader* shader) override {
-		shader->Set(m_uniform.c_str(), m_value);
+		shader->SetInt(m_location, m_value);
 	}
 
 	void OnImGui() override {
@@ -84,7 +88,7 @@ class MaterialMemberBool : public MaterialMember {
 public:
 	bool m_value;
 	void Set(Shader* shader) override {
-		shader->Set(m_uniform.c_str(), m_value);
+		shader->SetInt(m_location, m_value);
 	}
 
 	void OnImGui() override {
@@ -96,7 +100,7 @@ class MaterialMemberVec2 : public MaterialMember {
 public:
 	glm::vec2 m_value;
 	void Set(Shader* shader) override {
-		shader->Set(m_uniform.c_str(), m_value);
+		shader->SetVec2(m_location, m_value);
 	}
 
 	void OnImGui() override {
@@ -108,7 +112,7 @@ class MaterialMemberVec3 : public MaterialMember {
 public:
 	glm::vec3 m_value;
 	void Set(Shader* shader) override {
-		shader->Set(m_uniform.c_str(), m_value);
+		shader->SetVec3(m_location, m_value);
 	}
 
 	void OnImGui() override {
@@ -120,7 +124,7 @@ class MaterialMemberVec4 : public MaterialMember {
 public:
 	glm::vec4 m_value;
 	void Set(Shader* shader) override {
-		shader->Set(m_uniform.c_str(), m_value);
+		shader->SetVec4(m_location, m_value);
 	}
 
 	void OnImGui() override {
@@ -134,7 +138,7 @@ public:
 	Texture* m_texture;
 	int m_slot;
 	void Set(Shader* shader) override {
-		shader->Set(m_uniform.c_str(), m_slot);
+		shader->SetInt(m_location, m_slot);
 		m_texture->Bind(m_slot);
 	}
 
@@ -149,11 +153,15 @@ public:
 };
 class Material {
 private:
+	static uint s_boundMaterial;
 	String m_name;
 	Shader* m_shader;
+	uint m_ID;
 	vector<MaterialMember*> m_members;
+	Material(const String& name, Shader* shader, uint ID);
+
+	friend class MaterialManager;
 public:
-	Material(const String& name, Shader* shader);
 
 	~Material() {
 		for (auto& member : m_members) {
@@ -166,12 +174,7 @@ public:
 
 	Shader* GetShader() { return m_shader; }
 
-	void Bind() {
-		m_shader->Bind();
-		for (auto& member : m_members) {
-			member->Set(m_shader);
-		}
-	}
+	void Bind();
 
 	void OnImGui() {
 		for (auto& member : m_members) {
@@ -179,9 +182,10 @@ public:
 		}
 	}
 
+	uint GetID() const { return m_ID; }
+
 	//#Dirty!
 	void SetRoughnessIfAvailable(Texture* tex) {
-		LOG("Tried to set");
 		for (auto& member : m_members) {
 			if (member->m_type == ShaderPropertyType::TEXTURE) {
 				if (member->m_uniform.compare("_Roughness") == 0) {
@@ -191,7 +195,6 @@ public:
 		}
 	}
 	void SetAlbedoIfAvailable(Texture* tex) {
-		LOG("Tried to set alb");
 		for (auto& member : m_members) {
 			if (member->m_type == ShaderPropertyType::TEXTURE) {
 				if (member->m_uniform.compare("_Albedo") == 0) {

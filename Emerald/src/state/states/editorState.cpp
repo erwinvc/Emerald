@@ -52,8 +52,8 @@ void draw_translation_gizmo(const Transform& transform) {
 
 		glm::vec3 ray = GroundRaycast::GetMousePosition();
 		float dist = ClosestDistanceBetweenLines(Ray(transform.m_position, glm::normalize(axis_end)), Ray(Camera::active->transform.m_position, glm::normalize(ray)));
-		LOG("%f", dist);
-		GetLineRenderer()->Submit(transform.m_position, axis_end + transform.m_position, axis_color);
+		//LOG("%f", dist);
+		//GetLineRenderer()->Submit(transform.m_position, axis_end + transform.m_position, axis_color);
 	}
 }
 

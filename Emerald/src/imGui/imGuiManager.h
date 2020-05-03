@@ -69,7 +69,7 @@ public:
 	}
 
 	static void Dummy(int height = 4) {
-		ImGui::Dummy(ImVec2(0, height));
+		ImGui::Dummy(ImVec2(0, (float)height));
 	}
 
 	static void Int(const String_t name, int* value, int min = -10, int max = 10) {
@@ -120,3 +120,11 @@ public:
 		Finish();
 	}
 };
+
+namespace ImGui {
+	static void Tooltip(String_t tooltip) {
+		if (ImGui::IsItemHovered() && GImGui->HoveredIdTimer > 0.5f) {
+			ImGui::SetTooltip(tooltip);
+		}
+	}
+}
