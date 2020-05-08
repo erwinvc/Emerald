@@ -1,5 +1,5 @@
 #version 330
-out vec3 outColor[2];
+out vec3 outColor;
   
 in vec2 fsUv;
   
@@ -11,7 +11,6 @@ layout (std140) uniform GlobalUniforms {
 	mat4 _View;
 	mat4 _InverseProjection;
 	mat4 _InverseView;
-    float _BloomFactor;
     bool _SSAOEnabled;
 	vec2 _CameraPlanes;
 	vec2 _ViewPort;
@@ -19,6 +18,5 @@ layout (std140) uniform GlobalUniforms {
 
 void main() {
 	vec3 col = texture(_SSR, fsUv).rgb;
-	outColor[0] = col;
-	outColor[1] = max(col - _BloomFactor, 0.0f);
+	outColor = col;
 }  

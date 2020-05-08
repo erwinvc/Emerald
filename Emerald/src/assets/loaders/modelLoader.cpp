@@ -33,7 +33,22 @@ String ModelLoader::LoadTexture(int index, aiMaterial* mat, aiTextureType type) 
 		String fullPath = m_path.GetDirectory() + "\\" + path.C_Str();
 		if (m_textureData.find(fullPath) == m_textureData.end()) {
 			if (FileSystem::DoesFileExist(fullPath)) {
-				m_textureData[fullPath] = TextureLoader(fullPath, fullPath, true);
+				TextureParameters params;
+				switch (type) {
+					case aiTextureType_SHININESS:
+						params = TextureParameters(INT_RED);
+						break;
+					case  aiTextureType_AMBIENT:
+						params = TextureParameters(INT_RED);
+						break;
+					case aiTextureType_DIFFUSE:
+						params = TextureParameters(INT_SRGBA);
+						break;
+					case aiTextureType_HEIGHT:
+						params = TextureParameters(INT_RGB);
+						break;
+				}
+				m_textureData[fullPath] = TextureLoader(fullPath, fullPath, true, params);
 				m_textureData[fullPath].AsyncLoad();
 				return fullPath;
 			} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
@@ -90,12 +105,12 @@ void ModelLoader::SyncLoad(AssetManager* manager) {
 		vaoModel->ApplyLayouts();
 
 		Mesh* mesh = NEW(Mesh(vaoModel, NEW(IndexBuffer(meshData->m_indices.data(), meshData->m_indices.size())), m_materialData[meshData->m_materialIndex].m_material));
-		
+
 		float sizeX = Math::Abs(meshData->m_posMax.x - meshData->m_posMin.x) / 2;
 		float sizeY = Math::Abs(meshData->m_posMax.y - meshData->m_posMin.y) / 2;
 		float sizeZ = Math::Abs(meshData->m_posMax.z - meshData->m_posMin.z) / 2;
 		mesh->m_size = glm::vec3(sizeX, sizeY, sizeZ);
-		
+
 		float posX = (meshData->m_posMin.x + meshData->m_posMax.x) / 2.0f;
 		float posY = (meshData->m_posMin.y + meshData->m_posMax.y) / 2.0f;
 		float posZ = (meshData->m_posMin.z + meshData->m_posMax.z) / 2.0f;

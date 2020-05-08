@@ -33,7 +33,8 @@ public:
 		m_offsetsBuffer->Unbind();
 	}
 
-	void Submit(T* data, int size, int count) { //Count is either instance count or indices count
+	void Submit(T* data, int size, int count) {
+		ASSERT(m_amount + count <= m_maxObjects, "InstancedRenderer buffer full!");
 		memcpy(m_buffer, data, size * sizeof(T));
 		m_buffer += size;
 		m_amount += count;
@@ -74,7 +75,8 @@ public:
 
 	void Draw(uint mode = GL_TRIANGLES) {
 		ASSERT(m_ended, "Call InstancedRenderer::End before calling InstancedRenderer::Draw");
-		m_mesh->GetMaterial()->Bind();
+		
+		//m_mesh->GetMaterial()->Bind();
 		m_mesh->DrawInstanced(m_amount, mode);
 	}
 

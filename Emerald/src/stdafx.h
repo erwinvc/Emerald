@@ -167,6 +167,7 @@ using namespace std;
 
 #include "graphics/ssaoRenderer.h"
 #include "graphics/ssrRenderer.h"
+#include "graphics/bloomRenderer.h"
 
 #include "graphics/mesh.h"
 #include "graphics/customMesh.h"
@@ -193,6 +194,10 @@ using namespace std;
 #include "world/tile.h"
 #include "world/tileGrid.h"
 #include "world/world.h"
+#include "world/chunk.h"
+#include "world/chunkMesh.h"
+#include "world/chunkMeshGenerator.h"
+#include "world/chunkManager.h"
 
 #include "assets/materialManager.h"
 #include "assets/textureManager.h"

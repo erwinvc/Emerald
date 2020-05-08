@@ -19,11 +19,11 @@ public:
 			Color::Black().ToColor8()
 		};
 
-		m_nullTexture = NEW(Texture(2, 2, (uint8*)nullColors, false, TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
-		m_whiteTexture = NEW(Texture(1, 1, (uint8*)Color::White().ToColor8(), false, TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
-		m_blackTexture = NEW(Texture(1, 1, (uint8*)Color::Black().ToColor8(), false, TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
-		m_normalTexture = NEW(Texture(1, 1, (uint8*)Color::NormalMap().ToColor8(), false, TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
-		m_transparentTexture = NEW(Texture(1, 1, (uint8*)Color::Transparent().ToColor8(), false, TextureParameters(RGBA, RGBA, NEAREST, REPEAT)));
+		m_nullTexture = NEW(Texture(2, 2, (uint8*)nullColors, false, TextureParameters(INT_RGBA, DATA_RGBA, NEAREST, REPEAT)));
+		m_whiteTexture = NEW(Texture(1, 1, (uint8*)Color::White().ToColor8(), false, TextureParameters(INT_RGBA, DATA_RGBA, NEAREST, REPEAT)));
+		m_blackTexture = NEW(Texture(1, 1, (uint8*)Color::Black().ToColor8(), false, TextureParameters(INT_RGBA, DATA_RGBA, NEAREST, REPEAT)));
+		m_normalTexture = NEW(Texture(1, 1, (uint8*)Color::NormalMap().ToColor8(), false, TextureParameters(INT_RGBA, DATA_RGBA, NEAREST, REPEAT)));
+		m_transparentTexture = NEW(Texture(1, 1, (uint8*)Color::Transparent().ToColor8(), false, TextureParameters(INT_RGBA, DATA_RGBA, NEAREST, REPEAT)));
 		LOG("[~gTexture~x] Texture manager initialized");
 	}
 	void AddTexture(String name, Texture* texture) {

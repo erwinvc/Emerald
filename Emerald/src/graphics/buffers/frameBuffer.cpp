@@ -1,34 +1,25 @@
 #include "stdafx.h"
 
-FrameBuffer::FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clearColor) : m_name(name), m_scale(scale), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(hasDepth) {
+FrameBuffer::FrameBuffer(String name, FBOScale scale, Color& clearColor) : m_name(name), m_scale(scale), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(false), m_hasStencil(false) {
 	m_realWidth = GetApp()->GetWidth();
 	m_realHeight = GetApp()->GetHeight();
 	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
 	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
-	
 
 	GL(glGenFramebuffers(1, &m_fbo));
-	AddBuffer("Depth", TextureParameters(DEPTH24, DEPTH, NEAREST, REPEAT, T_UNSIGNED_BYTE), FBOAttachment::DEPTH);
-
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 	GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
-
-	if (CheckStatus()) LOG("[~cBuffers~x] Created ~1%s~x framebuffer", m_name.c_str());
 }
 
-FrameBuffer::FrameBuffer(String name, uint width, uint height, bool hasDepth, Color& clearColor) : m_name(name), m_scale(FBOScale::STATIC), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(hasDepth) {
+FrameBuffer::FrameBuffer(String name, uint width, uint height, Color& clearColor) : m_name(name), m_scale(FBOScale::STATIC), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(false), m_hasStencil(false) {
 	m_realWidth = width;
 	m_realHeight = height;
 	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
 	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
 
 	GL(glGenFramebuffers(1, &m_fbo));
-	AddBuffer("Depth", TextureParameters(DEPTH24, DEPTH, NEAREST, REPEAT, T_UNSIGNED_BYTE), FBOAttachment::DEPTH);
-
 	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
 	GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
-
-	if (CheckStatus()) LOG("[~cBuffers~x] Created ~1%s~x framebuffer", m_name.c_str());
 }
 
 void FrameBuffer::Resize(uint width, uint height) {
@@ -72,6 +63,14 @@ AssetRef<Texture> FrameBuffer::AddBuffer(const String& name, const TextureParame
 		GL(glDrawBuffers(++m_colorAttachments, drawBuffers));
 	} else if (type == FBOAttachment::DEPTH) {
 		GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, texture->GetHandle(), 0));
+		m_hasDepth = true;
+	} else if (type == FBOAttachment::STENCIL) {
+		GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->GetHandle(), 0));
+		m_hasStencil = true;
+	} else if (type == FBOAttachment::DEPTHSTENCIL) {
+		GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->GetHandle(), 0));
+		m_hasDepth = true;
+		m_hasStencil = true;
 	}
 
 	GL(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
@@ -109,10 +108,6 @@ void FrameBufferManager::OnImGUI() {
 			if (ImGui::Combo(Format_t("Scale##%d", index++), &selected, scales, NUMOF(scales))) fbo->SetScale(FBOScale(selected));
 			int i = 0;
 			for (AssetRef<Texture>& tex : fbo->GetTextures()) {
-				if (!fbo->HasDepth() && i == 0) {
-					i++;
-					continue;
-				}
 				ImGui::NextColumn();
 				if (ImGui::GetColumnIndex() == 0) ImGui::NextColumn();
 				if (ImGui::ImageButton(tex->GetHandle(), ImVec2(192, 108), ImVec2(0, 1), ImVec2(1, 0), 2)) m_selectedTexture = tex;

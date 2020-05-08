@@ -23,9 +23,6 @@ void HDRPipeline::Initialize() {
 	m_pointLightShader->Set("_GMisc", 3);
 	m_pointLightShader->Set("_SSAO", 4);
 
-	m_gaussianShader = GetShaderManager()->Get("Gaussian");
-	m_gaussianShader->Bind();
-	m_gaussianShader->Set("_Bright", 0);
 
 	m_emissionAmbientShader = GetShaderManager()->Get("EmissionAmbient");
 	m_emissionAmbientShader->Bind();
@@ -42,24 +39,14 @@ void HDRPipeline::Initialize() {
 	m_hdrShader->Set("_HDRBuffer", 0);
 	m_hdrShader->Set("_HDRBloom", 1);
 
-	m_hdrFBO = GetFrameBufferManager()->Create("HDR", FBOScale::FULL, false);
-	m_hdrTexture = m_hdrFBO->AddBuffer("HDR", TextureParameters(RGB16, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
-	m_hdrBrightTexture = m_hdrFBO->AddBuffer("HDRBloom", TextureParameters(RGB, RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
+	m_hdrFBO = GetFrameBufferManager()->Create("HDR", FBOScale::FULL);
+	m_hdrTexture = m_hdrFBO->AddBuffer("HDR", TextureParameters(INT_RGB16, DATA_RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
 
-	//Bloom
-	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", FBOScale::ONEFIFTH, false);
-	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", FBOScale::ONEFIFTH, false);
-	m_pingPongTexture[0] = m_pingPongFBO[0]->AddBuffer("PingPong1", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
-	m_pingPongTexture[1] = m_pingPongFBO[1]->AddBuffer("PingPong1", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
-
-	//SSAO
 	m_ssaoRenderer = NEW(SSAORenderer());
-
-	//SSR
 	m_ssrRenderer = NEW(SSRRenderer());
-
 	m_lineRenderer = NEW(LineRenderer());
+	m_bloomRenderer = NEW(BloomRenderer());
 
 	m_freeCam = NEW(FreeCam(glm::vec2(1920, 1080), 70, 0.5f, 500.0f));
 	m_firstPersonCamera = NEW(FirstPersonCam(glm::vec2(1920, 1080), 70, 0.5f, 500.0f));
@@ -72,8 +59,8 @@ void HDRPipeline::Initialize() {
 	Camera::active->transform.m_rotation = glm::vec3(0.0f, Math::PI, 0.0f);
 
 	//Final
-	m_finalFBO = GetFrameBufferManager()->Create("Final", FBOScale::FULL, false);
-	m_finalTexture = m_finalFBO->AddBuffer("Final", TextureParameters(RGB, RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
+	m_finalFBO = GetFrameBufferManager()->Create("Final", FBOScale::FULL);
+	m_finalTexture = m_finalFBO->AddBuffer("Final", TextureParameters(INT_RGB, DATA_RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	m_quad = MeshGenerator::Quad();
 
@@ -150,13 +137,14 @@ void HDRPipeline::PreGeometryRender() {
 	GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
 	GL(glEnable(GL_CULL_FACE));
 	GL(glFrontFace(GL_CCW));
-
+	GL(glEnable(GL_STENCIL_TEST));
+	GL(glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE));
+	
 	m_ubo->data._CameraPosition = Camera::active->transform.m_position;
 	m_ubo->data._Projection = Camera::active->GetProjectionMatrix();
 	m_ubo->data._View = Camera::active->GetViewMatrix();
 	m_ubo->data._InverseProjection = Camera::active->GetInverseProjectionMatrix();
 	m_ubo->data._InverseView = Camera::active->GetInverseViewMatrix();
-	m_ubo->data._BloomFactor = m_bloomFactor;
 	m_ubo->data._SSAOEnabled = m_ssaoRenderer->m_enabled;
 	m_ubo->data._CameraPlanes = glm::vec2(Camera::active->GetNear(), Camera::active->GetFar());
 	m_ubo->data._ViewPort = glm::vec2(Camera::active->GetViewport().z, Camera::active->GetViewport().w);
@@ -221,30 +209,11 @@ void HDRPipeline::PostGeometryRender() {
 	//Draw to finalFBO
 	GL(glDisable(GL_BLEND));
 
-	//SSAO and SSR
+	//SSR
 	m_ssrRenderer->Draw(this);
 
 	//Bloom
-	bool horizontal = true, first_iteration = true;
-	int amount = 8;
-	m_gaussianShader->Bind();
-	m_pingPongFBO[0]->Bind();
-	m_pingPongFBO[0]->Clear();
-	m_pingPongFBO[1]->Bind();
-	m_pingPongFBO[1]->Clear();
-
-	for (int i = 0; i < amount; i++) {
-		m_pingPongFBO[horizontal]->Bind();
-
-		m_gaussianShader->Set("horizontal", horizontal);
-
-		if (first_iteration) m_hdrBrightTexture->Bind();
-		else m_pingPongTexture[!horizontal]->Bind();
-		m_quad->Draw();
-		horizontal = !horizontal;
-		if (first_iteration)
-			first_iteration = false;
-	}
+	m_bloomRenderer->Draw(this);
 
 	//Blit depth to final FBO
 	m_finalFBO->Bind();
@@ -253,18 +222,18 @@ void HDRPipeline::PostGeometryRender() {
 	m_finalFBO->Bind();
 
 	m_hdrShader->Bind();
-	m_hdrShader->Set("_BloomMultiplier", m_bloomMultiplier);
+	m_hdrShader->Set("_Bloom", m_bloomRenderer->m_enabled);
+	m_hdrShader->Set("_BloomMultiplier", m_bloomRenderer->m_bloomMultiplier);
 	m_hdrShader->Set("_ApplyPostProcessing", GetFrameBufferManager()->GetSelectedTexture() == m_hdrTexture && m_applyPostProcessing);
 	m_hdrShader->Set("_FXAA", m_FXAA);
 	m_hdrShader->Set("_Gamma", m_gamma);
 	m_hdrShader->Set("_Exposure", m_exposure);
 	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
 	m_hdrShader->Set("_ScreenSize", glm::vec2(m_width, m_height));
-	m_hdrShader->Set("_Chromatic", m_chromatic);
-	m_hdrShader->Set("_Bloom", m_bloomEnabled);
+	//m_hdrShader->Set("_Chromatic", 0);
 
 	GetFrameBufferManager()->GetSelectedTexture()->Bind(0);
-	m_pingPongTexture[1]->Bind(1);
+	m_bloomRenderer->GetBloomedTexture()->Bind(1);
 	m_quad->Bind();
 	m_quad->Draw();
 
@@ -275,12 +244,12 @@ void HDRPipeline::PostGeometryRender() {
 
 void HDRPipeline::OnImGUI() {
 	if (ImGui::BeginTabItem("Pipeline")) {
-		const String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard" };
+		const String_t tonemapping[] = { "Linear", "SimpleReinhard", "LumaBasedReinhard", "WhitePreservingLumaBasedReinhard", "RomBinDaHouse", "Filmic", "Uncharted2", "GTA", "Aces", "Toon", "AcesFitted", "Standard", "Cherno" };
 		if (ImGui::CollapsingHeader("Post Processing")) {
 			UI::Begin();
 			UI::Bool("Post processing", &m_applyPostProcessing);
 			UI::Bool("FXAA", &m_FXAA);
-			UI::Bool("Bloom", &m_bloomEnabled);
+			UI::Bool("Bloom", &m_bloomRenderer->m_enabled);
 			UI::Bool("SSAO", &m_ssaoRenderer->m_enabled);
 			UI::Bool("SSR", &m_ssrRenderer->m_enabled);
 			UI::Separator();
@@ -288,13 +257,10 @@ void HDRPipeline::OnImGUI() {
 			UI::Float("Exposure", &m_exposure, 0, 5);
 			UI::Combo("Tonemapping", &m_selectedTonemapping, tonemapping, NUMOF(tonemapping));
 			UI::End();
+			
 			if (ImGui::TreeNode("Bloom")) {
 				UI::Begin();
-				UI::Float("Factor", &m_bloomFactor, 0, 2.0f);
-				UI::Float("Multiplier", &m_bloomMultiplier, 0, 5.0f);
-				UI::Float("Chromatic", &m_chromatic, -0.01f, 0.01f);
-				static Color col;
-				UI::Color4("Test", &col);
+				m_bloomRenderer->OnImGui();
 				UI::End();
 				ImGui::TreePop();
 			}
@@ -304,7 +270,6 @@ void HDRPipeline::OnImGUI() {
 				UI::End();
 				ImGui::TreePop();
 			}
-
 			UI::Dummy();
 			//if (ImGui::TreeNode("SSR")) {
 			//	UI::Begin();

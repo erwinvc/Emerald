@@ -12,21 +12,25 @@ private:
 	Shader* m_geometryShader;
 	Texture* iri;
 	Texture* noise;
-	//BasicMaterial* mat;
+	Material* mat;
 	//Model* sponza;
 	Entity* sponzaEntity;
 	vector<Pointlight> m_pointLights;
 	vector<glm::vec3> m_positions;
-	int LIGHTCOUNT = 16000;
+	int LIGHTCOUNT = 8000;
+	ChunkMesh chunkMesh;
+	Chunk chunk;
+	Shader* chunkShader;
 public:
 	const String& GetName() override { return m_name; }
 
 	void Initialize() override {
+		m_pointLights.push_back(Pointlight(glm::vec3(0, 3, 0), 15, Color::Blue()));
 		m_geometryShader = GetShaderManager()->Get("Geometry");
 		m_mori = GetAssetManager()->Get<Model>("Mori");
-		//mat = GetMaterialManager()->Create("MoriMaterial", m_geometryShader);
-		//mat->SetPBR("planks");
-		//m_mori->SetMaterial(mat);
+		mat = GetMaterialManager()->Create("MoriMaterial", m_geometryShader);
+		mat->SetPBR("planks");
+		m_mori->SetMaterial(mat);
 		m_moriEntity = new Entity(m_mori);
 		iri = GetAssetManager()->Get<Texture>("Iridescence");
 		noise = GetAssetManager()->Get<Texture>("Noise");
@@ -45,6 +49,9 @@ public:
 		for (int i = 0; i < LIGHTCOUNT; i++) {
 			m_positions.push_back(glm::vec3(Random::Float(-150.0f, 130.0f), Random::Float(0.0f, 90.0f), Random::Float(-60.0f, 60.0f)));
 		}
+		chunkMesh = ChunkMeshGenerator::MakeChunkMesh(chunk);
+		chunkMesh.GenerateMesh();
+		chunkShader = GetShaderManager()->Get("Chunk");
 	}
 	bool started = false;
 	bool disableMori = false;
@@ -55,7 +62,7 @@ public:
 		Camera::active->Update(time);
 		static float seconds = 0;
 		seconds += time.GetSeconds();
-		//m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
+		m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
 
 		if (moveLights) {
 			amount = Math::Clamp(amount + 5, 0, LIGHTCOUNT);
@@ -68,17 +75,18 @@ public:
 	void RenderGeometry(HDRPipeline* pipeline) override {
 		m_geometryShader->Bind();
 
-		//if (!disableMori) m_moriEntity->Draw();
+		if (!disableMori) m_moriEntity->Draw();
 
 		sponzaEntity->Draw();
 
 		//for (auto& mesh : sponzaEntity->m_model->GetMeshes()) {
 		//	pipeline->Bounds(mesh->m_center * sponzaEntity->m_transform.m_size, mesh->m_size * sponzaEntity->m_transform.m_size, Color::Blue(), true);
 		//}
-
+		//chunkShader->Bind();
+		//chunkMesh.m_mesh->Draw();
 		GetPointlightRenderer()->Submit(m_pointLights.data(), m_pointLights.size());
 	}
-	//void RenderUI() override {}
+
 	void OnStateImGUI() override {
 		static int currentlySelectedShader = 0;
 
@@ -96,9 +104,9 @@ public:
 		//sponzaEntity->m_model->GetMaterials()[currentlySelectedShader]->OnImGui();
 		ImGui::Separator();
 
-		//if (ImGui::Button("Planks")) mat->SetPBR("planks");
-		//if (ImGui::Button("Gold")) mat->SetPBR("gold");
-		//if (ImGui::Button("Metal")) mat->SetPBR("metal");
+		if (ImGui::Button("Planks")) mat->SetPBR("planks");
+		if (ImGui::Button("Gold")) mat->SetPBR("gold");
+		if (ImGui::Button("Metal")) mat->SetPBR("metal");
 		ImGui::DragFloat3("pos", (float*)&sponzaEntity->m_transform.m_position);
 		ImGui::DragFloat3("rot", (float*)&sponzaEntity->m_transform.m_rotation, 0.02f);
 		ImGui::DragFloat3("size", (float*)&sponzaEntity->m_transform.m_size, 0.02f);
@@ -111,10 +119,10 @@ public:
 		if (ImGui::Button("Start")) {
 			if (!started) {
 				Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
-					//mat->SetPBR("gold");
+					mat->SetPBR("gold");
 
 					Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
-						//mat->SetPBR("metal");
+						mat->SetPBR("metal");
 						Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
 							irid = true;
 							Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
@@ -144,7 +152,7 @@ public:
 													Tween::To(temp, 0.0f, 2000)->SetOnComplete([&] {
 
 														for (int i = 0; i < LIGHTCOUNT; i++) {
-															m_pointLights.push_back(Pointlight(glm::vec3(0, 2, 0), 5, Color::RandomPrimary()));
+															m_pointLights.push_back(Pointlight(glm::vec3(0, 2, 0), Random::Float(5.0f, 15.0f), Color::RandomPrimary()));
 														}
 														Tween::To(temp, 0.0f, 1000)->SetOnComplete([&] {
 															moveLights = true;

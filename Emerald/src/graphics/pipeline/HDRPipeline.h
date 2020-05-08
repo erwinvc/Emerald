@@ -26,19 +26,17 @@ public:
 	SSAORenderer* m_ssaoRenderer = nullptr;
 	SSRRenderer* m_ssrRenderer = nullptr;
 
+	//Bloom
+	BloomRenderer* m_bloomRenderer = nullptr;
+	
 	//HDR
 	bool m_applyPostProcessing = true;
 	bool m_FXAA = true;
 	AssetRef<FrameBuffer> m_hdrFBO;
 	AssetRef<Texture> m_hdrTexture;
-	AssetRef<Texture> m_hdrBrightTexture;
 	AssetRef<Shader> m_hdrShader;
 	AssetRef<Mesh> m_quad;
 
-	//Bloom
-	AssetRef<Shader> m_gaussianShader;
-	AssetRef<FrameBuffer> m_pingPongFBO[2];
-	AssetRef<Texture> m_pingPongTexture[2];
 
 	AssetRef<OrthoCamera> m_uiCamera;
 	AssetRef<FirstPersonCam> m_firstPersonCamera;
@@ -53,20 +51,15 @@ public:
 	bool m_perspective = true;
 	float m_lerpAmount = 0;
 	int m_selectedTexture = 0;
-	float m_gamma = 1;
-	float m_exposure = 1;
-	int m_selectedTonemapping = 11;
-
-	bool m_bloomEnabled = true;
-	float m_bloomFactor = 1.0f;
-	float m_bloomMultiplier = 1.0f;
+	float m_gamma = 2.2f;
+	float m_exposure = 1.0f;
+	int m_selectedTonemapping = 12;
 
 public:
 	float m_ambientIntensity = 0.2f;
 
 	DirectionalLight m_directionalLight;
 	int m_selectedCamera = 0;
-	float m_chromatic = 0;
 
 	float roughness = 0;
 	float metallic = 0;
@@ -105,8 +98,8 @@ public:
 	inline GBuffer* GetGBuffer() { return m_gBuffer; }
 	inline bool Initialized() { return m_initialized; }
 
-	AssetRef<Texture> GetHDRTexture() { return m_hdrTexture; }
-	AssetRef<Texture> GetFinalTexture() { return m_finalTexture; }
+	Texture* GetHDRTexture() { return m_hdrTexture; }
+	Texture* GetFinalTexture() { return m_finalTexture; }
 
 	inline void UILineRect(Rectangle& rect, Color& color = Color::White(), float lineSize = 1.0f) {
 		m_spriteRenderer->LineRect(rect, color, lineSize);

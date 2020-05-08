@@ -4,7 +4,7 @@
 Sprite loadingSprite;
 void LoadingState::Initialize() {
 
-	TextureLoader* loader = new TextureLoader("Logo", "res/logo.png", false, TextureParameters(RGBA, RGBA, NEAREST, REPEAT));
+	TextureLoader* loader = new TextureLoader("Logo", "res/logo.png", false, TextureParameters(INT_RGBA, DATA_UNK, NEAREST, REPEAT));
 	m_logo = GetAssetManager()->ForceLoad<Texture>(loader);
 	m_animatedLogo = GetAssetManager()->ForceLoad<Texture>(new TextureLoader("AnimatedLogo", "res/animatedLogo.png", false));
 	loadingSprite = Sprite(m_animatedLogo, Color::White(), 8, 62, 0, 1.0f/31.0f);
@@ -27,6 +27,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
 	m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza2/sponzaPBR.obj")));
+	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
 
 	//m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
 	//m_batch->Add(NEW(ModelLoader("Sphere", "res/sphere.obj")));
@@ -34,15 +35,16 @@ void LoadingState::Initialize() {
 	//m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza/sponza.obj")));
 
 	//m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
-	//m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
 	//m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
+	m_batch->Add(NEW(ShaderLoader("Chunk", "res/shader/chunk")));
 	m_batch->Add(NEW(ShaderLoader("TileOld", "res/shader/tileOld")));
 	m_batch->Add(NEW(ShaderLoader("Directional", "res/shader/directional")));
 	m_batch->Add(NEW(ShaderLoader("Pointlight", "res/shader/pointlight")));
 	m_batch->Add(NEW(ShaderLoader("HDR", "res/shader/hdr")));
 	m_batch->Add(NEW(ShaderLoader("SSAO", "res/shader/ssao")));
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "res/shader/ssaoBlur")));
+	m_batch->Add(NEW(ShaderLoader("Bloom", "res/shader/bloom")));
 	m_batch->Add(NEW(ShaderLoader("Gaussian", "res/shader/gaussian")));
 	m_batch->Add(NEW(ShaderLoader("EmissionAmbient", "res/shader/emissionAmbient")));
 	m_batch->Add(NEW(ShaderLoader("SSR", "res/shader/ssr")));
@@ -59,18 +61,18 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(PBRTextureLoader("planks", "planks")));
 	m_batch->Add(NEW(PBRTextureLoader("metal", "metal")));
 
-	m_batch->Add(NEW(TextureLoader("Iridescence", "res/iridescence.png", true)));
-	m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png", true)));
-	m_batch->Add(NEW(TextureLoader("White", "res/white.png", true)));
+	//m_batch->Add(NEW(TextureLoader("Iridescence", "res/iridescence.png", true)));
+	//m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png", true)));
+	//m_batch->Add(NEW(TextureLoader("White", "res/white.png", true)));
 	//m_batch->Add(NEW(TextureLoader("BricksNormal", "res/bricksNormal.png")));
 	//m_batch->Add(NEW(TextureLoader("Concrete", "res/tiles/concrete_albedo.png")));
 	//m_batch->Add(NEW(TextureLoader("ConcreteSpec", "res/tiles/concrete_specular.png")));
 	//m_batch->Add(NEW(TextureLoader("SphereAlbedo", "res/sphere_albedo.png")));
-	m_batch->Add(NEW(TextureLoader("SphereNormal", "res/sphere_normal.png", true)));
+	//m_batch->Add(NEW(TextureLoader("SphereNormal", "res/sphere_normal.png", true)));
 	//m_batch->Add(NEW(TextureLoader("SphereSpec", "res/sphere_specular.png")));
 	//m_batch->Add(NEW(TextureLoader("SphereEmission", "res/sphere_emission.png")));
 	//m_batch->Add(NEW(TileTextureLoader("Concrete", "concrete")));
-	m_batch->Add(NEW(TileTextureLoader("Cross", "cross")));
+	//m_batch->Add(NEW(TileTextureLoader("Cross", "cross")));
 	//m_batch->Add(NEW(TextureLoader("RustAlbedo", "res/rust/rust_albedo.png")));
 	//m_batch->Add(NEW(TextureLoader("RustHeight", "res/rust/rust_height.png")));
 	//m_batch->Add(NEW(TextureLoader("RustMetallic", "res/rust/rust_metallic.png")));

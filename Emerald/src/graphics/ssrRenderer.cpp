@@ -13,8 +13,8 @@ SSRRenderer::SSRRenderer() {
 	m_simpleShader->Bind();
 	m_simpleShader->Set("_SSR", 0);
 
-	m_fbo = GetFrameBufferManager()->Create("SSR", FBOScale::FULL, false);
-	m_texture = m_fbo->AddBuffer("SSR", TextureParameters(RGB16, RGB, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
+	m_fbo = GetFrameBufferManager()->Create("SSR", FBOScale::FULL);
+	m_texture = m_fbo->AddBuffer("SSR", TextureParameters(INT_RGB16, DATA_RGB, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
 	m_quad = MeshGenerator::Quad();
 }

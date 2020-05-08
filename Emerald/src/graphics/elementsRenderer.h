@@ -27,7 +27,7 @@ private:
 
 public:
 	void Begin() {
-		ASSERT(m_ended, "Call MappedMesh::End before calling MappedMesh::Begin");
+		ASSERT(m_ended, "Call ElementsRenderer::End before calling ElementsRenderer::Begin");
 		m_amount = 0;
 		m_ended = false;
 		m_started = true;
@@ -36,21 +36,21 @@ public:
 	}
 
 	void Submit(T* data, int vertexCount, int count) {
-		ASSERT(m_amount + (count * m_indicesCount) <= m_maxObjects * m_indicesCount, "MappedMesh buffer full!");
+		ASSERT(m_amount + (count * m_indicesCount) <= m_maxObjects * m_indicesCount, "ElementsRenderer buffer full!");
 		memcpy(m_mappedBuffer, data, vertexCount * sizeof(T));
 		m_mappedBuffer += vertexCount;
 		m_amount += count * m_indicesCount;
 	}
 
 	void End() {
-		ASSERT(m_started, "Call MappedMesh::Begin before calling MappedMesh::End");
+		ASSERT(m_started, "Call ElementsRenderer::Begin before calling ElementsRenderer::End");
 		m_vertexBuffer->Unmap();
 		m_started = false;
 		m_ended = true;
 	}
 
 	void Draw(uint mode = GL_TRIANGLES) {
-		ASSERT(m_ended, "Call MappedMesh::End before calling MappedMesh::Draw");
+		ASSERT(m_ended, "Call ElementsRenderer::End before calling ElementsRenderer::Draw");
 		m_mesh->GetMaterial()->Bind();
 		m_mesh->DrawCount(m_amount, mode);
 	}

@@ -14,29 +14,46 @@ enum TextureFilter {
 	NEAREST
 };
 
-enum TextureFormat {
-	RED = GL_RED,
-	RG = GL_RG,
-	RGBA = GL_RGBA,
-	RGB = GL_RGB,
-	RGBA32 = GL_RGBA32F,
-	RGB32 = GL_RGB32F,
-	RGBA16 = GL_RGBA16F,
-	RGB16 = GL_RGB16F,
-	DEPTH = GL_DEPTH_COMPONENT,
-	DEPTH32 = GL_DEPTH_COMPONENT32,
-	DEPTH24 = GL_DEPTH_COMPONENT24
+enum TextureInternalFormat {
+	INT_RED = GL_RED,
+	INT_RG = GL_RG,
+	INT_RGBA = GL_RGBA,
+	INT_SRGBA = GL_SRGB_ALPHA,
+	INT_RGB = GL_RGB,
+	INT_SRGB = GL_SRGB,
+	INT_RGBA32 = GL_RGBA32F,
+	INT_RGB32 = GL_RGB32F,
+	INT_RGBA16 = GL_RGBA16F,
+	INT_RGB16 = GL_RGB16F,
+	INT_DEPTH = GL_DEPTH_COMPONENT,
+	INT_DEPTH32 = GL_DEPTH_COMPONENT32,
+	INT_DEPTH24 = GL_DEPTH_COMPONENT24,
+	INT_DEPTHSTENCIL = GL_DEPTH_STENCIL,
+	INT_DEPTH24STENCIL8 = GL_DEPTH24_STENCIL8,
+	INT_DEPTH32STENCIL8 = GL_DEPTH32F_STENCIL8,
+};
+
+enum TextureDataFormat {
+	DATA_UNK = 0,
+	DATA_RED = GL_RED,
+	DATA_RG = GL_RG,
+	DATA_RGB = GL_RGB,
+	DATA_RGBA = GL_RGBA,
+	DATA_STENCIL = GL_STENCIL_INDEX,
+	DATA_DEPTH = GL_DEPTH_COMPONENT,
+	DATA_DEPTHSTENCIL = GL_DEPTH_STENCIL
 };
 
 enum TextureType {
 	T_UNSIGNED_BYTE = GL_UNSIGNED_BYTE,
+	T_UNSIGNED_INT_24_8 = GL_UNSIGNED_INT_24_8_EXT,
 	T_FLOAT = GL_FLOAT,
 };
 
 class TextureParameters final {
 private:
-	TextureFormat m_internalFormat;
-	TextureFormat m_format;
+	TextureInternalFormat m_internalFormat;
+	TextureDataFormat m_dataFormat;
 	TextureFilter m_filter;
 	TextureWrap m_wrap;
 	TextureType m_type;
@@ -53,17 +70,37 @@ private:
 		return "NULL";
 	}
 
-	String FormatToString(TextureFormat format) const {
+	String InternalFormatToString(TextureInternalFormat format) const {
 		switch (format) {
-			case RED: return "RED";
-			case RG: return "RG";
-			case RGBA: return "RGBA";
-			case RGB: return "RGB";
-			case RGBA32: return "RGBA32";
-			case RGB32: return "RGB32";
-			case RGBA16: return "RGBA16";
-			case RGB16: return "RGB16";
-			case DEPTH: return "DEPTH";
+			case INT_RED: return "RED";
+			case INT_RG: return "RG";
+			case INT_RGBA: return "RGBA";
+			case INT_RGB: return "RGB";
+			case INT_RGBA32: return "RGBA32";
+			case INT_RGB32: return "RGB32";
+			case INT_RGBA16: return "RGBA16";
+			case INT_RGB16: return "RGB16";
+			case INT_DEPTH: return "DEPTH";
+			case INT_SRGBA: return "SRGBA";
+			case INT_SRGB: return "SRGB";
+			case INT_DEPTH32: return "DEPTH32";
+			case INT_DEPTH24: return "DEPTH24";
+			case INT_DEPTHSTENCIL: return "DEPTHSTENCIL";
+			case INT_DEPTH24STENCIL8: return "DEPTH24STENCIL8";
+			case INT_DEPTH32STENCIL8: return "IDEPTH32STENCIL8";
+		}
+		return "NULL";
+	}
+
+	String DataFormatToString(TextureDataFormat format) const {
+		switch (format) {
+			case DATA_RED: return "RED";
+			case DATA_RG: return "RG";
+			case DATA_RGB: return "RGB";
+			case DATA_RGBA: return "RGBA";
+			case DATA_STENCIL: return "STENCIL";
+			case DATA_DEPTH: return "DEPTH";
+			case DATA_DEPTHSTENCIL: return "DEPTHSTENCIL";
 		}
 		return "NULL";
 	}
@@ -81,29 +118,30 @@ private:
 		switch (type) {
 			case T_UNSIGNED_BYTE: return "UNSIGNED_BYTE";
 			case T_FLOAT: return "FLOAT";
+			case T_UNSIGNED_INT_24_8: return "UNSIGNED_INT_24_8";
 		}
 		return "NULL";
 	}
 
-	int BaseInternalFormatToSizedInternalFormat(TextureFormat format) const {
+	int BaseInternalFormatToSizedInternalFormat(TextureInternalFormat format) const {
 		switch (format) {
-			case RED: return GL_R8;
-			case RG: return GL_RG8;
-			case RGBA: return GL_RGBA8;
-			case RGB: return GL_RGB8;
+			case INT_RED: return GL_R8;
+			case INT_RG: return GL_RG8;
+			case INT_RGBA: return GL_RGBA8;
+			case INT_RGB: return GL_RGB8;
 		}
 		return format;
 	}
 
 public:
 
-	TextureParameters(TextureFormat internalFormat = RGBA, TextureFormat format = RGBA, TextureFilter filter = LINEAR, TextureWrap wrap = REPEAT, TextureType type = T_UNSIGNED_BYTE, bool flipY = true)
-		: m_internalFormat(internalFormat), m_format(format), m_filter(filter), m_wrap(wrap), m_type(type), m_flipY(flipY) {
+	TextureParameters(TextureInternalFormat internalFormat = INT_RGBA, TextureDataFormat dataFormat = DATA_RGBA, TextureFilter filter = LINEAR, TextureWrap wrap = REPEAT, TextureType type = T_UNSIGNED_BYTE, bool flipY = true)
+		: m_internalFormat(internalFormat), m_dataFormat(dataFormat), m_filter(filter), m_wrap(wrap), m_type(type), m_flipY(flipY) {
 	}
 
 	inline bool GetFlipY() const { return m_flipY; }
 	inline int GetInternalFormat() const { return m_internalFormat; }
-	inline int GetFormat() const { return m_format; }
+	inline int GetDataFormat() const { return m_dataFormat; }
 	inline int GetWrap() const { return m_wrap; }
 	inline int GetType() const { return m_type; }
 	inline int GetFilter(int type, bool mipmap) const {
@@ -123,31 +161,31 @@ public:
 		return BaseInternalFormatToSizedInternalFormat(m_internalFormat);
 	}
 
-	void SetFormat(TextureFormat format) {
-		m_format = format;
+	void SetDataFormat(TextureDataFormat dataFormat) {
+		m_dataFormat = dataFormat;
 	}
 
-	void SetFormatFromChannelCount(int count) {
+	void SetDataFormatFromChannelCount(int count) {
 		switch (count) {
-			case 1: SetFormat(RED); break;
-			case 2: SetFormat(RG); break;
-			case 3: SetFormat(RGB); break;
-			case 4: SetFormat(RGBA); break;
+			case 1: SetDataFormat(DATA_RED); break;
+			case 2: SetDataFormat(DATA_RG); break;
+			case 3: SetDataFormat(DATA_RGB); break;
+			case 4: SetDataFormat(DATA_RGBA); break;
 		}
 	}
 
 	int GetChannelCount() {
-		switch (m_format) {
-			case RED: return 1;
-			case RG: return 2;
-			case RGB: return 3;
-			case RGBA: return 4;
+		switch (m_dataFormat) {
+			case DATA_RED: return 1;
+			case DATA_RG: return 2;
+			case DATA_RGB: return 3;
+			case DATA_RGBA: return 4;
 		}
 		return 0;
 	}
 
 
 	String GetAsString() const {
-		return Format("%s %s %s %s %s", FormatToString(m_internalFormat).c_str(), FormatToString(m_format).c_str(), FilterToString(m_filter).c_str(), WrapToString(m_wrap).c_str(), TypeToString(m_type).c_str());
+		return Format("%s %s %s %s %s", InternalFormatToString(m_internalFormat).c_str(), DataFormatToString(m_dataFormat).c_str(), FilterToString(m_filter).c_str(), WrapToString(m_wrap).c_str(), TypeToString(m_type).c_str());
 	}
 };

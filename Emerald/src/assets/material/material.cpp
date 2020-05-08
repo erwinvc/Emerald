@@ -5,7 +5,6 @@ uint Material::s_boundMaterial = 0xFFFFFFFFu;
 void Material::Bind() {
 	m_shader->Bind();
 	if (s_boundMaterial == m_ID) {
-		//Application::s_globalLogValue++;
 		return;
 	}
 	for (auto& member : m_members) {
@@ -121,4 +120,11 @@ Material::Material(const String& name, Shader* shader, uint ID) : m_name(name), 
 		}
 	}
 	for (auto& member : m_members) member->GetUniformLocation(m_shader);
+}
+
+void Material::SetPBR(const String& name) {
+	SetAlbedoIfAvailable(GetAssetManager()->Get<Texture>(name + "_albedo"));
+	SetNormalIfAvailable(GetAssetManager()->Get<Texture>(name + "_normal"));
+	SetRoughnessIfAvailable(GetAssetManager()->Get<Texture>(name + "_roughness"));
+	SetMetallicIfAvailable(GetAssetManager()->Get<Texture>(name + "_metallic"));
 }

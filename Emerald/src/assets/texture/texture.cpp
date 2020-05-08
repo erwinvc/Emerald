@@ -13,9 +13,9 @@ void Texture::SetData(byte* data) {
 
 	GL(glBindTexture(GL_TEXTURE_2D, m_textureID));
 
-	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), data));
+	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetDataFormat(), m_params.GetType(), data));
 
-	
+
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_params.GetWrap()));
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_params.GetWrap()));
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_params.GetFilter(GL_TEXTURE_MIN_FILTER, m_hasMipmaps)));
@@ -23,10 +23,7 @@ void Texture::SetData(byte* data) {
 	if (m_hasMipmaps) {
 		m_mipmapCount = static_cast<int>(1 + Math::Floor((float)log2(Math::Min(m_width, m_height))));
 		GL(glGenerateMipmap(GL_TEXTURE_2D));
-	}else
-	{
-		m_mipmapCount = 0;
-	}
+	} else m_mipmapCount = 0;
 
 	//if (m_hasMipmaps) {
 	//	if (GLEW_EXT_texture_filter_anisotropic) {
@@ -71,6 +68,6 @@ void Texture::Resize(int width, int height) {
 	m_height = height;
 
 	Bind();
-	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetFormat(), m_params.GetType(), nullptr));
+	GL(glTexImage2D(GL_TEXTURE_2D, 0, m_params.GetInternalFormat(), m_width, m_height, 0, m_params.GetDataFormat(), m_params.GetType(), nullptr));
 	GL(glGenerateMipmap(GL_TEXTURE_2D));
 }

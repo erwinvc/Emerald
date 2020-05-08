@@ -63,7 +63,6 @@ struct GlobalUniforms {
 	UBOMat4 _View;
 	UBOMat4 _InverseProjection;
 	UBOMat4 _InverseView;
-	UBOFloat _BloomFactor;
 	UBOBool _SSAOEnabled;
 	UBOVec2 _CameraPlanes;
 	UBOVec2 _ViewPort;

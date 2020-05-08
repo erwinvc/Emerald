@@ -10,7 +10,7 @@ in vec4 fsPos;
 in vec4 newPos;
 in vec4 color;
 
-out vec3 outColor[2];
+out vec3 outColor;
 //out vec4 outBright;
 
 layout (std140) uniform GlobalUniforms {
@@ -19,7 +19,6 @@ layout (std140) uniform GlobalUniforms {
 	mat4 _View;
 	mat4 _InverseProjection;
 	mat4 _InverseView;
-    float _BloomFactor;
     bool _SSAOEnabled;
 	vec2 _CameraPlanes;
 	vec2 _ViewPort;
@@ -109,8 +108,9 @@ void main(){
     vec3 H = normalize(V + L);
     //float attenuation = clamp(1.0 - lightDist/(uLightRadius), 0.0, 1.0);
 	//attenuation *= attenuation; 
-	float attenuation = 1.0 / (1.0 + 0.1*lightDist + 0.01*lightDist*lightDist); 
-	//float attenuation = 1.0f / (lightDist * lightDist);
+	//float attenuation = 1.0 / (1.0 + 0.1*lightDist + 0.01*lightDist*lightDist); 
+	//float attenuation = 1.0f / lightDist; //Not gamma!
+	float attenuation = 1.0f / (lightDist * lightDist); //Gamma!
     vec3 radiance = color.rgb * attenuation;
 
     float NDF = DistributionGGX(N, H, roughness);   
@@ -136,8 +136,7 @@ void main(){
     float at = 1.0 - d;
 
 	color *= ztest * at;
-	outColor[0] = mix(albedo, color, lightInfluence);
-	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);
+	outColor = mix(albedo, color, lightInfluence);
 }
 
 //void main3() {

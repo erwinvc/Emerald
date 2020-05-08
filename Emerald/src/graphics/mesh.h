@@ -36,11 +36,13 @@ public:
 
 	void Draw(uint mode = GL_TRIANGLES) {
 		Bind();
+		GL(glStencilFunc(GL_ALWAYS, 1, 0xFF));
 		m_ibo->Draw(mode);
 	}
 
 	void DrawCount(uint32 count, uint mode = GL_TRIANGLES) {
 		Bind();
+		GL(glStencilFunc(GL_ALWAYS, 1, 0xFF));
 		m_ibo->Draw(count, mode);
 	}
 

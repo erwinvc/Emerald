@@ -92,8 +92,7 @@ vec3 linearToneMapping(vec3 color){
 }
 
 vec3 simpleReinhardToneMapping(vec3 color){
-	float exposure = 1.5;
-	color *= exposure/(1. + color / exposure);
+	color *= _Exposure/(1. + color / _Exposure);
 	color = pow(color, vec3(1. / _Gamma));
 	return color;
 }
@@ -139,8 +138,6 @@ vec3 Uncharted2ToneMapping(vec3 color){
 	float E = 0.02;
 	float F = 0.30;
 	float W = 11.2;
-	//float exposure = 2.;
-	//color *= exposure;
 	color = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
 	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
 	color *= white;
@@ -234,21 +231,6 @@ vec3 ToGreyScale(vec3 colorIn)
 	return vec3(grey, grey, grey);
 }
 
-float r(in vec2 p)
-{
-    return fract(cos(p.x*42.98 + p.y*43.23) * 1127.53);
-}
-
-float n(in vec2 p)
-{
-    vec2 fn = floor(p);
-    vec2 sn = smoothstep(vec2(0), vec2(1), fract(p));
-    
-    float h1 = mix(r(fn), r(fn + vec2(1,0)), sn.x);
-    float h2 = mix(r(fn + vec2(0,1)), r(fn + vec2(1)), sn.x);
-    return mix(h1 ,h2, sn.y);
-}
-
 void main(){
 	vec3 color = texture(_HDRBuffer, fsUv).rgb;
 	vec3 bloom = texture(_HDRBloom, fsUv).rgb;
@@ -257,6 +239,7 @@ void main(){
 		out_color = vec4(color, 1.0);
 		return;
 	}
+
 	if(_FXAA) color = computeFxaa();
 
 	//float o1 = -_Chromatic;
@@ -265,10 +248,9 @@ void main(){
 	//float rbloomColor = texture2D(_HDRBloom, fsUv + o1 * (fsUv - 0.5f)).r;
     //float gbloomColor = texture2D(_HDRBloom, fsUv + o2 * (fsUv - 0.5f)).g;
     //float bbloomColor = texture2D(_HDRBloom, fsUv + o3 * (fsUv - 0.5f)).b;  
-    vec3 bloomCol = texture2D(_HDRBloom, fsUv).rgb;  
 
 	//vec3 bloomColor = texture(_HDRBloom, fsUv).rgb * _BloomMultiplier;
-    if(_Bloom) color += bloomCol * _BloomMultiplier;
+    if(_Bloom) color += bloom * _BloomMultiplier;
 
 	color *= _Exposure;
 

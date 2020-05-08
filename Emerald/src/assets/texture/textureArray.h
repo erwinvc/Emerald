@@ -37,7 +37,7 @@ public:
 
 	int AddTexture(byte* data) {
 		GL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_handle));
-		GL(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, m_index, m_size, m_size, 1, m_params.GetFormat(), m_params.GetType(), data));
+		GL(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, m_index, m_size, m_size, 1, m_params.GetDataFormat(), m_params.GetType(), data));
 		return m_index++;
 	}
 

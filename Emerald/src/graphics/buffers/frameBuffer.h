@@ -5,7 +5,9 @@ class FrameBufferManager;
 
 enum class FBOAttachment {
 	COLOR,
-	DEPTH
+	DEPTH,
+	STENCIL,
+	DEPTHSTENCIL
 };
 
 enum FBOScale {
@@ -13,7 +15,7 @@ enum FBOScale {
 	FULL,
 	HALF,
 	QUARTER,
-	ONEFIFTH
+	ONEEIGHTH
 };
 
 class FrameBuffer {
@@ -28,6 +30,7 @@ private:
 	uint m_realWidth, m_realHeight;
 	Color m_color;
 	bool m_hasDepth;
+	bool m_hasStencil;
 
 	const GLenum drawBuffers[16] = {
 		GL_COLOR_ATTACHMENT0,
@@ -48,8 +51,8 @@ private:
 		GL_COLOR_ATTACHMENT15
 	};
 
-	FrameBuffer(String name, FBOScale scale, bool hasDepth, Color& clearColor = Color::Black());
-	FrameBuffer(String name, uint width, uint height, bool hasDepth, Color& clearColor = Color::Black());
+	FrameBuffer(String name, FBOScale scale, Color& clearColor = Color::Black());
+	FrameBuffer(String name, uint width, uint height, Color& clearColor = Color::Black());
 	~FrameBuffer();
 
 	bool CheckStatus();
@@ -67,7 +70,7 @@ private:
 			case FBOScale::FULL: return 1.0f;
 			case FBOScale::HALF: return 0.5f;
 			case FBOScale::QUARTER: return 0.25f;
-			case FBOScale::ONEFIFTH: return 0.2f;
+			case FBOScale::ONEEIGHTH: return 0.125f;
 		}
 		return 1.0f;
 	}
@@ -84,7 +87,7 @@ public:
 		GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	}
 	void Clear() const {
-		GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+		GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 	}
 
 	void ClearDepthOnly() const {
@@ -93,6 +96,10 @@ public:
 
 	void ClearColorOnly() const {
 		GL(glClear(GL_DEPTH_BUFFER_BIT));
+	}
+
+	void ClearStencilOnly() const {
+		GL(glClear(GL_STENCIL_BUFFER_BIT));
 	}
 
 	void Blit(FrameBuffer* targetFBO);
@@ -122,26 +129,26 @@ private:
 	uint m_width = 0;
 	uint m_height = 0;
 public:
-	AssetRef<FrameBuffer> Create(const String& name, uint width, uint height, bool hasDepth) {
+	AssetRef<FrameBuffer> Create(const String& name, uint width, uint height) {
 		for (FrameBuffer* fbo : m_frameBuffers) {
 			if (fbo->GetName().compare(name) == 0) {
-				LOG_ERROR("[~cBuffers~x] ~rFramebuffer ~1%s~r already exists", fbo->GetName().c_str());
+				LOG_ERROR("[~cBuffers~x] Framebuffer ~1%s~x already exists", fbo->GetName().c_str());
 				return AssetRef<FrameBuffer>(fbo);
 			}
 		}
-		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, width, height, hasDepth));
+		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, width, height));
 		m_frameBuffers.push_back(fbo);
 		return AssetRef<FrameBuffer>(fbo);
 	}
 
-	AssetRef<FrameBuffer> Create(const String& name, FBOScale scale, bool hasDepth) {
+	AssetRef<FrameBuffer> Create(const String& name, FBOScale scale) {
 		for (FrameBuffer* fbo : m_frameBuffers) {
 			if (fbo->GetName().compare(name) == 0) {
-				LOG_ERROR("[~cBuffers~x] ~rFramebuffer ~1%s~r already exists", fbo->GetName().c_str());
+				LOG_ERROR("[~cBuffers~x] Framebuffer ~1%s~x already exists", fbo->GetName().c_str());
 				return AssetRef<FrameBuffer>(fbo);
 			}
 		}
-		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, scale, hasDepth));
+		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, scale));
 		m_frameBuffers.push_back(fbo);
 		return AssetRef<FrameBuffer>(fbo);
 	}

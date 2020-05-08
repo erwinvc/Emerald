@@ -221,4 +221,6 @@ public:
 			}
 		}
 	}
+
+	void SetPBR(const String& name);
 };

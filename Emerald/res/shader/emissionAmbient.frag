@@ -1,7 +1,7 @@
 #version 330
 in vec2 fsUV;
 
-out vec3 outColor[2];
+out vec3 outColor;
 
 uniform sampler2D _GMisc;
 uniform sampler2D _GAlbedo;
@@ -13,7 +13,6 @@ layout (std140) uniform GlobalUniforms {
 	mat4 _View;
 	mat4 _InverseProjection;
 	mat4 _InverseView;
-    float _BloomFactor;
     bool _SSAOEnabled;
 	vec2 _CameraPlanes;
 	vec2 _ViewPort;
@@ -31,6 +30,5 @@ void main(){
 	//if(lightInfluence == 1) 
 	//if(emission == 0) discard;
 
-	outColor[0] = mix(albedo, vec3(albedo * emission + albedo * _AmbientIntensity) * ssao, lightInfluence);
-	outColor[1] = max(outColor[0] - _BloomFactor, 0.0f);
+	outColor = mix(albedo, vec3(albedo * emission + albedo * _AmbientIntensity) * ssao, lightInfluence);
 }

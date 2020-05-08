@@ -88,8 +88,6 @@ public:
 	//}
 
 	void Rect(glm::vec2 origin, float x, float y, float w, float h, float rotation, const Color& color, Texture* texture = nullptr, const glm::vec3& atlasValues = glm::vec3(1.0f, 0.0f, 0.0f)) {
-		//Rect(origin, x, y, 0.0f, 1.0f, 0.0f, 1.0f, w, h, rotation, color, texture, atlasValues);
-
 		float textureSlot = 0.0f;
 		if (texture) textureSlot = SubmitTexture(texture);
 		Vertex vertices[4];

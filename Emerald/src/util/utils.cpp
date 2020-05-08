@@ -88,7 +88,7 @@ namespace TextureUtils {
 		int width, height;
 
 		stbi_set_flip_vertically_on_load(flip);
-		byte* data = stbi_load(filePath.GetFullPath().c_str(), &width, &height, &channelCount, 4);
+		byte* data = stbi_load(filePath.GetFullPath().c_str(), &width, &height, &channelCount, 0);
 
 		//if (bpc != 3 && bpc != 4) {
 		//	LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", bpc, path.c_str());
@@ -96,7 +96,7 @@ namespace TextureUtils {
 		//	return false;
 		//}
 
-		if (channelCount < 1 || channelCount > 4) LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", channelCount, filePath.GetFileName().c_str());
+		//if (channelCount < 1 || channelCount > 4) LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", channelCount, filePath.GetFileName().c_str());
 
 		int size = channelCount * width * height;
 
