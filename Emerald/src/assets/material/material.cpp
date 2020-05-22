@@ -10,7 +10,12 @@ void Material::Bind() {
 	for (auto& member : m_members) {
 		member->Set(m_shader);
 	}
+	for (auto& callback : m_callbacksOnBind) callback->Callback();
 	s_boundMaterial = m_ID;
+}
+
+void Material::BindInstance() {
+	for (auto& callback : m_callbacksOnInstance) callback->Callback();
 }
 
 Material::Material(const String& name, Shader* shader, uint ID) : m_name(name), m_shader(shader), m_ID(ID) {

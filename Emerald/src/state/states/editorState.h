@@ -2,7 +2,6 @@
 
 class EditorState : public State {
 private:
-	String m_name = "Editor";
 	void OnImGuiViewport();
 	void CameraControls();
 
@@ -13,7 +12,8 @@ private:
 	World* m_world;
 
 public:
-	const String& GetName() override { return m_name; }
+	EditorState() : State("Editor") {}
+
 
 	void Initialize() override;
 	void Update(const TimeStep& time) override;

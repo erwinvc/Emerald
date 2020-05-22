@@ -128,28 +128,33 @@ public:
 
 	void Line(float x0, float y0, float x1, float y1, Color& color = Color::White(), float size = 1.0f) {
 		float textureSlot = 0.0f;
-		glm::vec2 normal = glm::normalize(glm::vec2(y1 - y0, -(x1 - x0))) * size;
+		glm::vec2 normal = glm::normalize(glm::vec2(y1 - y0, -(x1 - x0))) * glm::vec2(size, size);
 		Vertex vertices[4];
 
-		vertices[0].m_position = glm::vec3(x0 + normal.x, y0 + normal.y, 0.0f);
+		
+		vertices[2].m_position = glm::vec3(x0 + normal.x, y0 + normal.y, 0.0f);
+		//vertices[0].m_position = glm::vec3(x0 + normal.x, y0 + normal.y, 0.0f);
 		vertices[0].m_uv = glm::vec2(0.0f, 1.0f);
 		vertices[0].m_textureID = textureSlot;
 		vertices[0].m_color = color;
 		vertices[0].vsAtlasValues = glm::vec3(1, 0, 0);
 
 		vertices[1].m_position = glm::vec3(x1 + normal.x, y1 + normal.y, 0.0f);
+		//vertices[1].m_position = glm::vec3(1920.0f, 1080.0f, 0.0f);
 		vertices[1].m_uv = glm::vec2(1.0f, 1.0f);
 		vertices[1].m_textureID = textureSlot;
 		vertices[1].m_color = color;
 		vertices[1].vsAtlasValues = glm::vec3(1, 0, 0);
 
-		vertices[2].m_position = glm::vec3(x1 - normal.x, y1 - normal.y, 0.0f);
+		vertices[0].m_position = glm::vec3(x1 - normal.x, y1 - normal.y, 0.0f);
+		//vertices[2].m_position = glm::vec3(1920.0f, 0.0f, 0.0f);
 		vertices[2].m_uv = glm::vec2(1.0f, 0.0f);
 		vertices[2].m_textureID = textureSlot;
 		vertices[2].m_color = color;
 		vertices[2].vsAtlasValues = glm::vec3(1, 0, 0);
 
 		vertices[3].m_position = glm::vec3(x0 - normal.x, y0 - normal.y, 0.0f);
+		//vertices[3].m_position = glm::vec3(0.0f, 0.0f, 0.0f);
 		vertices[3].m_uv = glm::vec2(0.0f, 0.0f);
 		vertices[3].m_textureID = textureSlot;
 		vertices[3].m_color = color;

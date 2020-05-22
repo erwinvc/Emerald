@@ -20,6 +20,7 @@ LineRenderer::LineRenderer() {
 	IndexBuffer* ibo = new IndexBuffer(indicesBuffer, INDICES_SIZE);
 	Mesh* mesh = NEW(Mesh(NEW(VertexArray()), ibo, GetMaterialManager()->GetBasicMaterial(m_shader)));
 	Mesh* mesh2 = NEW(Mesh(NEW(VertexArray()), ibo, GetMaterialManager()->GetBasicMaterial(m_shader)));
+	Mesh* mesh3 = NEW(Mesh(NEW(VertexArray()), ibo, GetMaterialManager()->GetBasicMaterial(GetShaderManager()->Get("PolyLine"))));
 
 	m_overlayRenderer = NEW(ElementsRenderer<LineVertex>(mesh, VERTICES_COUNT, INDICES_COUNT, MAX_OBJECTS, layout));
 	m_depthRenderer = NEW(ElementsRenderer<LineVertex>(mesh2, VERTICES_COUNT, INDICES_COUNT, MAX_OBJECTS, layout));
@@ -50,23 +51,24 @@ void LineRenderer::Bounds(glm::vec3 position, glm::vec3 size, Color& color, bool
 	glm::vec3 x8 = (glm::vec3(-1.0f, -1.0f, -1.0f) * size) + position;
 
 	//Top
-	Line(x1, x2, color);
-	Line(x2, x4, color);
-	Line(x4, x3, color);
-	Line(x3, x1, color);
+	Line(x1, x2, color, overlay);
+	Line(x2, x4, color, overlay);
+	Line(x4, x3, color, overlay);
+	Line(x3, x1, color, overlay);
 
 	//Bottom
-	Line(x5, x6, color);
-	Line(x6, x8, color);
-	Line(x8, x7, color);
-	Line(x7, x5, color);
+	Line(x5, x6, color, overlay);
+	Line(x6, x8, color, overlay);
+	Line(x8, x7, color, overlay);
+	Line(x7, x5, color, overlay);
 
 	//Sides
-	Line(x1, x5, color);
-	Line(x2, x6, color);
-	Line(x3, x7, color);
-	Line(x4, x8, color);
+	Line(x1, x5, color, overlay);
+	Line(x2, x6, color, overlay);
+	Line(x3, x7, color, overlay);
+	Line(x4, x8, color, overlay);
 }
+
 
 void LineRenderer::Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay) {
 	LineVertex vertices[2];
@@ -92,8 +94,10 @@ void LineRenderer::End() {
 	m_depthRenderer->End();
 }
 void LineRenderer::Draw() {
+	GLUtils::EnableBlending();
 	GLUtils::DisableDepthTest();
 	m_overlayRenderer->Draw(GL_LINES);
 	GLUtils::EnableDepthTest();
 	m_depthRenderer->Draw(GL_LINES);
+	GLUtils::DisableBlending();
 }

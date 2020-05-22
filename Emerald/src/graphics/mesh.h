@@ -9,7 +9,7 @@ protected:
 public:
 	glm::vec3 m_size;
 	glm::vec3 m_center;
-	
+
 	Mesh();
 	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo, Material* material) : m_vao(vao), m_ibo(ibo) {
 		m_material = material;
@@ -36,7 +36,7 @@ public:
 
 	void Draw(uint mode = GL_TRIANGLES) {
 		Bind();
-		GL(glStencilFunc(GL_ALWAYS, 1, 0xFF));
+		//GL(glStencilFunc(GL_ALWAYS, 1, 0xFF));
 		m_ibo->Draw(mode);
 	}
 
@@ -46,6 +46,11 @@ public:
 		m_ibo->Draw(count, mode);
 	}
 
+	void DrawArrays(uint32 count, uint mode = GL_TRIANGLES) {
+		Bind();
+		glDrawArrays(mode, 0, count);
+	}
+	
 	AssetRef<Mesh> Copy() {
 		return NEW(Mesh(m_vao, m_ibo, m_material));
 	}

@@ -33,6 +33,14 @@ void ThreadManager::Cleanup() {
 	for (Thread* thread : m_threads) {
 		thread->Shutdown();
 	}
+	bool finished = false;
+	do {
+		finished = true;
+		for (auto& thread : m_threads) {
+			if (!thread->IsFinished()) finished = false;
+		}
+		Sleep(0);
+	} while (!finished);
 	//LOG("[~rThreads~x] Thread pool terminated");
 }
 

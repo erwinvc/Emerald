@@ -123,6 +123,7 @@ void main(){
 	float lightInfluence = misc.w;
 	float metallic = misc.y;
 	float roughness = misc.x;
+
 	vec3 viewPos = GetPosition(fsUv);
 
     if(viewPos == vec3(0) || metallic == 0) {

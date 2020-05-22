@@ -22,6 +22,7 @@ void Application::OnWindowClose() {
 
 void Application::Initialize() {
 	//glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	
 	glfwSetErrorCallback(ErrorCallback);
 	if (!glfwInit()) {
 		LOG_ERROR("[GLFW] GLFW failed to initialize");
@@ -63,13 +64,12 @@ void Application::Initialize() {
 
 	CapabilitiesCheck();
 
-
 	m_window->SetIcon(Icon("icon32"));
 
 	GetStateManager()->RegisterStates();
 	pipeline = NEW(HDRPipeline());
 	pipeline->EarlyInitialize(m_window->GetWidth(), m_window->GetHeight());
-	
+
 	GetGLFiberManager()->Initialize();
 	GetGLFiberManager()->AddFiber("Main", [] {GetApp()->Run(); });
 	GetGLFiberManager()->AddFiber("AssetManager", [] {GetAssetManager()->Update(); });

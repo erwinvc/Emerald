@@ -64,10 +64,10 @@ public:
 
 public:
 	static void PlotLine(Scan& scan, float scale, float x0, float y0, float x1, float y1) {
-		x0 = Math::Round((x0) / scale);
-		y0 = Math::Round((y0) / scale);
-		x1 = Math::Round((x1) / scale);
-		y1 = Math::Round((y1) / scale);
+		x0 = (float)Math::Round((x0) / scale);
+		y0 = (float)Math::Round((y0) / scale);
+		x1 = (float)Math::Round((x1) / scale);
+		y1 = (float)Math::Round((y1) / scale);
 		if (Math::Abs(y1 - y0) < Math::Abs(x1 - x0)) {
 			if (x0 > x1) PlotLineLow(scan, x1, y1, x0, y0);
 			else PlotLineLow(scan, x0, y0, x1, y1);
@@ -80,7 +80,7 @@ public:
 	static void PlotCamera(Scan& scan, const CornerRayPositions& cornersObj, Camera* camera, float scale) {
 		const glm::vec3* corners = cornersObj.corners;
 
-		glm::vec2 cam(camera->transform.m_position.x, camera->transform.m_position.z);
+		glm::vec2 cam(camera->transform.position.x, camera->transform.position.z);
 		glm::vec2 a(corners[0].x, corners[0].z);
 		glm::vec2 b(corners[1].x, corners[1].z);
 		glm::vec2 c(corners[2].x, corners[2].z);

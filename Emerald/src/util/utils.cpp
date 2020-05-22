@@ -19,14 +19,14 @@ String Format(String_t fmt, ...) {
 }
 
 namespace Utils {
-	void setPositionInFrontOfCam(glm::vec3& dest, const Camera* cam, float distance) {
-		const float x = cam->transform.m_position.x;
-		const float y = cam->transform.m_position.y;
-		const float z = cam->transform.m_position.z;
+	void SetPositionInFrontOfCam(glm::vec3& dest, const Camera* cam, float distance) {
+		const float x = cam->transform.position.x;
+		const float y = cam->transform.position.y;
+		const float z = cam->transform.position.z;
 
-		dest.x = x + Math::Sin(cam->transform.m_rotation.y) * distance * Math::Abs(Math::Cos(cam->transform.m_rotation.x));
-		dest.y = y - Math::Sin(cam->transform.m_rotation.x) * distance;
-		dest.z = z - Math::Cos(cam->transform.m_rotation.y) * distance * Math::Abs(Math::Cos(cam->transform.m_rotation.x));
+		dest.x = x + Math::Sin(cam->transform.rotation.y) * distance * Math::Abs(Math::Cos(cam->transform.rotation.x));
+		dest.y = y - Math::Sin(cam->transform.rotation.x) * distance;
+		dest.z = z - Math::Cos(cam->transform.rotation.y) * distance * Math::Abs(Math::Cos(cam->transform.rotation.x));
 	}
 
 	String FlipStringHorizontal(const String& toFlip, int x, int y) {

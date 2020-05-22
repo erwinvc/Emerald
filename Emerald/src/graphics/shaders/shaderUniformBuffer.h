@@ -72,6 +72,7 @@ private:
 			case GL_FLOAT_VEC4: 		return ShaderUniformType::VEC4;
 			case GL_INT: 				return ShaderUniformType::INT;
 			case GL_FLOAT_MAT4: 		return ShaderUniformType::MAT4;
+			case GL_SAMPLER_CUBE: 		return ShaderUniformType::INT;
 			case GL_SAMPLER_1D: 		return ShaderUniformType::INT;
 			case GL_SAMPLER_2D: 		return ShaderUniformType::INT;
 			case GL_SAMPLER_3D: 		return ShaderUniformType::INT;
@@ -101,15 +102,6 @@ private:
 		}
 	}
 
-	void SetGL(uint location, const int* value, uint count) { glUniform1iv(location, count, (int*)value); }
-	void SetGL(uint location, const glm::ivec2* value, uint count) { glUniform2iv(location, count, (int*)value); }
-	void SetGL(uint location, const float* value, uint count) { glUniform1fv(location, count, (float*)value); }
-	void SetGL(uint location, const glm::vec2* value, uint count) { glUniform2fv(location, count, (float*)value); }
-	void SetGL(uint location, const glm::vec3* value, uint count) { glUniform3fv(location, count, (float*)value); }
-	void SetGL(uint location, const glm::vec4* value, uint count) { glUniform4fv(location, count, (float*)value); }
-	void SetGL(uint location, const Color* value, uint count) { glUniform4fv(location, count, (float*)value); }
-	void SetGL(uint location, const glm::mat4* value, uint count) { glUniformMatrix4fv(location, count, GL_FALSE, (float*)value); }
-
 	void Allocate() {
 		m_data = new byte[m_offset];
 		for (uint i = 0; i < m_offset; i++) m_data[i] = 1;
@@ -137,6 +129,15 @@ public:
 	void AddUniform(const String& name, GLenum glType, uint location, uint count, bool existsInShader) {
 		AddUniform(name, GLTypeToShaderUniformType(glType), location, count, existsInShader);
 	}
+
+	static void SetGL(uint location, const int* value, uint count) { glUniform1iv(location, count, (int*)value); }
+	static void SetGL(uint location, const glm::ivec2* value, uint count) { glUniform2iv(location, count, (int*)value); }
+	static void SetGL(uint location, const float* value, uint count) { glUniform1fv(location, count, (float*)value); }
+	static void SetGL(uint location, const glm::vec2* value, uint count) { glUniform2fv(location, count, (float*)value); }
+	static void SetGL(uint location, const glm::vec3* value, uint count) { glUniform3fv(location, count, (float*)value); }
+	static void SetGL(uint location, const glm::vec4* value, uint count) { glUniform4fv(location, count, (float*)value); }
+	static void SetGL(uint location, const Color* value, uint count) { glUniform4fv(location, count, (float*)value); }
+	static void SetGL(uint location, const glm::mat4* value, uint count) { glUniformMatrix4fv(location, count, GL_FALSE, (float*)value); }
 
 	void SetFloat(uint location, const float value) {
 		SetGL(location, &value, 1);

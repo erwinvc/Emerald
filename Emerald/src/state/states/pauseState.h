@@ -2,9 +2,9 @@
 
 class PauseState : public State {
 private:
-	String m_name = "Pause";
 public:
-	const String& GetName() override { return m_name; }
+	PauseState() : State("Pause") {}
+
 
 	void Initialize() override {}
 	void Update(const TimeStep& time) override {}

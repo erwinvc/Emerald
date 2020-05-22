@@ -2,14 +2,13 @@
 
 class LoadingState : public State {
 private:
-	String m_name = "Loading";
 	AssetRef<Texture> m_logo;
 	AssetRef<Texture> m_animatedLogo;
 	AssetRef<Texture> m_loadingTexture;
 	AssetRef<BasicAssetBatch> m_batch;
 public:
-	const String& GetName() override { return m_name; }
-
+	LoadingState() : State("Loading") {}
+	
 	void Initialize() override;
 	void Update(const TimeStep& time) override;
 	void RenderGeometry(HDRPipeline* pipeline) override;

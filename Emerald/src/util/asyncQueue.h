@@ -41,6 +41,7 @@ public:
 
 	void ReleaseWaitingThreads() {
 		m_releaseThreads = true;
+		m_conditionVariable.notify_all();
 	}
 
 	int Size() {

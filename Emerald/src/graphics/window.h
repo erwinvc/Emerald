@@ -64,7 +64,12 @@ public:
 	}
 
 	void SetVSync(bool toggle) {
-		glfwSwapInterval(toggle);
+		m_vSync = toggle;
+		glfwSwapInterval(m_vSync);
+	}
+
+	bool GetVSync() {
+		return m_vSync;
 	}
 
 	void SetIcon(const Icon& icon) {

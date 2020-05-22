@@ -1,15 +1,17 @@
 #pragma once
 
 class State {
+	String m_name;
 public:
-	State() {}
+	State(const String& name) : m_name(name) {}
 	virtual ~State() {}
 
-	virtual const String& GetName() = 0;
-
+	String GetName() { return m_name; }
+	
 	virtual void Initialize() = 0;
 	virtual void Update(const TimeStep& time) = 0;
 	virtual void RenderGeometry(HDRPipeline* pipeline) = 0;
+	virtual void FreeRender(HDRPipeline* pipeline) {}
 	//virtual void RenderUI() = 0;
 	virtual void OnStateImGUI() = 0;
 	virtual void OnImGUI() = 0;

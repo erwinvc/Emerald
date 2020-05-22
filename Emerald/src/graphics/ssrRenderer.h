@@ -12,7 +12,7 @@ private:
 	AssetRef<Mesh> m_quad;
 	
 public:
-	bool m_enabled = true;
+	bool m_enabled = false;
 	SSRRenderer();
 	void Draw(HDRPipeline* pipeline);
 	void OnImGui();

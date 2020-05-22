@@ -25,7 +25,7 @@ public:
 	}
 
 	void Print() {
-		LOG("%.2fms", Get());
+		LOG("%.3fms", Get());
 	}
 };
 

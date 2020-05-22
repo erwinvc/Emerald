@@ -104,7 +104,14 @@ namespace Utils {
 	}
 
 	//Math?
-	void setPositionInFrontOfCam(glm::vec3& dest, const Camera* cam, float distance);
+	void SetPositionInFrontOfCam(glm::vec3& dest, const Camera* cam, float distance);
+
+	static glm::vec3 RotationToDirection(glm::vec3 rotation) {
+		glm::vec3 mirrorRot = rotation;
+		mirrorRot.y = -mirrorRot.y; //Whatthefeck
+		mirrorRot.x = -mirrorRot.x; //Honestly no clue why this is necessary. Cba to debug rn
+		return glm::quat(mirrorRot) * glm::vec3(0, 0, -1);
+	}
 }
 
 namespace GLUtils {
@@ -138,7 +145,7 @@ namespace GLUtils {
 
 	void EnableDepthTest();
 	void DisableDepthTest();
-	
+
 	static String GLErrorToString(int error) {
 		switch (error) {
 			case 0x500: return "GL_INVALID_ENUM";

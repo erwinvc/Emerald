@@ -120,3 +120,8 @@ void ImGuiManager::End() {
 	ImGui::RenderPlatformWindowsDefault();
 	glfwMakeContextCurrent(backup);
 }
+
+bool UI::BeginWindow(const String_t name) {
+	bool open = true;
+	return ImGui::Begin(Format_t("%s###Window", name), &open, ImVec2(576, 680), -1, GetMouse()->IsLocked() ? ImGuiWindowFlags_NoMouseInputs : 0);
+}

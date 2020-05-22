@@ -54,6 +54,10 @@ namespace Math {
 		return (float)::pow(value, pow);
 	}
 
+	inline float Log(float value) {
+		return (float)::log(value);
+	}
+
 	inline float Asin(float value) {
 		return (float)::asin(value);
 	}
@@ -91,13 +95,21 @@ namespace Math {
 		return value < 0 ? -amount : amount;
 	}
 
+	inline float Mod(float value1, float value2) {
+		return std::fmod(value1, value2);
+	}
+	//template <typename T>
+	//int sign(const T& a) {
+	//	return (T{ 0 } < a) - (a < T{ 0 });
+	//}
+
 	template<typename T>
 	inline T Clamp(T val, T min, T max) {
 		return val < min ? min : val > max ? max : val;
 	}
 
 	template<typename T>
-	inline void Clamp(T *val, T min, T max) {
+	inline void Clamp(T* val, T min, T max) {
 		*val = *val < min ? min : *val > max ? max : *val;
 	}
 
@@ -139,8 +151,8 @@ namespace Math {
 		return value + (value < easeTo ? Abs(value - easeTo) / multiplier : -Abs(value - easeTo) / multiplier);
 	}
 
-	inline float Round(float val) {
-		return ::round(val);
+	inline int Round(float val) {
+		return (val >= 0) ? (int)(val + 0.5f) : (int)(val - 0.5f);
 	}
 
 	inline float Floor(float val) {

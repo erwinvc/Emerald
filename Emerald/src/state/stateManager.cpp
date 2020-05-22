@@ -5,7 +5,7 @@ State* GameStates::EDITOR = nullptr;
 State* GameStates::MENU = nullptr;
 State* GameStates::GAME = nullptr;
 State* GameStates::PAUSE = nullptr;
-State* GameStates::GAMEOVER = nullptr;
+VoxelState* GameStates::VOXEL = nullptr;
 
 void StateManager::RegisterStates() {
 	GameStates::LOADING = RegisterState<LoadingState>();
@@ -13,7 +13,7 @@ void StateManager::RegisterStates() {
 	GameStates::MENU = RegisterState<MenuState>();
 	GameStates::GAME = RegisterState<GameState>();
 	GameStates::PAUSE = RegisterState<PauseState>();
-	GameStates::GAMEOVER = RegisterState<GameOverState>();
+	GameStates::VOXEL = RegisterState<VoxelState>();
 
 	GameStates::LOADING->Initialize();
 	m_currentState = GameStates::LOADING;

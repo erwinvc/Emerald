@@ -6,15 +6,15 @@ private:
 	GameObject* m_gameObject;
 	friend GameObject;
 public:
-	glm::vec3 m_position;
-	glm::vec3 m_size;
-	glm::vec3 m_rotation;
+	glm::vec3 position;
+	glm::vec3 size;
+	glm::vec3 rotation;
 	glm::mat4 m_cachedTransformationMatrix;
 	bool m_dirty = true;
 
-	Transform() : m_gameObject(nullptr), m_position(glm::vec3(0.0f)), m_size(glm::vec3(1.0f)), m_rotation(0.0f) {}
-	Transform(GameObject* gameObject) : m_gameObject(gameObject), m_position(glm::vec3(0.0f)), m_size(glm::vec3(1.0f)), m_rotation(0.0f) {}
-	Transform(const Transform& other, GameObject* gameObject) : m_gameObject(gameObject), m_position(other.m_position), m_size(other.m_size), m_rotation(other.m_rotation) {}
+	Transform() : m_gameObject(nullptr), position(glm::vec3(0.0f)), size(glm::vec3(1.0f)), rotation(0.0f) {}
+	Transform(GameObject* gameObject) : m_gameObject(gameObject), position(glm::vec3(0.0f)), size(glm::vec3(1.0f)), rotation(0.0f) {}
+	Transform(const Transform& other, GameObject* gameObject) : m_gameObject(gameObject), position(other.position), size(other.size), rotation(other.rotation) {}
 
 	//Transform(const Transform& other) = delete;
 
@@ -23,8 +23,8 @@ public:
 	}
 
 	glm::mat4 GetTransformationMatrix() {
-		glm::mat4 matrix = glm::toMat4(GetOrientation()) * glm::translate(glm::mat4(1.0f), -m_position);
-		matrix = glm::inverse(matrix) * glm::scale(m_size);
+		glm::mat4 matrix = glm::toMat4(GetOrientation()) * glm::translate(glm::mat4(1.0f), -position);
+		matrix = glm::inverse(matrix) * glm::scale(size);
 		
 		//if (m_dirty) {
 		//	glm::t
@@ -55,17 +55,17 @@ public:
 	}
 
 	glm::quat GetOrientation() {
-		return glm::quat(glm::vec3(-m_rotation.x, -m_rotation.y, -m_rotation.z));
+		return glm::quat(glm::vec3(-rotation.x, -rotation.y, -rotation.z));
 	}
 
 
-	float XMin() { return m_position.x - m_size.x / 2; }
-	float XMax() { return m_position.x + m_size.x / 2; }
-	float YMin() { return m_position.y - m_size.y / 2; }
-	float YMax() { return m_position.y + m_size.y / 2; }
+	float XMin() { return position.x - size.x / 2; }
+	float XMax() { return position.x + size.x / 2; }
+	float YMin() { return position.y - size.y / 2; }
+	float YMax() { return position.y + size.y / 2; }
 
 	bool Compare(const Transform& other) {
-		return m_position == other.m_position && m_size == other.m_size && m_rotation == other.m_rotation;
+		return position == other.position && size == other.size && rotation == other.rotation;
 	}
 
 	//Rectangle AsRectangle() {

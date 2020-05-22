@@ -14,6 +14,7 @@ public:
 
     HANDLE GetHandle() { return m_handle; };
     void Shutdown() { m_shutDown = true; }
+    bool IsShuttingDown() { return m_shutDown; }
     bool IsFinished() { return m_finished; }
 
     const String& GetName() { return m_name; }

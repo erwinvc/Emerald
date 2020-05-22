@@ -5,8 +5,6 @@ struct Position {
 };
 class MenuState : public State {
 private:
-	String m_name = "Menu";
-
 	Model* m_mori;
 	Entity* m_moriEntity;
 	Shader* m_geometryShader;
@@ -18,40 +16,36 @@ private:
 	vector<Pointlight> m_pointLights;
 	vector<glm::vec3> m_positions;
 	int LIGHTCOUNT = 8000;
-	ChunkMesh chunkMesh;
-	Chunk chunk;
-	Shader* chunkShader;
+	
 public:
-	const String& GetName() override { return m_name; }
+	MenuState() : State("Menu") {}
+	
 
 	void Initialize() override {
-		m_pointLights.push_back(Pointlight(glm::vec3(0, 3, 0), 15, Color::Blue()));
-		m_geometryShader = GetShaderManager()->Get("Geometry");
-		m_mori = GetAssetManager()->Get<Model>("Mori");
-		mat = GetMaterialManager()->Create("MoriMaterial", m_geometryShader);
-		mat->SetPBR("planks");
-		m_mori->SetMaterial(mat);
-		m_moriEntity = new Entity(m_mori);
-		iri = GetAssetManager()->Get<Texture>("Iridescence");
-		noise = GetAssetManager()->Get<Texture>("Noise");
-		//sponza = GetAssetManager()->Get<Model>("Sponza");
-		Model* model = GetAssetManager()->Get<Model>("Sponza");
-		sponzaEntity = new Entity(model);
-		sponzaEntity->m_transform.m_size = glm::vec3(0.1f, 0.1f, 0.1f);
-
-		//GetCamera()->m_position.y = -2;
-		Camera::active->transform.m_position = glm::vec3(-1.3f, 0.96f, 0);
-		Camera::active->transform.m_rotation.y = Math::HALF_PI;
-		m_moriEntity->m_transform.m_position.y = 5.0f;
-		m_moriEntity->m_transform.m_position.x = -6.0f;
-		m_moriEntity->m_transform.m_size = glm::vec3(10.0f);
-		//GetPipeline()->m_directionalLight.m_multiplier = 5.0f;
-		for (int i = 0; i < LIGHTCOUNT; i++) {
-			m_positions.push_back(glm::vec3(Random::Float(-150.0f, 130.0f), Random::Float(0.0f, 90.0f), Random::Float(-60.0f, 60.0f)));
-		}
-		chunkMesh = ChunkMeshGenerator::MakeChunkMesh(chunk);
-		chunkMesh.GenerateMesh();
-		chunkShader = GetShaderManager()->Get("Chunk");
+		//m_pointLights.push_back(Pointlight(glm::vec3(0, 3, 0), 15, Color::Blue()));
+		//m_geometryShader = GetShaderManager()->Get("Geometry");
+		//m_mori = GetAssetManager()->Get<Model>("wheelbarrow");
+		//mat = GetMaterialManager()->Create("MoriMaterial", m_geometryShader);
+		//mat->SetPBR("wheelbarrow");
+		//m_mori->SetMaterial(mat);
+		//m_moriEntity = new Entity(m_mori);
+		//iri = GetAssetManager()->Get<Texture>("Iridescence");
+		//noise = GetAssetManager()->Get<Texture>("Noise");
+		////sponza = GetAssetManager()->Get<Model>("Sponza");
+		//Model* model = GetAssetManager()->Get<Model>("Sponza");
+		//sponzaEntity = new Entity(model);
+		//sponzaEntity->m_transform.m_size = glm::vec3(0.1f, 0.1f, 0.1f);
+		//
+		////GetCamera()->m_position.y = -2;
+		//Camera::active->transform.position = glm::vec3(-1.3f, 0.96f, 0);
+		//Camera::active->transform.rotation.y = Math::HALF_PI;
+		////m_moriEntity->m_transform.position.y = 5.0f;
+		////m_moriEntity->m_transform.position.x = -6.0f;
+		//m_moriEntity->m_transform.m_size = glm::vec3(0.2f);
+		////GetPipeline()->m_directionalLight.m_multiplier = 5.0f;
+		//for (int i = 0; i < LIGHTCOUNT; i++) {
+		//	m_positions.push_back(glm::vec3(Random::Float(-150.0f, 130.0f), Random::Float(0.0f, 90.0f), Random::Float(-60.0f, 60.0f)));
+		//}
 	}
 	bool started = false;
 	bool disableMori = false;
@@ -61,29 +55,38 @@ public:
 	void Update(const TimeStep& time) override {
 		Camera::active->Update(time);
 		static float seconds = 0;
-		seconds += time.GetSeconds();
-		m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
+		seconds += time.DeltaTime();
+		m_moriEntity->transform.rotation.y += Math::QUARTER_PI * time.DeltaTime();
 
 		if (moveLights) {
 			amount = Math::Clamp(amount + 5, 0, LIGHTCOUNT);
 			for (int i = 0; i < amount; i++) {
 				//m_pointLights[i].m_position.Lerp(m_positions[i], time.GetSeconds() / 4.0f);
-				m_pointLights[i].m_position = glm::lerp(m_pointLights[i].m_position, m_positions[i], time.GetSeconds() / 4.0f);
+				m_pointLights[i].m_position = glm::lerp(m_pointLights[i].m_position, m_positions[i], time.DeltaTime() / 4.0f);
 			}
+		}
+
+		if (GetMouse()->ButtonJustDown(VK_MOUSE_MIDDLE)) {
+			m_pointLights.push_back(Pointlight(Camera::active->transform.position, 2, Color::RandomPrimary() * 2));
+
 		}
 	}
 	void RenderGeometry(HDRPipeline* pipeline) override {
 		m_geometryShader->Bind();
 
-		if (!disableMori) m_moriEntity->Draw();
-
+		//if (!disableMori) m_moriEntity->Draw();
+		m_moriEntity->Draw();
 		sponzaEntity->Draw();
 
-		//for (auto& mesh : sponzaEntity->m_model->GetMeshes()) {
-		//	pipeline->Bounds(mesh->m_center * sponzaEntity->m_transform.m_size, mesh->m_size * sponzaEntity->m_transform.m_size, Color::Blue(), true);
+
+		//Ray ray(Camera::active->transform.m_position, Camera::active->transform.m_rotation);
+		//for (; ray.GetLength() < 8; ray.Step(0.25f)) {
+		//	auto rayBlockPosition = Chunk::ToBlockPosition(ray.GetEndpoint());
+		//	if (m_chunk.GetBlock(rayBlockPosition) == 1) {
+		//		pipeline->Bounds(glm::vec3(rayBlockPosition) + glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.501f, 0.501f, 0.501f), Color(0.0f, 0.0f, 0.0f, 0.55f), false);
+		//		break;
+		//	}
 		//}
-		//chunkShader->Bind();
-		//chunkMesh.m_mesh->Draw();
 		GetPointlightRenderer()->Submit(m_pointLights.data(), m_pointLights.size());
 	}
 
@@ -107,13 +110,13 @@ public:
 		if (ImGui::Button("Planks")) mat->SetPBR("planks");
 		if (ImGui::Button("Gold")) mat->SetPBR("gold");
 		if (ImGui::Button("Metal")) mat->SetPBR("metal");
-		ImGui::DragFloat3("pos", (float*)&sponzaEntity->m_transform.m_position);
-		ImGui::DragFloat3("rot", (float*)&sponzaEntity->m_transform.m_rotation, 0.02f);
-		ImGui::DragFloat3("size", (float*)&sponzaEntity->m_transform.m_size, 0.02f);
+		ImGui::DragFloat3("pos", (float*)&sponzaEntity->transform.position);
+		ImGui::DragFloat3("rot", (float*)&sponzaEntity->transform.rotation, 0.02f);
+		ImGui::DragFloat3("size", (float*)&sponzaEntity->transform.size, 0.02f);
 
-		ImGui::DragFloat3("pos1", (float*)&m_moriEntity->m_transform.m_position);
-		ImGui::DragFloat3("rot1", (float*)&m_moriEntity->m_transform.m_rotation, 0.02f);
-		ImGui::DragFloat3("size1", (float*)&m_moriEntity->m_transform.m_size, 0.02f);
+		ImGui::DragFloat3("pos1", (float*)&m_moriEntity->transform.position);
+		ImGui::DragFloat3("rot1", (float*)&m_moriEntity->transform.rotation, 0.02f);
+		ImGui::DragFloat3("size1", (float*)&m_moriEntity->transform.size, 0.02f);
 		static float temp = 0;
 
 		if (ImGui::Button("Start")) {
@@ -127,8 +130,8 @@ public:
 							irid = true;
 							Tween::To(temp, 0.0f, 5000)->SetOnComplete([&] {
 
-								Tween::To(Camera::active->transform.m_position, glm::vec3(-105, 32, 0), 5000)->SetEase(Ease::INOUTEXPO);
-								Tween::To(Camera::active->transform.m_rotation, glm::vec3(0.2f, Math::HALF_PI, 0), 5000)->SetEase(Ease::INOUTEXPO);
+								Tween::To(Camera::active->transform.position, glm::vec3(-105, 32, 0), 5000)->SetEase(Ease::INOUTEXPO);
+								Tween::To(Camera::active->transform.rotation, glm::vec3(0.2f, Math::HALF_PI, 0), 5000)->SetEase(Ease::INOUTEXPO);
 								Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
 									disableMori = true;
 									GetApp()->pipeline->m_applyPostProcessing = false;

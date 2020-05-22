@@ -43,8 +43,8 @@ glm::vec3 GroundRaycast::ToWorldCoords(const glm::vec4& eyeCoords, Camera* camer
 	return glm::normalize(mouseRay);
 }
 glm::vec3 GroundRaycast::GetGroundPosition(const glm::vec3& ray, float height, Camera* camera) {
-	glm::vec3& rayStart = camera->transform.m_position;
-	glm::vec3& rayEnd = camera->transform.m_position + ray;
+	glm::vec3& rayStart = camera->transform.position;
+	glm::vec3& rayEnd = camera->transform.position + ray;
 	glm::vec3& delta = rayEnd - rayStart;
 	delta = glm::normalize(delta);
 

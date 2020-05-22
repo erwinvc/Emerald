@@ -10,10 +10,10 @@ public:
 		float speed = 0.5f;
 		glm::vec3 vel(0, 0, 0);
 
-		if (KeyDown('W')) vel.x += speed * time.GetSeconds();
-		if (KeyDown('S')) vel.x -= speed * time.GetSeconds();
-		if (KeyDown('D')) vel.z += speed * time.GetSeconds();
-		if (KeyDown('A')) vel.z -= speed * time.GetSeconds();
+		if (KeyDown('W')) vel.x += speed * time.DeltaTime();
+		if (KeyDown('S')) vel.x -= speed * time.DeltaTime();
+		if (KeyDown('D')) vel.z += speed * time.DeltaTime();
+		if (KeyDown('A')) vel.z -= speed * time.DeltaTime();
 		if (KeyDown(' ') && body.m_position.y == 0) body.m_velocity.y += 0.2f;
 		if (KeyDown(LSHIFT)) {
 			vel *= 2;
@@ -21,8 +21,8 @@ public:
 			//	GetPipeline()->m_chromatic = Math::Ease(GetPipeline()->m_chromatic, 0.015f, 6);
 		} //else GetPipeline()->m_chromatic = Math::Ease(GetPipeline()->m_chromatic, 0, 6);
 
-		float _sin = Math::Sin(Camera::active->transform.m_rotation.y - Math::HALF_PI);
-		float _cos = Math::Cos(Camera::active->transform.m_rotation.y - Math::HALF_PI);
+		float _sin = Math::Sin(Camera::active->transform.rotation.y - Math::HALF_PI);
+		float _cos = Math::Cos(Camera::active->transform.rotation.y - Math::HALF_PI);
 
 		float x = vel.x * _cos - vel.z * _sin;
 		float z = vel.x * _sin + vel.z * _cos;
@@ -32,7 +32,7 @@ public:
 
 		body.Update(time, m_surroundingTiles);
 
-		Camera::active->transform.m_position = glm::vec3(body.m_position.x, body.m_position.y + 0.9f, body.m_position.z);
+		Camera::active->transform.position = glm::vec3(body.m_position.x, body.m_position.y + 0.9f, body.m_position.z);
 
 		if (GetApp()->GetWindow()->GetFocussed()) {
 			glfwSetInputMode(GetApp()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);

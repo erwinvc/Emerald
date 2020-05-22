@@ -13,6 +13,7 @@ private:
 
 	ElementsRenderer<LineVertex>* m_depthRenderer;
 	ElementsRenderer<LineVertex>* m_overlayRenderer;
+	
 	const uint MAX_OBJECTS = 512;
 	const uint INDICES_COUNT = 2;
 	const uint VERTICES_COUNT = 2;

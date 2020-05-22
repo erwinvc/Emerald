@@ -8,55 +8,55 @@ Texture* noise;
 //Entity* cursor;
 //Entity* m_entities[4];
 
-struct Ray {
-	glm::vec3 origin;
-	glm::vec3 direction;
-
-	Ray(glm::vec3 orig, glm::vec3 dir) : origin(orig), direction(dir) {}
-};
-
-float ClosestDistanceBetweenLines(Ray& l1, Ray& l2) {
-	const glm::vec3 dp = l2.origin - l1.origin;
-	const float v12 = glm::dot(l1.direction, l1.direction);
-	const float v22 = glm::dot(l2.direction, l2.direction);
-	const float v1v2 = glm::dot(l1.direction, l2.direction);
-
-	const float det = v1v2 * v1v2 - v12 * v22;
-
-	if (Math::Abs(det) > FLT_MIN) {
-		const float inv_det = 1.f / det;
-
-		const float dpv1 = glm::dot(dp, l1.direction);
-		const float dpv2 = glm::dot(dp, l2.direction);
-
-		float l1t = inv_det * (v22 * dpv1 - v1v2 * dpv2);
-		float l2t = inv_det * (v1v2 * dpv1 - v12 * dpv2);
-
-		return (float) (dp + l2.direction * l2t - l1.direction * l1t).length();
-	} else {
-		const glm::vec3 a = glm::cross(dp,l1.direction);
-		return Math::Sqrt(glm::dot(a, a) / v12);
-	}
-}
-
-void draw_translation_gizmo(const Transform& transform) {
-	for (int i = 0; i < 1; i++) {
-		glm::vec3 axis_end = glm::vec3(0.f, 0.f, 0.f);
-		axis_end[i] = 1.0f;
-		Color axis_color = Color(0.f, 0.f, 0.f);
-		axis_color.values[i] = 1.f;
-
-		//if (i == context.selected_axis) {
-		//	axis_color = Vec3f(1.f, 0.65f, 0.f);
-		//}
-
-		glm::vec3 ray = GroundRaycast::GetMousePosition();
-		float dist = ClosestDistanceBetweenLines(Ray(transform.m_position, glm::normalize(axis_end)), Ray(Camera::active->transform.m_position, glm::normalize(ray)));
-		//LOG("%f", dist);
-		//GetLineRenderer()->Submit(transform.m_position, axis_end + transform.m_position, axis_color);
-	}
-}
-
+//struct Ray {
+//	glm::vec3 origin;
+//	glm::vec3 direction;
+//
+//	Ray(glm::vec3 orig, glm::vec3 dir) : origin(orig), direction(dir) {}
+//};
+//
+//float ClosestDistanceBetweenLines(Ray& l1, Ray& l2) {
+//	const glm::vec3 dp = l2.origin - l1.origin;
+//	const float v12 = glm::dot(l1.direction, l1.direction);
+//	const float v22 = glm::dot(l2.direction, l2.direction);
+//	const float v1v2 = glm::dot(l1.direction, l2.direction);
+//
+//	const float det = v1v2 * v1v2 - v12 * v22;
+//
+//	if (Math::Abs(det) > FLT_MIN) {
+//		const float inv_det = 1.f / det;
+//
+//		const float dpv1 = glm::dot(dp, l1.direction);
+//		const float dpv2 = glm::dot(dp, l2.direction);
+//
+//		float l1t = inv_det * (v22 * dpv1 - v1v2 * dpv2);
+//		float l2t = inv_det * (v1v2 * dpv1 - v12 * dpv2);
+//
+//		return (float) (dp + l2.direction * l2t - l1.direction * l1t).length();
+//	} else {
+//		const glm::vec3 a = glm::cross(dp,l1.direction);
+//		return Math::Sqrt(glm::dot(a, a) / v12);
+//	}
+//}
+//
+//void draw_translation_gizmo(const Transform& transform) {
+//	for (int i = 0; i < 1; i++) {
+//		glm::vec3 axis_end = glm::vec3(0.f, 0.f, 0.f);
+//		axis_end[i] = 1.0f;
+//		Color axis_color = Color(0.f, 0.f, 0.f);
+//		axis_color.values[i] = 1.f;
+//
+//		//if (i == context.selected_axis) {
+//		//	axis_color = Vec3f(1.f, 0.65f, 0.f);
+//		//}
+//
+//		glm::vec3 ray = GroundRaycast::GetMousePosition();
+//		float dist = ClosestDistanceBetweenLines(Ray(transform.m_position, glm::normalize(axis_end)), Ray(Camera::active->transform.m_position, glm::normalize(ray)));
+//		//LOG("%f", dist);
+//		//GetLineRenderer()->Submit(transform.m_position, axis_end + transform.m_position, axis_color);
+//	}
+//}
+//
 
 void EditorState::Initialize() {
 	m_mori = GetAssetManager()->Get<Model>("Mori");
@@ -77,7 +77,7 @@ void EditorState::Initialize() {
 }
 
 void EditorState::RenderGeometry(HDRPipeline* pipeline) {
-	draw_translation_gizmo(m_moriEntity->m_transform);
+	//draw_translation_gizmo(m_moriEntity->m_transform);
 	m_geometryShader->Bind();
 	iri->Bind(5);
 	noise->Bind(6);
@@ -109,7 +109,7 @@ void EditorState::RenderGeometry(HDRPipeline* pipeline) {
 
 	//cursor->Draw(m_geometryShader);
 
-	m_world->RenderGeometry();
+	//m_world->RenderGeometry();
 	//GetPointlightRenderer()->Submit(Pointlight(glm::vec3(1.1f, 1.0f, 0), 50, Color::White() * 20));
 	//GetPointlightRenderer()->Submit(Pointlight(glm::vec3(0, 1.0f, 1.1f), 5, Color::Green()));
 }
@@ -117,7 +117,7 @@ void EditorState::RenderGeometry(HDRPipeline* pipeline) {
 void EditorState::Update(const TimeStep& time) {
 	Camera::active->Update(time);
 
-	m_moriEntity->m_transform.m_rotation.y += Math::QUARTER_PI * time.GetSeconds();
+	m_moriEntity->transform.rotation.y += Math::QUARTER_PI * time.DeltaTime();
 	
 	//for (int i = 0; i < 64; i++) {
 	//	//pointsX[i] += 0.002f;
@@ -171,8 +171,8 @@ void EditorState::OnImGuiViewport() {
 	ImGui::Begin("Editor", nullptr, window_flags);
 
 	if (ImGui::Button("Serialize")) {
-		nlohmann::json j = nlohmann::json({ "world", *m_world });
-		LOG("%s", j.dump().c_str());
+		//nlohmann::json j = nlohmann::json({ "world", *m_world });
+		//LOG("%s", j.dump().c_str());
 	}
 	ImGui::End();
 

@@ -1,5 +1,6 @@
 #pragma once
 
+class VoxelState;
 class GameStates {
 public:
 	static State* LOADING;
@@ -7,7 +8,7 @@ public:
 	static State* MENU;
 	static State* GAME;
 	static State* PAUSE;
-	static State* GAMEOVER;
+	static VoxelState* VOXEL;
 };
 
 class StateManager : public Singleton<StateManager > {
@@ -36,6 +37,7 @@ public:
 		for (State* state : m_states) state->OnResize(width, height);
 	}
 
+	void FreeRender(HDRPipeline* pipeline) { m_currentState->FreeRender(pipeline); }
 	void Update(TimeStep time) { m_currentState->Update(time); }
 	void RenderGeometry(HDRPipeline* pipeline) { m_currentState->RenderGeometry(pipeline); }
 	//void RenderUI() { m_currentState->RenderUI(); }
@@ -64,7 +66,7 @@ public:
 	}
 
 	template<typename T>
-	State* RegisterState() {
+	T* RegisterState() {
 		static_assert(is_base_of<State, T>::value, "type parameter of this class must derive from State");
 		for (State* state : m_states) {
 			if (typeid(state) == typeid(T)) {

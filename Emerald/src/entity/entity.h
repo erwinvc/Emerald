@@ -4,9 +4,9 @@ private:
 
 public:
 	AssetRef<Model> m_model;
-	Transform m_transform;
+	Transform transform;
 
-	Entity() {}
+	Entity() : transform(Transform()) {}
 	Entity(AssetRef<Model> model) : m_model(model) {}
 	virtual ~Entity() {}
 
@@ -14,9 +14,9 @@ public:
 		//#Dirty
 		if (overrideShader) {
 			overrideShader->Bind();
-			overrideShader->Set("_TransformationMatrix", m_transform.GetTransformationMatrix());
+			overrideShader->Set("_TransformationMatrix", transform.GetTransformationMatrix());
 		} 
-		m_model->Draw(m_transform.GetTransformationMatrix(), mode);
+		m_model->Draw(transform.GetTransformationMatrix(), mode);
 	}
 
 	void OnImGui() {

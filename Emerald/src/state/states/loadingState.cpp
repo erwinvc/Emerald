@@ -26,16 +26,23 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Thread Pool", [] {GetThreadPool()->Initialize(3); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
-	m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza2/sponzaPBR.obj")));
-	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
+	//m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza2/sponzaPBR.obj")));
+	//m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
+	//m_batch->Add(NEW(ModelLoader("wheelbarrow", "res/wheelbarrow/tmruaaeda_LOD0.fbx")));
+	//m_batch->Add(NEW(TextureLoader("wheelbarrowAlbedo", "res/wheelbarrow/tmruaaeda_4K_Albedo.jpg", true, TextureParameters(INT_SRGB, DATA_UNK, LINEAR))));
+	//m_batch->Add(NEW(TextureLoader("wheelbarrowNormal", "res/wheelbarrow/tmruaaeda_4K_Normal_LOD0.jpg", true, TextureParameters(INT_RGB, DATA_UNK, LINEAR))));
+	//m_batch->Add(NEW(TextureLoader("wheelbarrowRoughness", "res/wheelbarrow/tmruaaeda_4K_Roughness.jpg", true, TextureParameters(INT_RED, DATA_UNK, LINEAR))));
+	m_batch->Add(NEW(PBRTextureLoader("wheelbarrow", "wheelbarrow/wheelbarrow", ".jpg")));
 
+	
 	//m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
 	//m_batch->Add(NEW(ModelLoader("Sphere", "res/sphere.obj")));
-	//m_batch->Add(NEW(ModelLoader("Cube", "res/cube.obj")));
+	m_batch->Add(NEW(ModelLoader("Cube", "res/cube.obj")));
 	//m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza/sponza.obj")));
 
 	//m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
 	//m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
+	m_batch->Add(NEW(ShaderLoader("DepthCubemap", "res/shader/depthCubemap", true)));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
 	m_batch->Add(NEW(ShaderLoader("Chunk", "res/shader/chunk")));
 	m_batch->Add(NEW(ShaderLoader("TileOld", "res/shader/tileOld")));
@@ -49,6 +56,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("EmissionAmbient", "res/shader/emissionAmbient")));
 	m_batch->Add(NEW(ShaderLoader("SSR", "res/shader/ssr")));
 	m_batch->Add(NEW(ShaderLoader("Simple", "res/shader/simple")));
+	m_batch->Add(NEW(ShaderLoader("PolyLine", "res/shader/polyline", true)));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
 	//m_batch->Add(NEW(ModelLoader("Tile", "res/tiles/tile.obj")));
@@ -57,10 +65,15 @@ void LoadingState::Initialize() {
 	//	m_batch->Add(NEW(ModelLoader(Format("Tile[%d]", i), Format("res/tiles/new/%d.obj", i))));
 	//}
 
-	m_batch->Add(NEW(PBRTextureLoader("gold", "gold")));
-	m_batch->Add(NEW(PBRTextureLoader("planks", "planks")));
-	m_batch->Add(NEW(PBRTextureLoader("metal", "metal")));
+	//m_batch->Add(NEW(PBRTextureLoader("gold", "gold")));
+	//m_batch->Add(NEW(PBRTextureLoader("planks", "planks")));
+	//m_batch->Add(NEW(PBRTextureLoader("metal", "metal")));
 
+	m_batch->Add(NEW(TextureLoader("Crosshair", "res/crosshair.png", false, TextureParameters(INT_RGBA, DATA_UNK, NEAREST))));
+	m_batch->Add(NEW(TextureLoader("Dirt", "res/dirt.png", true, TextureParameters(INT_SRGB, DATA_UNK, NEAREST))));
+	m_batch->Add(NEW(TextureLoader("DirtNormal", "res/dirtNormal.png", true, TextureParameters(INT_RGB, DATA_UNK, LINEAR))));
+	m_batch->Add(NEW(TextureLoader("DirtMetallic", "res/dirtMetallic.png", true, TextureParameters(INT_RED, DATA_UNK, NEAREST))));
+	m_batch->Add(NEW(TextureLoader("DirtRoughness", "res/dirtRoughness.png", true, TextureParameters(INT_RED, DATA_UNK, NEAREST))));
 	//m_batch->Add(NEW(TextureLoader("Iridescence", "res/iridescence.png", true)));
 	//m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png", true)));
 	//m_batch->Add(NEW(TextureLoader("White", "res/white.png", true)));
@@ -96,10 +109,10 @@ void LoadingState::Initialize() {
 
 float p = 0;
 void LoadingState::Update(const TimeStep& time) {
-	p += 0.1f * time.GetSeconds();
+	p += 0.1f * time.DeltaTime();
 	if (m_batch->IsFinished() && GetAssetManager()->GetProgress() >= GetAssetManager()->GetProgress() - 0.01f) {
 		GetTileMaterialManager()->GenerateMipmaps();
-		GetStateManager()->SetState(GameStates::MENU);
+		GetStateManager()->SetState(GameStates::VOXEL);
 		GetStateManager()->RemoveState(this);
 	}
 

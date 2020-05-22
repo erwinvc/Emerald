@@ -19,7 +19,7 @@ private:
 
 	void Initialize() {
 		m_buffer = new T[m_vertexCount * m_maxObjects];
-		
+
 		m_vertexBuffer = NEW(VertexBuffer((float*)m_buffer, m_vertexCount * m_maxObjects, m_layout, GL_DYNAMIC_DRAW));
 		m_mesh->GetVAO()->AddBuffer(m_vertexBuffer);
 		m_mesh->GetVAO()->ApplyLayouts();
@@ -47,6 +47,13 @@ public:
 		m_vertexBuffer->Unmap();
 		m_started = false;
 		m_ended = true;
+	}
+
+	void DrawArrays(uint mode = GL_TRIANGLES) {
+		ASSERT(m_ended, "Call ElementsRenderer::End before calling ElementsRenderer::Draw");
+		m_mesh->GetMaterial()->Bind();
+		ASSERT(false, "WIP");
+		m_mesh->DrawArrays(16, mode);
 	}
 
 	void Draw(uint mode = GL_TRIANGLES) {

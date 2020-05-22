@@ -23,7 +23,6 @@ void HDRPipeline::Initialize() {
 	m_pointLightShader->Set("_GMisc", 3);
 	m_pointLightShader->Set("_SSAO", 4);
 
-
 	m_emissionAmbientShader = GetShaderManager()->Get("EmissionAmbient");
 	m_emissionAmbientShader->Bind();
 	m_emissionAmbientShader->Set("_GMisc", 0);
@@ -40,6 +39,7 @@ void HDRPipeline::Initialize() {
 	m_hdrShader->Set("_HDRBloom", 1);
 
 	m_hdrFBO = GetFrameBufferManager()->Create("HDR", FBOScale::FULL);
+	m_hdrFBO->AddBuffer("Depth", TextureParameters(INT_DEPTH24, DATA_DEPTH, LINEAR, REPEAT, T_UNSIGNED_BYTE), FBOAttachment::DEPTH);
 	m_hdrTexture = m_hdrFBO->AddBuffer("HDR", TextureParameters(INT_RGB16, DATA_RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
 
@@ -48,21 +48,25 @@ void HDRPipeline::Initialize() {
 	m_lineRenderer = NEW(LineRenderer());
 	m_bloomRenderer = NEW(BloomRenderer());
 
-	m_freeCam = NEW(FreeCam(glm::vec2(1920, 1080), 70, 0.5f, 500.0f));
-	m_firstPersonCamera = NEW(FirstPersonCam(glm::vec2(1920, 1080), 70, 0.5f, 500.0f));
+	m_freeCam = NEW(FreeCam(glm::vec2(1920, 1080), 70, 0.05f, 500.0f));
+	m_firstPersonCamera = NEW(FirstPersonCam(glm::vec2(1920, 1080), 70, 0.05f, 500.0f));
 
-	Camera::active = m_freeCam;
+	m_firstPersonCamera->transform.position = glm::vec3(352, 515, 352);
+	m_firstPersonCamera->transform.rotation = glm::vec3(0, Math::PI, 0);
+	m_freeCam->transform.position = glm::vec3(352, 515, 352);
+	m_freeCam->transform.rotation = glm::vec3(0.0f, Math::PI, 0.0f);
 
-	m_firstPersonCamera->transform.m_position = glm::vec3(14, 0, -2);
-	m_firstPersonCamera->transform.m_rotation = glm::vec3(0, Math::PI, 0);
-	Camera::active->transform.m_position = glm::vec3(0.0f, 20.0f, 0.0f);
-	Camera::active->transform.m_rotation = glm::vec3(0.0f, Math::PI, 0.0f);
+	Camera::active = m_firstPersonCamera;
 
 	//Final
 	m_finalFBO = GetFrameBufferManager()->Create("Final", FBOScale::FULL);
+	m_finalFBO->AddBuffer("Depth", TextureParameters(INT_DEPTH24, DATA_DEPTH, LINEAR, REPEAT, T_UNSIGNED_BYTE), FBOAttachment::DEPTH);
 	m_finalTexture = m_finalFBO->AddBuffer("Final", TextureParameters(INT_RGB, DATA_RGB, LINEAR, CLAMP_TO_EDGE, T_UNSIGNED_BYTE));
 
 	m_quad = MeshGenerator::Quad();
+
+	GL(glEnable(GL_LINE_SMOOTH));
+	GL(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
 
 	m_initialized = true;
 }
@@ -80,6 +84,8 @@ void HDRPipeline::Render() {
 		return;
 	}
 
+	GetStateManager()->FreeRender(this);
+
 	m_spriteRenderer->Begin();
 	m_lineRenderer->Begin();
 
@@ -95,11 +101,10 @@ void HDRPipeline::Render() {
 	m_finalFBO->Blit(nullptr);
 	GetFrameBufferManager()->BindDefaultFBO();
 
-
 	if (GetImGuiManager()->IsInitialized()) {
 		GetImGuiManager()->Begin();
 
-		if (ImGui::Begin("Emerald###Window", &m_ImGuiOpen, ImVec2(576, 680), -1)) {
+		if (UI::BeginWindow("Emerald")) {
 			if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
 				OnImGUI();
 				GetStateManager()->OnStateImGUI();
@@ -108,7 +113,7 @@ void HDRPipeline::Render() {
 				ImGui::EndTabBar();
 			}
 		}
-		ImGui::End();
+		UI::EndWindow();
 
 		GetStateManager()->OnImGUI();
 		GetImGuiManager()->End();
@@ -139,8 +144,8 @@ void HDRPipeline::PreGeometryRender() {
 	GL(glFrontFace(GL_CCW));
 	GL(glEnable(GL_STENCIL_TEST));
 	GL(glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE));
-	
-	m_ubo->data._CameraPosition = Camera::active->transform.m_position;
+
+	m_ubo->data._CameraPosition = Camera::active->transform.position;
 	m_ubo->data._Projection = Camera::active->GetProjectionMatrix();
 	m_ubo->data._View = Camera::active->GetViewMatrix();
 	m_ubo->data._InverseProjection = Camera::active->GetInverseProjectionMatrix();
@@ -160,7 +165,7 @@ void HDRPipeline::PreGeometryRender() {
 		GL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 	}
 }
-
+bool aaa = false;
 void HDRPipeline::PostGeometryRender() {
 	if (m_wireFrame) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 
@@ -195,10 +200,18 @@ void HDRPipeline::PostGeometryRender() {
 	m_quad->Bind();
 	m_quad->Draw();
 
+	GLUtils::DisableDepthTest();
 	GL(glFrontFace(GL_CW));
 
 	//Draw pointlights
 	m_pointLightShader->Bind();
+	m_pointLightShader->Set("depthMap", 5);
+
+	if (aaa) {
+		m_pointLightShader->Set("Far", GameStates::VOXEL->m_dcm->m_farPlane);
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, ((VoxelState*)GameStates::VOXEL)->m_dcm->m_handle);
+	}
 	m_gBuffer->BindTextures();
 	m_ssaoRenderer->GetTexture()->Bind(4);
 	GetPointlightRenderer()->End();
@@ -252,12 +265,13 @@ void HDRPipeline::OnImGUI() {
 			UI::Bool("Bloom", &m_bloomRenderer->m_enabled);
 			UI::Bool("SSAO", &m_ssaoRenderer->m_enabled);
 			UI::Bool("SSR", &m_ssrRenderer->m_enabled);
+			UI::Bool("AAA", &aaa);
 			UI::Separator();
 			UI::Float("Gamma", &m_gamma, 0, 5);
 			UI::Float("Exposure", &m_exposure, 0, 5);
 			UI::Combo("Tonemapping", &m_selectedTonemapping, tonemapping, NUMOF(tonemapping));
 			UI::End();
-			
+
 			if (ImGui::TreeNode("Bloom")) {
 				UI::Begin();
 				m_bloomRenderer->OnImGui();
@@ -302,6 +316,7 @@ void HDRPipeline::OnImGUI() {
 				glfwSetInputMode(GetApp()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
 			if (ImGui::Button("First person")) {
+				m_firstPersonCamera->transform.position = Camera::active->transform.position;
 				Camera::active = m_firstPersonCamera;
 				m_selectedCamera = 1;
 			}
@@ -311,7 +326,8 @@ void HDRPipeline::OnImGUI() {
 		if (ImGui::CollapsingHeader("Memory")) {
 			GetMemory()->OnImGui();
 		}
-
+		bool vSync = GetApp()->GetWindow()->GetVSync();
+		if (ImGui::Checkbox("VSync", &vSync)) GetApp()->GetWindow()->SetVSync(vSync);
 		if (ImGui::Checkbox("Wireframe", &m_wireFrame)) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 		ImGui::EndTabItem();
 	}

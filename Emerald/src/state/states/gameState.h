@@ -3,7 +3,6 @@
 class GameState : public State {
 private:
 	World* m_world;
-	String m_name = "Game";
 	AssetRef<Shader> m_geometryShader;
 	Texture* texIri;
 	AssetRef<Model> m_model;
@@ -11,7 +10,8 @@ private:
 	Entity* m_entities[4];
 	Entity* m_turtleEntity;
 public:
-	const String& GetName() override { return m_name; }
+	GameState() : State("Game") {}
+
 	void Initialize() override {
 		texIri = GetAssetManager()->Get<Texture>("Iridescence");
 		m_geometryShader = GetShaderManager()->Get("Geometry");
@@ -28,8 +28,8 @@ public:
 		for (int i = 0; i < 4; i++) {
 			m_entities[i] = new Entity(m_model);
 		}
-		m_turtleEntity->m_transform.m_position.y += 10;
-		m_turtleEntity->m_transform.m_size = glm::vec3(10, 10, 10);
+		m_turtleEntity->transform.position.y += 10;
+		m_turtleEntity->transform.size = glm::vec3(10, 10, 10);
 	}
 
 
@@ -43,18 +43,16 @@ public:
 		texIri->Bind(5);
 
 		CornerRayPositions positions = Camera::GetCornerRays(0);
-		m_entities[0]->m_transform.m_position = positions.TL;
-		m_entities[1]->m_transform.m_position = positions.TR;
-		m_entities[2]->m_transform.m_position = positions.BR;
-		m_entities[3]->m_transform.m_position = positions.BL;
+		m_entities[0]->transform.position = positions.TL;
+		m_entities[1]->transform.position = positions.TR;
+		m_entities[2]->transform.position = positions.BR;
+		m_entities[3]->transform.position = positions.BL;
 		
 		for (int i = 0; i < 4; i++) {
 			m_entities[i]->Draw();
 		}
 		m_entities[0]->Draw();
 		m_turtleEntity->Draw();
-
-		m_world->RenderGeometry();
 
 	}
 

@@ -26,7 +26,7 @@ public:
 	template<typename T>
 	void SetData(T* data, uint32 vertexCount, GLenum usage = GL_STATIC_DRAW) {
 		Bind();
-		GL(glBufferData(GL_ARRAY_BUFFER, vertexCount * m_layout.GetTotalComponentCountSize(), (float*)data, usage));
+		GL(glBufferData(GL_ARRAY_BUFFER, vertexCount * m_layout.GetTotalComponentCountSize(), (const void*)data, usage));
 		Unbind();
 	}
 
@@ -46,7 +46,7 @@ public:
 	T* Map() {
 		Bind();
 		T* mapped;
-		GL(mapped = (T*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+		GL(mapped = (T*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY | GL_MAP_UNSYNCHRONIZED_BIT));
 		return mapped;
 	}
 

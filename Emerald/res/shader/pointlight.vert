@@ -6,7 +6,7 @@ layout(location = 2) in vec4 col;
 
 out vec4 fsPos;
 out vec4 newPos;
-out vec4 color;
+out vec4 fsColor;
 
 layout (std140) uniform GlobalUniforms {
 	vec3 _CameraPosition;
@@ -26,5 +26,5 @@ void main(){
 	gl_Position = pos;
 	fsPos = pos;
 	newPos = vars;
-	color = col;
+	fsColor = col;
 }

@@ -37,6 +37,12 @@ private:
 	}
 
 public:
+	static bool BeginWindow(const String_t name);
+
+	static void EndWindow() {
+		ImGui::End();
+	}
+
 	static void Begin() {
 		if (ImGui::GetColumnsCount() != 2) ImGui::Columns(2);
 	}

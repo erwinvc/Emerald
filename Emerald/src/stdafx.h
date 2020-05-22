@@ -66,16 +66,23 @@ using namespace std;
 
 #include "vendor/glm/glm.hpp"
 #include "vendor/glm/gtc/type_ptr.hpp"
-#include "vendor/glm/gtx/transform.hpp"
+#include "vendor/glm/gtc/noise.hpp"
 #include "vendor/glm/gtc/matrix_transform.hpp"
 #include "vendor/glm/gtc/matrix_access.hpp"
+#include "vendor/glm/gtx/transform.hpp"
 #include "vendor/glm/gtx/quaternion.hpp"
 #include "vendor/glm/gtx/compatibility.hpp"
 #include "vendor/glm/gtx/euler_angles.hpp"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include "vendor/glm/gtx/hash.hpp"
+
 #include "math/rectangle.h"
 #include "math/random.h"
 #include "math/mathFunctions.h"
+#include "math/blockIterator.h"
 #include "math/transform.h"
+#include "math/coordinates.h"
 
 #include "util/types.h"
 #include "util/color.h"
@@ -130,6 +137,7 @@ using namespace std;
 #include "graphics/shaders/shaderProperties.h"
 #include "graphics/shaders/shader.h"
 #include "graphics/shaders/shaderManager.h"
+#include "graphics/shaders/materialCallback.h"
 
 #include "graphics/buffers/uniformBuffer.h"
 
@@ -155,6 +163,7 @@ using namespace std;
 #include "input/keyboard.h"
 #include "input/mouse.h"
 
+#include "math/ray.h"
 #include "math/groundRaycast.h"
 #include "graphics/camera/orthoCamera.h"
 #include "graphics/camera/freeCam.h"
@@ -178,6 +187,8 @@ using namespace std;
 #include "assets/assetManager.h"
 #include "assets/assetWatcher.h"
 
+#include "graphics/depthCubemap.h"
+#include "graphics/shadowMapGenerator.h"
 #include "graphics/elementsRenderer.h"
 #include "graphics/instancedRenderer.h"
 #include "graphics/lineRenderer.h"
@@ -191,14 +202,6 @@ using namespace std;
 
 #include "util/meshGenerator.h"
 
-#include "world/tile.h"
-#include "world/tileGrid.h"
-#include "world/world.h"
-#include "world/chunk.h"
-#include "world/chunkMesh.h"
-#include "world/chunkMeshGenerator.h"
-#include "world/chunkManager.h"
-
 #include "assets/materialManager.h"
 #include "assets/textureManager.h"
 
@@ -206,10 +209,19 @@ using namespace std;
 #include "graphics/pipeline/HDRPipeline.h"
 #include "application.h"
 
+#include "util/ludo/aStar.h"
+
+#include "world/tile.h"
+#include "world/tileGrid.h"
+#include "world/coordinateSystem.h"
+#include "world/chunkMesh.h"
+#include "world/chunkMeshGenerator.h"
+#include "world/chunk.h"
+#include "world/chunkManager.h"
+#include "world/world.h"
+
 #include "physics/rigidBody.h"
 #include "physics/player.h"
-
-#include "util/ludo/aStar.h"
 
 #include "state/state.h"
 #include "state/stateManager.h"
@@ -218,4 +230,4 @@ using namespace std;
 #include "state/states/menuState.h"
 #include "state/states/gameState.h"
 #include "state/states/pauseState.h"
-#include "state/states/gameOverState.h"
+#include "state/states/voxelState.h"

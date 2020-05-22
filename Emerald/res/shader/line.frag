@@ -3,7 +3,7 @@
 in vec2 fsUv;
 in vec4 fsColor;
 
-out vec3 outColor;
+out vec4 outColor;
 
 layout (std140) uniform GlobalUniforms {
 	vec3 _CameraPosition;
@@ -17,6 +17,6 @@ layout (std140) uniform GlobalUniforms {
 };
 
 void main(){
-	outColor = vec3(fsColor);
+	outColor = vec4(fsColor);
 	//outColor[1] = vec3(0.0, 0.0, 0.0);
 }

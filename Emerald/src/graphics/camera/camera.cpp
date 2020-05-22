@@ -4,7 +4,7 @@ Camera* Camera::active = nullptr;
 Camera* Camera::uiActive = nullptr;
 
 void Camera::UpdateViewMatrix() {
-	m_viewMatrix = glm::translate(glm::mat4(1.0f), transform.m_position) * glm::toMat4(transform.GetOrientation());
+	m_viewMatrix = glm::translate(glm::mat4(1.0f), transform.position) * glm::toMat4(transform.GetOrientation());
 	m_inverseViewMatrix = m_viewMatrix;
 	m_viewMatrix = glm::inverse(m_viewMatrix);
 }
@@ -33,8 +33,8 @@ void Camera::SetViewport(uint x, uint y, uint width, uint height) {
 }
 
 void Camera::OnImGui() {
-	ImGui::InputFloat3("Position", (float*)&transform.m_position);
-	ImGui::InputFloat3("Rotation", (float*)&transform.m_rotation);
+	ImGui::InputFloat3("Position", (float*)&transform.position);
+	ImGui::InputFloat3("Rotation", (float*)&transform.rotation);
 	if (ImGui::InputFloat("Near", &m_nearPlane, 0.000001f, 10000.0f)) {
 		UpdateProjectionMatrix();
 	}

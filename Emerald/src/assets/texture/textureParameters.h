@@ -150,7 +150,7 @@ public:
 				switch (m_filter) {
 					//case LINEARMIPMAP: return GL_LINEAR_MIPMAP_LINEAR;
 					case LINEAR: return mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
-					case NEAREST: return mipmap ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
+					case NEAREST: return mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST;
 				}
 			}break;
 			case GL_TEXTURE_MAG_FILTER: return m_filter == LINEAR ? GL_LINEAR : GL_NEAREST; break;

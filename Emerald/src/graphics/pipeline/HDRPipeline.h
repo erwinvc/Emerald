@@ -56,6 +56,8 @@ public:
 	int m_selectedTonemapping = 12;
 
 public:
+	DepthCubemap* m_dcm;
+
 	float m_ambientIntensity = 0.2f;
 
 	DirectionalLight m_directionalLight;

@@ -158,15 +158,21 @@ private:
 	Shader* m_shader;
 	uint m_ID;
 	vector<MaterialMember*> m_members;
+	vector<MaterialCallback*> m_callbacksOnBind;
+	vector<MaterialCallback*> m_callbacksOnInstance;
+
 	Material(const String& name, Shader* shader, uint ID);
 
 	friend class MaterialManager;
 public:
 
 	~Material() {
-		for (auto& member : m_members) {
-			DELETE(member);
-		}
+		for (auto& member : m_members) DELETE(member);
+		for (auto& callback : m_callbacksOnInstance) DELETE(callback);
+		for (auto& callback : m_callbacksOnBind) DELETE(callback);
+
+		m_callbacksOnInstance.clear();
+		m_callbacksOnBind.clear();
 		m_members.clear();
 	}
 
@@ -174,7 +180,15 @@ public:
 
 	Shader* GetShader() { return m_shader; }
 
+	void AddCallback(MaterialCallbackType type, MaterialCallback* callback) {
+		callback->SetUniformLocation(m_shader);
+		if (type == MaterialCallbackType::ONINSTANCE) {
+			m_callbacksOnInstance.push_back(callback);
+		} else m_callbacksOnBind.push_back(callback);
+	}
+
 	void Bind();
+	void BindInstance();
 
 	void OnImGui() {
 		for (auto& member : m_members) {
@@ -186,6 +200,7 @@ public:
 
 	//#Dirty!
 	void SetRoughnessIfAvailable(Texture* tex) {
+		if (!tex)return;
 		for (auto& member : m_members) {
 			if (member->m_type == ShaderPropertyType::TEXTURE) {
 				if (member->m_uniform.compare("_Roughness") == 0) {
@@ -195,6 +210,7 @@ public:
 		}
 	}
 	void SetAlbedoIfAvailable(Texture* tex) {
+		if (!tex)return;
 		for (auto& member : m_members) {
 			if (member->m_type == ShaderPropertyType::TEXTURE) {
 				if (member->m_uniform.compare("_Albedo") == 0) {
@@ -204,6 +220,7 @@ public:
 		}
 	}
 	void SetNormalIfAvailable(Texture* tex) {
+		if (!tex)return;
 		for (auto& member : m_members) {
 			if (member->m_type == ShaderPropertyType::TEXTURE) {
 				if (member->m_uniform.compare("_Normal") == 0) {
@@ -213,6 +230,7 @@ public:
 		}
 	}
 	void SetMetallicIfAvailable(Texture* tex) {
+		if (!tex)return;
 		for (auto& member : m_members) {
 			if (member->m_type == ShaderPropertyType::TEXTURE) {
 				if (member->m_uniform.compare("_Metallic") == 0) {

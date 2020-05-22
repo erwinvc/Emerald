@@ -163,7 +163,7 @@ void Logger::Initialize() {
 	m_allocated = true;
 	m_firstEntry = true;
 
-	m_inputThread = GetThreadManager()->RegisterThread("Console input", HandleInput);
+	//m_inputThread = GetThreadManager()->RegisterThread("Console input", HandleInput);
 	m_outputThread = GetThreadManager()->RegisterThread("Console output", HandleQueue);
 	m_imGuiLog = NEW(ImGuiLog());
 
