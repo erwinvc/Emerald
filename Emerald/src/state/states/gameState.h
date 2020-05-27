@@ -60,6 +60,7 @@ public:
 	//}
 
 	void OnStateImGUI() override {}
+	void RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) override {}
 	void OnImGUI() override {
 	}
 

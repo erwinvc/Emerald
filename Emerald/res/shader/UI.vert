@@ -1,10 +1,10 @@
 #version 330
 
-layout(location = 0) in vec3 vsPosition;
-layout(location = 1) in vec2 vsUv;
-layout(location = 2) in float vsTextureID;
-layout(location = 3) in vec4 vsColor;
-layout(location = 4) in vec3 vsAtlasValues;
+in vec3 vsPosition;
+in vec2 vsUv;
+in float vsTextureID;
+in vec4 vsColor;
+in vec3 vsAtlasValues;
 
 struct Data {
 	vec2 uv;

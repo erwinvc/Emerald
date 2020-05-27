@@ -20,7 +20,6 @@ LineRenderer::LineRenderer() {
 	IndexBuffer* ibo = new IndexBuffer(indicesBuffer, INDICES_SIZE);
 	Mesh* mesh = NEW(Mesh(NEW(VertexArray()), ibo, GetMaterialManager()->GetBasicMaterial(m_shader)));
 	Mesh* mesh2 = NEW(Mesh(NEW(VertexArray()), ibo, GetMaterialManager()->GetBasicMaterial(m_shader)));
-	Mesh* mesh3 = NEW(Mesh(NEW(VertexArray()), ibo, GetMaterialManager()->GetBasicMaterial(GetShaderManager()->Get("PolyLine"))));
 
 	m_overlayRenderer = NEW(ElementsRenderer<LineVertex>(mesh, VERTICES_COUNT, INDICES_COUNT, MAX_OBJECTS, layout));
 	m_depthRenderer = NEW(ElementsRenderer<LineVertex>(mesh2, VERTICES_COUNT, INDICES_COUNT, MAX_OBJECTS, layout));

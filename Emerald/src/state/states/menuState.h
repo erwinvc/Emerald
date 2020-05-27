@@ -144,7 +144,7 @@ public:
 											GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->GetGBuffer()->m_attributesTexture);
 
 											Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-												GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->m_ssaoRenderer->GetRawTexture());
+												GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->m_aoRenderer->GetRawTexture());
 
 												Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
 													GetApp()->pipeline->m_applyPostProcessing = true;
@@ -176,6 +176,10 @@ public:
 			}
 			started = true;
 		}
+	}
+	void RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) override
+	{
+		
 	}
 	void OnImGUI() override {
 

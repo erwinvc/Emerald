@@ -16,14 +16,12 @@ public:
 	//Deferred
 	GBuffer* m_gBuffer = nullptr;
 	AssetRef<Shader> m_directionalLightShader;
+	DirectionalShadow* m_directionalShadow;
 	AssetRef<Shader> m_pointLightShader;
 	AssetRef<Shader> m_emissionAmbientShader;
 
-	//Shadow
-	AssetRef<ShadowRenderer> m_shadowRenderer;
-
 	//SSAO
-	SSAORenderer* m_ssaoRenderer = nullptr;
+	AmbientOcclusionRenderer* m_aoRenderer = nullptr;
 	SSRRenderer* m_ssrRenderer = nullptr;
 
 	//Bloom
@@ -55,10 +53,12 @@ public:
 	float m_exposure = 1.0f;
 	int m_selectedTonemapping = 12;
 
+	void PreGeometryRender();
+	void PostGeometryRender();
+	void OnImGUI();
+	
 public:
-	DepthCubemap* m_dcm;
-
-	float m_ambientIntensity = 0.2f;
+	float m_ambientIntensity = 0.05f;
 
 	DirectionalLight m_directionalLight;
 	int m_selectedCamera = 0;
@@ -68,9 +68,9 @@ public:
 	HDRPipeline() {}
 	~HDRPipeline() {
 		DELETE(m_gBuffer);
-		DELETE(m_ssaoRenderer);
+		DELETE(m_aoRenderer);
 		DELETE(m_ssrRenderer);
-		DELETE(m_shadowRenderer);
+		DELETE(m_directionalShadow);
 		DELETE(m_spriteRenderer);
 		DELETE(m_lineRenderer);
 	}
@@ -90,11 +90,8 @@ public:
 
 	void Initialize();
 	void Render();
-	void PreShadowRender();
-	void PostShadowRender();
-	void PreGeometryRender();
-	void PostGeometryRender();
-	void OnImGUI();
+	void RenderGeometry();
+	void RenderGeometryShadow(ShadowType type);
 	void OnResize(uint width, uint height);
 
 	inline GBuffer* GetGBuffer() { return m_gBuffer; }

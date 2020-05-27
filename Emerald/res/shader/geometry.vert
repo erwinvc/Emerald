@@ -1,10 +1,12 @@
 #version 330
 
-layout(location = 0) in vec3 vsPos;
-layout(location = 1) in vec3 vsNormal;
-layout(location = 2) in vec2 vsUv;
-layout(location = 3) in vec3 vsTangent;
-layout(location = 4) in vec3 vsBitangent;
+#include "includes/globalUniforms.incl"
+
+in vec3 vsPos;
+in vec3 vsNormal;
+in vec2 vsUv;
+in vec3 vsTangent;
+in vec3 vsBitangent;
 
 struct Data {
 	vec3 normal;
@@ -14,17 +16,6 @@ struct Data {
 };
 
 out Data fsData;
-
-layout (std140) uniform GlobalUniforms {
-	vec3 _CameraPosition;
-	mat4 _Projection;
-	mat4 _View;
-	mat4 _InverseProjection;
-	mat4 _InverseView;
-    bool _SSAOEnabled;
-	vec2 _CameraPlanes;
-	vec2 _ViewPort;
-};
 
 uniform mat4 _TransformationMatrix;
 

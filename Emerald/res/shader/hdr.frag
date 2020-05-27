@@ -231,6 +231,35 @@ vec3 ToGreyScale(vec3 colorIn)
 	return vec3(grey, grey, grey);
 }
 
+
+vec3 texture2DDistorted(sampler2D Texture, vec2 TexCoord, vec2 Direction, vec3 Distortion)
+{
+    return vec3(
+        texture2D(Texture, TexCoord + Direction * Distortion.r).r,
+        texture2D(Texture, TexCoord + Direction * Distortion.g).g,
+        texture2D(Texture, TexCoord + Direction * Distortion.b).b
+    );
+}
+
+vec3 test() {
+	float dispersal = 0.2, haloWidth = 0.45;
+	vec2 texCoord = vec2(1.0) - fsUv;
+	vec2 ghostVec = (vec2(0.5) - texCoord) * dispersal;
+	vec2 haloVec = normalize(ghostVec) * haloWidth;
+	vec2 direction = normalize(ghostVec);
+	vec3 Distortion = vec3(0.94, 0.97, 1.00);
+	float weight = length(vec2(0.5) - fract(texCoord + haloVec)) / length(vec2(0.5));
+	weight = pow(1.0 - weight, 10.0);
+	vec3 halo = texture2DDistorted(
+		_HDRBuffer,
+		texCoord,
+		direction * haloWidth,
+		Distortion
+	);
+
+	return halo;
+}
+
 void main(){
 	vec3 color = texture(_HDRBuffer, fsUv).rgb;
 	vec3 bloom = texture(_HDRBloom, fsUv).rgb;

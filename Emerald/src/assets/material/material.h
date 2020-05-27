@@ -180,11 +180,15 @@ public:
 
 	Shader* GetShader() { return m_shader; }
 
-	void AddCallback(MaterialCallbackType type, MaterialCallback* callback) {
+
+	void AddOnBindCallback(MaterialCallback* callback) {
 		callback->SetUniformLocation(m_shader);
-		if (type == MaterialCallbackType::ONINSTANCE) {
-			m_callbacksOnInstance.push_back(callback);
-		} else m_callbacksOnBind.push_back(callback);
+		m_callbacksOnBind.push_back(callback);
+	}
+
+	void AddOnInstanceCallback(MaterialCallback* callback) {
+		callback->SetUniformLocation(m_shader);
+		m_callbacksOnInstance.push_back(callback);
 	}
 
 	void Bind();

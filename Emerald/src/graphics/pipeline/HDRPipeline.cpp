@@ -30,7 +30,7 @@ void HDRPipeline::Initialize() {
 	m_emissionAmbientShader->Set("_SSAO", 2);
 
 	//Shadow
-	m_shadowRenderer = NEW(ShadowRenderer(1024, 1024));
+	m_directionalShadow = NEW(DirectionalShadow());
 
 	//HDR
 	m_hdrShader = GetShaderManager()->Get("HDR");
@@ -43,7 +43,7 @@ void HDRPipeline::Initialize() {
 	m_hdrTexture = m_hdrFBO->AddBuffer("HDR", TextureParameters(INT_RGB16, DATA_RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
 
-	m_ssaoRenderer = NEW(SSAORenderer());
+	m_aoRenderer = NEW(AmbientOcclusionRenderer());
 	m_ssrRenderer = NEW(SSRRenderer());
 	m_lineRenderer = NEW(LineRenderer());
 	m_bloomRenderer = NEW(BloomRenderer());
@@ -51,9 +51,9 @@ void HDRPipeline::Initialize() {
 	m_freeCam = NEW(FreeCam(glm::vec2(1920, 1080), 70, 0.05f, 500.0f));
 	m_firstPersonCamera = NEW(FirstPersonCam(glm::vec2(1920, 1080), 70, 0.05f, 500.0f));
 
-	m_firstPersonCamera->transform.position = glm::vec3(352, 515, 352);
+	m_firstPersonCamera->transform.position = glm::vec3(0, 0, 0);
 	m_firstPersonCamera->transform.rotation = glm::vec3(0, Math::PI, 0);
-	m_freeCam->transform.position = glm::vec3(352, 515, 352);
+	m_freeCam->transform.position = glm::vec3(0, 0, 0);
 	m_freeCam->transform.rotation = glm::vec3(0.0f, Math::PI, 0.0f);
 
 	Camera::active = m_firstPersonCamera;
@@ -71,6 +71,7 @@ void HDRPipeline::Initialize() {
 	m_initialized = true;
 }
 
+bool aaa = false;
 void HDRPipeline::Render() {
 	if (!m_initialized) {
 		m_spriteRenderer->Begin();
@@ -84,8 +85,10 @@ void HDRPipeline::Render() {
 		return;
 	}
 
-	GetStateManager()->FreeRender(this);
-
+	if (aaa) {
+		GameStates::VOXEL->m_dcm->Draw(this, GameStates::VOXEL->m_pointlight.m_position);
+	}
+	
 	m_spriteRenderer->Begin();
 	m_lineRenderer->Begin();
 
@@ -120,22 +123,14 @@ void HDRPipeline::Render() {
 	}
 }
 
-void HDRPipeline::PreShadowRender() {
-	GLUtils::EnableDepthTest();
-	GL(glDepthMask(true));
-	GL(glDisable(GL_BLEND));
-	GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
-	GL(glEnable(GL_CULL_FACE));
-	GL(glFrontFace(GL_CCW));
+void HDRPipeline::RenderGeometry() {
+	GetStateManager()->RenderGeometry(this);
+}
+void HDRPipeline::RenderGeometryShadow(ShadowType type) {
+	GetStateManager()->RenderGeometryShadow(this, type);
+}
 
-	m_shadowRenderer->Begin(this);
-}
-void HDRPipeline::PostShadowRender() {
-	m_shadowRenderer->End(this);
-}
 void HDRPipeline::PreGeometryRender() {
-	//glPatchParameteri(GL_PATCH_VERTICES, 3);
-
 	GL(glEnable(GL_DEPTH_TEST));
 	GL(glDepthMask(true));
 	GL(glDisable(GL_BLEND));
@@ -150,10 +145,13 @@ void HDRPipeline::PreGeometryRender() {
 	m_ubo->data._View = Camera::active->GetViewMatrix();
 	m_ubo->data._InverseProjection = Camera::active->GetInverseProjectionMatrix();
 	m_ubo->data._InverseView = Camera::active->GetInverseViewMatrix();
-	m_ubo->data._SSAOEnabled = m_ssaoRenderer->m_enabled;
+	m_ubo->data._SSAOEnabled = m_aoRenderer->m_enabled;
 	m_ubo->data._CameraPlanes = glm::vec2(Camera::active->GetNear(), Camera::active->GetFar());
-	m_ubo->data._ViewPort = glm::vec2(Camera::active->GetViewport().z, Camera::active->GetViewport().w);
+	m_ubo->data._ViewPort = glm::vec3(Camera::active->GetViewport().z, Camera::active->GetViewport().w, Camera::active->GetFOV());
 	m_ubo->SetData();
+
+	//Draw directional shadow
+	m_directionalShadow->Draw(this, m_directionalLight.GetDirection());
 
 	//Draw to gBuffer
 	m_gBuffer->Bind();
@@ -165,12 +163,11 @@ void HDRPipeline::PreGeometryRender() {
 		GL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 	}
 }
-bool aaa = false;
 void HDRPipeline::PostGeometryRender() {
 	if (m_wireFrame) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 
 	GLUtils::DisableDepthTest();
-	m_ssaoRenderer->Render(m_gBuffer);
+	m_aoRenderer->Draw(this);
 
 	//Blit depth to HDR FBO
 	m_hdrFBO->Bind();
@@ -184,7 +181,7 @@ void HDRPipeline::PostGeometryRender() {
 
 	//Emission
 	m_gBuffer->BindTextures();
-	m_ssaoRenderer->GetTexture()->Bind(2);
+	m_aoRenderer->GetTexture()->Bind(2);
 	m_emissionAmbientShader->Bind();
 	m_emissionAmbientShader->Set("_AmbientIntensity", m_ambientIntensity);
 	m_quad->Bind();
@@ -194,9 +191,14 @@ void HDRPipeline::PostGeometryRender() {
 	m_directionalLightShader->Bind();
 
 	m_gBuffer->BindTextures();
-	m_ssaoRenderer->GetTexture()->Bind(4);
+	m_aoRenderer->GetTexture()->Bind(4);
 	m_directionalLightShader->Set("_Color", m_directionalLight.GetColor());
 	m_directionalLightShader->Set("_Directional", m_directionalLight.GetDirection());
+	m_directionalLightShader->Set("_Shadow", 5);
+	m_directionalLightShader->Set("_LightSpaceMatrix", m_directionalShadow->m_lightSpaceMatrix);
+
+	m_directionalShadow->GetTexture()->Bind(5);
+
 	m_quad->Bind();
 	m_quad->Draw();
 
@@ -213,7 +215,7 @@ void HDRPipeline::PostGeometryRender() {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, ((VoxelState*)GameStates::VOXEL)->m_dcm->m_handle);
 	}
 	m_gBuffer->BindTextures();
-	m_ssaoRenderer->GetTexture()->Bind(4);
+	m_aoRenderer->GetTexture()->Bind(4);
 	GetPointlightRenderer()->End();
 	GetPointlightRenderer()->Draw();
 
@@ -263,7 +265,7 @@ void HDRPipeline::OnImGUI() {
 			UI::Bool("Post processing", &m_applyPostProcessing);
 			UI::Bool("FXAA", &m_FXAA);
 			UI::Bool("Bloom", &m_bloomRenderer->m_enabled);
-			UI::Bool("SSAO", &m_ssaoRenderer->m_enabled);
+			UI::Bool("SSAO", &m_aoRenderer->m_enabled);
 			UI::Bool("SSR", &m_ssrRenderer->m_enabled);
 			UI::Bool("AAA", &aaa);
 			UI::Separator();
@@ -280,10 +282,11 @@ void HDRPipeline::OnImGUI() {
 			}
 			if (ImGui::TreeNode("SSAO")) {
 				UI::Begin();
-				m_ssaoRenderer->OnImGui();
+				m_aoRenderer->OnImGui();
 				UI::End();
 				ImGui::TreePop();
 			}
+			m_directionalShadow->OnImGui();
 			UI::Dummy();
 			//if (ImGui::TreeNode("SSR")) {
 			//	UI::Begin();

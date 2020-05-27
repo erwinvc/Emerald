@@ -114,6 +114,8 @@ void EditorState::RenderGeometry(HDRPipeline* pipeline) {
 	//GetPointlightRenderer()->Submit(Pointlight(glm::vec3(0, 1.0f, 1.1f), 5, Color::Green()));
 }
 
+void EditorState::RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) {}
+
 void EditorState::Update(const TimeStep& time) {
 	Camera::active->Update(time);
 

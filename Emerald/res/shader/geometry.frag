@@ -1,5 +1,7 @@
 #version 330 //material
 
+#include "includes/globalUniforms.incl"
+
 struct Data {
 	vec3 normal;
 	vec2 uv;
@@ -24,17 +26,6 @@ uniform float _EmissionStrength;	//(FLOAT, Emission strength) = (0.0, 0.0, 1.0)
 //uniform sampler2D _Iridescence;		//(TEXTURE, Iridescence) = (black, 5)
 //uniform sampler2D _Noise;			//(TEXTURE, Iridescence Noise) = (black, 6)
 //uniform float _IridescenceStrength; //(FLOAT, Iridescence Strength) = (1.0, 0.0, 1.0)
-
-layout (std140) uniform GlobalUniforms {
-	vec3 _CameraPosition;
-	mat4 _Projection;
-	mat4 _View;
-	mat4 _InverseProjection;
-	mat4 _InverseView;
-    bool _SSAOEnabled;
-	vec2 _CameraPlanes;
-	vec2 _ViewPort;
-};
 
 out vec4 geoData[3];
 

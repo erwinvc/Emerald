@@ -37,10 +37,9 @@ public:
 		for (State* state : m_states) state->OnResize(width, height);
 	}
 
-	void FreeRender(HDRPipeline* pipeline) { m_currentState->FreeRender(pipeline); }
+	void RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) { m_currentState->RenderGeometryShadow(pipeline, type); }
 	void Update(TimeStep time) { m_currentState->Update(time); }
 	void RenderGeometry(HDRPipeline* pipeline) { m_currentState->RenderGeometry(pipeline); }
-	//void RenderUI() { m_currentState->RenderUI(); }
 	void OnStateImGUI() {
 		if (ImGui::BeginTabItem("State")) {
 			int i = 0;

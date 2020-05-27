@@ -130,6 +130,7 @@ public:
 		AddUniform(name, GLTypeToShaderUniformType(glType), location, count, existsInShader);
 	}
 
+	static void SetGL(uint location, const int value) { glUniform1iv(location, 1, (int*)&value); }
 	static void SetGL(uint location, const int* value, uint count) { glUniform1iv(location, count, (int*)value); }
 	static void SetGL(uint location, const glm::ivec2* value, uint count) { glUniform2iv(location, count, (int*)value); }
 	static void SetGL(uint location, const float* value, uint count) { glUniform1fv(location, count, (float*)value); }

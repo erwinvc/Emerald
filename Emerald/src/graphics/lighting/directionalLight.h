@@ -6,7 +6,7 @@ private:
 	glm::vec3 m_rotation = glm::vec3(-0.5f, -0.5f, 1.0f);
 
 public:
-	float m_multiplier = 5.0f;
+	float m_multiplier = 4.0f;
 
 	Color GetColor() { return m_color * m_multiplier; }
 	glm::vec3 GetDirection() {

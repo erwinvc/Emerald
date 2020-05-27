@@ -22,7 +22,6 @@ void Application::OnWindowClose() {
 
 void Application::Initialize() {
 	//glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-	
 	glfwSetErrorCallback(ErrorCallback);
 	if (!glfwInit()) {
 		LOG_ERROR("[GLFW] GLFW failed to initialize");

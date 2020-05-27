@@ -54,6 +54,7 @@
 #include "vendor/noise.h"
 #include "vendor/json.h"
 #include "vendor/stb_image.h"
+#include "vendor/shadInclude.h"
 
 using namespace std;
 
@@ -83,6 +84,7 @@ using namespace std;
 #include "math/blockIterator.h"
 #include "math/transform.h"
 #include "math/coordinates.h"
+#include "math/aabb.h"
 
 #include "util/types.h"
 #include "util/color.h"
@@ -171,10 +173,9 @@ using namespace std;
 #include "math/rasterization.h"
 
 #include "graphics/window.h"
-#include "graphics/shadowRenderer.h"
 #include "graphics/renderer.h"
 
-#include "graphics/ssaoRenderer.h"
+#include "graphics/ambientOcclusionRenderer.h"
 #include "graphics/ssrRenderer.h"
 #include "graphics/bloomRenderer.h"
 
@@ -188,6 +189,7 @@ using namespace std;
 #include "assets/assetWatcher.h"
 
 #include "graphics/depthCubemap.h"
+#include "graphics/directionalShadow.h"
 #include "graphics/shadowMapGenerator.h"
 #include "graphics/elementsRenderer.h"
 #include "graphics/instancedRenderer.h"

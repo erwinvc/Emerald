@@ -1,5 +1,8 @@
 #version 330
 
+#include "includes/globalUniforms.incl"
+#include "includes/utils.incl"
+
 in vec2 fsUv;
 
 out vec3 outColor;
@@ -10,20 +13,9 @@ uniform sampler2D _GNormal;
 uniform sampler2D _GMisc;
 uniform sampler2D _HDR;
 
-layout (std140) uniform GlobalUniforms {
-	vec3 _CameraPosition;
-	mat4 _Projection;
-	mat4 _View;
-	mat4 _InverseProjection;
-	mat4 _InverseView;
-    bool _SSAOEnabled;
-	vec2 _CameraPlanes;
-	vec2 _ViewPort;
-};
-
 const float screenEdgeFadeStart = 0.5;
-const float rayStep = 0.1f;
-const float minRayStep = 0.001f;
+const float rayStep = 0.1;
+const float minRayStep = 0.001;
 const float maxSteps = 64;
 const float numBinarySearchSteps = 4;
 const float reflectionSpecularFalloffExponent = 3.0;
@@ -32,7 +24,7 @@ vec3 Scale = vec3(0.8);
 float K = 19.19;
 
 vec3 GetPosition(vec2 coord){
-	float z = texture(_Depth, coord).x * 2.0f - 1.0f;
+	float z = texture(_Depth, coord).x * 2.0 - 1.0;
 	vec4 clipSpacePosition = vec4(coord * 2.0 - 1.0, z, 1.0);
 	vec4 viewSpacePosition = _InverseProjection * clipSpacePosition;
 	viewSpacePosition /= viewSpacePosition.w;
@@ -53,7 +45,7 @@ vec3 BinarySearch(inout vec3 dir, inout vec3 hitCoord, inout float dDepth) {
 
 		dDepth = hitCoord.z - depth;
 
-		dir *=0.5f;
+		dir *=0.5;
 
 		if(dDepth > 0.0)
             hitCoord += dir;
@@ -138,7 +130,7 @@ void main(){
  
 	vec3 worldPos = vec3(_InverseView * vec4(viewPos, 1.0));
 	vec3 viewNormal = normalize(texture(_GNormal, fsUv).rgb);
-	vec3 worldNormal = vec3(_InverseView * vec4(viewNormal, 0.0));
+	vec3 worldNormal = ViewNormalToWorldNormal(viewNormal);
 	vec3 viewDir = normalize(_CameraPosition - worldPos);
 
 	vec3 albedo = texture(_GAlbedo, fsUv).rgb;
@@ -152,7 +144,7 @@ void main(){
 	vec3 hitPos = viewPos;
 	float dDepth;
 	
-	vec3 jitt = mix(vec3(0.0), vec3(hash(worldPos)), max(roughness, 0.01));
+	vec3 jitt = mix(vec3(0.0), vec3(hash(viewPos)), min(roughness, 0.01));
 	vec4 coords = RayMarch(reflected * max(minRayStep, -viewPos.z) - jitt, hitPos, dDepth, albedo);
 
 	vec2 dCoords = smoothstep(0.2, 0.6, abs(vec2(0.5, 0.5) - coords.xy));

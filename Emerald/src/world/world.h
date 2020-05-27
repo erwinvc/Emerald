@@ -16,13 +16,20 @@ private:
 public:
 	unordered_map<glm::ivec3, Chunk> m_chunks;
 	World() {
-		for (int z = 10; z < 12; z++) {
-			for (int x = 10; x < 12; x++) {
-				for (int y = 0; y < 16; y++) {
+		for (int z = -1; z < 1; z++) {
+			for (int x = -1; x < 1; x++) {
+				for (int y = -16; y < 0; y++) {
 					m_chunks.emplace(glm::ivec3(x, y, z), Chunk(glm::ivec3(x, y, z), this));
 				}
 			}
 		}
+
+		for (int z = -1; z < 1; z++) {
+			for (int x = -1; x < 1; x++) {
+				m_chunks.emplace(glm::ivec3(x, 0, z), Chunk(glm::ivec3(x, 0, z), this, false));
+			}
+		}
+		//m_chunks.emplace(glm::ivec3(0, 0, 0), Chunk(glm::ivec3(0, 0, 0), this));
 
 		Shader* shader = GetShaderManager()->Get("Chunk");
 		shader->Bind();
@@ -32,19 +39,19 @@ public:
 		shader->Set("_Roughness", 3);
 
 		m_chunkMaterial = GetMaterialManager()->Create("Chunk", shader);
-		m_chunkMaterial->AddCallback(MaterialCallbackType::ONINSTANCE, NEW(MaterialCallbackPtr("_ChunkPos", &m_chunkPosition)));
-		m_chunkMaterial->AddCallback(MaterialCallbackType::ONBIND, NEW(MaterialCallbackTexture("_Albedo", GetAssetManager()->Get<Texture>("Dirt"), 0)));
-		m_chunkMaterial->AddCallback(MaterialCallbackType::ONBIND, NEW(MaterialCallbackTexture("_Normal", GetAssetManager()->Get<Texture>("DirtNormal"), 1)));
-		m_chunkMaterial->AddCallback(MaterialCallbackType::ONBIND, NEW(MaterialCallbackTexture("_Metallic", GetAssetManager()->Get<Texture>("DirtMetallic"), 2)));
-		m_chunkMaterial->AddCallback(MaterialCallbackType::ONBIND, NEW(MaterialCallbackTexture("_Roughness", GetAssetManager()->Get<Texture>("DirtRoughness"), 3)));
+		m_chunkMaterial->AddOnInstanceCallback(NEW(MaterialCallbackPtr("_ChunkPos", &m_chunkPosition)));
+		m_chunkMaterial->AddOnBindCallback(NEW(MaterialCallbackTexture("_Albedo", GetAssetManager()->Get<Texture>("Dirt"), 0)));
+		m_chunkMaterial->AddOnBindCallback(NEW(MaterialCallbackTexture("_Normal", GetAssetManager()->Get<Texture>("DirtNormal"), 1)));
+		m_chunkMaterial->AddOnBindCallback(NEW(MaterialCallbackTexture("_Metallic", GetAssetManager()->Get<Texture>("DirtMetallic"), 2)));
+		m_chunkMaterial->AddOnBindCallback(NEW(MaterialCallbackTexture("_Roughness", GetAssetManager()->Get<Texture>("DirtRoughness"), 3)));
 
 		Mesh* mesh = GetAssetManager()->Get<Model>("Cube")->GetMeshes()[0]->Copy();
 		Material* material = GetMaterialManager()->Create("BlockEntity", GetShaderManager()->Get("Geometry"));
-		material->AddCallback(MaterialCallbackType::ONINSTANCE, NEW(MaterialCallbackPtr("_ChunkPos", &m_chunkPosition)));
-		material->AddCallback(MaterialCallbackType::ONBIND, NEW(MaterialCallbackTexture("_Albedo", GetAssetManager()->Get<Texture>("Dirt"), 0)));
-		material->AddCallback(MaterialCallbackType::ONBIND, NEW(MaterialCallbackTexture("_Normal", GetAssetManager()->Get<Texture>("DirtNormal"), 1)));
-		material->AddCallback(MaterialCallbackType::ONBIND, NEW(MaterialCallbackTexture("_Roughness", GetAssetManager()->Get<Texture>("DirtRoughness"), 2)));
-		material->AddCallback(MaterialCallbackType::ONBIND, NEW(MaterialCallbackTexture("_Metallic", GetAssetManager()->Get<Texture>("DirtMetallic"), 3)));
+		material->AddOnInstanceCallback(NEW(MaterialCallbackPtr("_ChunkPos", &m_chunkPosition)));
+		material->AddOnBindCallback(NEW(MaterialCallbackTexture("_Albedo", GetAssetManager()->Get<Texture>("Dirt"), 0)));
+		material->AddOnBindCallback(NEW(MaterialCallbackTexture("_Normal", GetAssetManager()->Get<Texture>("DirtNormal"), 1)));
+		material->AddOnBindCallback(NEW(MaterialCallbackTexture("_Roughness", GetAssetManager()->Get<Texture>("DirtRoughness"), 2)));
+		material->AddOnBindCallback(NEW(MaterialCallbackTexture("_Metallic", GetAssetManager()->Get<Texture>("DirtMetallic"), 3)));
 		mesh->SetMaterial(material);
 
 		m_blockEntityModel = new Model(mesh);
@@ -83,16 +90,25 @@ public:
 	void Update(const TimeStep& time) {
 		m_hasHoveredBlock = false;
 		BlockIterator iter(Camera::active->transform.position, Utils::RotationToDirection(Camera::active->transform.rotation));
+		glm::vec3 previousBlock;
 		for (; iter.t() < 5; ++iter) {
 			if (GetBlock(*iter) == 1) {
 				if (GetMouse()->ButtonJustDown(VK_MOUSE_LEFT)) {
 					SetBlock(*iter, 0);
 				}
+				if (GetMouse()->ButtonJustDown(VK_MOUSE_RIGHT)) {
+					SetBlock(previousBlock, 1);
+				}
 				m_hoveredBlock = *iter;
 				m_hasHoveredBlock = true;
 				break;
 			}
+			previousBlock = *iter;
 		}
+		auto chunkPosition = ToChunkPosition(Camera::active->transform.position);
+		auto localPosition = ToLocalBlockPosition(Camera::active->transform.position);
+		bool a = GetBlock(Camera::active->transform.position - glm::vec3(0.0f, 0.2f, 0.0f)) == 1;
+		//LOG("%s %d %d %d | %d %d %d", a ? "solid" : "not solid", chunkPosition.x, chunkPosition.y, chunkPosition.z, localPosition.x, localPosition.y, localPosition.z);
 	}
 	void RenderChunks(Shader* shader) {
 		glDisable(GL_CULL_FACE);
@@ -121,7 +137,7 @@ public:
 		}
 	}
 
-	uint8 GetBlock(const glm::ivec3& blockPosition) const {
+	uint8 GetBlock(const glm::vec3& blockPosition) const {
 		auto chunkPosition = ToChunkPosition(blockPosition);
 		auto itr = m_chunks.find(chunkPosition);
 		if (itr == m_chunks.cend()) {
@@ -130,14 +146,20 @@ public:
 		return itr->second.GetBlockFast(ToLocalBlockPosition(blockPosition));
 	}
 
-	void SetChunkDirty(const glm::ivec3& chunkPosition) {
+	void SetChunkDirty(const ChunkPos& chunkPosition) {
 		auto itr = m_chunks.find(chunkPosition);
 		if (itr != m_chunks.cend()) {
 			itr->second.m_dirty = true;
 		}
 	}
 
-	void SetBlock(const glm::ivec3& blockPosition, uint8 voxel) {
+	void SetBlock(const glm::vec3& blockPosition, uint8 voxel) {
+		glm::vec3& pos = Camera::active->transform.position;
+		AABB player(pos.x - 0.3f, pos.y - 1.62f, pos.z - 0.3f, pos.x + 0.3f, pos.y + 0.18f, pos.z + 0.3f);
+		BlockPos blockPos = ToBlockPosition(blockPosition);
+		AABB block(blockPos.x, blockPos.y, blockPos.z, blockPos.x + 1.0f, blockPos.y + 1.0f, blockPos.z + 1.0f);
+		if (player.Intersects(block)) return;
+		
 		auto chunkPosition = ToChunkPosition(blockPosition);
 		auto itr = m_chunks.find(chunkPosition);
 		auto local = ToLocalBlockPosition(blockPosition);

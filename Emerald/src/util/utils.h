@@ -76,8 +76,7 @@ namespace Utils {
 	String FlipStringVertical(const String& toRotate, int x, int y);
 
 
-	static String ReplaceString(String subject, const String& search,
-		const string& replace) {
+	static String ReplaceString(String subject, const String& search, const string& replace) {
 		size_t pos = 0;
 		while ((pos = subject.find(search, pos)) != String::npos) {
 			subject.replace(pos, search.length(), replace);

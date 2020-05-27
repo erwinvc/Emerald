@@ -4,31 +4,36 @@ struct {
 	glm::vec3 dimensions{ 0.3f, 1.62f, 0.3f };
 } box;
 
+float RoughRound(float value) {
+	return ((float)(Math::Round(value * 100))) / 100;
+}
+
 void FirstPersonCam::Collide(const glm::vec3& vel) {
 	auto& position = transform.position;
-	for (int x = (int)(position.x - box.dimensions.x); x < position.x + box.dimensions.x; x++) {
-		for (int y = (int)(position.y - box.dimensions.y); y < position.y + 0.28f; y++) {
-			for (int z = (int)(position.z - box.dimensions.z); z < position.z + box.dimensions.z; z++) {
+	for (float x = Math::Floor(position.x - box.dimensions.x); x < position.x + box.dimensions.x; x++) {
+		for (float y = Math::Floor(position.y - box.dimensions.y); y < position.y + 0.28f; y++) {
+			for (float z = Math::Floor(position.z - box.dimensions.z); z < position.z + box.dimensions.z; z++) {
 				auto block = GetWorld()->GetBlock(glm::vec3{ x, y, z });
 				if (block != 0) {
 					if (vel.y > 0) {
-						//LOG("Set %f %f", position.y, y - box.dimensions.x);
-						position.y = y - box.dimensions.x;
+						position.y = y - 0.28f - 0.002f;
 						m_velocity.y = 0;
 					} else if (vel.y < 0) {
 						m_isOnGround = true;
-						position.y = y + box.dimensions.y + 1;
+						position.y = y + box.dimensions.y + 1.001f;
 						m_velocity.y = 0;
 					}
+
 					if (vel.x > 0) {
-						position.x = x - box.dimensions.x;
+						position.x = x - box.dimensions.x - 0.001f;
 					} else if (vel.x < 0) {
-						position.x = x + box.dimensions.x + 1;
+						position.x = x + box.dimensions.x + 1.001f;
 					}
+
 					if (vel.z > 0) {
-						position.z = z - box.dimensions.z;
+						position.z = z - box.dimensions.z - 0.001f;
 					} else if (vel.z < 0) {
-						position.z = z + box.dimensions.z + 1;
+						position.z = z + box.dimensions.z + 1.001f;
 					}
 				}
 			}
@@ -37,9 +42,12 @@ void FirstPersonCam::Collide(const glm::vec3& vel) {
 	//LOG("%f", position.y);
 }
 
+static float FOV = 90;
+static float goalFov = 90;
 static int i = 0;
 static float delta;
 void FirstPersonCam::Update(const TimeStep& time) {
+	FOV = Math::Lerp(FOV, goalFov, time * 12);
 	i = 0;
 	delta = 1.0f / time.DeltaTime();
 	float moveForward = 0.0f;
@@ -47,7 +55,8 @@ void FirstPersonCam::Update(const TimeStep& time) {
 
 	if (KeyDown('W')) {
 		moveForward += 1.0f;
-	} else if (KeyDown('S')) {
+	}
+	if (KeyDown('S')) {
 		moveForward -= 1.0f;
 	}
 	if (KeyDown('A')) {
@@ -62,8 +71,10 @@ void FirstPersonCam::Update(const TimeStep& time) {
 
 	if (moveForward > 0 && KeyDown(LSHIFT)) {
 		moveForward *= 2.70f;
-	}
+		goalFov = 90 * 1.1f;
+	} else goalFov = 90;
 
+	SetProjectionMatrix(FOV, m_nearPlane, m_farPlane);
 	float multiplier;
 	float slipperiness;
 	float jumpMovementFactor = 0.02f;
@@ -112,88 +123,21 @@ void FirstPersonCam::Update(const TimeStep& time) {
 
 	m_isOnGround = false;
 
+
 	transform.position.x += m_velocity.x * 0.333333f;
-	Collide({ m_velocity.x * 0.333333f, 0, 0 });
+	Collide({ m_velocity.x, 0, 0 });
 
 	transform.position.y += m_velocity.y * 0.333333f;
-	Collide({ 0, m_velocity.y * 0.333333f, 0 });
+	Collide({ 0, m_velocity.y, 0 });
 
 	transform.position.z += m_velocity.z * 0.333333f;
-	Collide({ 0, 0, m_velocity.z * 0.333333f });
+	Collide({ 0, 0, m_velocity.z });
 
 
 	m_velocity.x *= slipperiness;
 	m_velocity.z *= slipperiness;
 	m_velocity.y -= 0.02666666666f;
 	m_velocity.y *= 0.99328838838f;
-
-	//float r = 0.000001f;
-	//glm::vec3 velChange = m_velocity * (Math::Pow(r, time.DeltaTime()) - 1.0f) / Math::Log(r);
-	//
-	//transform.position.x += velChange.x;
-	//Collide({ velChange.x, 0, 0 });
-	//
-	//transform.position.y += velChange.y;
-	//Collide({ 0, velChange.y * time, 0 });
-	//
-	//transform.position.z += velChange.z;
-	//Collide({ 0, 0, velChange.z * time });
-	//
-	//float PLAYER_SPEED = 1.6f;
-	//float PLAYER_JUMP = 0.4f;
-	//if (KeyDown(LSHIFT)) {
-	//	PLAYER_SPEED *= 2.5f;
-	//}
-	//
-	//if (!m_isOnGround) {
-	//	PLAYER_SPEED *= 0.1f;
-	//}
-	//
-	//if (KeyDown('W')) {
-	//	m_acceleration.x += glm::cos(transform.rotation.y - Math::HALF_PI) * PLAYER_SPEED;
-	//	m_acceleration.z += glm::sin(transform.rotation.y - Math::HALF_PI) * PLAYER_SPEED;
-	//} else if (KeyDown('S')) {
-	//	m_acceleration.x -= glm::cos(transform.rotation.y - Math::HALF_PI) * PLAYER_SPEED;
-	//	m_acceleration.z -= glm::sin(transform.rotation.y - Math::HALF_PI) * PLAYER_SPEED;
-	//}
-	//if (KeyDown('A')) {
-	//	m_acceleration -= transform.Right() * PLAYER_SPEED;
-	//} else if (KeyDown('D')) {
-	//	m_acceleration += transform.Right() * PLAYER_SPEED;
-	//}
-	//
-	//if (KeyDown(' ') && m_isOnGround) {
-	//	m_acceleration.y += PLAYER_JUMP * 20;
-	//}
-	//
-	//m_velocity += m_acceleration;
-	//m_acceleration = { 0, 0, 0 };
-	//
-	////Movement damping if not in air
-	//if (m_isOnGround) {
-	//	float damping = Math::Pow(r, time);
-	//	m_velocity.x *= damping;
-	//	m_velocity.z *= damping;
-	//} else {
-	//	float damping = Math::Pow(r2, time);
-	//	m_velocity.x *= damping;
-	//	m_velocity.z *= damping;
-	//	
-	////Falling
-	//	m_velocity.y -= 20 * time;
-	//}
-	//
-	////Mouse rotation
-	//if (KeyJustDown('N')) m_grabMouse ^= true;
-	//if (m_grabMouse || ButtonDown(VK_MOUSE_LEFT)) {
-	//	auto change = GetMouse()->GetDelta();
-	//	transform.rotation.x += (float)(change.y / 8.0f * -0.035f);
-	//	transform.rotation.y += (float)(change.x / 8.0f * -0.035f);
-	//}
-	//
-	////Limit view angle
-	//transform.rotation.x = Math::Clamp(transform.rotation.x, -Math::HALF_PI, Math::HALF_PI);
-
 	UpdateViewMatrix();
 }
 

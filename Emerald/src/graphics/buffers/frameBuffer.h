@@ -102,6 +102,13 @@ public:
 		GL(glClear(GL_STENCIL_BUFFER_BIT));
 	}
 
+	void SetDrawAndReadBuffersToNone() {
+		Bind();
+		GL(glDrawBuffer(GL_NONE));
+		GL(glReadBuffer(GL_NONE));
+		Unbind();
+	}
+	
 	void Blit(FrameBuffer* targetFBO);
 	void BlitDepthOnly(FrameBuffer* targetFBO);
 

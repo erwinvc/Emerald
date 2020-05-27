@@ -65,7 +65,7 @@ struct GlobalUniforms {
 	UBOMat4 _InverseView;
 	UBOBool _SSAOEnabled;
 	UBOVec2 _CameraPlanes;
-	UBOVec2 _ViewPort;
+	UBOVec3 _ViewPort;
 };
 
 template<typename T>

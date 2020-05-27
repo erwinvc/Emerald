@@ -1,4 +1,9 @@
 #version 330
+
+#include "includes/globalUniforms.incl"
+#include "includes/utils.incl"
+#include "includes/pbr.incl"
+
 in vec2 fsUV;
 
 out vec3 outColor;
@@ -8,70 +13,63 @@ uniform sampler2D _GAlbedo;
 uniform sampler2D _GNormal;
 uniform sampler2D _GMisc;
 uniform sampler2D _SSAO;
-
-layout (std140) uniform GlobalUniforms {
-	vec3 _CameraPosition;
-	mat4 _Projection;
-	mat4 _View;
-	mat4 _InverseProjection;
-	mat4 _InverseView;
-    bool _SSAOEnabled;
-	vec2 _CameraPlanes;
-	vec2 _ViewPort;
-};
+uniform sampler2D _Shadow;
 
 uniform vec4 _Color;
 uniform vec3 _Directional;
+uniform mat4 _LightSpaceMatrix;
 
-const float PI = 3.14159265359;
-
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
-    float a = roughness*roughness;
-    float a2 = a*a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH*NdotH;
-
-    float nom   = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-
-    return nom / max(denom, 0.001);
+float linstep(float low, float high, float v){
+    return clamp((v-low)/(high-low), 0.0, 1.0);
 }
 
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-    float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
+float SampleVarianceShadowMap(sampler2D shadowMap, vec2 coords, float compare){
+    vec2 moments = texture2D(shadowMap, coords.xy).xy;
 
-    float nom   = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
+    float p = step(compare, moments.x);
+    float variance = max(moments.y - moments.x * moments.x, 0.00002);
 
-    return nom / denom;
+    float d = compare - moments.x;
+    float pMax = linstep( 0.2, 1.0, variance / (variance + d*d));
+
+    return min(max(p, pMax), 1.0);
 }
 
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+float ShadowCalculation(vec4 fragPosLightSpace)
 {
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
-    return ggx1 * ggx2;
-}
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    return SampleVarianceShadowMap(_Shadow, projCoords.xy, projCoords.z);
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
-{
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
-}
-
-vec3 GetPosition(vec2 coord){
-	float z = texture(_Depth, coord).x * 2.0f - 1.0f;
-	vec4 clipSpacePosition = vec4(coord * 2.0 - 1.0, z, 1.0);
-	vec4 viewSpacePosition = inverse(_Projection) * clipSpacePosition;
-	viewSpacePosition /= viewSpacePosition.w;
-	vec4 worldSpacePosition = inverse(_View) * viewSpacePosition;
-	return viewSpacePosition.xyz;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(_Shadow, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // calculate bias (based on depth map resolution and slope)
+    float bias = 0.005;
+    // check whether current frag pos is in shadow
+    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    // PCF
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(_Shadow, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(_Shadow, projCoords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+    
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if(projCoords.z > 1.0)
+        shadow = 0.0;
+        
+    return shadow;
 }
 
 void main(){
@@ -81,10 +79,10 @@ void main(){
 	float lightInfluence = misc.w;
 
 	vec3 albedo = texture(_GAlbedo, fsUV).rgb;
-	vec3 N = texture(_GNormal, fsUV).xyz;
-    N =  vec3(inverse(_View) * vec4(N, 0.0));
-	vec3 viewPos = GetPosition(fsUV);
-    vec3 worldPos = vec3(inverse(_View) * vec4(viewPos, 1.0));
+	vec3 viewNormal = normalize(texture(_GNormal, fsUV).xyz);
+    vec3 N = ViewNormalToWorldNormal(viewNormal);
+	vec3 viewPos = GetViewPosition(_Depth, fsUV);
+    vec3 worldPos = ViewPosToWorldPos(viewPos);
 	float ssao = texture(_SSAO, fsUV).x;
 
 	vec3 F0 = vec3(0.04); 
@@ -99,7 +97,6 @@ void main(){
     float NDF = DistributionGGX(N, H, roughness);   
     float G   = GeometrySmith(N, V, L, roughness);      
     vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
-       
     vec3 nominator    = NDF * G * F; 
     float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
     vec3 specular = nominator / max(denominator, 0.001);
@@ -113,5 +110,8 @@ void main(){
 
 	vec3 color = Lo * ssao;
 
-	outColor = vec3(mix(albedo, color, lightInfluence));
+    vec4 fragPosLightSpace = _LightSpaceMatrix * vec4(worldPos, 1.0);
+    float shadow = ShadowCalculation(fragPosLightSpace);     
+
+	outColor = vec3(mix(albedo, color, lightInfluence)) * shadow;
 }

@@ -27,6 +27,7 @@ public:
 	//}
 
 	Material* GetBasicMaterial(Shader* shader) {
+		if (!shader) LOG_ERROR("[~GMaterial~x] Shader is a nullptr");
 		if (m_defaultMaterials.find(shader->GetName()) == m_defaultMaterials.end()) {
 			m_defaultMaterials[shader->GetName()] = NEW(Material(Format("%s_Default", shader->GetName().c_str()), shader, m_globalID++));
 		}

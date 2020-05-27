@@ -15,8 +15,8 @@ public:
 		for (int i = 0; i < CHUNK_VOLUME; i++) m_blocks[i] = 1;
 	}
 
-	Chunk(glm::ivec3& pos, World* world) : m_position(pos), m_world(world) {
-		for (int i = 0; i < CHUNK_VOLUME; i++) m_blocks[i] = 1;
+	Chunk(glm::ivec3& pos, World* world, bool filled = true) : m_position(pos), m_world(world) {
+		for (int i = 0; i < CHUNK_VOLUME; i++) m_blocks[i] = filled ? 1 : 0;
 	}
 
 

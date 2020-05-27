@@ -17,6 +17,7 @@ SSRRenderer::SSRRenderer() {
 	m_texture = m_fbo->AddBuffer("SSR", TextureParameters(INT_RGB16, DATA_RGB, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
 	m_quad = MeshGenerator::Quad();
+	LOG("[~bRenderer~x] SSR renderer initialized");
 }
 
 void SSRRenderer::Draw(HDRPipeline* pipeline) {

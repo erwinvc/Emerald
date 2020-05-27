@@ -46,8 +46,8 @@ void Mouse::Update() {
 	m_prevPosition = m_usePosition;
 	m_usePosition = m_position;
 
-	float sensitivity = 0.6 * m_sensitivity + 0.2;
-	sensitivity = Math::Pow(sensitivity, 3) * 8.0;
+	float sensitivity = 0.6f * m_sensitivity + 0.2f;
+	sensitivity = Math::Pow(sensitivity, 3) * 8.0f;
 	
 	m_rawDelta = m_prevPosition - m_usePosition;
 	m_delta = m_rawDelta * sensitivity;

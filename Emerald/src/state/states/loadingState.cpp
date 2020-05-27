@@ -42,6 +42,7 @@ void LoadingState::Initialize() {
 
 	//m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
 	//m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
+	m_batch->Add(NEW(ShaderLoader("DirectionalShadowChunk", "res/shader/directionalShadowChunk")));
 	m_batch->Add(NEW(ShaderLoader("DepthCubemap", "res/shader/depthCubemap", true)));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
 	m_batch->Add(NEW(ShaderLoader("Chunk", "res/shader/chunk")));
@@ -49,6 +50,7 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("Directional", "res/shader/directional")));
 	m_batch->Add(NEW(ShaderLoader("Pointlight", "res/shader/pointlight")));
 	m_batch->Add(NEW(ShaderLoader("HDR", "res/shader/hdr")));
+	m_batch->Add(NEW(ShaderLoader("HBAO", "res/shader/hbao")));
 	m_batch->Add(NEW(ShaderLoader("SSAO", "res/shader/ssao")));
 	m_batch->Add(NEW(ShaderLoader("SSAOBlur", "res/shader/ssaoBlur")));
 	m_batch->Add(NEW(ShaderLoader("Bloom", "res/shader/bloom")));
@@ -56,7 +58,6 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(ShaderLoader("EmissionAmbient", "res/shader/emissionAmbient")));
 	m_batch->Add(NEW(ShaderLoader("SSR", "res/shader/ssr")));
 	m_batch->Add(NEW(ShaderLoader("Simple", "res/shader/simple")));
-	m_batch->Add(NEW(ShaderLoader("PolyLine", "res/shader/polyline", true)));
 	//m_batch->Add(NEW(ShaderLoader("Gaussian",		"src/shader/gaussian")));
 
 	//m_batch->Add(NEW(ModelLoader("Tile", "res/tiles/tile.obj")));
@@ -106,6 +107,8 @@ void LoadingState::Initialize() {
 		}
 	}
 }
+
+void LoadingState::RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) {}
 
 float p = 0;
 void LoadingState::Update(const TimeStep& time) {

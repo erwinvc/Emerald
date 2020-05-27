@@ -120,10 +120,11 @@ public:
 		Finish();
 	}
 
-	static void Combo(const String_t name, int* item, String_t const items[], int itemCount) {
+	static bool Combo(const String_t name, int* item, String_t const items[], int itemCount) {
 		Prepare(name);
-		ImGui::Combo(Format_t("##%s", name), item, items, itemCount);
+		bool toRet = ImGui::Combo(Format_t("##%s", name), item, items, itemCount);
 		Finish();
+		return toRet;
 	}
 };
 

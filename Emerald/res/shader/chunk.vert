@@ -1,5 +1,7 @@
 #version 330
 
+#include "includes/globalUniforms.incl"
+
 in vec3 vsPos;
 in vec2 vsIndex; //x = vertex; y = block side;
 
@@ -10,23 +12,11 @@ out vec3 fsTangent;
 uniform vec3 _ChunkPos;
 
 struct Data {
-	//vec3 normal;
 	vec2 uv;
 	mat3 TBNMatrix;
 };
 
 out Data fsData;
-
-layout (std140) uniform GlobalUniforms {
-	vec3 _CameraPosition;
-	mat4 _Projection;
-	mat4 _View;
-	mat4 _InverseProjection;
-	mat4 _InverseView;
-    bool _SSAOEnabled;
-	vec2 _CameraPlanes;
-	vec2 _ViewPort;
-};
 
 vec2 texCoords[4] = vec2[4](
     vec2(0.0f, 0.0f),

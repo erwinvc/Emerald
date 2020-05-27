@@ -1,4 +1,7 @@
 #version 330
+
+#include "includes/globalUniforms.incl"
+
 in vec2 fsUV;
 
 out vec3 outColor;
@@ -6,17 +9,6 @@ out vec3 outColor;
 uniform sampler2D _GMisc;
 uniform sampler2D _GAlbedo;
 uniform sampler2D _SSAO;
-
-layout (std140) uniform GlobalUniforms {
-	vec3 _CameraPosition;
-	mat4 _Projection;
-	mat4 _View;
-	mat4 _InverseProjection;
-	mat4 _InverseView;
-    bool _SSAOEnabled;
-	vec2 _CameraPlanes;
-	vec2 _ViewPort;
-};
 
 uniform float _AmbientIntensity;
 

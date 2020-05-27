@@ -16,7 +16,9 @@ enum TextureFilter {
 
 enum TextureInternalFormat {
 	INT_RED = GL_RED,
+	INT_RED32 = GL_R32F,
 	INT_RG = GL_RG,
+	INT_RG32 = GL_RG32F,
 	INT_RGBA = GL_RGBA,
 	INT_SRGBA = GL_SRGB_ALPHA,
 	INT_RGB = GL_RGB,
