@@ -39,7 +39,7 @@ public:
 
 
 		float goalAmbient = Math::Clamp(Math::Map(Camera::active->transform.position.y, -8.0f, 0.0f, 0.0f, 0.05f), 0.0f, 1.0f);
-		GetApp()->pipeline->m_ambientIntensity = Math::Lerp(GetApp()->pipeline->m_ambientIntensity, goalAmbient, 0.02f);
+		GetClient()->pipeline->m_ambientIntensity = Math::Lerp(GetClient()->pipeline->m_ambientIntensity, goalAmbient, 0.02f);
 	}
 
 	void RenderGeometry(HDRPipeline* pipeline) override {

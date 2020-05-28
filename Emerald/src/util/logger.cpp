@@ -127,10 +127,14 @@ condition_variable Logger::m_conditionVariable;
 queue<Logger::QueuedMessage> Logger::m_queue;
 
 ImGuiLog* m_imGuiLog;
+
 void HandleInput() {
 	static String input;
 	getline(cin, input);
 	LOG("~R%s", input.c_str());
+	if (input.compare("exit") == 0 || input.compare("shutdown") == 0) {
+		GetServer()->m_running = false;
+	}
 }
 
 /*Retrieve QueuedMessages from the queue (async)*/
@@ -147,11 +151,11 @@ void Logger::HandleQueue() {
 }
 
 /*Initialize the non-blocking logger*/
-void Logger::Initialize() {
+void Logger::Initialize(const String& title) {
 	if (m_allocated) return;
 
 	AllocConsole();
-	SetConsoleTitleA("Emerald");
+	SetConsoleTitleA(title.c_str());
 
 	m_outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 	m_inputHandle = GetStdHandle(STD_INPUT_HANDLE);
@@ -163,11 +167,11 @@ void Logger::Initialize() {
 	m_allocated = true;
 	m_firstEntry = true;
 
-	//m_inputThread = GetThreadManager()->RegisterThread("Console input", HandleInput);
+	LOG("[~2Logging~x] console allocated");
+
+	m_inputThread = GetThreadManager()->RegisterThread("Console input", HandleInput, true);
 	m_outputThread = GetThreadManager()->RegisterThread("Console output", HandleQueue);
 	m_imGuiLog = NEW(ImGuiLog());
-
-	LOG("[~2Logging~x] Console allocated");
 }
 
 /*Set the text color of the next print to console*/
@@ -243,7 +247,7 @@ void Logger::ProcessMessage(QueuedMessage& message) {
 	SetTextColor((int)ConsoleColor::WHITE);
 }
 
- void Logger::Message(int color, const char* type, const char* fmt, ...) {
+void Logger::Message(int color, const char* type, const char* fmt, ...) {
 	if (m_stopping) return;
 	while (m_queue.size() > MAXQUEUESIZE) {
 		Sleep(0);
@@ -260,7 +264,7 @@ void Logger::ProcessMessage(QueuedMessage& message) {
 	AddToQueue(color, buffer, type, time(nullptr));
 }
 void Logger::MessageTimed(int time, int color, const char* type, const char* fmt, ...) {
-	if (GetApp()->GetFrameCount() % time == 0) {
+	if (GetClient()->GetFrameCount() % time == 0) {
 		char buffer[0xffff] = { 0 };
 		va_list va_alist;
 		va_start(va_alist, fmt);
@@ -268,7 +272,7 @@ void Logger::MessageTimed(int time, int color, const char* type, const char* fmt
 		va_end(va_alist);
 
 		String str = buffer;
-		str += to_string(GetApp()->GetFrameCount());
+		str += to_string(GetClient()->GetFrameCount());
 		Message(color, type, str.c_str());
 	}
 }
@@ -285,7 +289,7 @@ void Logger::ForceEmptyQueue() {
 }
 
 /*Print the message to a logging file*/
-void Logger::LogToFile(const char * buff) {
+void Logger::LogToFile(const char* buff) {
 	// #Dirty add proper path
 	const auto fileName = "log.log";
 	ofstream logFile;
@@ -302,7 +306,7 @@ void Logger::LogToFile(const char * buff) {
 
 void Logger::Cleanup() {
 	if (!m_allocated) return;
-	LOG("[~gLogging~x] Deallocating console");
+	LOG("[~gLogging~x] deallocating console");
 	ForceEmptyQueue();
 	DELETE(m_imGuiLog);
 	PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);

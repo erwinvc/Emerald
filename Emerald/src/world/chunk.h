@@ -1,9 +1,9 @@
 #pragma once
 
-class World;
+class ServerWorld;
 class Chunk {
 private:
-	World* m_world;
+	ServerWorld* m_world;
 	uint8 m_blocks[CHUNK_VOLUME];
 	ChunkMesh m_mesh;
 
@@ -15,7 +15,7 @@ public:
 		for (int i = 0; i < CHUNK_VOLUME; i++) m_blocks[i] = 1;
 	}
 
-	Chunk(glm::ivec3& pos, World* world, bool filled = true) : m_position(pos), m_world(world) {
+	Chunk(glm::ivec3& pos, ServerWorld* world, bool filled = true) : m_position(pos), m_world(world) {
 		for (int i = 0; i < CHUNK_VOLUME; i++) m_blocks[i] = filled ? 1 : 0;
 	}
 

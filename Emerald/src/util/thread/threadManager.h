@@ -4,8 +4,10 @@ class Thread {
 private:
     String m_name;
     HANDLE m_handle;
+    function<void()> m_function;
 	atomic<bool> m_shutDown = false;
 	atomic<bool> m_finished = false;
+	atomic<bool> m_forceKill = false;
 
 	friend class ThreadManager;
 public:
@@ -27,7 +29,8 @@ private:
     vector<Thread*> m_threads;
 
 public:
-    Thread* RegisterThread(String name, void(*func)());
+    Thread* RegisterThread2(String name, function<void()> func, bool forceKill = false);
+    Thread* RegisterThread(String name, void(*func)(), bool forceKill = false);
     void Cleanup();
 };
 

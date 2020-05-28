@@ -1,8 +1,8 @@
 #include "stdafx.h"
 
 FrameBuffer::FrameBuffer(String name, FBOScale scale, Color& clearColor) : m_name(name), m_scale(scale), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(false), m_hasStencil(false) {
-	m_realWidth = GetApp()->GetWidth();
-	m_realHeight = GetApp()->GetHeight();
+	m_realWidth = GetClient()->GetWidth();
+	m_realHeight = GetClient()->GetHeight();
 	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
 	m_height = (uint)(FBOScaleToFloat(m_scale) * m_realHeight);
 
@@ -83,13 +83,13 @@ AssetRef<Texture> FrameBuffer::AddBuffer(const String& name, const TextureParame
 void FrameBuffer::Blit(FrameBuffer* targetFBO) {
 	GL(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo));
 	GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO ? targetFBO->GetHandle() : 0));
-	GL(glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, targetFBO ? targetFBO->GetWidth() : GetApp()->GetWidth(), targetFBO ? targetFBO->GetHeight() : GetApp()->GetHeight(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST));
+	GL(glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, targetFBO ? targetFBO->GetWidth() : GetClient()->GetWidth(), targetFBO ? targetFBO->GetHeight() : GetClient()->GetHeight(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST));
 }
 
 void FrameBuffer::BlitDepthOnly(FrameBuffer* targetFBO) {
 	GL(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo));
 	GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO ? targetFBO->GetHandle() : 0));
-	GL(glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, targetFBO ? targetFBO->GetWidth() : GetApp()->GetWidth(), targetFBO ? targetFBO->GetHeight() : GetApp()->GetHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST));
+	GL(glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, targetFBO ? targetFBO->GetWidth() : GetClient()->GetWidth(), targetFBO ? targetFBO->GetHeight() : GetClient()->GetHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST));
 }
 
 
@@ -127,5 +127,5 @@ void FrameBufferManager::OnImGUI() {
 
 void FrameBufferManager::BindDefaultFBO() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	GL(glViewport(0, 0, GetApp()->GetWidth(), GetApp()->GetHeight()));
+	GL(glViewport(0, 0, GetClient()->GetWidth(), GetClient()->GetHeight()));
 }

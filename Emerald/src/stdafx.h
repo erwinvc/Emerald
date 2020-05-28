@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #define _HAS_STD_BYTE 0
 #define NOGDI
 
@@ -25,6 +29,11 @@
 #include <atomic>
 #include <mutex>
 #include <iomanip>
+
+//Networking
+//#include <winsock2.h>
+//#include <ws2tcpip.h>
+//#pragma comment(lib, "Ws2_32.lib")
 
 // Datastructures
 #include <map>
@@ -78,6 +87,8 @@ using namespace std;
 #define GLM_ENABLE_EXPERIMENTAL
 #include "vendor/glm/gtx/hash.hpp"
 
+#include "util/types.h"
+
 #include "math/rectangle.h"
 #include "math/random.h"
 #include "math/mathFunctions.h"
@@ -86,7 +97,6 @@ using namespace std;
 #include "math/coordinates.h"
 #include "math/aabb.h"
 
-#include "util/types.h"
 #include "util/color.h"
 #include "util/ref.h"
 #include "util/singleton.h"
@@ -124,6 +134,13 @@ using namespace std;
 #include "util/tween/tween.h"
 
 #include "glCallbackManager.h"
+
+//#include "networking/winsock.h"
+//#include "networking/udpListener.h"
+//#include "networking/socket.h"
+#include "network/enet.h"
+#include "network/packets.h"
+#include "network/clientSession.h"
 
 #include "assets/texture/textureParameters.h"
 
@@ -209,7 +226,6 @@ using namespace std;
 
 #include "deferred.h"
 #include "graphics/pipeline/HDRPipeline.h"
-#include "application.h"
 
 #include "util/ludo/aStar.h"
 
@@ -222,8 +238,12 @@ using namespace std;
 #include "world/chunkManager.h"
 #include "world/world.h"
 
-#include "physics/rigidBody.h"
-#include "physics/player.h"
+//#include "physics/rigidBody.h"
+
+#include "client.h"
+#include "server/serverWorld.h"
+#include "server/server.h"
+#include "application.h"
 
 #include "state/state.h"
 #include "state/stateManager.h"

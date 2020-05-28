@@ -38,7 +38,7 @@ public:
 		QueuedMessage() : m_color(0), m_message(""), m_type(""), m_time(0) {}
 	};
 	static const int MAXQUEUESIZE = 1000;
-	static void Initialize();
+	static void Initialize(const String& title);
 	static void Message(int color, const char* type, const char* fmt, ...);
 	static void MessageTimed(int time, int color, const char* type, const char* fmt, ...);
 	static void ForceEmptyQueue();

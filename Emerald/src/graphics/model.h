@@ -26,6 +26,12 @@ public:
 		}
 	}
 
+	void DrawShadow(uint mode = GL_TRIANGLES) {
+		for (auto& mesh : m_meshes) {
+			mesh->Draw(mode);
+		}
+	}
+	
 	void Draw(glm::mat4 transform, uint mode = GL_TRIANGLES) {
 		m_meshes[0]->GetMaterial()->GetShader()->Set("_TransformationMatrix", transform);
 

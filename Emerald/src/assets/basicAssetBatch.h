@@ -56,7 +56,7 @@ public:
 	}
 
 	void Add(AssetLoader* loader) override {
-		if (m_started) LOG_ERROR("[~yAssets~x] Asset batch ~1%s~r already started");
+		if (m_started) LOG_ERROR("[~yResource~x] asset batch ~1%s~r already started");
 		m_aSyncQueue->Add(loader);
 		m_currentBatchSize++;
 	}
@@ -80,7 +80,7 @@ public:
 		if (m_currentQueueSize == m_currentQueueProgress) {
 			if (!PopQueue()) {
 				m_finished = true;
-				LOG("[~yAssets~x] Finished asset batch ~1%s~x", m_name.c_str());
+				LOG("[~yResource~x] finished asset batch ~1%s~x", m_name.c_str());
 			}
 		}
 	}
@@ -109,7 +109,7 @@ public:
 	//		GetGLFiberManager()->GoToMainFiber();
 	//	}
 	//	m_finished = true;
-	//	LOG("[~yAssets~x] Finished asset batch ~1%s~x in %.2fms", m_name.c_str(), timer.Get());
+	//	LOG("[~yResource~x] finished asset batch ~1%s~x in %.2fms", m_name.c_str(), timer.Get());
 	//}
 	bool IsFinished() override { return m_finished; }
 

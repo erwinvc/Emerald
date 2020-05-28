@@ -43,8 +43,8 @@ public:
 	float m_hbaoLumInfluence = 0.2f;
 	float m_hbaoAngleBias = 0.2f;
 	float m_hbaoAttenuationScale = 1.0f;
-	int m_hbaoSampleDirections = 8.0f;   
-	int m_hbaoSampleSteps = 64.0f;
+	int m_hbaoSampleDirections = 8;   
+	int m_hbaoSampleSteps = 64;
 	float m_hbaoSampleRadius = 9.0f;
 	
 	AmbientOcclusionRenderer();

@@ -4,24 +4,15 @@
 
 glm::ivec2 toResize(-1, -1);
 
-static void ErrorCallback(int error, const char* description) {
-	LOG_ERROR("[GLFW] %s", description);
-}
-
-static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-	LOG("%d %d %s", type, id, message);
-}
-
-void Application::OnResize(int width, int height) {
+void Client::OnResize(int width, int height) {
 	toResize = glm::ivec2(width, height);
 }
 
-void Application::OnWindowClose() {
+void Client::OnWindowClose() {
 	m_running = false;
 }
 
-void Application::Initialize() {
-	//glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+void Client::Initialize() {
 	glfwSetErrorCallback(ErrorCallback);
 	if (!glfwInit()) {
 		LOG_ERROR("[GLFW] GLFW failed to initialize");
@@ -49,42 +40,45 @@ void Application::Initialize() {
 		return;
 	}
 
-	//m_hwndHandle = glfwGetWin32Window(m_window->GetHandle());
-
 	//glEnable(GL_DEBUG_OUTPUT);
 	//glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	//glDebugMessageCallback(DebugCallback, nullptr);
 
-	GetGLCallbackManager()->AddOnCloseCallback(this, &Application::OnWindowClose);
+	GetGLCallbackManager()->AddOnCloseCallback(this, &Client::OnWindowClose);
 
 	LOG("[~cGPU~x] %-26s %s", "GPU manufacturer~1", glGetString(GL_VENDOR));
 	LOG("[~cGPU~x] %-26s %s", "GPU~1", glGetString(GL_RENDERER));
 	LOG("[~cGPU~x] %-26s %s", "OpenGL version~1", glGetString(GL_VERSION));
 
-	CapabilitiesCheck();
-
 	m_window->SetIcon(Icon("icon32"));
 
 	GetStateManager()->RegisterStates();
 	pipeline = NEW(HDRPipeline());
-	pipeline->EarlyInitialize(m_window->GetWidth(), m_window->GetHeight());
+	pipeline->EarlyInitialize(GetWidth(), GetHeight());
 
 	GetGLFiberManager()->Initialize();
-	GetGLFiberManager()->AddFiber("Main", [] {GetApp()->Run(); });
+	GetGLFiberManager()->AddFiber("Main", [] {GetClient()->Run(); });
 	GetGLFiberManager()->AddFiber("AssetManager", [] {GetAssetManager()->Update(); });
 
 	m_window->Show();
 
-	GetGLCallbackManager()->AddOnResizeCallback(this, &Application::OnResize);
+	GetGLCallbackManager()->AddOnResizeCallback(this, &Client::OnResize);
 
 	m_initialized = true;
+
+	ConnectClientToServer(m_host.m_handle, m_serverConnection, "80.101.6.142", 25565);
+	m_connectionState = ConnectionState::Pending;
+
+	PacketHandshakeOne packet;
+	packet.salt = m_salt;
+	m_serverConnection.Send(&packet, sizeof(PacketHandshakeOne), 0, ENET_PACKET_FLAG_RELIABLE);
 
 	while (m_running) {
 		GetGLFiberManager()->Tick();
 	}
 }
 
-void Application::Run() {
+void Client::Run() {
 	m_timer = Timer();
 	float timer = m_timer.Get();
 	float updateTimer = m_timer.Get();
@@ -118,25 +112,54 @@ void Application::Run() {
 	}
 }
 
-void Application::Update(TimeStep time) {
+void Client::Update(TimeStep time) {
+	NetEvent evnt;
+	while (m_host.GetEvent(evnt)) {
+		if (evnt.type == NetEventType::Data) {
+			const void* data = evnt.packet;
+			ReceivedPacket packet(evnt.packet);
+			HandlePacket(packet);
+			evnt.Destroy();
+		}
+	}
+
 	GetMouse()->Update();
 	GetStateManager()->Update(time);
 	GetTweenManager()->Update(time);
 	GetShaderManager()->Update(time);
 }
 
-void Application::HandleQueue() {
+void Client::HandleQueue() {
 	function<void()> task;
 	if (m_queue.TryToGet(task)) {
 		task();
 	}
 }
 
-void Application::Render() {
+void Client::Render() {
 	m_window->ClearColor(Color(0, 0, 0, 1));
 
-
 	pipeline->Render();
+
+	if (GetImGuiManager()->IsInitialized()) {
+		GetImGuiManager()->Begin();
+
+		if (UI::BeginWindow("Emerald")) {
+			if (UI::Button("Connect to server")) {
+			}
+			if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
+				pipeline->OnImGUI();
+				GetStateManager()->OnStateImGUI();
+				GetFrameBufferManager()->OnImGUI();
+				GetShaderManager()->OnImGUI();
+				ImGui::EndTabBar();
+			}
+		}
+		UI::EndWindow();
+
+		GetStateManager()->OnImGUI();
+		GetImGuiManager()->End();
+	}
 
 	if (toResize.x != -1) {
 		uint width = toResize.x;
@@ -157,7 +180,31 @@ void Application::Render() {
 	m_window->PollEvents();
 }
 
-void Application::CapabilitiesCheck() {
+void Client::HandlePacket(const ReceivedPacket& packet) {
+	switch (packet.type) {
+		case PacketType::HandshakeChallenge: OnHandshakeChallenge(packet.As<PacketHandshakeChallenge>()); break;
+		case PacketType::ConnectionAccepted: OnConnectionAccepted(packet.As<PacketConnectionAccepted>()); break;
+		case PacketType::Kick: OnKick(packet.As<PacketKick>()); break;
+		case PacketType::GameData: OnGameData(packet.As<PacketGameData>()); break;
+		case PacketType::AddEntity: OnAddEntity(packet.As<PacketAddEntity>()); break;
+		case PacketType::RemoveEntity: OnRemoveEntity(packet.As<PacketRemoveEntity>()); break;
+		case PacketType::UpdateEntities: OnUpdateEntities(packet.As<PacketUpdateEntities>()); break;
+		case PacketType::BlockUpdate: OnBlockUpdate(packet.As<PacketBlockUpdate>()); break;
+	}
+}
+
+void Client::OnHandshakeChallenge(const PacketHandshakeChallenge& packet) {
+	uint32 newSalt = m_salt ^ packet.salt;
+	m_salt = newSalt;
+
+	PacketHandshakeResponse newPacket;
+	newPacket.salt = m_salt;
+	m_serverConnection.SendPacket(&newPacket, 0, ENET_PACKET_FLAG_RELIABLE);
+
+	LOG("[~cNetwork~x] received handshake challenge");
+}
+
+void Client::CapabilitiesCheck() {
 	int maxSize;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
 
@@ -167,10 +214,38 @@ void Application::CapabilitiesCheck() {
 	//MessageBox(hWnd, "id is: <int id here?>", "Msg title", MB_OK | MB_ICONQUESTION);
 }
 
-void Application::Cleanup() {
+void Client::OnConnectionAccepted(const PacketConnectionAccepted& packet) {
+
+}
+
+void Client::OnKick(const PacketKick& packet) {
+
+}
+
+void Client::OnGameData(const PacketGameData& packet) {
+
+}
+
+void Client::OnAddEntity(const PacketAddEntity& packet) {
+
+}
+
+void Client::OnRemoveEntity(const PacketRemoveEntity& packet) {
+
+}
+
+void Client::OnUpdateEntities(const PacketUpdateEntities& packet) {
+
+}
+
+void Client::OnBlockUpdate(const PacketBlockUpdate& packet) {
+
+}
+
+void Client::Cleanup() {
 	GetStateManager()->Cleanup();
 	GetThreadManager()->Cleanup();
-	DELETE(pipeline);
 	DELETE(m_window);
+	DELETE(pipeline);
 	GetMemory()->CheckAllocations();
 }

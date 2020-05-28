@@ -160,12 +160,12 @@ void EditorState::OnImGuiViewport() {
 	ImVec2 pos = ImGui::GetCursorScreenPos();
 	ImVec2 parentPos = ImGui::GetCurrentWindowRead()->ParentWindow->Pos;
 
-	GetApp()->pipeline->OnResize((uint)viewportSize.x, (uint)viewportSize.y);
+	GetClient()->pipeline->OnResize((uint)viewportSize.x, (uint)viewportSize.y);
 	GetFrameBufferManager()->OnResize((uint)viewportSize.x, (uint)viewportSize.y);
 
 	//Hardcoded 19 because we can't get this value from the parent window with ImGui::GetCurrentWindowRead()->ParentWindow->MenuBarHeight(); 
 	Camera::active->SetViewport((uint)(pos.x - parentPos.x), (uint)(pos.y - parentPos.y + 19), (uint)viewportSize.x, (uint)viewportSize.y);
-	ImGui::Image((void*)(uint64)GetApp()->pipeline->GetFinalTexture()->GetHandle(), viewportSize, { 0, 1 }, { 1, 0 });
+	ImGui::Image((void*)(uint64)GetClient()->pipeline->GetFinalTexture()->GetHandle(), viewportSize, { 0, 1 }, { 1, 0 });
 	ImGui::End();
 
 	ImGui::SetNextWindowDockID(m_dockspaceLeft, ImGuiCond_Always);

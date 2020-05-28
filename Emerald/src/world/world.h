@@ -16,19 +16,19 @@ private:
 public:
 	unordered_map<glm::ivec3, Chunk> m_chunks;
 	World() {
-		for (int z = -1; z < 1; z++) {
-			for (int x = -1; x < 1; x++) {
-				for (int y = -16; y < 0; y++) {
-					m_chunks.emplace(glm::ivec3(x, y, z), Chunk(glm::ivec3(x, y, z), this));
-				}
-			}
-		}
-
-		for (int z = -1; z < 1; z++) {
-			for (int x = -1; x < 1; x++) {
-				m_chunks.emplace(glm::ivec3(x, 0, z), Chunk(glm::ivec3(x, 0, z), this, false));
-			}
-		}
+		//for (int z = -1; z < 1; z++) {
+		//	for (int x = -1; x < 1; x++) {
+		//		for (int y = -16; y < 0; y++) {
+		//			m_chunks.emplace(glm::ivec3(x, y, z), Chunk(glm::ivec3(x, y, z), this));
+		//		}
+		//	}
+		//}
+		//
+		//for (int z = -1; z < 1; z++) {
+		//	for (int x = -1; x < 1; x++) {
+		//		m_chunks.emplace(glm::ivec3(x, 0, z), Chunk(glm::ivec3(x, 0, z), this, false));
+		//	}
+		//}
 		//m_chunks.emplace(glm::ivec3(0, 0, 0), Chunk(glm::ivec3(0, 0, 0), this));
 
 		Shader* shader = GetShaderManager()->Get("Chunk");
@@ -157,7 +157,7 @@ public:
 		glm::vec3& pos = Camera::active->transform.position;
 		AABB player(pos.x - 0.3f, pos.y - 1.62f, pos.z - 0.3f, pos.x + 0.3f, pos.y + 0.18f, pos.z + 0.3f);
 		BlockPos blockPos = ToBlockPosition(blockPosition);
-		AABB block(blockPos.x, blockPos.y, blockPos.z, blockPos.x + 1.0f, blockPos.y + 1.0f, blockPos.z + 1.0f);
+		AABB block(blockPos);
 		if (player.Intersects(block)) return;
 		
 		auto chunkPosition = ToChunkPosition(blockPosition);

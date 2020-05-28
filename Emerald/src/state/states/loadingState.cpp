@@ -10,7 +10,7 @@ void LoadingState::Initialize() {
 	loadingSprite = Sprite(m_animatedLogo, Color::White(), 8, 62, 0, 1.0f/31.0f);
 	GetTileMaterialManager()->Initialize();
 
-	GetImGuiManager()->Initialize(GetApp()->GetWindow());
+	GetImGuiManager()->Initialize(GetClient()->GetWindow());
 
 	GetTextureManager()->Initialize();
 
@@ -21,13 +21,13 @@ void LoadingState::Initialize() {
 
 	m_batch = GetAssetManager()->CreateBatch<BasicAssetBatch>("Main Assets");
 
-	m_batch->Add(NEW(CustomLoader("Mouse", [] {GetMouse()->Initialize(GetApp()->GetWindow()); })));
-	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetApp()->GetWindow()); })));
+	m_batch->Add(NEW(CustomLoader("Mouse", [] {GetMouse()->Initialize(GetClient()->GetWindow()); })));
+	m_batch->Add(NEW(CustomLoader("Keyboard", [] {GetKeyboard()->Initialize(GetClient()->GetWindow()); })));
 	m_batch->Add(NEW(CustomLoader("Thread Pool", [] {GetThreadPool()->Initialize(3); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
-	//m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza2/sponzaPBR.obj")));
-	//m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
+	m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza2/sponzaPBR.obj")));
+	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
 	//m_batch->Add(NEW(ModelLoader("wheelbarrow", "res/wheelbarrow/tmruaaeda_LOD0.fbx")));
 	//m_batch->Add(NEW(TextureLoader("wheelbarrowAlbedo", "res/wheelbarrow/tmruaaeda_4K_Albedo.jpg", true, TextureParameters(INT_SRGB, DATA_UNK, LINEAR))));
 	//m_batch->Add(NEW(TextureLoader("wheelbarrowNormal", "res/wheelbarrow/tmruaaeda_4K_Normal_LOD0.jpg", true, TextureParameters(INT_RGB, DATA_UNK, LINEAR))));
@@ -43,6 +43,7 @@ void LoadingState::Initialize() {
 	//m_batch->Add(NEW(ModelLoader("Turtle", "res/turtle.fbx")));
 	//m_batch->Add(NEW(ShaderLoader("Line", "res/shader/line")));
 	m_batch->Add(NEW(ShaderLoader("DirectionalShadowChunk", "res/shader/directionalShadowChunk")));
+	m_batch->Add(NEW(ShaderLoader("DirectionalShadow", "res/shader/directionalShadow")));
 	m_batch->Add(NEW(ShaderLoader("DepthCubemap", "res/shader/depthCubemap", true)));
 	m_batch->Add(NEW(ShaderLoader("Tile", "res/shader/tile")));
 	m_batch->Add(NEW(ShaderLoader("Chunk", "res/shader/chunk")));
@@ -96,7 +97,7 @@ void LoadingState::Initialize() {
 
 	//m_batch->Add(NEW(CustomLoader("Tile Renderer", [] {GetTileRenderer()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Pointlight Renderer", [] {GetPointlightRenderer()->Initialize(MeshGenerator::Sphere(10, 10), PointlightRenderer::MAX_LIGHTS); })));
-	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetApp()->pipeline->Initialize(); })));
+	m_batch->Add(NEW(CustomLoader("Rendering Pipeline", [] {GetClient()->pipeline->Initialize(); })));
 	//m_batch->Add(NEW(CustomLoader("Tile manager", [] {GetTileManager()->Initialize(); })));
 	m_batch->Add(NEW(CustomLoader("Asset Watcher", [] {GetAssetWatcher()->Initialize(); })));
 
@@ -115,7 +116,7 @@ void LoadingState::Update(const TimeStep& time) {
 	p += 0.1f * time.DeltaTime();
 	if (m_batch->IsFinished() && GetAssetManager()->GetProgress() >= GetAssetManager()->GetProgress() - 0.01f) {
 		GetTileMaterialManager()->GenerateMipmaps();
-		GetStateManager()->SetState(GameStates::VOXEL);
+		GetStateManager()->SetState(GameStates::MENU);
 		GetStateManager()->RemoveState(this);
 	}
 

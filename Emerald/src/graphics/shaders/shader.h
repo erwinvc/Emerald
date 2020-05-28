@@ -16,15 +16,12 @@ private:
 		GL(uint shader = glCreateShader(type));
 		if (!FileSystem::DoesFileExist(path)) LOG_WARN("[~bShaders~x] ~1%s ~xshader ~1%s ~xat ~1%s does not exist", m_name.c_str(), GLUtils::ShaderTypeToString(type), path.c_str());
 
-		Timer timer;
 		String source = "";
 		String logOutput = "";
 		if(!Shadinclude::load(path, source, logOutput)) {
 			LOG_WARN("[~bShaders~x] Failed to load ~1%s ~xshader ~1%s ~xat ~1%s~x [~1%s]", m_name.c_str(), GLUtils::ShaderTypeToString(type), path.c_str(), logOutput.c_str());
 			return 0xffffffff;
 		}
-
-		timer.Print();
 
 		String_t sourceCC = source.c_str();
 

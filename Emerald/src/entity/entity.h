@@ -15,8 +15,13 @@ public:
 		if (overrideShader) {
 			overrideShader->Bind();
 			overrideShader->Set("_TransformationMatrix", transform.GetTransformationMatrix());
-		} 
+		}
 		m_model->Draw(transform.GetTransformationMatrix(), mode);
+	}
+
+	void DrawShadow(Shader* shadowShader, uint mode = GL_TRIANGLES) {
+		shadowShader->Set("_TransformationMatrix", transform.GetTransformationMatrix());
+		m_model->DrawShadow(mode);
 	}
 
 	void OnImGui() {

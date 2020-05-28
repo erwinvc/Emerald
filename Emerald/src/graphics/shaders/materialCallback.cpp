@@ -10,6 +10,6 @@ void MaterialCallbackGBuffer::Callback() {
 	ShaderUniformBuffer::SetGL(m_uniformLocation2, 2);
 	ShaderUniformBuffer::SetGL(m_uniformLocation3, 3);
 
-	GetApp()->pipeline->GetGBuffer()->BindTextures();
+	GetClient()->pipeline->GetGBuffer()->BindTextures();
 }
 

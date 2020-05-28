@@ -3,7 +3,7 @@
 void Sprite::Draw(HDRPipeline* pipeline, glm::vec2 origin, float x, float y, float w, float h, float rotation) {
 	if (m_frameCount > 0) {
 		int textureIndex;
-		textureIndex = (int)(GetApp()->GetTotalFrameTime() / (1000.0f * m_frameTime)) % m_frameCount;
+		textureIndex = (int)(GetClient()->GetTotalFrameTime() / (1000.0f * m_frameTime)) % m_frameCount;
 		textureIndex += m_frameOffset;
 		float row = (float)(m_numberOfRows - (textureIndex / m_numberOfRows) - 1);
 		float column = (float)(textureIndex % m_numberOfRows);

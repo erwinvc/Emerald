@@ -43,7 +43,7 @@ private:
 		String fileName = path.filename().string();
 		String extention = path.extension().string();
 		auto it = m_handlers.find(extention);
-		LOG("[~yAssets~x] Detected change in ~1%s", fileName.c_str());
+		LOG("[~yResource~x] detected change in ~1%s", fileName.c_str());
 		if (it != m_handlers.end()) {
 			m_queue.Add({ it->second, dir + "/" + fileName.substr(0, fileName.size() - extention.size()) });
 		}
@@ -52,7 +52,7 @@ public:
 	void Initialize() {
 		if (m_initialized) return;
 		m_thread = GetThreadManager()->RegisterThread("AssetWatcher", [] {GetInstance()->Watch(); });
-		LOG("[~yAssets~x] Initialized Asset Watcher");
+		LOG("[~yResource~x] initialized Asset Watcher");
 		AddDirectory("res/shader", false);
 		AddChangeHandler(".vert", [](const String& file) { GetShaderManager()->ReloadShaderByFileName(file); });
 		AddChangeHandler(".frag", [](const String& file) { GetShaderManager()->ReloadShaderByFileName(file); });
@@ -67,14 +67,14 @@ public:
 				m_paths[file.path().string()] = std::filesystem::last_write_time(file);
 			}
 			m_dirs.push_back(dir);
-			LOG("[~yAssets~x] Added ~1%s~x to Asset Watcher", dir.c_str());
-		} else LOG("[~yAssets~x] Failed to create Asset Watcher for ~x%s", dir.c_str());
+			LOG("[~yResource~x] added ~1%s~x to Asset Watcher", dir.c_str());
+		} else LOG("[~yResource~x] failed to create Asset Watcher for ~x%s", dir.c_str());
 	}
 
 	void AddChangeHandler(const String& extention, function<void(const String&)> handler) {
 		if (m_handlers.find(extention) == m_handlers.end()) {
 			m_handlers.emplace(extention, handler);
-		} else LOG_ERROR("[~yAssets~x] Asset Watcher already contains handler for ~1%s", extention.c_str());
+		} else LOG_ERROR("[~yResource~x] asset Watcher already contains handler for ~1%s", extention.c_str());
 	}
 
 	void HandleQueue() {

@@ -102,7 +102,6 @@ public:
 		if (split.size() < 1) return;
 		vector<String> splitVersion = Utils::Split(split[0], "//");
 		if (splitVersion.size() == 1 || splitVersion[1].compare("material") != 0) {
-			LOG("Not a material");
 			return;
 		}
 

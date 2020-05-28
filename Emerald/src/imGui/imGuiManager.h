@@ -56,6 +56,13 @@ public:
 		Finish();
 	}
 
+	static bool Button(const String_t name) {
+		Prepare(name);
+		bool toRet = ImGui::Button(Format_t("##%s", name));
+		Finish();
+		return toRet;
+	}
+	
 	static void Text(const String_t name, const String& text) {
 		Prepare(name);
 		ImGui::Text(Format_t("##%s", name), text.c_str());

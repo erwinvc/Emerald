@@ -88,7 +88,7 @@ void HDRPipeline::Render() {
 	if (aaa) {
 		GameStates::VOXEL->m_dcm->Draw(this, GameStates::VOXEL->m_pointlight.m_position);
 	}
-	
+
 	m_spriteRenderer->Begin();
 	m_lineRenderer->Begin();
 
@@ -103,24 +103,6 @@ void HDRPipeline::Render() {
 
 	m_finalFBO->Blit(nullptr);
 	GetFrameBufferManager()->BindDefaultFBO();
-
-	if (GetImGuiManager()->IsInitialized()) {
-		GetImGuiManager()->Begin();
-
-		if (UI::BeginWindow("Emerald")) {
-			if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
-				OnImGUI();
-				GetStateManager()->OnStateImGUI();
-				GetFrameBufferManager()->OnImGUI();
-				GetShaderManager()->OnImGUI();
-				ImGui::EndTabBar();
-			}
-		}
-		UI::EndWindow();
-
-		GetStateManager()->OnImGUI();
-		GetImGuiManager()->End();
-	}
 }
 
 void HDRPipeline::RenderGeometry() {
@@ -316,7 +298,7 @@ void HDRPipeline::OnImGUI() {
 			if (ImGui::Button("Freecam")) {
 				Camera::active = m_freeCam;
 				m_selectedCamera = 0;
-				glfwSetInputMode(GetApp()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				glfwSetInputMode(GetClient()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
 			if (ImGui::Button("First person")) {
 				m_firstPersonCamera->transform.position = Camera::active->transform.position;
@@ -329,8 +311,8 @@ void HDRPipeline::OnImGUI() {
 		if (ImGui::CollapsingHeader("Memory")) {
 			GetMemory()->OnImGui();
 		}
-		bool vSync = GetApp()->GetWindow()->GetVSync();
-		if (ImGui::Checkbox("VSync", &vSync)) GetApp()->GetWindow()->SetVSync(vSync);
+		bool vSync = GetClient()->GetWindow()->GetVSync();
+		if (ImGui::Checkbox("VSync", &vSync)) GetClient()->GetWindow()->SetVSync(vSync);
 		if (ImGui::Checkbox("Wireframe", &m_wireFrame)) GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 		ImGui::EndTabItem();
 	}

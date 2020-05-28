@@ -10,6 +10,7 @@ public:
 	float maxZ = 0;
 
 	AABB(float mnX, float mnY, float mnZ, float mxX, float mxY, float mxZ) : minX(mnX), minY(mnY), minZ(mnZ), maxX(mxX), maxY(mxY), maxZ(mxZ) {}
+	AABB(const BlockPos& blockPos) : minX((float)blockPos.x), minY((float)blockPos.y), minZ((float)blockPos.z), maxX((float)blockPos.x + 1.0f), maxY((float)blockPos.y + 1.0f), maxZ((float)blockPos.z + 1.0f) {}
 
 	bool Intersects(const AABB& other) {
 		return Intersects(other.minX, other.minY, other.minZ, other.maxX, other.maxY, other.maxZ);

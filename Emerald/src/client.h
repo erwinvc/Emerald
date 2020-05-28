@@ -1,14 +1,25 @@
 #pragma once
-class Application : public Singleton<Application> {
+
+enum class ConnectionState {
+	Pending,
+	Connected,
+	Disconnected,
+};
+
+class Client : public Singleton<Client> {
 private:
-	Application() : m_running(true) {}
-	~Application() {}
+	Client() { m_salt = Random::Int(0, Math::MAX_INT); }
+	~Client() {}
 	friend Singleton;
 
+	ConnectionState m_connectionState = ConnectionState::Disconnected;
+	Connection m_serverConnection;
+	NetHost m_host;
+	Window* m_window;
 	bool m_initialized = false;
-	Window* m_window = nullptr;
 	Timer m_timer;
-	
+
+	uint32 m_salt;
 	float m_totalFrameTime = 0;
 	uint64 m_frameCount = 0;
 	float m_lastFrameTime = 0;
@@ -16,17 +27,14 @@ private:
 
 	bool m_running = true;
 
-	HWND m_hwndHandle = 0;
 	AsyncQueue<function<void()>> m_queue;
 
 	void HandleQueue();
 
 public:
-	//static uint s_globalLogValue;
 	HDRPipeline* pipeline = nullptr;
-	
+
 	float GetTotalFrameTime() { return m_totalFrameTime; }
-	Window* GetWindow() { return m_window; }
 
 	void Initialize();
 	void Run();
@@ -38,6 +46,17 @@ public:
 	void Render();
 
 	void CapabilitiesCheck();
+
+	void OnConnectionAccepted(const PacketConnectionAccepted& packet);
+	void OnKick(const PacketKick& packet);
+	void OnGameData(const PacketGameData& packet);
+	void OnAddEntity(const PacketAddEntity& packet);
+	void OnRemoveEntity(const PacketRemoveEntity& packet);
+	void OnUpdateEntities(const PacketUpdateEntities& packet);
+	void OnBlockUpdate(const PacketBlockUpdate& packet);
+	void HandlePacket(const ReceivedPacket& packet);
+	void OnHandshakeChallenge(const PacketHandshakeChallenge& packet);
+
 	void QueueTask(function<void()> task) {
 		m_queue.Add(task);
 	}
@@ -45,12 +64,13 @@ public:
 
 	uint GetWidth() { return m_window->GetWidth(); }
 	uint GetHeight() { return m_window->GetHeight(); }
-	
 	float GetAspect() { return m_window->GetAspect(); }
+
+	Window* GetWindow() { return m_window; }
 };
 
-static Application* GetApp() {
-	return Application::GetInstance();
+static Client* GetClient() {
+	return Client::GetInstance();
 }
 
 //static GraphicsPipeline* GetPipeline() { return Application::GetInstance()->GetPipeline(); }

@@ -25,12 +25,12 @@ public:
 	template<typename T>
 	AssetRef<T> CreateBatch(const String& name) {
 		//TODO register batches
-		LOG("[~yAssets~x] Asset batch ~1%s~x created", name.c_str());
+		LOG("[~yResource~x] asset batch ~1%s~x created", name.c_str());
 		return NEW(T(name));
 	}
 
 	void SubmitBatch(AssetBatch* batch) {
-		LOG("[~yAssets~x] Asset batch ~1%s~x submitted", batch->GetName().c_str());
+		LOG("[~yResource~x] asset batch ~1%s~x submitted", batch->GetName().c_str());
 		m_currentBatch = batch;
 		m_currentBatch->Start();
 	}
@@ -50,7 +50,7 @@ public:
 	template<typename T>
 	void AddAsset(const String& name, T* asset) {
 		const String& typeName = T::GetAssetTypeName();
-		if (m_assets[typeName][name] != nullptr) LOG_ERROR("[~yAssets~x] ~1%s~x already exists!", name.c_str());
+		if (m_assets[typeName][name] != nullptr) LOG_ERROR("[~yResource~x] ~1%s~x already exists!", name.c_str());
 		m_assets[typeName][name] = asset;
 	}
 
@@ -58,7 +58,7 @@ public:
 	AssetRef<T> Get(const String& name, bool warn = true) {
 		const String& typeName = T::GetAssetTypeName();
 		T* asset = (T*)m_assets[typeName][name];
-		if (warn && asset == nullptr) LOG_WARN("[~yAssets~x] asset ~1%s~x of type ~1%s~x not found", name.c_str(), typeid(T).name());
+		if (warn && asset == nullptr) LOG_WARN("[~yResource~x] asset ~1%s~x of type ~1%s~x not found", name.c_str(), typeid(T).name());
 		return asset;
 	}
 

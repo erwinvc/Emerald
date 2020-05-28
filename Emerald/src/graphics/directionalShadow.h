@@ -8,6 +8,7 @@ enum class ShadowType {
 class DirectionalShadow {
 private:
 	const uint SIZE = 1024;
+	Shader* m_shaderChunk;
 	Shader* m_shader;
 	FrameBuffer* m_fbo;
 	Texture* m_texture;
@@ -17,10 +18,12 @@ public:
 	float m_nearPlane = -25.0f, m_farPlane = 128.0f;
 	float m_size = 44.0f;
 	DirectionalShadow() {
-		m_shader = GetShaderManager()->Get("DirectionalShadowChunk");
+		m_shaderChunk = GetShaderManager()->Get("DirectionalShadowChunk");
+		m_shader = GetShaderManager()->Get("DirectionalShadow");
 		m_fbo = GetFrameBufferManager()->Create("DirectionalShadow", SIZE, SIZE);
 		m_fbo->AddBuffer("Depth", TextureParameters(INT_DEPTH, DATA_DEPTH, LINEAR, REPEAT, T_UNSIGNED_BYTE), FBOAttachment::DEPTH);
 		m_texture = m_fbo->AddBuffer("DirectionalShadow", TextureParameters(INT_RG32, DATA_RGBA, LINEAR, REPEAT, T_FLOAT), FBOAttachment::COLOR);
+
 		//m_fbo->SetDrawAndReadBuffersToNone();
 	}
 

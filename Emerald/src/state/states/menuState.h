@@ -5,6 +5,7 @@ struct Position {
 };
 class MenuState : public State {
 private:
+	Shader* m_shadowShader;
 	Model* m_mori;
 	Entity* m_moriEntity;
 	Shader* m_geometryShader;
@@ -22,30 +23,31 @@ public:
 	
 
 	void Initialize() override {
-		//m_pointLights.push_back(Pointlight(glm::vec3(0, 3, 0), 15, Color::Blue()));
-		//m_geometryShader = GetShaderManager()->Get("Geometry");
-		//m_mori = GetAssetManager()->Get<Model>("wheelbarrow");
-		//mat = GetMaterialManager()->Create("MoriMaterial", m_geometryShader);
-		//mat->SetPBR("wheelbarrow");
-		//m_mori->SetMaterial(mat);
-		//m_moriEntity = new Entity(m_mori);
-		//iri = GetAssetManager()->Get<Texture>("Iridescence");
-		//noise = GetAssetManager()->Get<Texture>("Noise");
-		////sponza = GetAssetManager()->Get<Model>("Sponza");
-		//Model* model = GetAssetManager()->Get<Model>("Sponza");
-		//sponzaEntity = new Entity(model);
-		//sponzaEntity->m_transform.m_size = glm::vec3(0.1f, 0.1f, 0.1f);
-		//
-		////GetCamera()->m_position.y = -2;
-		//Camera::active->transform.position = glm::vec3(-1.3f, 0.96f, 0);
-		//Camera::active->transform.rotation.y = Math::HALF_PI;
-		////m_moriEntity->m_transform.position.y = 5.0f;
-		////m_moriEntity->m_transform.position.x = -6.0f;
-		//m_moriEntity->m_transform.m_size = glm::vec3(0.2f);
-		////GetPipeline()->m_directionalLight.m_multiplier = 5.0f;
-		//for (int i = 0; i < LIGHTCOUNT; i++) {
-		//	m_positions.push_back(glm::vec3(Random::Float(-150.0f, 130.0f), Random::Float(0.0f, 90.0f), Random::Float(-60.0f, 60.0f)));
-		//}
+		m_shadowShader = GetShaderManager()->Get("DirectionalShadow");
+		m_pointLights.push_back(Pointlight(glm::vec3(0, 3, 0), 15, Color::Blue()));
+		m_geometryShader = GetShaderManager()->Get("Geometry");
+		m_mori = GetAssetManager()->Get<Model>("Mori");
+		mat = GetMaterialManager()->Create("MoriMaterial", m_geometryShader);
+		mat->SetPBR("Mori");
+		m_mori->SetMaterial(mat);
+		m_moriEntity = new Entity(m_mori);
+		iri = GetAssetManager()->Get<Texture>("Iridescence");
+		noise = GetAssetManager()->Get<Texture>("Noise");
+		//sponza = GetAssetManager()->Get<Model>("Sponza");
+		Model* model = GetAssetManager()->Get<Model>("Sponza");
+		sponzaEntity = new Entity(model);
+		sponzaEntity->transform.size = glm::vec3(0.1f, 0.1f, 0.1f);
+
+		//GetCamera()->m_position.y = -2;
+		Camera::active->transform.position = glm::vec3(-1.3f, 0.96f, 0);
+		Camera::active->transform.rotation.y = Math::HALF_PI;
+		//m_moriEntity->m_transform.position.y = 5.0f;
+		//m_moriEntity->m_transform.position.x = -6.0f;
+		m_moriEntity->transform.size = glm::vec3(0.2f);
+		//GetPipeline()->m_directionalLight.m_multiplier = 5.0f;
+		for (int i = 0; i < LIGHTCOUNT; i++) {
+			m_positions.push_back(glm::vec3(Random::Float(-150.0f, 130.0f), Random::Float(0.0f, 90.0f), Random::Float(-60.0f, 60.0f)));
+		}
 	}
 	bool started = false;
 	bool disableMori = false;
@@ -88,6 +90,12 @@ public:
 		//	}
 		//}
 		GetPointlightRenderer()->Submit(m_pointLights.data(), m_pointLights.size());
+	}
+
+	void RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) override {
+		m_shadowShader->Bind();
+		m_moriEntity->DrawShadow(m_shadowShader);
+		sponzaEntity->DrawShadow(m_shadowShader);
 	}
 
 	void OnStateImGUI() override {
@@ -134,24 +142,24 @@ public:
 								Tween::To(Camera::active->transform.rotation, glm::vec3(0.2f, Math::HALF_PI, 0), 5000)->SetEase(Ease::INOUTEXPO);
 								Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
 									disableMori = true;
-									GetApp()->pipeline->m_applyPostProcessing = false;
-									GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->GetGBuffer()->m_colorTexture);
+									GetClient()->pipeline->m_applyPostProcessing = false;
+									GetFrameBufferManager()->SetSelectedTexture(GetClient()->pipeline->GetGBuffer()->m_colorTexture);
 
 									Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-										GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->GetGBuffer()->m_normalTexture);
+										GetFrameBufferManager()->SetSelectedTexture(GetClient()->pipeline->GetGBuffer()->m_normalTexture);
 
 										Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-											GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->GetGBuffer()->m_attributesTexture);
+											GetFrameBufferManager()->SetSelectedTexture(GetClient()->pipeline->GetGBuffer()->m_attributesTexture);
 
 											Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-												GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->m_aoRenderer->GetRawTexture());
+												GetFrameBufferManager()->SetSelectedTexture(GetClient()->pipeline->m_aoRenderer->GetRawTexture());
 
 												Tween::To(temp, 0.0f, 4000)->SetOnComplete([&] {
-													GetApp()->pipeline->m_applyPostProcessing = true;
-													GetFrameBufferManager()->SetSelectedTexture(GetApp()->pipeline->GetHDRTexture());
+													GetClient()->pipeline->m_applyPostProcessing = true;
+													GetFrameBufferManager()->SetSelectedTexture(GetClient()->pipeline->GetHDRTexture());
 
-													Tween::To(GetApp()->pipeline->m_ambientIntensity, 0.01f, 2500);
-													Tween::To(GetApp()->pipeline->m_directionalLight.m_multiplier, 0.0f, 2500);
+													Tween::To(GetClient()->pipeline->m_ambientIntensity, 0.01f, 2500);
+													Tween::To(GetClient()->pipeline->m_directionalLight.m_multiplier, 0.0f, 2500);
 													Tween::To(temp, 0.0f, 2000)->SetOnComplete([&] {
 
 														for (int i = 0; i < LIGHTCOUNT; i++) {
@@ -159,7 +167,7 @@ public:
 														}
 														Tween::To(temp, 0.0f, 1000)->SetOnComplete([&] {
 															moveLights = true;
-															Tween::To(GetApp()->pipeline->m_exposure, 4.0f, 1000)->SetOnComplete([&] {
+															Tween::To(GetClient()->pipeline->m_exposure, 4.0f, 1000)->SetOnComplete([&] {
 
 															});
 														});
@@ -177,10 +185,7 @@ public:
 			started = true;
 		}
 	}
-	void RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) override
-	{
-		
-	}
+
 	void OnImGUI() override {
 
 	}

@@ -4,7 +4,9 @@ workspace "Emerald"
 	configurations
 	{
 		"Debug",
-		"Release"
+		"Release",
+		"DebugServer",
+		"ReleaseServer"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -27,6 +29,7 @@ project "Emerald"
 		"%{prj.name}/**.cpp",
 		"%{prj.name}/**.vert",
 		"%{prj.name}/**.frag",
+		"%{prj.name}/**.geom",
 		"%{prj.name}/**.tese",
 		"%{prj.name}/**.tesc"
 	}
@@ -91,6 +94,33 @@ project "Emerald"
 	filter "configurations:Release"
 		defines "EE_RELEASE"
 			flags{"LinkTimeOptimization"}
+		runtime "Release"
+		optimize "On"
+		
+			links
+			{
+				"Emerald/vendor/assimp/bin/Release/assimp-vc141-mt.lib",
+				"Emerald/vendor/assimp/bin/Release/IrrXML",
+				"Emerald/vendor/assimp/bin/Release/zlibstatic"
+			}
+			
+	filter "configurations:DebugServer"
+		defines "EE_DEBUG"
+		debugargs {"server"}
+		runtime "Debug"
+		symbols "On"
+
+			links
+			{
+				"Emerald/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib",
+				"Emerald/vendor/assimp/bin/Debug/IrrXMLd",
+				"Emerald/vendor/assimp/bin/Debug/zlibstaticd"
+			}
+			
+	filter "configurations:ReleaseServer"
+		defines "EE_RELEASE"
+		flags{"LinkTimeOptimization"}
+		debugargs {"server"}
 		runtime "Release"
 		optimize "On"
 		
