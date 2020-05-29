@@ -7,8 +7,8 @@ private:
 
 		if (compareVoxel == air) {
 			return true;
-		} else if (compareVoxel != thisId) {
-			return true;
+		//} else if (compareVoxel != thisId) {
+		//	return true;
 		}
 		return false;
 	}

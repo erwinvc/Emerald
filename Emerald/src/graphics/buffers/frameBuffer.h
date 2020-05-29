@@ -51,8 +51,8 @@ private:
 		GL_COLOR_ATTACHMENT15
 	};
 
-	FrameBuffer(String name, FBOScale scale, Color& clearColor = Color::Black());
-	FrameBuffer(String name, uint width, uint height, Color& clearColor = Color::Black());
+	FrameBuffer(String name, FBOScale scale, const Color& clearColor = Color::Black());
+	FrameBuffer(String name, uint width, uint height, const Color& clearColor = Color::Black());
 	~FrameBuffer();
 
 	bool CheckStatus();
@@ -95,7 +95,7 @@ public:
 	}
 
 	void ClearColorOnly() const {
-		GL(glClear(GL_DEPTH_BUFFER_BIT));
+		GL(glClear(GL_COLOR_BUFFER_BIT));
 	}
 
 	void ClearStencilOnly() const {
@@ -136,26 +136,26 @@ private:
 	uint m_width = 0;
 	uint m_height = 0;
 public:
-	AssetRef<FrameBuffer> Create(const String& name, uint width, uint height) {
+	AssetRef<FrameBuffer> Create(const String& name, uint width, uint height, const Color& clearColor = Color::Black()) {
 		for (FrameBuffer* fbo : m_frameBuffers) {
 			if (fbo->GetName().compare(name) == 0) {
 				LOG_ERROR("[~cBuffers~x] Framebuffer ~1%s~x already exists", fbo->GetName().c_str());
 				return AssetRef<FrameBuffer>(fbo);
 			}
 		}
-		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, width, height));
+		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, width, height, clearColor));
 		m_frameBuffers.push_back(fbo);
 		return AssetRef<FrameBuffer>(fbo);
 	}
 
-	AssetRef<FrameBuffer> Create(const String& name, FBOScale scale) {
+	AssetRef<FrameBuffer> Create(const String& name, FBOScale scale, const Color& clearColor = Color::Black()) {
 		for (FrameBuffer* fbo : m_frameBuffers) {
 			if (fbo->GetName().compare(name) == 0) {
 				LOG_ERROR("[~cBuffers~x] Framebuffer ~1%s~x already exists", fbo->GetName().c_str());
 				return AssetRef<FrameBuffer>(fbo);
 			}
 		}
-		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, scale));
+		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, scale, clearColor));
 		m_frameBuffers.push_back(fbo);
 		return AssetRef<FrameBuffer>(fbo);
 	}

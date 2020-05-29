@@ -1,5 +1,6 @@
 #pragma once
 
+class IndexBuffer;
 class Renderer {
 private:
     bool m_started;

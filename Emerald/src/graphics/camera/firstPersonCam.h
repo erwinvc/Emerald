@@ -6,11 +6,11 @@ class FirstPersonCam : public Camera {
 private:
 	bool m_isOnGround = false;
 	//glm::vec3 m_targetRotation = glm::vec3(0, 0, 0);
-	glm::vec3 m_velocity = glm::vec3(0, 0, 0);
 	glm::vec3 m_acceleration = glm::vec3(0, 0, 0);
 	bool m_isFlying = true;
 	bool m_grabMouse = false;
 public:
+	glm::vec3 m_velocity = glm::vec3(0, 0, 0);
 	FirstPersonCam(glm::vec2 viewportSize, float fov, float nearPlane, float farPlane) : Camera(viewportSize, fov, nearPlane, farPlane) {}
 	void Collide(const glm::vec3& vel);
 	void FixedUpdate() {}

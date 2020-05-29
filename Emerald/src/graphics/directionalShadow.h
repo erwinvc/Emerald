@@ -15,7 +15,7 @@ private:
 
 public:
 	glm::mat4 m_lightSpaceMatrix;
-	float m_nearPlane = -25.0f, m_farPlane = 128.0f;
+	float m_nearPlane = -50.0f, m_farPlane = 128.0f;
 	float m_size = 44.0f;
 	DirectionalShadow() {
 		m_shaderChunk = GetShaderManager()->Get("DirectionalShadowChunk");
@@ -35,7 +35,7 @@ public:
 	{
 		UI::Begin();
 		UI::Float("Far", &m_farPlane, 2.0f, 512.0f);
-		UI::Float("Near", &m_nearPlane, -40.0f, 1.0f);
+		UI::Float("Near", &m_nearPlane, -100.0f, 1.0f);
 		UI::Float("Size", &m_size, 1.0f, 64.0f);
 		UI::End();
 	}

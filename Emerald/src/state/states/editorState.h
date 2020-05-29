@@ -9,7 +9,7 @@ private:
 	ImGuiID m_dockspaceLeft;
 	ImGuiID m_dockspaceRight;
 	ImGuiID m_dockspaceBottom;
-	World* m_world;
+	ClientWorld* m_world;
 
 public:
 	EditorState() : State("Editor") {}

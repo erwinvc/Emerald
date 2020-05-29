@@ -9,6 +9,15 @@ String_t Format_t(String_t fmt, ...) {
 	return vaBuffer;
 }
 
+String_t Format_b(char* buffer, uint32 size, String_t fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	vsprintf_s(buffer, size, fmt, ap);
+	va_end(ap);
+	return buffer;
+}
+
+
 String Format(String_t fmt, ...) {
 	char vaBuffer[0x200];
 	va_list ap;
@@ -71,16 +80,16 @@ namespace GLUtils {
 	void EnableDepthTest() {
 		GL(glEnable(GL_DEPTH_TEST));
 	}
-	
+
 	void DisableDepthTest() {
 		GL(glDisable(GL_DEPTH_TEST));
 	}
 }
 
 namespace TextureUtils {
-	bool LoadTexture(const Path& filePath, bool flip, function<void(const LoadedTexture & data)> callback) {
+	bool LoadTexture(const Path& filePath, bool flip, function<void(const LoadedTexture & data)> callback, int goalChannels) {
 		if (!FileSystem::DoesFileExist(filePath.GetFullPath())) {
-			LOG_WARN("[~gTexture~x] ~1%s~x.png at ~1%s~x does not exist!", filePath.GetFileName().c_str(), filePath.GetDirectory().c_str());
+			LOG_WARN("[~gTexture~x] ~1%s.png~x at ~1%s~x does not exist!", filePath.GetFileName().c_str(), filePath.GetDirectory().c_str());
 			return false;
 		}
 
@@ -88,7 +97,7 @@ namespace TextureUtils {
 		int width, height;
 
 		stbi_set_flip_vertically_on_load(flip);
-		byte* data = stbi_load(filePath.GetFullPath().c_str(), &width, &height, &channelCount, 0);
+		byte* data = stbi_load(filePath.GetFullPath().c_str(), &width, &height, &channelCount, goalChannels);
 
 		//if (bpc != 3 && bpc != 4) {
 		//	LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", bpc, path.c_str());

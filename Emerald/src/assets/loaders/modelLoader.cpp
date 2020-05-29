@@ -1,5 +1,5 @@
 #include "stdafx.h"
-
+#include "graphics/buffers/indexBuffer.h"
 
 void ModelLoader::LoadMaterials(const aiScene* scene) {
 	int textureCounts[12] = { 0 };

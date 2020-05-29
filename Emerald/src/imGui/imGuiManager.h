@@ -18,12 +18,20 @@ public:
 	void ApplyStyle();
 	void Begin();
 	void End();
+
+	static int IPFilter(ImGuiTextEditCallbackData* data) {
+		ImWchar c = data->EventChar;
+		if (c >= '0' && c < '9') return 0;
+		if (c == '.' || c == ':') return 0;
+		return 1;
+	}
 };
 
 static ImGuiManager* GetImGuiManager() { return ImGuiManager::GetInstance(); }
 
 class UI {
 private:
+	static char buffer[];
 	static void Prepare(const String_t name) {
 		ImGui::AlignTextToFramePadding();
 
@@ -58,20 +66,20 @@ public:
 
 	static bool Button(const String_t name) {
 		Prepare(name);
-		bool toRet = ImGui::Button(Format_t("##%s", name));
+		bool toRet = ImGui::Button(Format_b(buffer, 0x100, "##%s", name));
 		Finish();
 		return toRet;
 	}
 	
 	static void Text(const String_t name, const String& text) {
 		Prepare(name);
-		ImGui::Text(Format_t("##%s", name), text.c_str());
+		ImGui::LabelText(Format_b(buffer, 0x100, "##%s", name), text.c_str());
 		Finish();
 	}
 
 	static void Bool(const String_t name, bool* value) {
 		Prepare(name);
-		ImGui::Checkbox(Format_t("##%s", name), value);
+		ImGui::Checkbox(Format_b(buffer, 0x100, "##%s", name), value);
 		Finish();
 	}
 
@@ -87,49 +95,49 @@ public:
 
 	static void Int(const String_t name, int* value, int min = -10, int max = 10) {
 		Prepare(name);
-		ImGui::SliderInt(Format_t("##%s", name), value, min, max);
+		ImGui::SliderInt(Format_b(buffer, 0x100, "##%s", name), value, min, max);
 		Finish();
 	}
 
 	static void Float(const String_t name, float* value, float min = -1.0f, float max = 1.0f) {
 		Prepare(name);
-		ImGui::SliderFloat(Format_t("##%s", name), value, min, max);
+		ImGui::SliderFloat(Format_b(buffer, 0x100, "##%s", name), value, min, max);
 		Finish();
 	}
 
 	static void Vec2(const String_t name, glm::vec2* value, float min = -1.0f, float max = 1.0f) {
 		Prepare(name);
-		ImGui::SliderFloat2(Format_t("##%s", name), (float*)value, min, max);
+		ImGui::SliderFloat2(Format_b(buffer, 0x100, "##%s", name), (float*)value, min, max);
 		Finish();
 	}
 
 	static void Vec3(const String_t name, glm::vec3* value, float min = -1.0f, float max = 1.0f) {
 		Prepare(name);
-		ImGui::SliderFloat3(Format_t("##%s", name), (float*)value, min, max);
+		ImGui::SliderFloat3(Format_b(buffer, 0x100, "##%s", name), (float*)value, min, max);
 		Finish();
 	}
 
 	static void Vec4(const String_t name, glm::vec4* value, float min = -1.0f, float max = 1.0f) {
 		Prepare(name);
-		ImGui::SliderFloat4(Format_t("##%s", name), (float*)value, min, max);
+		ImGui::SliderFloat4(Format_b(buffer, 0x100, "##%s", name), (float*)value, min, max);
 		Finish();
 	}
 
 	static void Color3(const String_t name, Color* value) {
 		Prepare(name);
-		ImGui::ColorEdit3(Format_t("##%s", name), (float*)value, ImGuiColorEditFlags_NoInputs);
+		ImGui::ColorEdit3(Format_b(buffer, 0x100, "##%s", name), (float*)value, ImGuiColorEditFlags_NoInputs);
 		Finish();
 	}
 
 	static void Color4(const String_t name, Color* value) {
 		Prepare(name);
-		ImGui::ColorEdit4(Format_t("##%s", name), (float*)value, ImGuiColorEditFlags_NoInputs);
+		ImGui::ColorEdit4(Format_b(buffer, 0x100, "##%s", name), (float*)value, ImGuiColorEditFlags_NoInputs);
 		Finish();
 	}
 
 	static bool Combo(const String_t name, int* item, String_t const items[], int itemCount) {
 		Prepare(name);
-		bool toRet = ImGui::Combo(Format_t("##%s", name), item, items, itemCount);
+		bool toRet = ImGui::Combo(Format_b(buffer, 0x100, "##%s", name), item, items, itemCount);
 		Finish();
 		return toRet;
 	}

@@ -31,7 +31,8 @@ project "Emerald"
 		"%{prj.name}/**.frag",
 		"%{prj.name}/**.geom",
 		"%{prj.name}/**.tese",
-		"%{prj.name}/**.tesc"
+		"%{prj.name}/**.tesc",
+		"%{prj.name}/**.incl"
 	}
 
 	filter { "files:Emerald/vendor/**.cpp" }

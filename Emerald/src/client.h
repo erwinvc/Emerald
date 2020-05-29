@@ -19,6 +19,7 @@ private:
 	bool m_initialized = false;
 	Timer m_timer;
 
+	uint32 m_playerID;
 	uint32 m_salt;
 	float m_totalFrameTime = 0;
 	uint64 m_frameCount = 0;
@@ -39,20 +40,21 @@ public:
 	void Initialize();
 	void Run();
 	void Cleanup();
-	void OnWindowClose();
 
-	void OnResize(int width, int height);
+	void OnResize(uint32 width, uint32 height);
 	void Update(TimeStep time);
 	void Render();
 
 	void CapabilitiesCheck();
 
-	void OnConnectionAccepted(const PacketConnectionAccepted& packet);
+	void ConnectToServer(const String& IP, int port);
+	void Disconnect();
+	void OnConnectionResult(const PacketConnectionResult& packet);
 	void OnKick(const PacketKick& packet);
-	void OnGameData(const PacketGameData& packet);
-	void OnAddEntity(const PacketAddEntity& packet);
+	void OnGameData(const void* data);
+	void OnAddEntity(const void* data);
 	void OnRemoveEntity(const PacketRemoveEntity& packet);
-	void OnUpdateEntities(const PacketUpdateEntities& packet);
+	void OnUpdateEntities(const void* data);
 	void OnBlockUpdate(const PacketBlockUpdate& packet);
 	void HandlePacket(const ReceivedPacket& packet);
 	void OnHandshakeChallenge(const PacketHandshakeChallenge& packet);
@@ -67,6 +69,20 @@ public:
 	float GetAspect() { return m_window->GetAspect(); }
 
 	Window* GetWindow() { return m_window; }
+
+	ConnectionState GetConnectionState() { return m_connectionState; }
+
+	void SetBlock(const BlockPos& pos, uint8 block);
+
+	uint32 GetPlayerID() { return m_playerID; }
+
+	float GetTime() {
+		return m_timer.Get();
+	}
+
+	float GetTimeSeconds() {
+		return m_timer.Get(Timer::TimeFormat::SECONDS);
+	}
 };
 
 static Client* GetClient() {

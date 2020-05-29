@@ -132,13 +132,14 @@ using namespace std;
 //#define DELETEARRAY(x) DestroyArray(x)
 
 #include "util/tween/tween.h"
+#include "util/profiler.h"
 
 #include "glCallbackManager.h"
 
 //#include "networking/winsock.h"
 //#include "networking/udpListener.h"
 //#include "networking/socket.h"
-#include "network/enet.h"
+#include "network/network.h"
 #include "network/packets.h"
 #include "network/clientSession.h"
 
@@ -146,7 +147,6 @@ using namespace std;
 
 #include "graphics/buffers/bufferLayout.h"
 #include "graphics/buffers/vertexBuffer.h"
-#include "graphics/buffers/indexBuffer.h"
 #include "graphics/buffers/vertexArray.h"
 #include "graphics/buffers/frameBuffer.h"
 #include "graphics/buffers/gBuffer.h"
@@ -168,13 +168,13 @@ using namespace std;
 #include "assets/material/tileMaterial.h"
 #include "assets/texture/textureArray.h"
 #include "assets/texture/textureUtils.h"
-#include "assets/texture/tileMaterialManager.h"
+#include "assets/texture/blockTextureArrayManager.h"
 #include "assets/texture/icon.h"
 #include "assets/loaders/assetLoader.h"
 #include "assets/loaders/customLoader.h"
 #include "assets/loaders/textureLoader.h"
 #include "assets/loaders/pbrTextureLoader.h"
-#include "assets/loaders/tileTextureLoader.h"
+#include "assets/loaders/blockTextureArrayLoader.h"
 #include "assets/loaders/shaderLoader.h"
 #include "assets/loaders/modelLoader.h"
 #include "assets/loaders/stateLoader.h"
@@ -236,7 +236,7 @@ using namespace std;
 #include "world/chunkMeshGenerator.h"
 #include "world/chunk.h"
 #include "world/chunkManager.h"
-#include "world/world.h"
+#include "world/clientWorld.h"
 
 //#include "physics/rigidBody.h"
 

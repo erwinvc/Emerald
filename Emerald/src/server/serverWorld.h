@@ -1,19 +1,8 @@
 #pragma once
 
-struct EntityState {
-	glm::vec3 position{ 0.0f };
-	glm::vec3 rotation{ 0.0f };
-
-	glm::vec3 lastPosition{ 0.0f };
-	glm::vec3 lastRotation{ 0.0f };
-
-	glm::vec3 velocity{ 0.0 };
-
-	bool active = false;
-};
-
 class ServerWorld {
 private:
+	uint32 m_entityCount = 0;
 	vector<EntityState> m_entities;
 	unordered_map<glm::ivec3, Chunk> m_chunks;
 
@@ -29,28 +18,40 @@ public:
 		return itr->second.GetBlockFast(ToLocalBlockPosition(blockPosition));
 	}
 
-	void SetChunkDirty(const ChunkPos& chunkPosition) {
-		auto itr = m_chunks.find(chunkPosition);
-		if (itr != m_chunks.cend()) {
-			itr->second.m_dirty = true;
-		}
-	}
-
 	void SetBlock(const WorldPos& blockPosition, uint8 voxel) {
-		glm::vec3& pos = Camera::active->transform.position;
-		AABB player(pos.x - 0.3f, pos.y - 1.62f, pos.z - 0.3f, pos.x + 0.3f, pos.y + 0.18f, pos.z + 0.3f);
-		BlockPos blockPos = ToBlockPosition(blockPosition);
-		AABB block(blockPos);
-		if (player.Intersects(block)) return;
-
 		auto chunkPosition = ToChunkPosition(blockPosition);
 		auto itr = m_chunks.find(chunkPosition);
 		auto local = ToLocalBlockPosition(blockPosition);
 		if (itr != m_chunks.cend()) {
 			itr->second.SetBlock(local, voxel);
-			itr->second.m_dirty = true;
 		}
 	}
 
+	unordered_map<glm::ivec3, Chunk>& GetChunks() {
+		return m_chunks;
+	};
+
+
 	uint32 AddEntity();
+	void RemoveEntity(uint id) {
+		assert(id < m_entities.size());
+		m_entities[id].active = false;
+		m_entityCount--;
+	}
+
+	EntityState& GetEntity(uint32 id) {
+		return m_entities[id];
+	}
+
+	void WriteEntities(PacketWriter& writer) const {
+		writer.Write(m_entityCount);
+		for (int i = 0; i < m_entities.size(); i++) {
+			const auto& state = m_entities[i];
+			if (state.active) {
+				writer.Write<uint32>(static_cast<uint32>(i));
+				writer.Write<glm::vec3>(state.position);
+				writer.Write<glm::vec3>(state.rotation);
+			}
+		}
+	}
 };

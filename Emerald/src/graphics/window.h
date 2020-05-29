@@ -4,9 +4,11 @@ class Window {
 private:
 	GLFWwindow* m_window;
 	String m_title;
-	uint m_width, m_height;
+	uint32 m_width, m_height;
 	bool m_vSync;
 	bool m_focussed;
+	bool m_minimized = false;
+	glm::ivec2 m_resizeBuffer = glm::ivec2(-1, -1);
 
 	void OnFocusEvent(int focus) {
 		m_focussed = focus;
@@ -72,9 +74,34 @@ public:
 		return m_vSync;
 	}
 
+	bool IsMinimized() {
+		return m_minimized;
+	}
+	
 	void SetIcon(const Icon& icon) {
 		GL(glfwSetWindowIcon(GetHandle(), 1, icon.GetImage()));
 	}
+
+	void OnResize(int width, int height) {
+		m_resizeBuffer = glm::ivec2(width, height);
+	}
+
+	bool CheckResized() {
+		if (m_resizeBuffer.x != -1 || m_resizeBuffer.y != -1) {
+			m_width = m_resizeBuffer.x;
+			m_height = m_resizeBuffer.y;
+			m_resizeBuffer.x = -1;
+			m_resizeBuffer.y = -1;
+			if (m_height == 0 || m_width == 0) m_minimized = true;
+			else m_minimized = false;
+			return true;
+		}
+		return false;
+	}
+
+	//void OnWindowClose() {
+	//	m_running = false;
+	//}
 
 	void SetTitle(const String& title) { glfwSetWindowTitle(m_window, title.c_str()); }
 

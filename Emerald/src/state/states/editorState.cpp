@@ -73,7 +73,7 @@ void EditorState::Initialize() {
 	//for (int i = 0; i < 4; i++) {
 	//	m_entities[i] = new Entity(GetAssetManager()->Get<Model>("Sphere"));
 	//}
-	m_world = new World();
+	m_world = new ClientWorld();
 }
 
 void EditorState::RenderGeometry(HDRPipeline* pipeline) {
@@ -129,6 +129,7 @@ void EditorState::Update(const TimeStep& time) {
 	//	entity[i]->m_position = Math::PointOnUnitSphere(pointsX[i], pointsY[i]);
 	//}
 
+	
 	//glm::vec3& ray = GroundRaycast::GetMousePosition();
 	////cursor->m_position = GroundRaycast::GetGroundPosition(ray, 0);
 	//int xPos = cursor->m_position.x / 10;

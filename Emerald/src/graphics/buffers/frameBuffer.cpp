@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-FrameBuffer::FrameBuffer(String name, FBOScale scale, Color& clearColor) : m_name(name), m_scale(scale), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(false), m_hasStencil(false) {
+FrameBuffer::FrameBuffer(String name, FBOScale scale, const Color& clearColor) : m_name(name), m_scale(scale), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(false), m_hasStencil(false) {
 	m_realWidth = GetClient()->GetWidth();
 	m_realHeight = GetClient()->GetHeight();
 	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);
@@ -11,7 +11,7 @@ FrameBuffer::FrameBuffer(String name, FBOScale scale, Color& clearColor) : m_nam
 	GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
 }
 
-FrameBuffer::FrameBuffer(String name, uint width, uint height, Color& clearColor) : m_name(name), m_scale(FBOScale::STATIC), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(false), m_hasStencil(false) {
+FrameBuffer::FrameBuffer(String name, uint width, uint height, const Color& clearColor) : m_name(name), m_scale(FBOScale::STATIC), m_width(0), m_height(0), m_color(clearColor), m_hasDepth(false), m_hasStencil(false) {
 	m_realWidth = width;
 	m_realHeight = height;
 	m_width = (uint)(FBOScaleToFloat(m_scale) * m_realWidth);

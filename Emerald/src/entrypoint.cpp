@@ -1,6 +1,5 @@
 #include "stdafx.h"
 
-
 int main(int argc, char** argv) {
 	bool isServer = false;
 	for (int i = 0; i < argc; ++i)

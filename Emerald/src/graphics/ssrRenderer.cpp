@@ -21,33 +21,37 @@ SSRRenderer::SSRRenderer() {
 }
 
 void SSRRenderer::Draw(HDRPipeline* pipeline) {
-	if (!m_enabled) return;
-	m_fbo->Bind();
-	m_fbo->Clear();
+	auto& pSSR = GetProfiler()->StartGL(ProfilerDataType::SSR);
 
-	m_shader->Bind();
-	pipeline->GetGBuffer()->BindTextures();
-	pipeline->GetHDRTexture()->Bind(4);
-	m_quad->Bind();
-	m_quad->Draw();
+	if (m_enabled) {
+		m_fbo->Bind();
+		m_fbo->Clear();
 
-	m_fbo->Unbind();
+		m_shader->Bind();
+		pipeline->GetGBuffer()->BindTextures();
+		pipeline->GetHDRTexture()->Bind(4);
+		m_quad->Bind();
+		m_quad->Draw();
 
-	m_simpleShader->Bind();
-	pipeline->m_hdrFBO->Bind();
+		m_fbo->Unbind();
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_EQUAL);
-	m_texture->Bind(0);
+		m_simpleShader->Bind();
+		pipeline->m_hdrFBO->Bind();
 
-	m_quad->Bind();
-	m_quad->Draw();
-	
-	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_LESS);
-	glDisable(GL_BLEND);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_EQUAL);
+		m_texture->Bind(0);
+
+		m_quad->Bind();
+		m_quad->Draw();
+
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LESS);
+		glDisable(GL_BLEND);
+	}
+	pSSR.End();
 }
 
 void SSRRenderer::OnImGui() {

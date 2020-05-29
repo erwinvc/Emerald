@@ -22,32 +22,34 @@ BloomRenderer::BloomRenderer() {
 }
 
 void BloomRenderer::Draw(HDRPipeline* pipeline) {
-	if (!m_enabled) return;
-	
-	m_bloomFBO->Bind();
-	m_bloomShader->Bind();
-	pipeline->GetHDRTexture()->Bind(0);
-	m_quad->Bind();
-	m_quad->Draw();
-
-	bool horizontal = true;
-	bool firstIteration = true;
-
-	m_gaussianShader->Bind();
-	m_pingPongFBO[0]->Bind();
-	m_pingPongFBO[0]->Clear();
-	m_pingPongFBO[1]->Bind();
-	m_pingPongFBO[1]->Clear();
-
-	for (int i = 0; i < m_gaussianIterations; i++) {
-		m_pingPongFBO[horizontal]->Bind();
-		m_gaussianShader->Set("_Horizontal", horizontal);
-
-		if (firstIteration) m_bloomTexture->Bind();
-		else m_pingPongTexture[!horizontal]->Bind();
+	auto& pBloom = GetProfiler()->StartGL(ProfilerDataType::Bloom);
+	if (m_enabled) {
+		m_bloomFBO->Bind();
+		m_bloomShader->Bind();
+		pipeline->GetHDRTexture()->Bind(0);
+		m_quad->Bind();
 		m_quad->Draw();
 
-		horizontal ^= true;
-		if (firstIteration) firstIteration = false;
+		bool horizontal = true;
+		bool firstIteration = true;
+
+		m_gaussianShader->Bind();
+		m_pingPongFBO[0]->Bind();
+		m_pingPongFBO[0]->Clear();
+		m_pingPongFBO[1]->Bind();
+		m_pingPongFBO[1]->Clear();
+
+		for (int i = 0; i < m_gaussianIterations; i++) {
+			m_pingPongFBO[horizontal]->Bind();
+			m_gaussianShader->Set("_Horizontal", horizontal);
+
+			if (firstIteration) m_bloomTexture->Bind();
+			else m_pingPongTexture[!horizontal]->Bind();
+			m_quad->Draw();
+
+			horizontal ^= true;
+			if (firstIteration) firstIteration = false;
+		}
 	}
+	pBloom.End();
 }

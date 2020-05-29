@@ -20,9 +20,9 @@ enum TextureInternalFormat {
 	INT_RG = GL_RG,
 	INT_RG32 = GL_RG32F,
 	INT_RGBA = GL_RGBA,
+	INT_SRGB = GL_SRGB,
 	INT_SRGBA = GL_SRGB_ALPHA,
 	INT_RGB = GL_RGB,
-	INT_SRGB = GL_SRGB,
 	INT_RGBA32 = GL_RGBA32F,
 	INT_RGB32 = GL_RGB32F,
 	INT_RGBA16 = GL_RGBA16F,
@@ -128,10 +128,25 @@ private:
 	int BaseInternalFormatToSizedInternalFormat(TextureInternalFormat format) const {
 		switch (format) {
 			case INT_RED: return GL_R8;
+			case INT_RED32: return GL_R32F;
 			case INT_RG: return GL_RG8;
-			case INT_RGBA: return GL_RGBA8;
+			case INT_RG32: return GL_RG32F;
 			case INT_RGB: return GL_RGB8;
+			case INT_RGB16:return GL_RGB16F;
+			case INT_RGB32: return GL_RGB32F;
+			case INT_RGBA: return GL_RGBA8;
+			case INT_RGBA16: return GL_RGBA16F;
+			case INT_RGBA32: return GL_RGBA32F;
+			case INT_SRGB: return GL_SRGB8;
+			case INT_SRGBA: return GL_SRGB8_ALPHA8;
+			case INT_DEPTH: return GL_DEPTH_COMPONENT;
+			case INT_DEPTH24: return GL_DEPTH_COMPONENT24;
+			case INT_DEPTH32: return GL_DEPTH_COMPONENT32;
+			case INT_DEPTHSTENCIL: return GL_DEPTH24_STENCIL8;
+			case INT_DEPTH24STENCIL8: return GL_DEPTH24_STENCIL8;
+			case INT_DEPTH32STENCIL8: return GL_DEPTH32F_STENCIL8;
 		}
+		LOG_WARN("[~gTexture~x] base internal format to stized internal format failed");
 		return format;
 	}
 

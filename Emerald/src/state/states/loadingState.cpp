@@ -2,6 +2,7 @@
 
 #define MAX 256
 Sprite loadingSprite;
+
 void LoadingState::Initialize() {
 
 	TextureLoader* loader = new TextureLoader("Logo", "res/logo.png", false, TextureParameters(INT_RGBA, DATA_UNK, NEAREST, REPEAT));
@@ -26,13 +27,13 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(CustomLoader("Thread Pool", [] {GetThreadPool()->Initialize(3); })));
 	m_batch->Add(NEW(CustomLoader("Material Manager", [] {GetMaterialManager()->Initialize(); })));
 
-	m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza2/sponzaPBR.obj")));
-	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
+	//m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza2/sponzaPBR.obj")));
+	//m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
 	//m_batch->Add(NEW(ModelLoader("wheelbarrow", "res/wheelbarrow/tmruaaeda_LOD0.fbx")));
 	//m_batch->Add(NEW(TextureLoader("wheelbarrowAlbedo", "res/wheelbarrow/tmruaaeda_4K_Albedo.jpg", true, TextureParameters(INT_SRGB, DATA_UNK, LINEAR))));
 	//m_batch->Add(NEW(TextureLoader("wheelbarrowNormal", "res/wheelbarrow/tmruaaeda_4K_Normal_LOD0.jpg", true, TextureParameters(INT_RGB, DATA_UNK, LINEAR))));
 	//m_batch->Add(NEW(TextureLoader("wheelbarrowRoughness", "res/wheelbarrow/tmruaaeda_4K_Roughness.jpg", true, TextureParameters(INT_RED, DATA_UNK, LINEAR))));
-	m_batch->Add(NEW(PBRTextureLoader("wheelbarrow", "wheelbarrow/wheelbarrow", ".jpg")));
+	//m_batch->Add(NEW(PBRTextureLoader("wheelbarrow", "wheelbarrow/wheelbarrow", ".jpg")));
 
 	
 	//m_batch->Add(NEW(ModelLoader("Lamp", "res/lamp.obj")));
@@ -71,11 +72,14 @@ void LoadingState::Initialize() {
 	//m_batch->Add(NEW(PBRTextureLoader("planks", "planks")));
 	//m_batch->Add(NEW(PBRTextureLoader("metal", "metal")));
 
+	m_batch->Add(NEW(BlockTextureArrayLoader("Dirt", "dirt")));
+	m_batch->Add(NEW(BlockTextureArrayLoader("DirtGlow", "dirtGlow")));
+
 	m_batch->Add(NEW(TextureLoader("Crosshair", "res/crosshair.png", false, TextureParameters(INT_RGBA, DATA_UNK, NEAREST))));
-	m_batch->Add(NEW(TextureLoader("Dirt", "res/dirt.png", true, TextureParameters(INT_SRGB, DATA_UNK, NEAREST))));
-	m_batch->Add(NEW(TextureLoader("DirtNormal", "res/dirtNormal.png", true, TextureParameters(INT_RGB, DATA_UNK, LINEAR))));
-	m_batch->Add(NEW(TextureLoader("DirtMetallic", "res/dirtMetallic.png", true, TextureParameters(INT_RED, DATA_UNK, NEAREST))));
-	m_batch->Add(NEW(TextureLoader("DirtRoughness", "res/dirtRoughness.png", true, TextureParameters(INT_RED, DATA_UNK, NEAREST))));
+	m_batch->Add(NEW(TextureLoader("Dirt", "res/dirt_albedo.png", true, TextureParameters(INT_SRGB, DATA_UNK, NEAREST))));
+	m_batch->Add(NEW(TextureLoader("DirtNormal", "res/dirt_normal.png", true, TextureParameters(INT_RGB, DATA_UNK, LINEAR))));
+	m_batch->Add(NEW(TextureLoader("DirtMetallic", "res/dirt_metallic.png", true, TextureParameters(INT_RED, DATA_UNK, NEAREST))));
+	m_batch->Add(NEW(TextureLoader("DirtRoughness", "res/dirt_roughness.png", true, TextureParameters(INT_RED, DATA_UNK, NEAREST))));
 	//m_batch->Add(NEW(TextureLoader("Iridescence", "res/iridescence.png", true)));
 	//m_batch->Add(NEW(TextureLoader("Noise", "res/noise.png", true)));
 	//m_batch->Add(NEW(TextureLoader("White", "res/white.png", true)));
@@ -133,7 +137,9 @@ void LoadingState::RenderGeometry(HDRPipeline* pipeline) {
 	//GetUIRenderer()->RenderTexture(m_loadingFBOTexture, Origin::CENTER, GetApp()->GetWidth<float>() / 2.0f, GetApp()->GetHeight<float>() / 2.0f, GetApp()->GetWidth<float>(), GetApp()->GetWidth<float>());
 	//GetUIRenderer()->RenderTexture(m_logo, Origin::CENTER, position, sizee);
 
+	pipeline->UIRect(Origin::CENTER, pipeline->Width() / 2.0f, pipeline->Height() / 2.0f, pipeline->Width(), pipeline->Height(), 0, Color::Black());
 	loadingSprite.Draw(pipeline, Origin::CENTER, pipeline->Width() - 100, 100, 100, 100, 0);
+	
 }
 
 glm::vec2 origin = glm::vec2(0, 0);

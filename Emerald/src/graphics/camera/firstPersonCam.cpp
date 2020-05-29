@@ -133,7 +133,20 @@ void FirstPersonCam::Update(const TimeStep& time) {
 	transform.position.z += m_velocity.z * 0.333333f;
 	Collide({ 0, 0, m_velocity.z });
 
-
+	if (transform.position.x < -32) {
+		transform.position.x = -32;
+		if (m_velocity.x < 0) m_velocity.x = 0;
+	} else if (transform.position.x > 32) {
+		transform.position.x = 32;
+		if (m_velocity.x > 0) m_velocity.x = 0;
+	}
+	if (transform.position.z < -32) {
+		transform.position.z = -32;
+		if (m_velocity.z < 0) m_velocity.z = 0;
+	} else if (transform.position.z > 32) {
+		transform.position.z = 32;
+		if (m_velocity.z > 0) m_velocity.z = 0;
+	}
 	m_velocity.x *= slipperiness;
 	m_velocity.z *= slipperiness;
 	m_velocity.y -= 0.02666666666f;

@@ -77,6 +77,7 @@ void AmbientOcclusionRenderer::DrawSSAO(HDRPipeline* pipeline) {
 
 	GL(glFrontFace(GL_CCW));
 }
+
 void AmbientOcclusionRenderer::DrawHBAO(HDRPipeline* pipeline) {
 	GL(glFrontFace(GL_CW));
 
@@ -91,15 +92,18 @@ void AmbientOcclusionRenderer::DrawHBAO(HDRPipeline* pipeline) {
 }
 
 void AmbientOcclusionRenderer::Draw(HDRPipeline* pipeline) {
-	if (!m_enabled) return;
-	switch (m_aoType) {
-		case AmbientOcclusionType::SSAO:
-			DrawSSAO(pipeline);
-			break;
-		case AmbientOcclusionType::HBAO:
-			DrawHBAO(pipeline);
-			break;
+	auto profiler = GetProfiler()->StartGL(ProfilerDataType::AmbientOcclusion);
+	if (m_enabled) {
+		switch (m_aoType) {
+			case AmbientOcclusionType::SSAO:
+				DrawSSAO(pipeline);
+				break;
+			case AmbientOcclusionType::HBAO:
+				DrawHBAO(pipeline);
+				break;
+		}
 	}
+	profiler.End();
 }
 
 void AmbientOcclusionRenderer::OnImGui() {

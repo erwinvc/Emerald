@@ -3,7 +3,6 @@
 class ServerWorld;
 class Chunk {
 private:
-	ServerWorld* m_world;
 	uint8 m_blocks[CHUNK_VOLUME];
 	ChunkMesh m_mesh;
 
@@ -15,7 +14,11 @@ public:
 		for (int i = 0; i < CHUNK_VOLUME; i++) m_blocks[i] = 1;
 	}
 
-	Chunk(glm::ivec3& pos, ServerWorld* world, bool filled = true) : m_position(pos), m_world(world) {
+	Chunk(glm::ivec3& pos, uint8 data[CHUNK_VOLUME]) : m_position(pos) {
+		for (int i = 0; i < CHUNK_VOLUME; i++) m_blocks[i] = data[i];
+	}
+	
+	Chunk(glm::ivec3& pos, bool filled = true) : m_position(pos) {
 		for (int i = 0; i < CHUNK_VOLUME; i++) m_blocks[i] = filled ? 1 : 0;
 	}
 
@@ -35,5 +38,10 @@ public:
 		m_mesh = ChunkMeshGenerator::MakeChunkMesh(*this);
 		m_mesh.GenerateMesh();
 		m_dirty = false;
+	}
+
+	uint8 GetBlockAtIndex(uint32 index) {
+		ASSERT(index >= 0 && index < CHUNK_VOLUME, "Out of chunk bounds");
+		return m_blocks[index];
 	}
 };

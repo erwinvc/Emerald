@@ -2,7 +2,7 @@
 
 class GameState : public State {
 private:
-	World* m_world;
+	ClientWorld* m_world;
 	AssetRef<Shader> m_geometryShader;
 	Texture* texIri;
 	AssetRef<Model> m_model;
@@ -16,7 +16,7 @@ public:
 		texIri = GetAssetManager()->Get<Texture>("Iridescence");
 		m_geometryShader = GetShaderManager()->Get("Geometry");
 
-		m_world = new World();
+		m_world = new ClientWorld();
 		m_model = GetAssetManager()->Get<Model>("Sphere");
 		m_turtle = GetAssetManager()->Get<Model>("Turtle");
 		m_turtleEntity = new Entity(m_turtle);

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "graphics/buffers/indexBuffer.h"
 
 SpriteRenderer::SpriteRenderer() {
 	uint32* indicesBuffer = new uint32[INDICES_SIZE];

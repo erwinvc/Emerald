@@ -76,7 +76,6 @@ void main(){
 	vec4 misc = texture(_GMisc, fsUV);
 	float metallic = misc.y;
 	float roughness = misc.x;
-	float lightInfluence = misc.w;
 
 	vec3 albedo = texture(_GAlbedo, fsUV).rgb;
 	vec3 viewNormal = normalize(texture(_GNormal, fsUV).xyz);
@@ -113,5 +112,5 @@ void main(){
     vec4 fragPosLightSpace = _LightSpaceMatrix * vec4(worldPos, 1.0);
     float shadow = ShadowCalculation(fragPosLightSpace);     
 
-	outColor = vec3(mix(albedo, color, lightInfluence)) * shadow;
+	outColor = color * shadow;
 }

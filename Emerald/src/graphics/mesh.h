@@ -1,5 +1,6 @@
 #pragma once
 
+class IndexBuffer;
 class Mesh : public AssetBase {
 protected:
 	ManagedRef<VertexArray> m_vao;
@@ -19,41 +20,15 @@ public:
 	Material* GetMaterial() { return m_material; }
 	void SetMaterial(Material* mat) { m_material = mat; }
 
-	void Bind() {
-		m_vao->Bind();
-		m_ibo->Bind();
-	}
-
-	void Unbind() {
-		m_vao->Unbind();
-		m_ibo->Unbind();
-	}
-
-	void DrawInstanced(int amount, uint mode = GL_TRIANGLES) {
-		Bind();
-		m_ibo->DrawInstanced(amount, mode);
-	}
-
-	void Draw(uint mode = GL_TRIANGLES) {
-		Bind();
-		//GL(glStencilFunc(GL_ALWAYS, 1, 0xFF));
-		m_ibo->Draw(mode);
-	}
-
-	void DrawCount(uint32 count, uint mode = GL_TRIANGLES) {
-		Bind();
-		GL(glStencilFunc(GL_ALWAYS, 1, 0xFF));
-		m_ibo->Draw(count, mode);
-	}
-
-	void DrawArrays(uint32 count, uint mode = GL_TRIANGLES) {
-		Bind();
-		glDrawArrays(mode, 0, count);
-	}
+	void Bind();
+	void Unbind();
 	
-	AssetRef<Mesh> Copy() {
-		return NEW(Mesh(m_vao, m_ibo, m_material));
-	}
+	void DrawInstanced(int amount, uint mode = GL_TRIANGLES);
+	void Draw(uint mode = GL_TRIANGLES);
+	void DrawCount(uint32 count, uint mode = GL_TRIANGLES);
+	void DrawArrays(uint32 count, uint mode = GL_TRIANGLES);
+	
+	AssetRef<Mesh> Copy();
 
 	inline ManagedRef<VertexArray> GetVAO() { return m_vao; }
 	inline ManagedRef<IndexBuffer> GetIBO() { return m_ibo; }

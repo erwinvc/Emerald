@@ -8,10 +8,6 @@ static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity
 	LOG("%d %d %s", type, id, message);
 }
 
-struct temp
-{
-	bool a;
-};
 class Application : public Singleton<Application> {
 private:
 	bool m_isServer;

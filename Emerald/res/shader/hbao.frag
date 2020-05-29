@@ -58,7 +58,7 @@ void main(){
     vec3 color =  texture(_GAlbedo, fsUv).xyz;
     
     vec3 originVS =  GetViewPosition(_Depth, fsUv);
-    vec3 normalVS = normalize(texture(_GNormal, fsUv)).xyz;
+    vec3 normalVS = normalize(texture(_GNormal, fsUv).xyz);
     
     float radiusWS = 0.0;
 

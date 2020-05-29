@@ -2,6 +2,7 @@
 
 ImFont* ImGuiManager::g_bigFont;
 ImFont* ImGuiManager::g_smallFont;
+char UI::buffer[0x100];
 
 void ImGuiManager::Initialize(Window* window) {
 	IMGUI_CHECKVERSION();

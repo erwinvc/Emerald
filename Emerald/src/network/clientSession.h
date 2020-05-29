@@ -20,12 +20,16 @@ public:
 
 	template<typename T>
 	void SendPacket(const T* packet, uint32 channel = 0, uint32 flags = 0) {
-		m_clientConnection.Send(packet.get(), channel, flags);
+		m_clientConnection.Send(&packet, sizeof(T), channel, flags);
+	}
+
+	void Send(const PacketWriter& writer, uint32 channel = 0, uint32 flags = 0) {
+		m_clientConnection.Send(writer, channel, flags);
 	}
 
 	void tick();
 
-	bool Verify(uint32 salt) const { return salt == m_clientConnection.m_salt;	}
-	bool IsActive() const {	return m_isActive; }
+	bool Verify(uint32 salt) const { return salt == m_clientConnection.m_salt; }
+	bool IsActive() const { return m_isActive; }
 	uint32 GetPlayerId() const { return m_playerId; }
 };

@@ -2,7 +2,7 @@
 
 class VoxelState : public State {
 private:
-	World* m_world;
+	ClientWorld* m_world;
 	Texture* crosshair;
 	Shader* m_directionalShadowShader;
 	Shader* m_omniDirectionalShadowShader;
@@ -18,7 +18,7 @@ public:
 	}
 
 	void Initialize() override {
-		m_world = NEW(World());
+		m_world = NEW(ClientWorld());
 		crosshair = GetAssetManager()->Get<Texture>("Crosshair");
 		m_dcm = NEW(DepthCubemap());
 		m_pointlight = Pointlight(glm::vec3(0, 0, 0), 15, Color::White());
@@ -75,7 +75,7 @@ public:
 	void OnExitState() override {}
 	void OnResize(int width, int height) override {}
 
-	World* GetWorld() { return m_world; }
+	ClientWorld* GetWorld() { return m_world; }
 };
 
-inline World* GetWorld() { return GameStates::VOXEL->GetWorld(); }
+inline ClientWorld* GetWorld() { return GameStates::VOXEL->GetWorld(); }

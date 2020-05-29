@@ -73,9 +73,9 @@ public:
 	T* operator-> () { return m_pointer; }
 	T& operator* () { return *m_pointer; }
 	ManagedRef() : m_pointer(nullptr) {}
-	ManagedRef(T* pointer) : m_pointer(pointer) { if (m_pointer) ++m_pointer->m_refCount; }
-	~ManagedRef() { if (--m_pointer->m_refCount == 0) delete m_pointer; }
-	ManagedRef(ManagedRef const& managedRef) : m_pointer(managedRef.m_pointer) { ++m_pointer->m_refCount; }
+	ManagedRef(T* pointer);
+	~ManagedRef();
+	ManagedRef(ManagedRef const& managedRef);
 	ManagedRef& operator= (ManagedRef const& managedRef) {
 		T* const old = m_pointer;
 		m_pointer = managedRef.m_pointer;

@@ -1,5 +1,6 @@
 #pragma once
 
+struct LoadedTextureArrayTexture;
 class TextureArray {
 	TextureParameters m_params;
 	uint m_handle;
@@ -18,7 +19,7 @@ public:
 		GL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, m_params.GetWrap()));
 		//GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.4));
 
-		GL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 7, params.GetInternalFormatSized(), m_size, m_size, m_layers));
+		GL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 6, params.GetInternalFormatSized(), m_size, m_size, m_layers));
 
 		//if (GLEW_EXT_texture_filter_anisotropic) {
 		//	float value = 0;
@@ -35,11 +36,7 @@ public:
 		} else LOG_WARN("GL_EXT_texture_filter_anisotropic not supported");
 	}
 
-	int AddTexture(byte* data) {
-		GL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_handle));
-		GL(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, m_index, m_size, m_size, 1, m_params.GetDataFormat(), m_params.GetType(), data));
-		return m_index++;
-	}
+	int AddTexture(const LoadedTextureArrayTexture& textureData);
 
 	void GenerateMipmaps() {
 		GL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_handle));

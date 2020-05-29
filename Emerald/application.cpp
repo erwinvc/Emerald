@@ -3,11 +3,10 @@
 void Application::Initialize(bool isServer) {
 	m_isServer = isServer;
 
-	ENet::Initialize();
+	Network::Initialize();
 	Logger::Initialize(GetTitle());
-
+	
 	if (m_isServer) {
-		LOG("Size: %d", sizeof(temp));
 		GetServer()->Initialize();
 	} else {
 		GetClient()->Initialize();
@@ -21,6 +20,6 @@ void Application::Cleanup() {
 	if (m_isServer) GetServer()->Cleanup();
 	else GetClient()->Cleanup();
 
-	ENet::Cleanup();
+	Network::Cleanup();
 	Logger::Cleanup();
 }

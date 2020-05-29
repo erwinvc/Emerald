@@ -15,6 +15,7 @@ class Path;
 }
 
 String_t Format_t(String_t fmt, ...);
+String_t Format_b(char* buffer, uint32 size, String_t fmt, ...);
 String Format(String_t fmt, ...);
 
 namespace Utils {
@@ -170,5 +171,5 @@ struct LoadedTexture {
 };
 
 namespace TextureUtils {
-	bool LoadTexture(const Path& filePath, bool flip, function<void(const LoadedTexture & data)> callback);
+	bool LoadTexture(const Path& filePath, bool flip, function<void(const LoadedTexture & data)> callback, int goalChannels = 0);
 }

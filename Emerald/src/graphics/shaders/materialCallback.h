@@ -6,6 +6,7 @@ enum class MaterialCallbackType {
 };
 
 class Material;
+class TextureArray;
 class MaterialCallback {
 protected:
 	String m_uniform;
@@ -50,6 +51,15 @@ public:
 	void Callback() override;
 };
 
+class MaterialCallbackTextureArray : public MaterialCallback {
+private:
+	TextureArray* m_texture;
+	uint m_slot;
+public:
+	MaterialCallbackTextureArray(const String& uniform, TextureArray* texture, uint slot) : MaterialCallback(uniform), m_texture(texture), m_slot(slot) {}
+
+	void Callback() override;
+};
 class MaterialCallbackGBuffer : public MaterialCallback {
 private:
 	uint m_uniformLocation1;

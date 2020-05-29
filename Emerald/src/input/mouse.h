@@ -39,9 +39,9 @@ public:
 	float m_sensitivity = 0.5f;
 	void Update();
 
-	inline glm::vec2& GetPosition() { return m_usePosition; }
-	inline glm::vec2& GetDelta() { return m_delta; }
-
+	inline const glm::vec2& GetPosition() { return m_usePosition; }
+	inline const glm::vec2& GetDelta() { return m_delta; }
+	inline const glm::vec2& GetScroll() { return m_scroll; }
 	bool CheckImGuiControl() {
 		return ImGui::GetCurrentContext()->NavWindow || ImGui::GetIO().WantCaptureMouse;
 	}

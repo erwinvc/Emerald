@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 GBuffer::GBuffer() : m_fbo(0) {
-	m_fbo = GetFrameBufferManager()->Create("GBuffer", FBOScale::FULL);
+	m_fbo = GetFrameBufferManager()->Create("GBuffer", FBOScale::FULL, Color(0.0f, 0.0f, 0.0f, 0.0f));
 	//m_fbo->AddBuffer("DepthStencil", TextureParameters(INT_DEPTH24STENCIL8, DATA_DEPTHSTENCIL, NEAREST, CLAMP_TO_EDGE, T_UNSIGNED_INT_24_8), FBOAttachment::DEPTHSTENCIL);
 	
 	m_fbo->AddBuffer("Depth", TextureParameters(INT_DEPTH, DATA_DEPTH, NEAREST, CLAMP_TO_EDGE, T_UNSIGNED_BYTE), FBOAttachment::DEPTH);

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "graphics/buffers/indexBuffer.h"
 
 LineRenderer::LineRenderer() {
 	m_shader = GetShaderManager()->Get("Line");

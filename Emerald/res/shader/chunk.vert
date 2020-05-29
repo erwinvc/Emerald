@@ -3,7 +3,7 @@
 #include "includes/globalUniforms.incl"
 
 in vec3 vsPos;
-in vec2 vsIndex; //x = vertex; y = block side;
+in vec3 vsIndex; //x = vertex; y = block side; z = texture;
 
 out vec2 fsUv;
 out vec3 fsNormal;
@@ -12,7 +12,7 @@ out vec3 fsTangent;
 uniform vec3 _ChunkPos;
 
 struct Data {
-	vec2 uv;
+	vec3 uv;
 	mat3 TBNMatrix;
 };
 
@@ -51,5 +51,5 @@ void main() {
 	vec3 b = cross(n, t);
 	fsData.TBNMatrix = mat3(t, b, n);
 
-    fsData.uv = texCoords[int(vsIndex.x)];
+    fsData.uv = vec3(texCoords[int(vsIndex.x)], vsIndex.z);
 }

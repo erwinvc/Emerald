@@ -25,9 +25,11 @@ void HDRPipeline::Initialize() {
 
 	m_emissionAmbientShader = GetShaderManager()->Get("EmissionAmbient");
 	m_emissionAmbientShader->Bind();
-	m_emissionAmbientShader->Set("_GMisc", 0);
+	m_emissionAmbientShader->Set("_Depth", 0);
 	m_emissionAmbientShader->Set("_GAlbedo", 1);
-	m_emissionAmbientShader->Set("_SSAO", 2);
+	m_emissionAmbientShader->Set("_GNormal", 2);
+	m_emissionAmbientShader->Set("_GMisc", 3);
+	m_emissionAmbientShader->Set("_SSAO", 4);
 
 	//Shadow
 	m_directionalShadow = NEW(DirectionalShadow());
@@ -38,7 +40,7 @@ void HDRPipeline::Initialize() {
 	m_hdrShader->Set("_HDRBuffer", 0);
 	m_hdrShader->Set("_HDRBloom", 1);
 
-	m_hdrFBO = GetFrameBufferManager()->Create("HDR", FBOScale::FULL);
+	m_hdrFBO = GetFrameBufferManager()->Create("HDR", FBOScale::FULL, Color(0.0f, 0.0f, 0.0f, 0.0f));
 	m_hdrFBO->AddBuffer("Depth", TextureParameters(INT_DEPTH24, DATA_DEPTH, LINEAR, REPEAT, T_UNSIGNED_BYTE), FBOAttachment::DEPTH);
 	m_hdrTexture = m_hdrFBO->AddBuffer("HDR", TextureParameters(INT_RGB16, DATA_RGBA, NEAREST, CLAMP_TO_EDGE, T_FLOAT));
 	GetFrameBufferManager()->SetSelectedTexture(m_hdrTexture);
@@ -73,6 +75,7 @@ void HDRPipeline::Initialize() {
 
 bool aaa = false;
 void HDRPipeline::Render() {
+	auto& profiler = GetProfiler()->StartGL(ProfilerDataType::GPUFrame);
 	if (!m_initialized) {
 		m_spriteRenderer->Begin();
 		GetStateManager()->RenderGeometry(this);
@@ -93,7 +96,9 @@ void HDRPipeline::Render() {
 	m_lineRenderer->Begin();
 
 	PreGeometryRender();
+	auto& profilerGeometry = GetProfiler()->StartGL(ProfilerDataType::Geometry);
 	GetStateManager()->RenderGeometry(this);
+	profilerGeometry.End();
 	PostGeometryRender();
 
 	m_spriteRenderer->End();
@@ -103,6 +108,8 @@ void HDRPipeline::Render() {
 
 	m_finalFBO->Blit(nullptr);
 	GetFrameBufferManager()->BindDefaultFBO();
+
+	profiler.End();
 }
 
 void HDRPipeline::RenderGeometry() {
@@ -133,8 +140,10 @@ void HDRPipeline::PreGeometryRender() {
 	m_ubo->SetData();
 
 	//Draw directional shadow
+	auto& pDShadow = GetProfiler()->StartGL(ProfilerDataType::DirectionalShadow);
 	m_directionalShadow->Draw(this, m_directionalLight.GetDirection());
-
+	pDShadow.End();
+	
 	//Draw to gBuffer
 	m_gBuffer->Bind();
 	m_gBuffer->Clear();
@@ -162,14 +171,17 @@ void HDRPipeline::PostGeometryRender() {
 	GL(glBlendFunc(GL_ONE, GL_ONE));
 
 	//Emission
-	m_gBuffer->BindTextures();
-	m_aoRenderer->GetTexture()->Bind(2);
+	auto& pEmissionAmbient = GetProfiler()->StartGL(ProfilerDataType::EmissionAmbient);
 	m_emissionAmbientShader->Bind();
 	m_emissionAmbientShader->Set("_AmbientIntensity", m_ambientIntensity);
+	m_aoRenderer->GetTexture()->Bind(4);
+	m_gBuffer->BindTextures();
 	m_quad->Bind();
 	m_quad->Draw();
+	pEmissionAmbient.End();
 
 	//Draw directional light
+	auto& pDSLighting = GetProfiler()->StartGL(ProfilerDataType::DirectionalLighting);
 	m_directionalLightShader->Bind();
 
 	m_gBuffer->BindTextures();
@@ -183,11 +195,13 @@ void HDRPipeline::PostGeometryRender() {
 
 	m_quad->Bind();
 	m_quad->Draw();
-
+	pDSLighting.End();
+	
 	GLUtils::DisableDepthTest();
 	GL(glFrontFace(GL_CW));
 
 	//Draw pointlights
+	auto& pPLighting = GetProfiler()->StartGL(ProfilerDataType::PointLighting);
 	m_pointLightShader->Bind();
 	m_pointLightShader->Set("depthMap", 5);
 
@@ -200,7 +214,8 @@ void HDRPipeline::PostGeometryRender() {
 	m_aoRenderer->GetTexture()->Bind(4);
 	GetPointlightRenderer()->End();
 	GetPointlightRenderer()->Draw();
-
+	pPLighting.End();
+	
 	m_hdrFBO->Unbind();
 
 	//Draw to finalFBO
@@ -227,8 +242,6 @@ void HDRPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_Exposure", m_exposure);
 	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
 	m_hdrShader->Set("_ScreenSize", glm::vec2(m_width, m_height));
-	//m_hdrShader->Set("_Chromatic", 0);
-
 	GetFrameBufferManager()->GetSelectedTexture()->Bind(0);
 	m_bloomRenderer->GetBloomedTexture()->Bind(1);
 	m_quad->Bind();
