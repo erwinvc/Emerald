@@ -2,7 +2,6 @@
 
 class LoadingState : public State {
 private:
-	AssetRef<Texture> m_logo;
 	AssetRef<Texture> m_animatedLogo;
 	AssetRef<Texture> m_loadingTexture;
 	AssetRef<BasicAssetBatch> m_batch;

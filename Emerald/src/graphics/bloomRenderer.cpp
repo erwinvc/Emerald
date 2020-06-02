@@ -5,8 +5,8 @@ BloomRenderer::BloomRenderer() {
 
 	m_bloomTexture = m_bloomFBO->AddBuffer("Bloom", TextureParameters(INT_RGB16, DATA_RGB, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 
-	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", FBOScale::QUARTER);
-	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", FBOScale::QUARTER);
+	m_pingPongFBO[0] = GetFrameBufferManager()->Create("PingPong1", FBOScale::HALF);
+	m_pingPongFBO[1] = GetFrameBufferManager()->Create("PingPong2", FBOScale::HALF);
 	m_pingPongTexture[0] = m_pingPongFBO[0]->AddBuffer("PingPong1", TextureParameters(INT_RGB, DATA_RGB, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 	m_pingPongTexture[1] = m_pingPongFBO[1]->AddBuffer("PingPong1", TextureParameters(INT_RGB, DATA_RGB, LINEAR, CLAMP_TO_EDGE, T_FLOAT));
 

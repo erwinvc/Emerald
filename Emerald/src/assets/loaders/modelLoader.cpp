@@ -20,7 +20,7 @@ void ModelLoader::LoadMaterials(const aiScene* scene) {
 		"NONE","DIFFUSE","SPECULAR","AMBIENT","EMISSIVE","HEIGHT","NORMALS",
 		"SHININESS","OPACITY","DISPLACEMENT","LIGHTMAP","REFLECTION","UNKNOWN" };
 
-	LOG("Model ~1%s~x contains: ", m_name.c_str());
+	LOG("[~gModel~x]  ~1%s~x contains: ", m_name.c_str());
 	for (int i = 0; i < 12; i++) {
 		LOG(textureCounts[i] > 0 ? "	%d %s" : "	~1%d %s", textureCounts[i], lookupTable[i]);
 	}

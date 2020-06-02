@@ -15,7 +15,6 @@ public:
 	void Collide(const glm::vec3& vel);
 	void FixedUpdate() {}
 	void Update(const TimeStep& time);
-	void DrawUpdate();
 
 	void OnImGui() override {
 		ImGui::InputFloat3("Position", (float*)&transform.position);
@@ -32,5 +31,4 @@ public:
 			UpdateProjectionMatrix();
 		}
 	}
-
 };

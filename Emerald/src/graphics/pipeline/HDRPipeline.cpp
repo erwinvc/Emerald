@@ -31,6 +31,9 @@ void HDRPipeline::Initialize() {
 	m_emissionAmbientShader->Set("_GMisc", 3);
 	m_emissionAmbientShader->Set("_SSAO", 4);
 
+	m_atmosphereShader = GetShaderManager()->Get("Atmosphere");
+	m_atmosphereShader->Bind();
+	//m_atmosphereShader->Set("_Depth", 0);
 	//Shadow
 	m_directionalShadow = NEW(DirectionalShadow());
 
@@ -67,6 +70,13 @@ void HDRPipeline::Initialize() {
 
 	m_quad = MeshGenerator::Quad();
 
+	Mesh* mesh = GetAssetManager()->Get<Model>("Cube")->GetMeshes()[0]->Copy();
+	m_cube = NEW(Entity(NEW(Model(mesh->Copy()))));
+	Material* skyboxMat = GetMaterialManager()->Create("Skybox", m_atmosphereShader);
+	//skyboxMat->AddOnBindCallback(NEW(MaterialCallbackPtr("_LightPos", GetTextureManager()->GetBlackTexture(), 0)));
+	m_cube->m_model->SetMaterial(skyboxMat);
+	m_cube->transform.size = glm::vec3(32, 32, 32);
+	
 	GL(glEnable(GL_LINE_SMOOTH));
 	GL(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
 
@@ -74,7 +84,7 @@ void HDRPipeline::Initialize() {
 }
 
 bool aaa = false;
-void HDRPipeline::Render() {
+void HDRPipeline::Render(float partialUpdate) {
 	auto& profiler = GetProfiler()->StartGL(ProfilerDataType::GPUFrame);
 	if (!m_initialized) {
 		m_spriteRenderer->Begin();
@@ -92,6 +102,8 @@ void HDRPipeline::Render() {
 		GameStates::VOXEL->m_dcm->Draw(this, GameStates::VOXEL->m_pointlight.m_position);
 	}
 
+	Camera::active->DrawUpdate(partialUpdate);
+
 	m_spriteRenderer->Begin();
 	m_lineRenderer->Begin();
 
@@ -103,7 +115,9 @@ void HDRPipeline::Render() {
 
 	m_spriteRenderer->End();
 	GLUtils::EnableBlending();
+	GL(glDisable(GL_DEPTH_TEST));
 	m_spriteRenderer->Draw();
+	GL(glEnable(GL_DEPTH_TEST));
 	GLUtils::DisableBlending();
 
 	m_finalFBO->Blit(nullptr);
@@ -166,10 +180,6 @@ void HDRPipeline::PostGeometryRender() {
 	m_gBuffer->GetFBO()->BlitDepthOnly(m_hdrFBO);
 	m_hdrFBO->Bind();
 
-	//Draw to HDR
-	GL(glEnable(GL_BLEND));
-	GL(glBlendFunc(GL_ONE, GL_ONE));
-
 	//Emission
 	auto& pEmissionAmbient = GetProfiler()->StartGL(ProfilerDataType::EmissionAmbient);
 	m_emissionAmbientShader->Bind();
@@ -180,6 +190,10 @@ void HDRPipeline::PostGeometryRender() {
 	m_quad->Draw();
 	pEmissionAmbient.End();
 
+	//Blend lighting
+	GL(glEnable(GL_BLEND));
+	GL(glBlendFunc(GL_ONE, GL_ONE));
+	
 	//Draw directional light
 	auto& pDSLighting = GetProfiler()->StartGL(ProfilerDataType::DirectionalLighting);
 	m_directionalLightShader->Bind();
@@ -250,6 +264,15 @@ void HDRPipeline::PostGeometryRender() {
 	//Draw lines
 	m_lineRenderer->End();
 	m_lineRenderer->Draw();
+
+	//Atmosphere
+	auto& pAtmosphere = GetProfiler()->StartGL(ProfilerDataType::Atmosphere);
+	m_atmosphereShader->Bind();
+	m_atmosphereShader->Set("_LightPos", m_directionalLight.GetDirection());
+	//GL(glFrontFace(GL_CW));
+	m_cube->Draw();
+	//GL(glFrontFace(GL_CCW));
+	pAtmosphere.End();
 }
 
 void HDRPipeline::OnImGUI() {
@@ -260,7 +283,7 @@ void HDRPipeline::OnImGUI() {
 			UI::Bool("Post processing", &m_applyPostProcessing);
 			UI::Bool("FXAA", &m_FXAA);
 			UI::Bool("Bloom", &m_bloomRenderer->m_enabled);
-			UI::Bool("SSAO", &m_aoRenderer->m_enabled);
+			UI::Bool("AO", &m_aoRenderer->m_enabled);
 			UI::Bool("SSR", &m_ssrRenderer->m_enabled);
 			UI::Bool("AAA", &aaa);
 			UI::Separator();
@@ -275,7 +298,7 @@ void HDRPipeline::OnImGUI() {
 				UI::End();
 				ImGui::TreePop();
 			}
-			if (ImGui::TreeNode("SSAO")) {
+			if (ImGui::TreeNode("AO")) {
 				UI::Begin();
 				m_aoRenderer->OnImGui();
 				UI::End();

@@ -16,8 +16,9 @@ public:
 	}
 
 	void Update(const TimeStep& time) override {
-		dotDotDotTimer += time;
+		dotDotDotTimer = time.TotalTime();
 	}
+	
 	void RenderGeometry(HDRPipeline* pipeline) override {
 	}
 
@@ -46,7 +47,7 @@ public:
 	}
 
 	String GetDotDotDot(const String& text) {
-		int timer = (int)(dotDotDotTimer * 2.5f);
+		int timer = (int)(dotDotDotTimer / 180.0f);
 		if (timer % 3 == 0) return text + ".";
 		else if (timer % 3 == 1) return text + "..";
 		else return text + "...";

@@ -16,8 +16,9 @@ private:
 	Material* m_blockEntityMaterial;
 	vector<EntityState> m_entities;
 	Entity* m_skybox;
-	float m_time = 0;
+	uint64 m_time = 0;
 	int m_selectedBlock = 1;
+	float m_rightClickDelayTimer = 0;
 public:
 	unordered_map<glm::ivec3, Chunk> m_chunks;
 	ClientWorld() {
@@ -33,7 +34,6 @@ public:
 
 		m_chunkMaterial = GetMaterialManager()->Create("Chunk", shader);
 		m_chunkMaterial->AddOnInstanceCallback(NEW(MaterialCallbackPtr("_ChunkPos", &m_chunkPosition)));
-		m_chunkMaterial->AddOnBindCallback(NEW(MaterialCallbackPtr("_Time", &m_time)));
 		m_chunkMaterial->AddOnBindCallback(NEW(MaterialCallbackTextureArray("_Albedo", GetTileMaterialManager()->GetAlbedo(), 0)));
 		m_chunkMaterial->AddOnBindCallback(NEW(MaterialCallbackTextureArray("_Normal", GetTileMaterialManager()->GetNormal(), 1)));
 		m_chunkMaterial->AddOnBindCallback(NEW(MaterialCallbackTextureArray("_Metallic", GetTileMaterialManager()->GetMetallic(), 2)));
@@ -58,7 +58,7 @@ public:
 		Material* skyboxMat = GetMaterialManager()->Create("Skybox", GetShaderManager()->Get("Geometry"));
 		skyboxMat->AddOnBindCallback(NEW(MaterialCallbackTexture("_Albedo", GetTextureManager()->GetBlackTexture(), 0)));
 		m_skybox->m_model->SetMaterial(skyboxMat);
-		m_skybox->transform.size = glm::vec3(100, 100, 100);
+		m_skybox->transform.size = glm::vec3(32, 32, 32);
 	}
 	~ClientWorld() {
 
@@ -135,6 +135,12 @@ public:
 			itr->second.m_dirty = true;
 		}
 	}
+
+	void SetTime(uint64 time) {
+		m_time = time;
+	}
+
+	uint64 GetTime() { return m_time; }
 
 	void Clear() {
 		m_chunks.clear();

@@ -10,8 +10,9 @@ public:
 
 	//UI
 	AssetRef<SpriteRenderer> m_spriteRenderer;
-	
 	AssetRef<LineRenderer> m_lineRenderer;
+	
+	AssetRef<Shader> m_atmosphereShader;
 
 	//Deferred
 	GBuffer* m_gBuffer = nullptr;
@@ -19,7 +20,7 @@ public:
 	DirectionalShadow* m_directionalShadow;
 	AssetRef<Shader> m_pointLightShader;
 	AssetRef<Shader> m_emissionAmbientShader;
-
+	
 	//SSAO
 	AmbientOcclusionRenderer* m_aoRenderer = nullptr;
 	SSRRenderer* m_ssrRenderer = nullptr;
@@ -34,6 +35,7 @@ public:
 	AssetRef<Texture> m_hdrTexture;
 	AssetRef<Shader> m_hdrShader;
 	AssetRef<Mesh> m_quad;
+	AssetRef<Entity> m_cube;
 
 
 	AssetRef<OrthoCamera> m_uiCamera;
@@ -89,7 +91,7 @@ public:
 	float Height() { return (float)m_height; }
 
 	void Initialize();
-	void Render();
+	void Render(float partialUpdate);
 	void RenderGeometry();
 	void RenderGeometryShadow(ShadowType type);
 	void OnResize(uint width, uint height);

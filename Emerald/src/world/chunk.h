@@ -17,9 +17,13 @@ public:
 	Chunk(glm::ivec3& pos, uint8 data[CHUNK_VOLUME]) : m_position(pos) {
 		for (int i = 0; i < CHUNK_VOLUME; i++) m_blocks[i] = data[i];
 	}
-	
+
 	Chunk(glm::ivec3& pos, bool filled = true) : m_position(pos) {
 		for (int i = 0; i < CHUNK_VOLUME; i++) m_blocks[i] = filled ? 1 : 0;
+	}
+
+	Chunk(glm::ivec3& pos, PacketReader& reader) : m_position(pos) {
+		Decompress(reader);
 	}
 
 
@@ -44,4 +48,7 @@ public:
 		ASSERT(index >= 0 && index < CHUNK_VOLUME, "Out of chunk bounds");
 		return m_blocks[index];
 	}
+
+	void Compress(PacketWriter& writer);
+	void Decompress(PacketReader& reader);
 };

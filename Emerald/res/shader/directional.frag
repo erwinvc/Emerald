@@ -23,6 +23,10 @@ float linstep(float low, float high, float v){
     return clamp((v-low)/(high-low), 0.0, 1.0);
 }
 
+bool InRange(float value){
+    return value >= 0.0 && value <= 1.0;
+}
+
 float SampleVarianceShadowMap(sampler2D shadowMap, vec2 coords, float compare){
     vec2 moments = texture2D(shadowMap, coords.xy).xy;
 
@@ -35,11 +39,12 @@ float SampleVarianceShadowMap(sampler2D shadowMap, vec2 coords, float compare){
     return min(max(p, pMax), 1.0);
 }
 
-float ShadowCalculation(vec4 fragPosLightSpace)
-{
+float ShadowCalculation(vec4 fragPosLightSpace) {
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
+    //if(!InRange(projCoords.z) || !InRange(projCoords.x) || !InRange(projCoords.y)) return 1.0;
+    if(!InRange(fragPosLightSpace.z)) return 0.0;
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
     return SampleVarianceShadowMap(_Shadow, projCoords.xy, projCoords.z);

@@ -8,7 +8,7 @@ void ImGuiManager::Initialize(Window* window) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	
+
 	io.IniFilename = NULL;
 	//io.ConfigDockingWithShift = true;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -16,7 +16,7 @@ void ImGuiManager::Initialize(Window* window) {
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	//ImGui::StyleColorsDark();
 	ApplyStyle();
-	
+
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.WindowRounding = 0.0f;
 	style.Colors[ImGuiCol_WindowBg].w = 1.0f;
@@ -66,7 +66,7 @@ void ImGuiManager::Initialize(Window* window) {
 	ImGui::GetIO().Fonts->AddFontDefault();
 	g_smallFont = io.FontDefault;
 	g_bigFont = io.FontDefault;
-	
+
 	io.FontDefault = io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 15.0f, NULL);
 	io.Fonts->Build();
 	m_initialized = true;
@@ -122,7 +122,6 @@ void ImGuiManager::End() {
 	glfwMakeContextCurrent(backup);
 }
 
-bool UI::BeginWindow(const String_t name) {
-	bool open = true;
-	return ImGui::Begin(Format_t("%s###Window", name), &open, ImVec2(576, 680), -1, GetMouse()->IsLocked() ? ImGuiWindowFlags_NoMouseInputs : 0);
+bool UI::BeginWindow(const String_t name, ImVec2 size, bool* open) {
+	return ImGui::Begin(name, open, size, -1, GetMouse()->IsLocked() ? ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoDocking: ImGuiWindowFlags_NoDocking);
 }

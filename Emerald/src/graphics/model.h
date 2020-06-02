@@ -33,6 +33,7 @@ public:
 	}
 	
 	void Draw(glm::mat4 transform, uint mode = GL_TRIANGLES) {
+		m_meshes[0]->GetMaterial()->GetShader()->Bind();
 		m_meshes[0]->GetMaterial()->GetShader()->Set("_TransformationMatrix", transform);
 
 		for (auto& mesh : m_meshes) {

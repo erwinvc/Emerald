@@ -13,7 +13,9 @@ typedef uint64_t	uint64;
 typedef unsigned int uint;
 typedef unsigned char byte;
 typedef string String;
+typedef wstring WString;
 typedef const char* String_t;
+typedef const wchar_t* WString_t;
 
 typedef glm::vec3 WorldPos;
 typedef glm::ivec3 BlockPos;

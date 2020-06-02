@@ -14,6 +14,7 @@ enum class ProfilerDataType {
 	UI,
 	Bloom,
 	DirectionalShadow,
+	Atmosphere,
 	COUNT
 };
 
@@ -48,7 +49,7 @@ private:
 		GLuint m_stopHandle;
 	};
 
-	String_t names[12] = {
+	String_t names[13] = {
 		"Update",
 		"Render",
 		"GPUFrame",
@@ -60,12 +61,13 @@ private:
 		"PointLighting",
 		"UI",
 		"Bloom",
-		"DirectionalShadow"
+		"DirectionalShadow",
+		"Atmosphere"
 	};
 
 	int TIMER = 0;
 	bool shouldStart = false;
-
+	bool m_imGuiWindowActive = false;
 	float m_profilerData[(int)ProfilerDataType::COUNT] = { 0 };
 	vector<GLProfilerQuery> m_querries;
 
@@ -129,12 +131,26 @@ public:
 
 	void OnImGui() {
 		if (ImGui::BeginTabItem("Profiler")) {
+			if (ImGui::Button("Pop out")) m_imGuiWindowActive = true;
 			UI::Begin();
 			for (int i = 0; i < (int)ProfilerDataType::COUNT; i++) {
 				UI::Text(names[i], Format("%.4fms", m_profilerData[i]));
 			}
 			UI::End();
 			ImGui::EndTabItem();
+		}
+	}
+
+	void OnGlobalImGui() {
+		if (m_imGuiWindowActive) {
+			if (UI::BeginWindow("Profiler", ImVec2(300, 0), &m_imGuiWindowActive)) {
+				UI::Begin();
+				for (int i = 0; i < (int)ProfilerDataType::COUNT; i++) {
+					UI::Text(names[i], Format("%.4fms", m_profilerData[i]));
+				}
+				UI::End();
+				UI::EndWindow();
+			}
 		}
 	}
 };

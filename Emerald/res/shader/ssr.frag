@@ -112,7 +112,6 @@ vec3 hash(vec3 a)
 
 void main(){
 	vec4 misc = texture(_GMisc, fsUv);
-	float lightInfluence = misc.w;
 	float metallic = misc.y;
 	float roughness = misc.x;
 
@@ -155,6 +154,6 @@ void main(){
 	            screenEdgefactor * 
 	            -reflected.z;
 	
-    vec3 SSR = mix(vec3(0.0, 0.0, 0.0), texture(_HDR, coords.xy).rgb * clamp(ReflectionMultiplier, 0.0, 0.9) * fresnel, lightInfluence);  
+    vec3 SSR = texture(_HDR, coords.xy).rgb * clamp(ReflectionMultiplier, 0.0, 0.9) * fresnel;  
     outColor = SSR;
 }

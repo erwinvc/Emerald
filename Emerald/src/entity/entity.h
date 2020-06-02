@@ -24,12 +24,7 @@ public:
 	Entity(AssetRef<Model> model) : m_model(model) {}
 	virtual ~Entity() {}
 
-	void Draw(Shader* overrideShader = nullptr, uint mode = GL_TRIANGLES) {
-		//#Dirty
-		if (overrideShader) {
-			overrideShader->Bind();
-			overrideShader->Set("_TransformationMatrix", transform.GetTransformationMatrix());
-		}
+	void Draw(uint mode = GL_TRIANGLES) {
 		m_model->Draw(transform.GetTransformationMatrix(), mode);
 	}
 

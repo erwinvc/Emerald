@@ -7,7 +7,6 @@ void ChunkMesh::AddFace(const float face[12], BlockSide side, const glm::ivec3 p
 		float x = face[index++] + position.x;
 		float y = face[index++] + position.y;
 		float z = face[index++] + position.z;
-
 		m_vertices.emplace_back(glm::vec3(x, y, z), glm::vec3(i, (int)side, voxel - 1));
 	}
 

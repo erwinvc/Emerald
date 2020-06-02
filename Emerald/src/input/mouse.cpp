@@ -35,6 +35,8 @@ void Mouse::OnScroll(double xoffset, double yoffset) {
 }
 
 void Mouse::Update() {
+	m_overrideImGuiThisFrame = m_overrideImGuiNextFrame;
+	m_overrideImGuiNextFrame = false;
 	if (m_locked) ImGui::GetCurrentContext()->NavWindow = nullptr;
 	for (int i = 0; i < 5; i++) {
 		m_buttonStates[i].m_wasUp = m_buttonStates[i].m_isUpNow;
@@ -46,13 +48,17 @@ void Mouse::Update() {
 	m_prevPosition = m_usePosition;
 	m_usePosition = m_position;
 
+	m_useScroll = m_scroll;
+	m_scroll.x = 0;
+	m_scroll.y = 0;
+	
 	float sensitivity = 0.6f * m_sensitivity + 0.2f;
 	sensitivity = Math::Pow(sensitivity, 3) * 8.0f;
 	
 	m_rawDelta = m_prevPosition - m_usePosition;
 	m_delta = m_rawDelta * sensitivity;
 
-	m_imGuiControlLastFrame = CheckImGuiControl();
+	m_imGuiControlThisFrame = CheckImGuiControl();
 
 	if (KeyJustDown('M')) {
 		m_locked ^= true;

@@ -1,6 +1,7 @@
 #version 330
 
 #include "includes/globalUniforms.incl"
+#include "includes/utils.incl"
 
 in vec2 fsUV;
 
@@ -15,9 +16,10 @@ uniform sampler2D _SSAO;
 uniform float _AmbientIntensity;
 
 void main(){
-	vec4 misc = texture(_GMisc, fsUV);
 	vec4 albedo = texture(_GAlbedo, fsUV);
-	vec3 emission = vec3(misc.z, misc.w, albedo.w) * vec3(2.0);
+	if(albedo.r + albedo.b + albedo.g == 0) discard;
+	vec4 misc = texture(_GMisc, fsUV);
+	vec3 emission = vec3(misc.z, misc.w, albedo.w) * vec3(8.0);
 	float ssao = texture(_SSAO, fsUV).x;
 
 	outColor = (albedo.xyz * _AmbientIntensity * ssao) + emission;

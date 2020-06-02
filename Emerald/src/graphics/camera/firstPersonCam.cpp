@@ -39,17 +39,14 @@ void FirstPersonCam::Collide(const glm::vec3& vel) {
 			}
 		}
 	}
-	//LOG("%f", position.y);
 }
 
 static float FOV = 90;
 static float goalFov = 90;
-static int i = 0;
-static float delta;
 void FirstPersonCam::Update(const TimeStep& time) {
-	FOV = Math::Lerp(FOV, goalFov, time * 12);
-	i = 0;
-	delta = 1.0f / time.DeltaTime();
+	lastUpdateTransform = transform;
+
+	FOV = Math::Lerp(FOV, goalFov, 0.016f * 12);
 	float moveForward = 0.0f;
 	float moveStrafe = 0.0f;
 
@@ -114,8 +111,6 @@ void FirstPersonCam::Update(const TimeStep& time) {
 		auto change = GetMouse()->GetDelta();
 		transform.rotation.x -= glm::radians(change.y * 0.15f);
 		transform.rotation.y -= glm::radians(change.x * 0.15f);
-		//transform.rotation.x += (float)(change.y / 8.0f * -0.035f);
-		//transform.rotation.y += (float)(change.x / 8.0f * -0.035f);
 	}
 
 	//Limit view angle
@@ -133,29 +128,22 @@ void FirstPersonCam::Update(const TimeStep& time) {
 	transform.position.z += m_velocity.z * 0.333333f;
 	Collide({ 0, 0, m_velocity.z });
 
-	if (transform.position.x < -32) {
-		transform.position.x = -32;
+	if (transform.position.x < -31.5f) {
+		transform.position.x = -31.5f;
 		if (m_velocity.x < 0) m_velocity.x = 0;
-	} else if (transform.position.x > 32) {
-		transform.position.x = 32;
+	} else if (transform.position.x > 31.5f) {
+		transform.position.x = 31.5f;
 		if (m_velocity.x > 0) m_velocity.x = 0;
 	}
-	if (transform.position.z < -32) {
-		transform.position.z = -32;
+	if (transform.position.z < -31.5f) {
+		transform.position.z = -31.5f;
 		if (m_velocity.z < 0) m_velocity.z = 0;
-	} else if (transform.position.z > 32) {
-		transform.position.z = 32;
+	} else if (transform.position.z > 31.5f) {
+		transform.position.z = 31.5f;
 		if (m_velocity.z > 0) m_velocity.z = 0;
 	}
 	m_velocity.x *= slipperiness;
 	m_velocity.z *= slipperiness;
 	m_velocity.y -= 0.02666666666f;
 	m_velocity.y *= 0.99328838838f;
-	UpdateViewMatrix();
-}
-
-void FirstPersonCam::DrawUpdate() {
-	//transform.rotation.x = Math::Lerp(transform.rotation.x, m_targetRotation.x, i * (1.0f / delta));
-	//transform.rotation.y = Math::Lerp(transform.rotation.y, m_targetRotation.y, i * (1.0f / delta));
-	//transform.rotation.z = Math::Lerp(transform.rotation.z, m_targetRotation.z, i++ * (1.0f / delta));
 }

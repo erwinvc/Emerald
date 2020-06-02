@@ -1,117 +1,59 @@
 #include "stdafx.h"
 
 Model* m_mori;
+Model* m_block;
 Entity* m_moriEntity;
+Entity* m_blockEntity;
+Material* m_moriMaterial;
+Material* m_blockMaterial;
 Shader* m_geometryShader;
-Texture* iri;
-Texture* noise;
-//Entity* cursor;
-//Entity* m_entities[4];
 
-//struct Ray {
-//	glm::vec3 origin;
-//	glm::vec3 direction;
-//
-//	Ray(glm::vec3 orig, glm::vec3 dir) : origin(orig), direction(dir) {}
-//};
-//
-//float ClosestDistanceBetweenLines(Ray& l1, Ray& l2) {
-//	const glm::vec3 dp = l2.origin - l1.origin;
-//	const float v12 = glm::dot(l1.direction, l1.direction);
-//	const float v22 = glm::dot(l2.direction, l2.direction);
-//	const float v1v2 = glm::dot(l1.direction, l2.direction);
-//
-//	const float det = v1v2 * v1v2 - v12 * v22;
-//
-//	if (Math::Abs(det) > FLT_MIN) {
-//		const float inv_det = 1.f / det;
-//
-//		const float dpv1 = glm::dot(dp, l1.direction);
-//		const float dpv2 = glm::dot(dp, l2.direction);
-//
-//		float l1t = inv_det * (v22 * dpv1 - v1v2 * dpv2);
-//		float l2t = inv_det * (v1v2 * dpv1 - v12 * dpv2);
-//
-//		return (float) (dp + l2.direction * l2t - l1.direction * l1t).length();
-//	} else {
-//		const glm::vec3 a = glm::cross(dp,l1.direction);
-//		return Math::Sqrt(glm::dot(a, a) / v12);
-//	}
-//}
-//
-//void draw_translation_gizmo(const Transform& transform) {
-//	for (int i = 0; i < 1; i++) {
-//		glm::vec3 axis_end = glm::vec3(0.f, 0.f, 0.f);
-//		axis_end[i] = 1.0f;
-//		Color axis_color = Color(0.f, 0.f, 0.f);
-//		axis_color.values[i] = 1.f;
-//
-//		//if (i == context.selected_axis) {
-//		//	axis_color = Vec3f(1.f, 0.65f, 0.f);
-//		//}
-//
-//		glm::vec3 ray = GroundRaycast::GetMousePosition();
-//		float dist = ClosestDistanceBetweenLines(Ray(transform.m_position, glm::normalize(axis_end)), Ray(Camera::active->transform.m_position, glm::normalize(ray)));
-//		//LOG("%f", dist);
-//		//GetLineRenderer()->Submit(transform.m_position, axis_end + transform.m_position, axis_color);
-//	}
-//}
-//
+Texture* m_albedo;
+Texture* m_normal;
+Texture* m_metallic;
+Texture* m_roughness;
+Texture* m_emission;
+
+Camera* m_oldCam;
+Camera* m_editorCam;
 
 void EditorState::Initialize() {
 	m_mori = GetAssetManager()->Get<Model>("Mori");
-	//BasicMaterial* mat = GetMaterialManager()->Create<BasicMaterial>("Turtle");
-	//mat->SetPBR("gold");
-	//m_mori->SetMaterial(mat);
-	m_moriEntity = new Entity(m_mori);
+	m_block = GetAssetManager()->Get<Model>("Cube");
 	m_geometryShader = GetShaderManager()->Get("Geometry");
-	iri = GetAssetManager()->Get<Texture>("Iridescence");
-	noise = GetAssetManager()->Get<Texture>("Noise");
+	m_moriEntity = NEW(Entity(NEW(Model(m_mori->GetMeshes()[0]->Copy()))));
+	m_blockEntity = NEW(Entity(NEW(Model(m_block->GetMeshes()[0]->Copy()))));
+	m_moriEntity->transform.position.x -= 1.1f;
+	m_blockEntity->transform.position.x += 1.1f;
+	m_blockEntity->transform.size = glm::vec3(0.5f, 0.5f, 0.5f);
+	m_albedo = GetTextureManager()->GetWhiteTexture();
+	m_normal = GetTextureManager()->GetNormalTexture();
+	m_metallic = GetTextureManager()->GetBlackTexture();
+	m_roughness = GetTextureManager()->GetWhiteTexture();
+	m_emission = GetTextureManager()->GetBlackTexture();
+	m_moriMaterial = GetMaterialManager()->Create("EditorMori", m_geometryShader);
+	m_moriMaterial->AddOnBindCallback(NEW(MaterialCallbackTexturePtr("_Albedo", &m_albedo, 0)));
+	m_moriMaterial->AddOnBindCallback(NEW(MaterialCallbackTexturePtr("_Normal", &m_normal, 1)));
+	m_moriMaterial->AddOnBindCallback(NEW(MaterialCallbackTexturePtr("_Roughness", &m_roughness, 2)));
+	m_moriMaterial->AddOnBindCallback(NEW(MaterialCallbackTexturePtr("_Metallic", &m_metallic, 3)));
+	m_moriMaterial->AddOnBindCallback(NEW(MaterialCallbackTexturePtr("_Emission", &m_emission, 4)));
+	m_blockMaterial = GetMaterialManager()->Create("EditorBlock", m_geometryShader);
+	m_blockMaterial->AddOnBindCallback(NEW(MaterialCallbackTexturePtr("_Albedo", &m_albedo, 0)));
+	m_blockMaterial->AddOnBindCallback(NEW(MaterialCallbackTexturePtr("_Normal", &m_normal, 1)));
+	m_blockMaterial->AddOnBindCallback(NEW(MaterialCallbackTexturePtr("_Roughness", &m_roughness, 2)));
+	m_blockMaterial->AddOnBindCallback(NEW(MaterialCallbackTexturePtr("_Metallic", &m_metallic, 3)));
+	m_blockMaterial->AddOnBindCallback(NEW(MaterialCallbackTexturePtr("_Emission", &m_emission, 4)));
+	m_moriEntity->m_model->SetMaterial(m_moriMaterial);
+	m_blockEntity->m_model->SetMaterial(m_blockMaterial);
 
-	//cursor = new Entity(GetAssetManager()->Get<Model>("Sphere"));
-
-	//for (int i = 0; i < 4; i++) {
-	//	m_entities[i] = new Entity(GetAssetManager()->Get<Model>("Sphere"));
-	//}
-	m_world = new ClientWorld();
+	m_editorCam = NEW(FreeCam(glm::vec2(1920, 1080), 70, 0.05f, 500.0f));
+	m_editorCam->transform.position = glm::vec3(0.2f, 0.85f, 1.5f);
+	m_editorCam->transform.rotation = glm::vec3(0.5f, 0.0f, 0.0f);
 }
 
 void EditorState::RenderGeometry(HDRPipeline* pipeline) {
-	//draw_translation_gizmo(m_moriEntity->m_transform);
-	m_geometryShader->Bind();
-	iri->Bind(5);
-	noise->Bind(6);
-
 	m_moriEntity->Draw();
-
-	//CornerRayPositions positions = Camera::GetCornerRays(0);
-	//m_entities[0]->m_position = positions.TL;
-	//m_entities[1]->m_position = positions.TR;
-	//m_entities[2]->m_position = positions.BR;
-	//m_entities[3]->m_position = positions.BL;
-
-	//for (int i = 0; i < 4; i++) {
-	//	m_entities[i]->Draw(m_geometryShader);
-	//}
-
-
-
-
-	Rasterization::Scan scan;
-	//Rasterization::PlotCamera(scan, positions, GetCamera(), 10.0f);
-
-	//for (int y = scan.minY; y <= scan.maxY; y++) {
-	//	GetLineRenderer()->Submit(scan.yValues[y].minX * 10, 0, y * 10, scan.yValues[y].maxX * 10, 0, y * 10, Color::Cyan());
-	//	for (int x = scan.yValues[y].minX; x <= scan.yValues[y].maxX; x++) {
-	//		GetLineRenderer()->Submit(x * 10, 0, y * 10, x * 10, 0, (y + 1) * 10, Color::Cyan());
-	//	}
-	//}
-
-	//cursor->Draw(m_geometryShader);
-
-	//m_world->RenderGeometry();
-	//GetPointlightRenderer()->Submit(Pointlight(glm::vec3(1.1f, 1.0f, 0), 50, Color::White() * 20));
-	//GetPointlightRenderer()->Submit(Pointlight(glm::vec3(0, 1.0f, 1.1f), 5, Color::Green()));
+	m_blockEntity->Draw();
 }
 
 void EditorState::RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) {}
@@ -119,29 +61,12 @@ void EditorState::RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) {
 void EditorState::Update(const TimeStep& time) {
 	Camera::active->Update(time);
 
-	m_moriEntity->transform.rotation.y += Math::QUARTER_PI * time.DeltaTime();
-	
-	//for (int i = 0; i < 64; i++) {
-	//	//pointsX[i] += 0.002f;
-	//	pointsY[i] += 0.05f * time.GetSeconds();
-	//	if (pointsX[i] > 2.0f) pointsX[i] = 0.0f;
-	//	if (pointsY[i] > 2.0f) pointsY[i] = 0.0f;
-	//	entity[i]->m_position = Math::PointOnUnitSphere(pointsX[i], pointsY[i]);
-	//}
-
-	
-	//glm::vec3& ray = GroundRaycast::GetMousePosition();
-	////cursor->m_position = GroundRaycast::GetGroundPosition(ray, 0);
-	//int xPos = cursor->m_position.x / 10;
-	//int zPos = cursor->m_position.z / 10;
-	//if (cursor->m_position.x < 0) xPos--;
-	//if (cursor->m_position.z < 0) zPos--;
-	//m_world->m_grid->SetTile(xPos, zPos, GetTileMaterialManager()->Get("Cross"));
+	m_moriEntity->transform.rotation.y += Math::QUARTER_PI / 60.0f;
+	m_blockEntity->transform.rotation.y += Math::QUARTER_PI / 60.0f;
 }
 
 ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_NoDockingInCentralNode;
 void EditorState::OnImGuiViewport() {
-
 	ImGui::SetNextWindowDockID(m_dockspaceCenter, ImGuiCond_Always);
 
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove;
@@ -151,26 +76,28 @@ void EditorState::OnImGuiViewport() {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	ImGui::Begin("Viewport##1", nullptr, window_flags);
 
-	if (ImGui::IsWindowFocused()) {
-		ImGui::GetIO().WantCaptureMouse = false;
-		ImGui::GetIO().WantCaptureKeyboard = false;
-	}
-
 	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-
-	ImVec2 pos = ImGui::GetCursorScreenPos();
-	ImVec2 parentPos = ImGui::GetCurrentWindowRead()->ParentWindow->Pos;
-
 	GetClient()->pipeline->OnResize((uint)viewportSize.x, (uint)viewportSize.y);
 	GetFrameBufferManager()->OnResize((uint)viewportSize.x, (uint)viewportSize.y);
-
-	//Hardcoded 19 because we can't get this value from the parent window with ImGui::GetCurrentWindowRead()->ParentWindow->MenuBarHeight(); 
-	Camera::active->SetViewport((uint)(pos.x - parentPos.x), (uint)(pos.y - parentPos.y + 19), (uint)viewportSize.x, (uint)viewportSize.y);
+	ImVec2 viewportOffset = ImGui::GetCursorPos();
+	Camera::active->SetViewport((uint)viewportOffset.x, (uint)viewportOffset.y, (uint)viewportSize.x, (uint)viewportSize.y);
 	ImGui::Image((void*)(uint64)GetClient()->pipeline->GetFinalTexture()->GetHandle(), viewportSize, { 0, 1 }, { 1, 0 });
+
+	static int counter = 0;
+	auto windowSize = ImGui::GetWindowSize();
+	ImVec2 minBound = ImGui::GetWindowPos();
+	minBound.x += viewportOffset.x;
+	minBound.y += viewportOffset.y;
+
+	ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+	if (ImGui::IsMouseHoveringRect(minBound, maxBound) || ImGui::IsWindowFocused()) {
+		GetMouse()->OverrideImGuiCapture();
+		GetKeyboard()->OverrideImGuiCapture();
+	}
+
 	ImGui::End();
 
 	ImGui::SetNextWindowDockID(m_dockspaceLeft, ImGuiCond_Always);
-	EditorState::CameraControls();
 	ImGui::Begin("Editor", nullptr, window_flags);
 
 	if (ImGui::Button("Serialize")) {
@@ -182,10 +109,6 @@ void EditorState::OnImGuiViewport() {
 	ImGui::SetNextWindowDockID(m_dockspaceBottom, ImGuiCond_Always);
 	Logger::OnImGui();
 	ImGui::PopStyleVar(3);
-}
-
-void EditorState::CameraControls() {
-
 }
 
 void EditorState::OnImGUI() {
@@ -226,4 +149,23 @@ void EditorState::OnImGUI() {
 
 		ImGui::End();
 	}
+}
+
+void EditorState::OnEnterState() {
+	m_oldCam = Camera::active;
+	Camera::active = m_editorCam;
+}
+
+void EditorState::OnExitState() {
+	Camera::active = m_oldCam;
+	Camera::active->SetViewport(0, 0, GetClient()->GetWidth(), GetClient()->GetHeight());
+	GetClient()->pipeline->OnResize(GetClient()->GetWidth(), GetClient()->GetHeight());
+	GetFrameBufferManager()->OnResize(GetClient()->GetWidth(), GetClient()->GetHeight());
+}
+
+void EditorState::Cleanup() {
+	DELETE(m_moriEntity->m_model);
+	DELETE(m_blockEntity->m_model);
+	DELETE(m_moriEntity);
+	DELETE(m_blockEntity);
 }

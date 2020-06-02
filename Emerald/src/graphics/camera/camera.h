@@ -25,18 +25,20 @@ protected:
 	float m_farPlane;
 	glm::vec4 m_viewPort;
 	
-	void UpdateViewMatrix();
+	void UpdateViewMatrix(float partialTicks);
 	virtual void UpdateProjectionMatrix();
 
 public:
 	static Camera* active;
 	static Camera* uiActive;
+	Transform lastUpdateTransform;
 	Transform transform;
 
-	Camera(glm::vec2 viewportSize, float fov, float nearPlane, float farPlane) : m_viewPort(glm::vec4(0, 0, viewportSize.x, viewportSize.y)) { SetProjectionMatrix(fov, nearPlane, farPlane); UpdateViewMatrix(); }
+	Camera(glm::vec2 viewportSize, float fov, float nearPlane, float farPlane) : m_viewPort(glm::vec4(0, 0, viewportSize.x, viewportSize.y)) { SetProjectionMatrix(fov, nearPlane, farPlane); UpdateViewMatrix(0); }
 
 	virtual ~Camera() {}
 	virtual void Update(const TimeStep& time) {}
+	virtual void DrawUpdate(float partialTicks);
 	virtual void FixedUpdate() {}
 
 	void SetProjectionMatrix(float fov, float nearPlane, float farPlane);

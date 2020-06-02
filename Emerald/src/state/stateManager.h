@@ -21,6 +21,8 @@ private:
 
 	vector<State*> m_states;
 	State* m_currentState;
+	State* m_nextState = nullptr;
+	State* m_nextRemoveState = nullptr;
 
 public:
 	State* GetState() { return m_currentState; }
@@ -28,9 +30,7 @@ public:
 	void RegisterStates();
 	void RemoveState(State* state);
 	void SetState(State* state) {
-		m_currentState->OnExitState();
-		m_currentState = state;
-		m_currentState->OnEnterState();
+		m_nextState = state;
 	}
 
 	void OnResize(int width, int height) {
@@ -38,7 +38,22 @@ public:
 	}
 
 	void RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) { m_currentState->RenderGeometryShadow(pipeline, type); }
-	void Update(TimeStep time) { m_currentState->Update(time); }
+	void Update(TimeStep time) {
+		if (m_nextState != nullptr) {
+			m_currentState->OnExitState();
+			m_currentState = m_nextState;
+			m_currentState->OnEnterState();
+			m_nextState = nullptr;
+			Camera::active->Update(0);
+		}
+		if (m_nextRemoveState != nullptr) {
+			Utils::RemoveFromVector(m_states, m_nextRemoveState);
+			m_nextRemoveState->Cleanup();
+			DELETE(m_nextRemoveState);
+			m_nextRemoveState = nullptr;
+		}
+		m_currentState->Update(time);
+	}
 	void RenderGeometry(HDRPipeline* pipeline) { m_currentState->RenderGeometry(pipeline); }
 	void OnStateImGUI() {
 		if (ImGui::BeginTabItem("State")) {
@@ -85,4 +100,4 @@ public:
 	}
 };
 
-static StateManager * GetStateManager() { return StateManager::GetInstance(); }
+static StateManager* GetStateManager() { return StateManager::GetInstance(); }

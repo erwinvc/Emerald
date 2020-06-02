@@ -87,6 +87,7 @@ public:
 		GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	}
 	void Clear() const {
+		GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
 		GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 	}
 
@@ -95,6 +96,7 @@ public:
 	}
 
 	void ClearColorOnly() const {
+		GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
 		GL(glClear(GL_COLOR_BUFFER_BIT));
 	}
 

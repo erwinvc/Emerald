@@ -1,5 +1,12 @@
 #include "stdafx.h"
 
+
+void MaterialCallbackTexturePtr::Callback() {
+	if (m_texture) {
+		(*m_texture)->Bind(m_slot);
+	}
+}
+
 void MaterialCallbackTexture::Callback() {
 	m_texture->Bind(m_slot);
 }

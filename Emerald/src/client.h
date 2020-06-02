@@ -8,7 +8,7 @@ enum class ConnectionState {
 
 class Client : public Singleton<Client> {
 private:
-	Client() { m_salt = Random::Int(0, Math::MAX_INT); }
+	Client() : m_updateTimer(UpdateTimer(60.0f)) { m_salt = Random::Int(0, Math::MAX_INT); }
 	~Client() {}
 	friend Singleton;
 
@@ -16,8 +16,11 @@ private:
 	Connection m_serverConnection;
 	NetHost m_host;
 	Window* m_window;
+	ClientWorld* m_world;
+	NetHandlerClient* m_netHandler;
 	bool m_initialized = false;
 	Timer m_timer;
+	UpdateTimer m_updateTimer;
 
 	uint32 m_playerID;
 	uint32 m_salt;
@@ -41,23 +44,11 @@ public:
 	void Run();
 	void Cleanup();
 
-	void OnResize(uint32 width, uint32 height);
 	void Update(TimeStep time);
-	void Render();
-
-	void CapabilitiesCheck();
+	void Render(float partialUpdate);
 
 	void ConnectToServer(const String& IP, int port);
 	void Disconnect();
-	void OnConnectionResult(const PacketConnectionResult& packet);
-	void OnKick(const PacketKick& packet);
-	void OnGameData(const void* data);
-	void OnAddEntity(const void* data);
-	void OnRemoveEntity(const PacketRemoveEntity& packet);
-	void OnUpdateEntities(const void* data);
-	void OnBlockUpdate(const PacketBlockUpdate& packet);
-	void HandlePacket(const ReceivedPacket& packet);
-	void OnHandshakeChallenge(const PacketHandshakeChallenge& packet);
 
 	void QueueTask(function<void()> task) {
 		m_queue.Add(task);
@@ -76,13 +67,10 @@ public:
 
 	uint32 GetPlayerID() { return m_playerID; }
 
-	float GetTime() {
-		return m_timer.Get();
-	}
+	float GetRealTime() { return m_timer.Get(); }
+	float GetRealTimeSeconds() { return m_timer.Get(Timer::TimeFormat::SECONDS); }
 
-	float GetTimeSeconds() {
-		return m_timer.Get(Timer::TimeFormat::SECONDS);
-	}
+	friend NetHandlerClient;
 };
 
 static Client* GetClient() {

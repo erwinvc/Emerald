@@ -1,6 +1,5 @@
 #include "stdafx.h"
-AmbientOcclusionRenderer::~AmbientOcclusionRenderer() {
-}
+#include <glm/gtc/random.hpp>
 
 AmbientOcclusionRenderer::AmbientOcclusionRenderer() {
 	m_fbo = GetFrameBufferManager()->Create("SSAO", FBOScale::FULL);
@@ -56,17 +55,16 @@ AmbientOcclusionRenderer::AmbientOcclusionRenderer() {
 	m_hbaoMaterial->AddOnBindCallback(new MaterialCallbackPtr("_SampleDirections", &m_hbaoSampleDirections));
 	m_hbaoMaterial->AddOnBindCallback(new MaterialCallbackPtr("_SampleSteps", &m_hbaoSampleSteps));
 	m_hbaoMaterial->AddOnBindCallback(new MaterialCallbackPtr("_SampleRadius", &m_hbaoSampleRadius));
-
+	
 	LOG("[~bRenderer~x] AO renderer initialized");
 }
 
 void AmbientOcclusionRenderer::DrawSSAO(HDRPipeline* pipeline) {
-	GL(glFrontFace(GL_CW));
-
 	m_fbo->Bind();
 	m_fbo->Clear();
 
 	m_ssaoMaterial->Bind();
+
 	m_quad->Draw();
 	m_fbo->Unbind();
 
@@ -74,26 +72,21 @@ void AmbientOcclusionRenderer::DrawSSAO(HDRPipeline* pipeline) {
 	m_ssaoBlurMaterial->Bind();
 	m_quad->Draw();
 	m_fboBlur->Unbind();
-
-	GL(glFrontFace(GL_CCW));
 }
 
 void AmbientOcclusionRenderer::DrawHBAO(HDRPipeline* pipeline) {
-	GL(glFrontFace(GL_CW));
-
 	m_fbo->Bind();
 	m_fbo->Clear();
 
 	m_hbaoMaterial->Bind();
 	m_quad->Draw();
 	m_fbo->Unbind();
-
-	GL(glFrontFace(GL_CCW));
 }
 
 void AmbientOcclusionRenderer::Draw(HDRPipeline* pipeline) {
 	auto profiler = GetProfiler()->StartGL(ProfilerDataType::AmbientOcclusion);
 	if (m_enabled) {
+		GL(glFrontFace(GL_CW));
 		switch (m_aoType) {
 			case AmbientOcclusionType::SSAO:
 				DrawSSAO(pipeline);
@@ -102,6 +95,7 @@ void AmbientOcclusionRenderer::Draw(HDRPipeline* pipeline) {
 				DrawHBAO(pipeline);
 				break;
 		}
+		GL(glFrontFace(GL_CCW));
 	}
 	profiler.End();
 }
@@ -120,7 +114,7 @@ void AmbientOcclusionRenderer::OnImGui() {
 		UI::Float("Angle Bias", &m_hbaoAngleBias, 0.0f, 1.0f);
 		UI::Float("Attenuation Scale", &m_hbaoAttenuationScale, 0.0, 1.0);
 		UI::Int("Sample Directions", &m_hbaoSampleDirections, 1, 32);
-		UI::Int("Sample Steps", &m_hbaoSampleSteps, 1, 64);
+		UI::Int("Sample Steps", &m_hbaoSampleSteps, 1, 256);
 		UI::Float("Sample Radius", &m_hbaoSampleRadius, 1, 32);
 	}
 }

@@ -46,3 +46,8 @@ uint32 ServerWorld::AddEntity() {
 	return 0;
 }
 
+
+
+void ServerWorld::Update() {
+	m_time++;
+}

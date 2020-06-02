@@ -21,7 +21,6 @@ void StateManager::RegisterStates() {
 }
 
 void StateManager::RemoveState(State* state) {
-	Utils::RemoveFromVector(m_states, state);
-	state->Cleanup();
-	DELETE(state);
+	if (m_nextRemoveState != nullptr) LOG_ERROR("[~mGameState~x] next remove state has already been set");
+	m_nextRemoveState = state;
 }

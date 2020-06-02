@@ -3,7 +3,6 @@
 class EditorState : public State {
 private:
 	void OnImGuiViewport();
-	void CameraControls();
 
 	ImGuiID m_dockspaceCenter;
 	ImGuiID m_dockspaceLeft;
@@ -21,9 +20,9 @@ public:
 	void RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) override;
 	void OnStateImGUI() override {}
 	void OnImGUI() override;
-	void Cleanup() override {}
+	void Cleanup() override;
 
-	void OnEnterState() override {}
-	void OnExitState() override {}
+	void OnEnterState() override;
+	void OnExitState() override;
 	void OnResize(int width, int height) override {}
 };

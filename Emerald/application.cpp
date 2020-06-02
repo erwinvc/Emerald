@@ -16,7 +16,6 @@ void Application::Initialize(bool isServer) {
 }
 
 void Application::Cleanup() {
-
 	if (m_isServer) GetServer()->Cleanup();
 	else GetClient()->Cleanup();
 

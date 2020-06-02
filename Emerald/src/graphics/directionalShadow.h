@@ -15,12 +15,12 @@ private:
 
 public:
 	glm::mat4 m_lightSpaceMatrix;
-	float m_nearPlane = -50.0f, m_farPlane = 128.0f;
-	float m_size = 44.0f;
+	float m_nearPlane = -130.0f, m_farPlane = 55.0f;
+	float m_size = 48.0f;
 	DirectionalShadow() {
 		m_shaderChunk = GetShaderManager()->Get("DirectionalShadowChunk");
 		m_shader = GetShaderManager()->Get("DirectionalShadow");
-		m_fbo = GetFrameBufferManager()->Create("DirectionalShadow", SIZE, SIZE);
+		m_fbo = GetFrameBufferManager()->Create("DirectionalShadow", SIZE, SIZE, Color(1.0f, 1.0f, 0.0f, 0.0f));
 		m_fbo->AddBuffer("Depth", TextureParameters(INT_DEPTH, DATA_DEPTH, LINEAR, REPEAT, T_UNSIGNED_BYTE), FBOAttachment::DEPTH);
 		m_texture = m_fbo->AddBuffer("DirectionalShadow", TextureParameters(INT_RG32, DATA_RGBA, LINEAR, REPEAT, T_FLOAT), FBOAttachment::COLOR);
 
@@ -35,7 +35,7 @@ public:
 	{
 		UI::Begin();
 		UI::Float("Far", &m_farPlane, 2.0f, 512.0f);
-		UI::Float("Near", &m_nearPlane, -100.0f, 1.0f);
+		UI::Float("Near", &m_nearPlane, -200.0f, 1.0f);
 		UI::Float("Size", &m_size, 1.0f, 64.0f);
 		UI::End();
 	}

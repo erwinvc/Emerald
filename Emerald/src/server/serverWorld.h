@@ -2,6 +2,8 @@
 
 class ServerWorld {
 private:
+	uint64 m_time = 0;
+	uint32 m_timeCounter = 0;
 	uint32 m_entityCount = 0;
 	vector<EntityState> m_entities;
 	unordered_map<glm::ivec3, Chunk> m_chunks;
@@ -26,6 +28,8 @@ public:
 			itr->second.SetBlock(local, voxel);
 		}
 	}
+
+	void Update();
 
 	unordered_map<glm::ivec3, Chunk>& GetChunks() {
 		return m_chunks;
@@ -54,4 +58,6 @@ public:
 			}
 		}
 	}
+
+	uint64 GetTime() { return m_time; }
 };

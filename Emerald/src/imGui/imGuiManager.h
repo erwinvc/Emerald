@@ -45,7 +45,7 @@ private:
 	}
 
 public:
-	static bool BeginWindow(const String_t name);
+	static bool BeginWindow(const String_t name, ImVec2 size = ImVec2(0, 0), bool* open = nullptr);
 
 	static void EndWindow() {
 		ImGui::End();
@@ -66,7 +66,7 @@ public:
 
 	static bool Button(const String_t name) {
 		Prepare(name);
-		bool toRet = ImGui::Button(Format_b(buffer, 0x100, "##%s", name));
+		bool toRet = ImGui::Button(Format_b(buffer, 0x100, "##%s", name), ImVec2(42, 21));
 		Finish();
 		return toRet;
 	}

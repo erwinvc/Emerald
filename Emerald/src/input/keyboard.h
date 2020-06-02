@@ -12,6 +12,9 @@ private:
 	int m_lastKey;
 	const int m_NOWPERIOD = 100;
 	const int m_MAXDOWN = 600000;
+	bool m_imGuiControlThisFrame = false;
+	bool m_overrideImGuiThisFrame = false;
+	bool m_overrideImGuiNextFrame = false;
 
 	struct Key {
 		DWORD time;
@@ -26,15 +29,24 @@ private:
 
 	void OnKey(int key, int scancode, int action, int mods);
 
+	bool CheckImGuiControl() {
+		if (m_overrideImGuiThisFrame) return false;
+		return ImGui::GetCurrentContext()->NavWindow || ImGui::GetIO().WantCaptureKeyboard;
+	}
+
 public:
 	void Initialize(Window* window);
-
+	void Update() {
+		m_imGuiControlThisFrame = CheckImGuiControl();
+		m_overrideImGuiThisFrame = m_overrideImGuiNextFrame;
+		m_overrideImGuiNextFrame = false;
+	}
 	void ResetKeyState(DWORD key) {
 		if ((int)key < KEYSIZE) memset(&m_keyStates[key], 0, sizeof(m_keyStates[0]));
 	}
 
 	bool KeyDown(DWORD key) {
-		if ((int)key >= KEYSIZE || (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard)) return false;
+		if ((int)key >= KEYSIZE || CheckImGuiControl() || m_imGuiControlThisFrame) return false;
 		return (GetTickCount() < m_keyStates[key].time + m_MAXDOWN) && !m_keyStates[key].m_isUpNow;
 	}
 
@@ -43,7 +55,7 @@ public:
 	}
 
 	bool KeyJustUp(DWORD key) {
-		if ((int)key >= KEYSIZE || (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard)) return false;
+		if ((int)key >= KEYSIZE || CheckImGuiControl() || m_imGuiControlThisFrame) return false;
 		bool result = GetTickCount() < m_keyStates[key].time + m_NOWPERIOD && m_keyStates[key].m_isUpNow;
 		if (result) ResetKeyState(key);
 		return result;
@@ -54,15 +66,17 @@ public:
 	}
 
 	bool KeyJustDown(DWORD key) {
-		if ((int)key >= KEYSIZE || (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard)) return false;
+		if ((int)key >= KEYSIZE || CheckImGuiControl() || m_imGuiControlThisFrame) return false;
 		bool result = m_keyStates[key].m_justDown;
- 		if (result) m_keyStates[key].m_justDown = false;
+		if (result) m_keyStates[key].m_justDown = false;
 		return result;
 	}
 
 	bool AnyKeyJustDown() {
 		return KeyJustDown(m_lastKey);
 	}
+
+	void OverrideImGuiCapture() { m_overrideImGuiNextFrame = true; }
 };
 
 static Keyboard* GetKeyboard() { return Keyboard::GetInstance(); }

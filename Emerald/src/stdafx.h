@@ -15,6 +15,8 @@
 #include <windows.h>
 #include <time.h>
 #include <fileapi.h>
+#include <direct.h>
+#include <Psapi.h>
 
 #include <limits>
 #include <string>
@@ -34,6 +36,8 @@
 //#include <winsock2.h>
 //#include <ws2tcpip.h>
 //#pragma comment(lib, "Ws2_32.lib")
+#include <DbgHelp.h>
+#pragma comment (lib, "dbghelp.lib")
 
 // Datastructures
 #include <map>
@@ -112,7 +116,10 @@ using namespace std;
 #include "util/thread/glFiberManager.h"
 #include "util/timestep.h"
 #include "util/timer.h"
+#include "util/updateTimer.h"
+#include "util/frameTimer.h"
 #include "util/glError.h"
+#include "util/crashHandler.h"
 
 #undef DELETE
 
@@ -142,6 +149,8 @@ using namespace std;
 #include "network/network.h"
 #include "network/packets.h"
 #include "network/clientSession.h"
+#include "network/netHandlerClient.h"
+#include "network/netHandlerServer.h"
 
 #include "assets/texture/textureParameters.h"
 

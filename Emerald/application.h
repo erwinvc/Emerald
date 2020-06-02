@@ -16,11 +16,11 @@ private:
 		return m_isServer ? "EmeraldServer" : "Emerald";
 	}
 
-	void Cleanup();
 	
 public:
 	void Initialize(bool isServer);
 	inline bool IsServer() { return m_isServer; }
+	void Cleanup();
 };
 
 inline Application* GetApp() { return Application::GetInstance(); }

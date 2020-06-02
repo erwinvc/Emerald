@@ -89,7 +89,7 @@ union
 		col.clamp();
 		return col;
 	}
-
+	
 	friend Color operator*(const Color& color, float value) {
 		return Color(color.R * value, color.G * value, color.B * value, color.A * value);
 	}

@@ -1,7 +1,8 @@
 #include "stdafx.h"
 
 void FreeCam::Update(const TimeStep& time) {
-	float speed = movementSpeed * time.DeltaTime();
+	lastUpdateTransform = transform;
+	float speed = movementSpeed * 0.016f;
 	if (KeyDown(LSHIFT)) speed *= 10;
 	if (KeyDown(LALT)) speed /= 10;
 
@@ -21,6 +22,4 @@ void FreeCam::Update(const TimeStep& time) {
 		transform.rotation.y -= GetMouse()->GetDelta().x * 0.005f;
 		transform.rotation.x = Math::Clamp(transform.rotation.x - GetMouse()->GetDelta().y * 0.005f, -Math::HALF_PI, Math::HALF_PI);
 	}
-
-	UpdateViewMatrix();
 }

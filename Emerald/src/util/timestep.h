@@ -12,10 +12,10 @@ public:
 		: m_time(initial), m_deltaTime(initial / 1000.0f), m_totalTime(totalTime), m_frameCount(frameCount) {
 	}
 
-	operator float() const { return m_deltaTime; }
+	//operator float() const { return m_deltaTime; }
 
-	inline float DeltaTime() const { return m_deltaTime; }
-	inline float DeltaTimeMS() const { return m_time; }
+	//inline float DeltaTime() const { return m_deltaTime; }
+	//inline float DeltaTimeMS() const { return m_time; }
 
 	inline float TotalTime() const { return m_totalTime; }
 	inline uint64 FrameCount() const { return m_frameCount; }

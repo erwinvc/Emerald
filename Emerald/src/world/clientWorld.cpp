@@ -1,28 +1,33 @@
 #include "stdafx.h"
 
 void ClientWorld::Update(const TimeStep& time) {
-	m_time = GetClient()->GetTime();
+	m_time++;
+	if (m_rightClickDelayTimer > 0)	m_rightClickDelayTimer -= 0.016f;
 	for (int i = 0; i < m_entities.size(); i++) {
 		auto& entity = m_entities[i];
 		if (entity.active) {
-			entity.position += entity.velocity * time.DeltaTime();
+			entity.position += entity.velocity / 60.0f;
 		}
 	}
 
 	m_hasHoveredBlock = false;
 	BlockIterator iter(Camera::active->transform.position, Utils::RotationToDirection(Camera::active->transform.rotation));
 	glm::vec3 previousBlock;
-	if (GetMouse()->GetScroll().y != 0) {
-		if (m_selectedBlock == 1) m_selectedBlock = 2;
-		else if (m_selectedBlock == 2) m_selectedBlock = 1;
+	float scroll = GetMouse()->GetScroll().y;
+	if (scroll > 0) {
+		if (++m_selectedBlock > 3) m_selectedBlock = 1;
+	} else if (scroll < 0) {
+		if (--m_selectedBlock < 1) m_selectedBlock = 3;
 	}
+
 	for (; iter.t() < 5; ++iter) {
 		if (GetBlock(*iter) != 0) {
 			if (GetMouse()->ButtonJustDown(VK_MOUSE_LEFT)) {
 				GetClient()->SetBlock(*iter, 0);
 				//SetBlock(*iter, 0);
-			} else if (GetMouse()->ButtonJustDown(VK_MOUSE_RIGHT)) {
+			} else if (GetMouse()->ButtonDown(VK_MOUSE_RIGHT) && m_rightClickDelayTimer <= 0) {
 				GetClient()->SetBlock(previousBlock, m_selectedBlock);
+				m_rightClickDelayTimer = 0.2f;
 				//SetBlock(previousBlock, 1);
 			}
 			m_hoveredBlock = *iter;
@@ -61,10 +66,10 @@ void ClientWorld::RenderGeometry(HDRPipeline* pipeline) {
 		pipeline->Bounds(m_hoveredBlock + glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.505f, 0.505f, 0.505f), Color(0.0f, 0.0f, 0.0f, 0.85f), false);
 	}
 
-	GL(glFrontFace(GL_CW));
-	m_skybox->transform.position.y = Camera::active->transform.position.y;
-	m_skybox->Draw();
-	GL(glFrontFace(GL_CCW));
+	//GL(glFrontFace(GL_CW));
+	//m_skybox->transform.position.y = Camera::active->transform.position.y;
+	//m_skybox->Draw();
+	//GL(glFrontFace(GL_CCW));
 }
 
 void ClientWorld::UpdateEntity(uint32 id, const glm::vec3& position, const glm::vec3& rotation) {
@@ -78,7 +83,7 @@ void ClientWorld::UpdateEntity(uint32 id, const glm::vec3& position, const glm::
 	entity.rotation = rotation;
 	entity.velocity = entity.position - entity.lastPosition;
 
-	float currentTime = GetClient()->GetTimeSeconds();
+	float currentTime = GetClient()->GetRealTimeSeconds();
 	float time = currentTime - m_entities[id].lastUpdateTime;
 	m_entities[id].lastUpdateTime = currentTime;
 
@@ -89,5 +94,5 @@ void ClientWorld::AddEntity(uint32 id, const glm::vec3& position, const glm::vec
 	m_entities[id].active = true;
 	m_entities[id].position = position;
 	m_entities[id].rotation = rotation;
-	m_entities[id].lastUpdateTime = GetClient()->GetTimeSeconds();
+	m_entities[id].lastUpdateTime = GetClient()->GetRealTimeSeconds();
 }

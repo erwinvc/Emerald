@@ -21,19 +21,8 @@ public:
 	static void SaveStringToFile(const String& str, const String& name);
 	static void CreateFile(const String& file);
 
-	static bool CreateFileIfDoesntExist(const String& file) {
-		bool exists = DoesFileExist(file);
-		if (!exists) CreateFile(file);
-		return !exists;
-	}
+	static bool CreateFileIfDoesntExist(const String& file);
 
-	static String_t GetShortFilename(const char* filename) {
-		const char* lastSlash = strrchr(filename, '/');
-		if (lastSlash == nullptr) {
-			lastSlash = strrchr(filename, '\\');
-		}
-		String_t shortFilename = lastSlash != nullptr ? lastSlash + 1 : filename;
-		return shortFilename;
-	}
-
+	static String_t GetShortFilename(String_t filename);
+	static void CopyFile(const String& source, const String& dest);
 };

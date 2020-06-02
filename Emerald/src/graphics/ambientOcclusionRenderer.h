@@ -39,16 +39,16 @@ public:
 	int m_ssaoPower = 2;
 	int m_ssaoSampleCount = 64;
 
-	int m_hbaoPower = 2;
+	int m_hbaoPower = 1;
 	float m_hbaoLumInfluence = 0.2f;
 	float m_hbaoAngleBias = 0.2f;
-	float m_hbaoAttenuationScale = 1.0f;
+	float m_hbaoAttenuationScale = 0.3f;
 	int m_hbaoSampleDirections = 8;   
-	int m_hbaoSampleSteps = 64;
-	float m_hbaoSampleRadius = 9.0f;
+	int m_hbaoSampleSteps = 8;
+	float m_hbaoSampleRadius = 1.9f;
 	
 	AmbientOcclusionRenderer();
-	~AmbientOcclusionRenderer();
+	~AmbientOcclusionRenderer() {}
 
 	void Draw(HDRPipeline* pipeline);
 

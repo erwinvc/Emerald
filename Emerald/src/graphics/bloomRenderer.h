@@ -13,9 +13,8 @@ private:
 	AssetRef<Mesh> m_quad;
 
 public:
-	float m_gaussianIterations = 8;
+	int m_gaussianIterations = 8;
 	bool m_enabled = true;
-	float m_bloomFactor = 1.0f;
 	float m_bloomMultiplier = 1.0f;
 	
 	BloomRenderer();
@@ -27,8 +26,7 @@ public:
 	}
 
 	void OnImGui() {
-		//UI::Float("Factor", &m_bloomFactor, 0, 2.0f);
 		UI::Float("Multiplier", &m_bloomMultiplier, 0, 5.0f);
-		//UI::Float("Chromatic", &m_chromatic, -0.01f, 0.01f);
+		UI::Int("Iterations", &m_gaussianIterations, 0, 20);
 	}
 };

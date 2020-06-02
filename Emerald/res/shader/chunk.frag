@@ -30,9 +30,9 @@ vec3 ApplyHue(vec3 col, float hueAdjust) {
 void main() {
 	vec3 normalTex = (255.0/128.0 * (texture(_Normal, fsData.uv).rgb) - 1);
 	vec3 normal = vec3(fsData.TBNMatrix * normalTex);
-	vec3 emission = texture(_Emission, fsData.uv).xyz * 2;
-	emission = ApplyHue(emission, _Time / 1000);
-    geoData[0] = vec4(texture(_Roughness, fsData.uv).x, texture(_Metallic, fsData.uv).x, emission.x, emission.y);
+	vec3 emission = texture(_Emission, fsData.uv).xyz;
+	//emission = ApplyHue(emission, _Time / 1000);
+    geoData[0] = vec4(texture(_Roughness, fsData.uv).x, texture(_Metallic, fsData.uv).x * 0.8, emission.x, emission.y);
 	geoData[1] = vec4(texture(_Albedo, fsData.uv).rgb, emission.z);
 	geoData[2] = vec4(normalize(_View * vec4(normal, 0.0)).xyz, 0);
 }

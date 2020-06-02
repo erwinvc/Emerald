@@ -2,7 +2,7 @@
 #define LOG( fmt, ...)					Logger::Message((int)ConsoleColor::WHITE,				" [Info]",		fmt, ##__VA_ARGS__ )
 #define LOG_WARN( fmt, ...)				Logger::Message((int)ConsoleColor::RED,					" [Warn]",		fmt, ##__VA_ARGS__ )
 #define LOG_TIMED(time, fmt, ...)		Logger::MessageTimed(time, (int)ConsoleColor::WHITE,	" [Info]",		fmt, ##__VA_ARGS__ )
-#define LOG_ERROR( fmt, ...)			{Logger::Message((int)ConsoleColor::RED,			" [Fail]",		fmt, ##__VA_ARGS__ ); Logger::ForceEmptyQueue(); __debugbreak();}
+#define LOG_ERROR( fmt, ...)			{Logger::Message((int)ConsoleColor::RED,				" [Fail]",		fmt, ##__VA_ARGS__ ); Logger::ForceEmptyQueue(); __debugbreak();}
 
 class UILoggerComponent;
 

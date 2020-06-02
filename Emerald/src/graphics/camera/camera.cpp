@@ -3,10 +3,17 @@
 Camera* Camera::active = nullptr;
 Camera* Camera::uiActive = nullptr;
 
-void Camera::UpdateViewMatrix() {
-	m_viewMatrix = glm::translate(glm::mat4(1.0f), transform.position) * glm::toMat4(transform.GetOrientation());
+void Camera::UpdateViewMatrix(float partialTicks) {
+	glm::vec3 d = lastUpdateTransform.position + (transform.position - lastUpdateTransform.position) * partialTicks;
+	glm::vec3 dr = lastUpdateTransform.rotation + (transform.rotation - lastUpdateTransform.rotation) * partialTicks;
+
+	m_viewMatrix = glm::translate(glm::mat4(1.0f), d) * glm::toMat4(glm::quat(glm::vec3(-dr.x, -dr.y, -dr.z)));
 	m_inverseViewMatrix = m_viewMatrix;
 	m_viewMatrix = glm::inverse(m_viewMatrix);
+}
+
+void Camera::DrawUpdate(float partialTicks) {
+	UpdateViewMatrix(partialTicks);
 }
 
 void Camera::UpdateProjectionMatrix() {

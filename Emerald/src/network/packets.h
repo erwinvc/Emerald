@@ -16,7 +16,8 @@ enum class PacketType : uint16 {
 	UpdateEntities,
 	BlockUpdate,
 	PlayerState,
-	Interaction
+	Interaction,
+	Time,
 };
 
 enum class HandshakeType : byte {
@@ -35,6 +36,11 @@ public:
 	template<typename T>
 	void Write(const T& value) {
 		m_data.insert(m_data.end(), ((byte*)&value), ((byte*)&value) + sizeof(T));
+	}
+
+	template<typename T>
+	void Write(const T* data, uint32 count) {
+		m_data.insert(m_data.end(), ((byte*)data), ((byte*)data) + (sizeof(T) * count));
 	}
 
 	uint32 GetSize() const {
@@ -60,6 +66,13 @@ public:
 	T Read() {
 		T val = *(T*)m_data;
 		m_data += sizeof(T);
+		return val;
+	}
+
+	template<typename T>
+	T* Read(uint32 count) {
+		T* val = (T*)m_data;
+		m_data += (sizeof(T) * count);
 		return val;
 	}
 };
@@ -178,6 +191,11 @@ struct PacketPlayerState {
 	glm::vec3 position;
 	glm::vec3 rotation;
 	glm::vec3 velocity;
+};
+
+struct PacketTime {
+	PacketType type = PacketType::Time;
+	uint64 time;
 };
 
 //struct PacketInteraction {
