@@ -33,11 +33,12 @@ public:
 	static Camera* uiActive;
 	Transform lastUpdateTransform;
 	Transform transform;
-
-	Camera(glm::vec2 viewportSize, float fov, float nearPlane, float farPlane) : m_viewPort(glm::vec4(0, 0, viewportSize.x, viewportSize.y)) { SetProjectionMatrix(fov, nearPlane, farPlane); UpdateViewMatrix(0); }
-
+	glm::vec3 velocity;
+	
+	Camera(glm::vec2 viewportSize, float fov, float nearPlane, float farPlane);
 	virtual ~Camera() {}
-	virtual void Update(const TimeStep& time) {}
+	
+	virtual void Update() {}
 	virtual void DrawUpdate(float partialTicks);
 	virtual void FixedUpdate() {}
 

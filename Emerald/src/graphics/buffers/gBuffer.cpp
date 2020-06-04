@@ -19,3 +19,15 @@ void GBuffer::BindTextures() {
 	m_normalTexture->Bind(2);
 	m_attributesTexture->Bind(3);
 }
+
+void GBuffer::Bind() {
+	m_fbo->Bind();
+}
+
+void GBuffer::Clear() {
+	m_fbo->Clear();
+}
+
+void GBuffer::Unbind() {
+	m_fbo->Unbind();
+}

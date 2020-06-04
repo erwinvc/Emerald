@@ -28,6 +28,90 @@ SpriteRenderer::SpriteRenderer() {
 	delete[] indicesBuffer;
 }
 
+void SpriteRenderer::Rect(glm::vec2 origin, float x, float y, float w, float h, float rotation, const Color& color, Texture* texture, const glm::vec3& atlasValues) {
+	float textureSlot = 0.0f;
+	if (texture) textureSlot = SubmitTexture(texture);
+	Vertex vertices[4];
+
+	glm::mat4 transform = glm::translate(glm::mat4(1.0f), -glm::vec3(origin.x, origin.y, 0));
+	transform = glm::translate(transform, glm::vec3(x, y, 0.0f));
+	transform = glm::rotate(transform, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+	transform = glm::scale(transform, glm::vec3(w / 2.0f, h / 2.0f, 0));
+	transform = glm::translate(transform, glm::vec3(origin.x, origin.y, 0));
+
+	//Top left
+	vertices[0].m_position = glm::vec3(transform * glm::vec4(-1.0f, 1.0f, 0.0f, 1.0));
+	vertices[0].m_uv = glm::vec2(0.0f, 1.0f);
+	vertices[0].m_textureID = textureSlot;
+	vertices[0].m_color = color;
+	vertices[0].vsAtlasValues = atlasValues;
+	//Top right
+	vertices[1].m_position = glm::vec3(transform * glm::vec4(1.0f, 1.0f, 0.0f, 1.0));
+	vertices[1].m_uv = glm::vec2(1.0f, 1.0f);
+	vertices[1].m_textureID = textureSlot;
+	vertices[1].m_color = color;
+	vertices[1].vsAtlasValues = atlasValues;
+	//Bottom right
+	vertices[2].m_position = glm::vec3(transform * glm::vec4(1.0f, -1.0f, 0.0f, 1.0));
+	vertices[2].m_uv = glm::vec2(1.0f, 0.0f);
+	vertices[2].m_textureID = textureSlot;
+	vertices[2].m_color = color;
+	vertices[2].vsAtlasValues = atlasValues;
+	//Bottom left
+	vertices[3].m_position = glm::vec3(transform * glm::vec4(-1.0f, -1.0f, 0.0f, 1.0));
+	vertices[3].m_uv = glm::vec2(0.0f, 0.0f);
+	vertices[3].m_textureID = textureSlot;
+	vertices[3].m_color = color;
+	vertices[3].vsAtlasValues = atlasValues;
+
+	m_elementsRenderer->Submit(&vertices[0], VERTEX_COUNT, 1);
+}
+
+void SpriteRenderer::Line(float x0, float y0, float x1, float y1, Color& color, float size) {
+	float textureSlot = 0.0f;
+	glm::vec2 normal = glm::normalize(glm::vec2(y1 - y0, -(x1 - x0))) * glm::vec2(size, size);
+	Vertex vertices[4];
+
+
+	vertices[2].m_position = glm::vec3(x0 + normal.x, y0 + normal.y, 0.0f);
+	//vertices[0].m_position = glm::vec3(x0 + normal.x, y0 + normal.y, 0.0f);
+	vertices[0].m_uv = glm::vec2(0.0f, 1.0f);
+	vertices[0].m_textureID = textureSlot;
+	vertices[0].m_color = color;
+	vertices[0].vsAtlasValues = glm::vec3(1, 0, 0);
+
+	vertices[1].m_position = glm::vec3(x1 + normal.x, y1 + normal.y, 0.0f);
+	//vertices[1].m_position = glm::vec3(1920.0f, 1080.0f, 0.0f);
+	vertices[1].m_uv = glm::vec2(1.0f, 1.0f);
+	vertices[1].m_textureID = textureSlot;
+	vertices[1].m_color = color;
+	vertices[1].vsAtlasValues = glm::vec3(1, 0, 0);
+
+	vertices[0].m_position = glm::vec3(x1 - normal.x, y1 - normal.y, 0.0f);
+	//vertices[2].m_position = glm::vec3(1920.0f, 0.0f, 0.0f);
+	vertices[2].m_uv = glm::vec2(1.0f, 0.0f);
+	vertices[2].m_textureID = textureSlot;
+	vertices[2].m_color = color;
+	vertices[2].vsAtlasValues = glm::vec3(1, 0, 0);
+
+	vertices[3].m_position = glm::vec3(x0 - normal.x, y0 - normal.y, 0.0f);
+	//vertices[3].m_position = glm::vec3(0.0f, 0.0f, 0.0f);
+	vertices[3].m_uv = glm::vec2(0.0f, 0.0f);
+	vertices[3].m_textureID = textureSlot;
+	vertices[3].m_color = color;
+	vertices[3].vsAtlasValues = glm::vec3(1, 0, 0);
+
+	m_elementsRenderer->Submit(&vertices[0], VERTEX_COUNT, 1);
+}
+
+void SpriteRenderer::LineRect(Rectangle& rect, Color& color, float lineSize) {
+	float halfLineSize = lineSize / 2;
+	Line(rect.XMin() - halfLineSize, rect.YMin() - halfLineSize, rect.XMin() - halfLineSize, rect.YMax() + halfLineSize, color, lineSize);
+	Line(rect.XMax() + halfLineSize, rect.YMin() - halfLineSize, rect.XMax() + halfLineSize, rect.YMax() + halfLineSize, color, lineSize);
+	Line(rect.XMin() - halfLineSize, rect.YMin() - halfLineSize, rect.XMax() + halfLineSize, rect.YMin() - halfLineSize, color, lineSize);
+	Line(rect.XMin() - halfLineSize, rect.YMax() + halfLineSize, rect.XMax() + halfLineSize, rect.YMax() + halfLineSize, color, lineSize);
+}
+
 void SpriteRenderer::Draw() {
 	m_shader->Bind();
 	m_shader->Set("_View", Camera::uiActive->GetViewMatrix());
@@ -43,4 +127,29 @@ void SpriteRenderer::Begin() {
 	m_textures.clear();
 	SubmitTexture(GetTextureManager()->GetWhiteTexture());
 	m_elementsRenderer->Begin();
+}
+
+void SpriteRenderer::End() {
+	m_elementsRenderer->End();
+}
+
+float SpriteRenderer::SubmitTexture(Texture* texture) {
+	float result = 0.0f;
+	bool found = false;
+	for (uint i = 0; i < m_textures.size(); i++) {
+		if (m_textures[i] == texture) {
+			result = (float)(i);
+			found = true;
+			break;
+		}
+	}
+
+	if (!found) {
+		if (m_textures.size() >= 31) {
+			//#TODO: Flush
+		}
+		m_textures.push_back(texture);
+		result = (float)(m_textures.size() - 1);
+	}
+	return result;
 }

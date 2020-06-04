@@ -1,7 +1,5 @@
 #include "stdafx.h"
 
-static Mouse g_mouse;
-
 void Mouse::Initialize(Window* window) {
 	for (int i = 0; i < BUTTONSSIZE; i++) {
 		m_buttonStates[i] = Button();
@@ -12,6 +10,11 @@ void Mouse::Initialize(Window* window) {
 	GetGLCallbackManager()->AddOnScrollCallback(this, &Mouse::OnScroll);
 
 	m_window = window;
+}
+
+bool Mouse::CheckImGuiControl() {
+	if (m_overrideImGuiThisFrame) return false;
+	return ImGui::GetCurrentContext()->NavWindow || ImGui::GetIO().WantCaptureMouse;
 }
 
 void Mouse::OnMouseButton(int button, int action, int mods) {
@@ -59,11 +62,6 @@ void Mouse::Update() {
 	m_delta = m_rawDelta * sensitivity;
 
 	m_imGuiControlThisFrame = CheckImGuiControl();
-
-	if (KeyJustDown('M')) {
-		m_locked ^= true;
-		glfwSetInputMode(m_window->GetHandle(), GLFW_CURSOR, m_locked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-	}
 }
 
 bool Mouse::MouseWithin(float x, float y, float width, float height) {

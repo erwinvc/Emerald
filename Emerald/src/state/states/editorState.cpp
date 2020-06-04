@@ -6,7 +6,9 @@ Entity* m_moriEntity;
 Entity* m_blockEntity;
 Material* m_moriMaterial;
 Material* m_blockMaterial;
+Model* m_reflectionModel;
 Shader* m_geometryShader;
+Shader* m_directionalShadowShader;
 
 Texture* m_albedo;
 Texture* m_normal;
@@ -17,14 +19,24 @@ Texture* m_emission;
 Camera* m_oldCam;
 Camera* m_editorCam;
 
+TextureLoader albedoLoader("EditorAlbedo", "res/editor/editor_albedo.psd", false, TextureParameters(INT_SRGB, DATA_UNK, NEAREST), true);
+TextureLoader normalLoader("EditorNormal", "res/editor/editor_normal.psd", false, TextureParameters(INT_RGB, DATA_UNK, LINEAR), true);
+TextureLoader roughnessLoader("EditorRoughness", "res/editor/editor_roughness.psd", false, TextureParameters(INT_RED, DATA_UNK, NEAREST), true);
+TextureLoader metallicLoader("EditorMetallic", "res/editor/editor_metallic.psd", false, TextureParameters(INT_RED, DATA_UNK, NEAREST), true);
+TextureLoader emissionLoader("EditorEmission", "res/editor/editor_emission.psd", false, TextureParameters(INT_RGB, DATA_UNK, NEAREST), true);
+
 void EditorState::Initialize() {
+	m_directionalShadowShader = GetShaderManager()->Get("DirectionalShadow");
+	m_reflectionModel = GetAssetManager()->Get<Model>("EditorReflection");
 	m_mori = GetAssetManager()->Get<Model>("Mori");
 	m_block = GetAssetManager()->Get<Model>("Cube");
 	m_geometryShader = GetShaderManager()->Get("Geometry");
 	m_moriEntity = NEW(Entity(NEW(Model(m_mori->GetMeshes()[0]->Copy()))));
 	m_blockEntity = NEW(Entity(NEW(Model(m_block->GetMeshes()[0]->Copy()))));
-	m_moriEntity->transform.position.x -= 1.1f;
-	m_blockEntity->transform.position.x += 1.1f;
+	m_moriEntity->transform.position.x = -1.1f;
+	m_blockEntity->transform.position.x = 1.1f;
+	m_moriEntity->transform.position.y = 0.5f;
+	m_blockEntity->transform.position.y = 0.5f;
 	m_blockEntity->transform.size = glm::vec3(0.5f, 0.5f, 0.5f);
 	m_albedo = GetTextureManager()->GetWhiteTexture();
 	m_normal = GetTextureManager()->GetNormalTexture();
@@ -47,19 +59,43 @@ void EditorState::Initialize() {
 	m_blockEntity->m_model->SetMaterial(m_blockMaterial);
 
 	m_editorCam = NEW(FreeCam(glm::vec2(1920, 1080), 70, 0.05f, 500.0f));
-	m_editorCam->transform.position = glm::vec3(0.2f, 0.85f, 1.5f);
+	m_editorCam->transform.position = glm::vec3(0.2f, 1.7f, 2.5f);
 	m_editorCam->transform.rotation = glm::vec3(0.5f, 0.0f, 0.0f);
+
+
+	m_albedo = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&albedoLoader);
+	m_normal = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&normalLoader);
+	m_roughness = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&roughnessLoader);
+	m_metallic = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&metallicLoader);
+	m_emission = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&emissionLoader);
+
+	GetAssetWatcher()->AddDirectory("res/editor", false);
+	GetAssetWatcher()->AddChangeHandler(WatchType::CHANGED, "psd", [&](const Tracker& file) {
+		ReloadTexture(file.m_path.GetFileName());
+	});
 }
 
 void EditorState::RenderGeometry(HDRPipeline* pipeline) {
 	m_moriEntity->Draw();
 	m_blockEntity->Draw();
+	m_reflectionModel->Draw();
 }
 
-void EditorState::RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) {}
+void EditorState::ReloadTexture(const String& file) {
+	if (Utils::EndsWith(file, "albedo")) m_albedo = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&albedoLoader);
+	if (Utils::EndsWith(file, "normal")) m_normal = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&normalLoader);
+	if (Utils::EndsWith(file, "roughness")) m_roughness = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&roughnessLoader);
+	if (Utils::EndsWith(file, "metallic")) m_metallic = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&metallicLoader);
+	if (Utils::EndsWith(file, "emission")) m_emission = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&emissionLoader);
+}
+void EditorState::RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) {
+	m_moriEntity->DrawShadow(m_directionalShadowShader);
+	m_blockEntity->DrawShadow(m_directionalShadowShader);
+	m_reflectionModel->DrawShadow(m_directionalShadowShader);
+}
 
 void EditorState::Update(const TimeStep& time) {
-	Camera::active->Update(time);
+	Camera::active->Update();
 
 	m_moriEntity->transform.rotation.y += Math::QUARTER_PI / 60.0f;
 	m_blockEntity->transform.rotation.y += Math::QUARTER_PI / 60.0f;
@@ -90,25 +126,53 @@ void EditorState::OnImGuiViewport() {
 	minBound.y += viewportOffset.y;
 
 	ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-	if (ImGui::IsMouseHoveringRect(minBound, maxBound) || ImGui::IsWindowFocused()) {
+	if ((ImGui::IsMouseHoveringRect(minBound, maxBound) || ImGui::IsWindowFocused()) && ImGui::GetFrontMostPopupModal() == nullptr) {
 		GetMouse()->OverrideImGuiCapture();
 		GetKeyboard()->OverrideImGuiCapture();
 	}
 
 	ImGui::End();
+	ImGui::PopStyleVar(3);
 
 	ImGui::SetNextWindowDockID(m_dockspaceLeft, ImGuiCond_Always);
 	ImGui::Begin("Editor", nullptr, window_flags);
 
-	if (ImGui::Button("Serialize")) {
-		//nlohmann::json j = nlohmann::json({ "world", *m_world });
-		//LOG("%s", j.dump().c_str());
+	if (ImGui::Button("Save texture")) ImGui::OpenPopup("Save Textures");
+
+	if (ImGui::BeginPopupModal("Save Textures", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
+		ImGui::Text("Enter a file name    ");
+		ImGui::Dummy(ImVec2(0, 20));
+		static char nameBuffer[16];
+		ImGui::PushItemWidth(ImGui::GetWindowWidth());
+		ImGui::InputText("", nameBuffer, 16, ImGuiInputTextFlags_CallbackCharFilter, ImGuiManager::PathFilter);
+		ImGui::PopItemWidth();
+
+		bool disabled = strlen(nameBuffer) == 0;
+		ImGui::BeginDisable(disabled);
+		if (ImGui::Button("Save")) {
+			m_albedo->SaveAsPNG(Format_t("res/editor/%s_albedo.png", nameBuffer));
+			m_normal->SaveAsPNG(Format_t("res/editor/%s_normal.png", nameBuffer));
+			m_metallic->SaveAsPNG(Format_t("res/editor/%s_metallic.png", nameBuffer));
+			m_roughness->SaveAsPNG(Format_t("res/editor/%s_roughness.png", nameBuffer));
+			m_emission->SaveAsPNG(Format_t("res/editor/%s_emission.png", nameBuffer));
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndDisable(disabled);
+		ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+		if (ImGui::Button("Cancel")) {
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
 	}
+
+	//UI::Begin();
+	//UI::End();
 	ImGui::End();
 
 	ImGui::SetNextWindowDockID(m_dockspaceBottom, ImGuiCond_Always);
 	Logger::OnImGui();
-	ImGui::PopStyleVar(3);
+
+
 }
 
 void EditorState::OnImGUI() {

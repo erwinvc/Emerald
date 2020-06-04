@@ -7,17 +7,8 @@ class AssetManager : public Singleton<AssetManager> {
 	AssetRef<AssetBatch> m_currentBatch;
 	const int THREADCOUNT = 4;
 
-	AssetManager() {
-		//for (int i = 0; i < THREADCOUNT; i++)
-		//	GetThreadManager()->RegisterThread(Format("AssetManagerPool%d", i), [] {});
-	}
-	~AssetManager() {
-		for (auto it = m_assets.begin(); it != m_assets.end(); it++) {
-			for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-				DELETE(it2->second);
-			}
-		}
-	}
+	AssetManager() {}
+	~AssetManager();
 	friend Singleton;
 
 public:
@@ -29,28 +20,20 @@ public:
 		return NEW(T(name));
 	}
 
-	void SubmitBatch(AssetBatch* batch) {
-		LOG("[~yResource~x] asset batch ~1%s~x submitted", batch->GetName().c_str());
-		m_currentBatch = batch;
-		m_currentBatch->Start();
-	}
+	void SubmitBatch(AssetBatch* batch);
 
-	void Update() {
-		if (m_currentBatch) {
-			m_currentBatch->Update(this);
-			m_currentBatch->AsyncUpdate();
-		}
-	}
+	void Update();
 
-	float GetProgress() {
-		if (!m_currentBatch) return 0;
-		return m_currentBatch->GetProgress();
-	}
+	float GetProgress();
 
 	template<typename T>
 	void AddAsset(const String& name, T* asset) {
 		const String& typeName = T::GetAssetTypeName();
-		if (m_assets[typeName][name] != nullptr) LOG_ERROR("[~yResource~x] ~1%s~x already exists!", name.c_str());
+		//if (m_assets[typeName][name] != nullptr) LOG_ERROR("[~yResource~x] ~1%s~x already exists!", name.c_str());
+		if (m_assets[typeName][name] != nullptr) {
+			DELETE(m_assets[typeName][name]);
+			m_assets[typeName][name] = nullptr;
+		}
 		m_assets[typeName][name] = asset;
 	}
 
@@ -63,7 +46,7 @@ public:
 	}
 
 	template<typename T>
-	AssetRef<T> ForceLoad(AssetRef<AssetLoader> loader) {
+	AssetRef<T> ForceLoad(AssetLoader* loader) {
 		loader->AsyncLoad();
 		loader->SyncLoad(this);
 		return Get<T>(loader->GetName());

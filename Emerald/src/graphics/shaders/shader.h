@@ -12,135 +12,57 @@ private:
 	ShaderUniformBuffer m_uniformBuffer;
 	ShaderProperties m_properties;
 
-	GLuint LoadShader(const String& path, GLuint type) {
-		GL(uint shader = glCreateShader(type));
-		if (!FileSystem::DoesFileExist(path)) LOG_WARN("[~bShaders~x] ~1%s ~xshader ~1%s ~xat ~1%s does not exist", m_name.c_str(), GLUtils::ShaderTypeToString(type), path.c_str());
+	Shader(const String& name, const Path& filePath, bool hasGeometry = false, bool hasTessellation = false);
+	~Shader();
+	
+	GLuint LoadShader(const String& path, GLuint type);
+	bool AddShaderToProgram(ShaderProgram* program, const String& shader, GLuint shaderType);
 
-		String source = "";
-		String logOutput = "";
-		if(!Shadinclude::load(path, source, logOutput)) {
-			LOG_WARN("[~bShaders~x] Failed to load ~1%s ~xshader ~1%s ~xat ~1%s~x [~1%s]", m_name.c_str(), GLUtils::ShaderTypeToString(type), path.c_str(), logOutput.c_str());
-			return 0xffffffff;
-		}
-
-		String_t sourceCC = source.c_str();
-
-		m_properties.Parse(sourceCC);
-		//LOG("%s %d", m_name.c_str(), m_properties.GetProperties().size());
-
-		GL(glShaderSource(shader, 1, &sourceCC, 0));
-		GL(glCompileShader(shader));
-
-		GLint result;
-		GL(glGetShaderiv(shader, GL_COMPILE_STATUS, &result));
-		if (result == GL_FALSE) {
-			GLint length;
-			GL(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length));
-			vector<char> error(length);
-			GL(glGetShaderInfoLog(shader, length, &length, &error[0]));
-			LOG_WARN("[~bShaders~x] Failed to compile %s %s shader with error: \n%s", m_name.c_str(), GLUtils::ShaderTypeToString(type), &error[0]);
-			return 0xffffffff;
-		}
-		LOG("[~bShaders~x] Compiled ~1%s~x %s", m_name.c_str(), GLUtils::ShaderTypeToString(type));
-		return shader;
-	}
-
-	bool AddShaderToProgram(ShaderProgram* program, const String& shader, GLuint shaderType) {
-		GLuint shaderHandle = LoadShader(shader, shaderType);
-		if (shaderHandle == 0xffffffff) return true;
-		program->AttachShader(shaderHandle);
-		return false;
-	}
-
-	ShaderProgram* Load() {
-		m_properties.Clear();
-		ShaderProgram* shaderProgram = new ShaderProgram();
-		shaderProgram->CreateProgram();
-
-		bool failed = false;
-
-		String vertexFile = m_filePath.GetFullPathWithoutExtention() + ".vert";
-		String fragFile = m_filePath.GetFullPathWithoutExtention() + ".frag";
-		failed |= AddShaderToProgram(shaderProgram, vertexFile, GL_VERTEX_SHADER);
-		failed |= AddShaderToProgram(shaderProgram, fragFile, GL_FRAGMENT_SHADER);
-
-		if (m_hasGeometry) {
-			String geomFile = m_filePath.GetFullPathWithoutExtention() + ".geom";
-			failed |= AddShaderToProgram(shaderProgram, geomFile, GL_GEOMETRY_SHADER);
-		}
-
-		if (m_hasTessellation) {
-			String te = m_filePath.GetFullPathWithoutExtention() + ".tese";
-			String tc = m_filePath.GetFullPathWithoutExtention() + ".tesc";
-			failed |= AddShaderToProgram(shaderProgram, te, GL_TESS_EVALUATION_SHADER);
-			failed |= AddShaderToProgram(shaderProgram, tc, GL_TESS_CONTROL_SHADER);
-		}
-
-
-		if (failed) {
-			delete shaderProgram;
-			shaderProgram = nullptr;
-		} else {
-			shaderProgram->LinkAndValidate();
-			shaderProgram->DeleteAttachedShaders();
-		}
-
-		return shaderProgram;
-	}
-
-	Shader(const String& name, const Path& filePath, bool hasGeometry = false, bool hasTessellation = false) : m_shaderProgram(nullptr), m_hasGeometry(hasGeometry), m_hasTessellation(hasTessellation), m_name(name), m_filePath(filePath) {
-		m_shaderProgram = Load();
-		if (!m_shaderProgram) LOG_ERROR("[~bShaders~x] ~1%s~x shader failed to compile", name.c_str());
-		m_uniformBuffer.RegisterUniforms(m_shaderProgram);
-	}
-
-	~Shader() {
-		delete m_shaderProgram;
-	}
+	ShaderProgram* Load();
 
 	friend class ShaderManager;
 
 public:
 	static uint s_boundShader;
-	ShaderProgram* GetShaderProgram() const { return m_shaderProgram; }
-	const ShaderUniformBuffer* GetUniformBuffer() const { return &m_uniformBuffer; }
-	const ShaderProperties* GetShaderProperties() const { return &m_properties; }
+	
+	inline ShaderProgram* GetShaderProgram() const { return m_shaderProgram; }
+	inline const ShaderUniformBuffer* GetUniformBuffer() const { return &m_uniformBuffer; }
+	inline const ShaderProperties* GetShaderProperties() const { return &m_properties; }
+	inline const String& GetName() { return m_name; }
 
-	const String& GetName() { return m_name; }
-
-	uint GetUniformLocation(const String_t location) {
+	inline uint GetUniformLocation(const String_t location) {
 		return m_uniformBuffer.GetUniformLocation(location);
 	}
 
-	void SetFloat(uint location, const float value) {
+	inline void SetFloat(uint location, const float value) {
 		m_uniformBuffer.SetFloat(location, value);
 	}
 
-	void SetInt(uint location, const int value) {
+	inline void SetInt(uint location, const int value) {
 		m_uniformBuffer.SetInt(location, value);
 	}
 
-	void SetBool(uint location, const bool value) {
+	inline void SetBool(uint location, const bool value) {
 		m_uniformBuffer.SetInt(location, value);
 	}
 
-	void SetVec2(uint location, const glm::vec2& value) {
+	inline void SetVec2(uint location, const glm::vec2& value) {
 		m_uniformBuffer.SetVec2(location, value);
 	}
 
-	void SetVec3(uint location, const glm::vec3& value) {
+	inline void SetVec3(uint location, const glm::vec3& value) {
 		m_uniformBuffer.SetVec3(location, value);
 	}
 
-	void SetVec4(uint location, const glm::vec4& value) {
+	inline void SetVec4(uint location, const glm::vec4& value) {
 		m_uniformBuffer.SetVec4(location, value);
 	}
 
-	void SetColor(uint location, const Color& value) {
+	inline void SetColor(uint location, const Color& value) {
 		m_uniformBuffer.SetColor(location, value);
 	}
 
-	void SetMat4(uint location, const glm::mat4& value) {
+	inline void SetMat4(uint location, const glm::mat4& value) {
 		m_uniformBuffer.SetMat4(location, value);
 	}
 	
@@ -159,26 +81,9 @@ public:
 		m_uniformBuffer.Set(location, (int)value);
 	}
 
-	void Reload() {
-		ShaderProgram* program = Load();
-		if (program) {
-			delete m_shaderProgram;
-			m_shaderProgram = program;
-			m_uniformBuffer.Reload(m_shaderProgram);
-		};
-	}
-
-	void Bind() {
-		if (s_boundShader == m_shaderProgram->GetHandle())return;
-		m_shaderProgram->Bind();
-		s_boundShader = m_shaderProgram->GetHandle();
-	}
-
-	void Unbind() {
-		m_shaderProgram->Unbind();
-		s_boundShader = 0xffffffff;
-	}
-
+	void Reload();
+	void Bind();
+	void Unbind();
 	void OnImGUI();
 
 	static const String GetAssetTypeName() { return "Shader"; }

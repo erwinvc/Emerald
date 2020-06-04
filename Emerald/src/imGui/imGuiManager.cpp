@@ -122,6 +122,142 @@ void ImGuiManager::End() {
 	glfwMakeContextCurrent(backup);
 }
 
+int ImGuiManager::IPFilter(ImGuiTextEditCallbackData* data) {
+	ImWchar c = data->EventChar;
+	if (c >= '0' && c < '9') return 0;
+	if (c == '.' || c == ':') return 0;
+	return 1;
+}
+
+int ImGuiManager::PathFilter(ImGuiTextEditCallbackData* data) {
+	ImWchar c = data->EventChar;
+	static char chars[9] = { '<', '>', ':', '"', '/', '\\', '|', '?', '*' };
+	for (int i = 0; i < 9; i++) {
+		if (c == chars[i]) return 1;
+	}
+	return 0;
+}
+
+void UI::Prepare(const String_t name) {
+	ImGui::AlignTextToFramePadding();
+
+	ImGui::Text(name);
+	ImGui::NextColumn();
+	ImGui::PushItemWidth(-1);
+}
+void UI::Finish() {
+	ImGui::PopItemWidth();
+	ImGui::NextColumn();
+}
+
 bool UI::BeginWindow(const String_t name, ImVec2 size, bool* open) {
 	return ImGui::Begin(name, open, size, -1, GetMouse()->IsLocked() ? ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoDocking: ImGuiWindowFlags_NoDocking);
+}
+
+void UI::EndWindow() {
+	ImGui::End();
+}
+
+void UI::Begin() {
+	if (ImGui::GetColumnsCount() != 2) ImGui::Columns(2);
+}
+
+void UI::End() {
+	if (ImGui::GetColumnsCount() != 1) ImGui::Columns(1);
+}
+
+void UI::Header(const String_t name) {
+	Prepare(name);
+	Finish();
+}
+
+void UI::Text(const String_t name, const String& text) {
+	Prepare(name);
+	ImGui::LabelText(Format_b(buffer, 0x100, "##%s", name), text.c_str());
+	Finish();
+}
+
+void UI::Bool(const String_t name, bool* value) {
+	Prepare(name);
+	ImGui::Checkbox(Format_b(buffer, 0x100, "##%s", name), value);
+	Finish();
+}
+
+void UI::Separator() {
+	ImGui::SameLine();
+	ImGui::Dummy(ImVec2(0, 4));
+	ImGui::Separator();
+}
+
+void UI::Dummy(int height) {
+	ImGui::Dummy(ImVec2(0, (float)height));
+}
+
+void UI::Int(const String_t name, int* value, int min, int max) {
+	Prepare(name);
+	ImGui::SliderInt(Format_b(buffer, 0x100, "##%s", name), value, min, max);
+	Finish();
+}
+
+void UI::Float(const String_t name, float* value, float min, float max) {
+	Prepare(name);
+	ImGui::SliderFloat(Format_b(buffer, 0x100, "##%s", name), value, min, max);
+	Finish();
+}
+
+void UI::Vec2(const String_t name, glm::vec2* value, float min, float max) {
+	Prepare(name);
+	ImGui::SliderFloat2(Format_b(buffer, 0x100, "##%s", name), (float*)value, min, max);
+	Finish();
+}
+
+void UI::Vec3(const String_t name, glm::vec3* value, float min, float max) {
+	Prepare(name);
+	ImGui::SliderFloat3(Format_b(buffer, 0x100, "##%s", name), (float*)value, min, max);
+	Finish();
+}
+
+void UI::Vec4(const String_t name, glm::vec4* value, float min, float max) {
+	Prepare(name);
+	ImGui::SliderFloat4(Format_b(buffer, 0x100, "##%s", name), (float*)value, min, max);
+	Finish();
+}
+
+void UI::Color3(const String_t name, Color* value) {
+	Prepare(name);
+	ImGui::ColorEdit3(Format_b(buffer, 0x100, "##%s", name), (float*)value, ImGuiColorEditFlags_NoInputs);
+	Finish();
+}
+
+void UI::Color4(const String_t name, Color* value) {
+	Prepare(name);
+	ImGui::ColorEdit4(Format_b(buffer, 0x100, "##%s", name), (float*)value, ImGuiColorEditFlags_NoInputs);
+	Finish();
+}
+
+bool UI::Combo(const String_t name, int* item, String_t const items[], int itemCount) {
+	Prepare(name);
+	bool toRet = ImGui::Combo(Format_b(buffer, 0x100, "##%s", name), item, items, itemCount);
+	Finish();
+	return toRet;
+}
+
+namespace ImGui {
+	void Tooltip(String_t tooltip) {
+		if (ImGui::IsItemHovered() && GImGui->HoveredIdTimer > 0.5f) {
+			ImGui::SetTooltip(tooltip);
+		}
+	}
+
+	void BeginDisable(bool disabled) {
+		if (!disabled) return;
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
+
+	void EndDisable(bool disabled) {
+		if (!disabled) return;
+		ImGui::PopItemFlag();
+		ImGui::PopStyleVar();
+	}
 }

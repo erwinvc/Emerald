@@ -18,34 +18,14 @@ public:
 	Model() {}
 	~Model() {}
 
-	vector<AssetRef<Mesh>> GetMeshes() { return m_meshes; }
+	inline vector<AssetRef<Mesh>> GetMeshes() { return m_meshes; }
 
-	void SetMaterial(AssetRef<Material> material) {
-		for (auto& mesh : m_meshes) {
-			mesh->SetMaterial(material);
-		}
-	}
-
-	void DrawShadow(uint mode = GL_TRIANGLES) {
-		for (auto& mesh : m_meshes) {
-			mesh->Draw(mode);
-		}
-	}
-	
-	void Draw(glm::mat4 transform, uint mode = GL_TRIANGLES) {
-		m_meshes[0]->GetMaterial()->GetShader()->Bind();
-		m_meshes[0]->GetMaterial()->GetShader()->Set("_TransformationMatrix", transform);
-
-		for (auto& mesh : m_meshes) {
-			mesh->GetMaterial()->Bind();
-			mesh->Draw(mode);
-		}
-	}
-
-	void DrawIndex(int index) {
-		m_meshes[index]->GetMaterial()->Bind();
-		m_meshes[index]->Draw();
-	}
+	void SetMaterial(AssetRef<Material> material);
+	void DrawShadow(Shader* shadowShader, glm::mat4 transform, uint mode = GL_TRIANGLES);
+	void DrawShadow(Shader* shadowShader, uint mode = GL_TRIANGLES);
+	void Draw(glm::mat4 transform, uint mode = GL_TRIANGLES);
+	void Draw(uint mode = GL_TRIANGLES);
+	void DrawIndex(int index);
 
 	static const String GetAssetTypeName() { return "Model"; }
 };

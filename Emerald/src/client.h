@@ -16,7 +16,6 @@ private:
 	Connection m_serverConnection;
 	NetHost m_host;
 	Window* m_window;
-	ClientWorld* m_world;
 	NetHandlerClient* m_netHandler;
 	bool m_initialized = false;
 	Timer m_timer;
@@ -34,32 +33,32 @@ private:
 	AsyncQueue<function<void()>> m_queue;
 
 	void HandleQueue();
-
 public:
+	float globalValue = 0;
+
+	ClientWorld* m_world;
+	bool m_lockedMouse = false;
 	HDRPipeline* pipeline = nullptr;
 
-	float GetTotalFrameTime() { return m_totalFrameTime; }
 
 	void Initialize();
 	void Run();
 	void Cleanup();
 
+	Window* GetWindow() { return m_window; }
+
 	void Update(TimeStep time);
 	void Render(float partialUpdate);
 
-	void ConnectToServer(const String& IP, int port);
+	void ConnectToServer(const String& IP, String_t name, int port);
 	void Disconnect();
 
-	void QueueTask(function<void()> task) {
-		m_queue.Add(task);
-	}
 	uint64_t GetFrameCount() { return m_frameCount; }
 
 	uint GetWidth() { return m_window->GetWidth(); }
 	uint GetHeight() { return m_window->GetHeight(); }
 	float GetAspect() { return m_window->GetAspect(); }
 
-	Window* GetWindow() { return m_window; }
 
 	ConnectionState GetConnectionState() { return m_connectionState; }
 
@@ -69,13 +68,11 @@ public:
 
 	float GetRealTime() { return m_timer.Get(); }
 	float GetRealTimeSeconds() { return m_timer.Get(Timer::TimeFormat::SECONDS); }
+	float GetTotalFrameTime() { return m_totalFrameTime; }
+
+	inline void QueueTask(function<void()> task) { m_queue.Add(task); }
 
 	friend NetHandlerClient;
 };
 
-static Client* GetClient() {
-	return Client::GetInstance();
-}
-
-//static GraphicsPipeline* GetPipeline() { return Application::GetInstance()->GetPipeline(); }
-//static GBuffer* GetGBuffer() { return Application::GetInstance()->GetPipeline()->GetGBuffer(); }
+inline Client* GetClient() { return Client::GetInstance(); }

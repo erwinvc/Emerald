@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "../stb_image.h"
 
+Icon::Icon(const String& file) : m_file(Format("res/%s.png", file.c_str())) { Load(); }
+
 void Icon::Load() {
 	TextureUtils::LoadTexture(m_file, 0, [this](const LoadedTexture& data) {
 		m_width = data.m_width;

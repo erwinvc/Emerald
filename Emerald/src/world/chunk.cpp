@@ -34,25 +34,23 @@ uint8 Chunk::GetBlockFast(const glm::ivec3& position) const {
 	return m_blocks[ToLocalBlockIndex(position)];
 }
 
+void Chunk::Draw() {
+	if (m_dirty) GenerateMesh();
+	m_mesh.m_mesh->Draw();
+}
+
+void Chunk::GenerateMesh() {
+	m_mesh = ChunkMeshGenerator::MakeChunkMesh(*this);
+	m_mesh.GenerateMesh();
+	m_dirty = false;
+}
+
+uint8 Chunk::GetBlockAtIndex(uint32 index) {
+	ASSERT(index >= 0 && index < CHUNK_VOLUME, "Out of chunk bounds");
+	return m_blocks[index];
+}
+
 void Chunk::Compress(PacketWriter& writer) {
-	//vector<pair<uint8, uint16>> tempVec;
-	//uint8 currentBlock = m_blocks[0];
-	//uint16 blockCount = 1;
-	//for (uint32 i = 1; i < CHUNK_VOLUME; i++) {
-	//	if (m_blocks[i] == currentBlock) {
-	//		blockCount++;
-	//	} else {
-	//		tempVec.emplace_back(currentBlock, blockCount);
-	//		currentBlock = m_blocks[i];
-	//		blockCount = 1;
-	//	}
-	//}
-	//tempVec.emplace_back(currentBlock, blockCount);
-	//LOG("%d", tempVec.size());
-	//writer.Write<uint32>(tempVec.size());
-	//
-	
-	
 	String compressed_data = gzip::compress((char*)m_blocks, CHUNK_VOLUME);
 	const char* compressed_pointer = compressed_data.data();
 	writer.Write<uint32>(compressed_data.size());
@@ -64,13 +62,5 @@ void Chunk::Decompress(PacketReader& reader) {
 	const char* data = reader.Read<const char>(size);
 	String decompressed_data = gzip::decompress(data, size);
 	memcpy((char*)m_blocks, decompressed_data.data(), CHUNK_VOLUME);
-	//uint32 block = 0;
-	//for (uint32 i = 0; i < size; i++) {
-	//	auto& pair = pairs[i];
-	//	for (int j = 0; j < pair.second; j++) {
-	//		m_blocks[block++] = pair.first;
-	//	}
-	//}
-
 	m_dirty = true;
 }

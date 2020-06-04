@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-void FreeCam::Update(const TimeStep& time) {
+void FreeCam::Update() {
 	lastUpdateTransform = transform;
 	float speed = movementSpeed * 0.016f;
 	if (KeyDown(LSHIFT)) speed *= 10;
@@ -18,8 +18,14 @@ void FreeCam::Update(const TimeStep& time) {
 	if (KeyDown('Q') || KeyDown(' ')) transform.position.y += speed;
 	if (KeyDown('E') || KeyDown('C') /*|| KeyDown(LCTRL)*/) transform.position.y -= speed;
 
-	if (ButtonDown(VK_MOUSE_RIGHT)) {
-		transform.rotation.y -= GetMouse()->GetDelta().x * 0.005f;
-		transform.rotation.x = Math::Clamp(transform.rotation.x - GetMouse()->GetDelta().y * 0.005f, -Math::HALF_PI, Math::HALF_PI);
+	//if (ButtonDown(VK_MOUSE_RIGHT)) {
+	//	transform.rotation.y -= GetMouse()->GetDelta().x * 0.005f;
+	//	transform.rotation.x = Math::Clamp(transform.rotation.x - GetMouse()->GetDelta().y * 0.005f, -Math::HALF_PI, Math::HALF_PI);
+	//}
+
+	if (GetClient()->m_lockedMouse || ButtonDown(VK_MOUSE_LEFT)) {
+		auto change = GetMouse()->GetDelta();
+		transform.rotation.x -= glm::radians(change.y * 0.15f);
+		transform.rotation.y -= glm::radians(change.x * 0.15f);
 	}
 }

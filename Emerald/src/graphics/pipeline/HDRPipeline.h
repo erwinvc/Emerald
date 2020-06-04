@@ -46,51 +46,28 @@ public:
 	AssetRef<Texture> m_finalTexture;
 
 	AssetRef<UniformBuffer<GlobalUniforms>> m_ubo;
-	glm::mat4 m_orthoMatrix;
-	glm::mat4 m_perspectiveMatrix;
-	bool m_perspective = true;
-	float m_lerpAmount = 0;
-	int m_selectedTexture = 0;
-	float m_gamma = 2.2f;
-	float m_exposure = 1.0f;
-	int m_selectedTonemapping = 12;
+	
+	float gamma = 2.2f;
+	float exposure = 1.0f;
+	int selectedTonemapping = 12;
 
 	void PreGeometryRender();
 	void PostGeometryRender();
 	void OnImGUI();
 	
 public:
-	float m_ambientIntensity = 0.05f;
-
-	DirectionalLight m_directionalLight;
-	int m_selectedCamera = 0;
-
-	float roughness = 0;
-	float metallic = 0;
+	float ambientIntensity = 0.05f;
+	DirectionalLight directionalLight;
+	
 	HDRPipeline() {}
-	~HDRPipeline() {
-		DELETE(m_gBuffer);
-		DELETE(m_aoRenderer);
-		DELETE(m_ssrRenderer);
-		DELETE(m_directionalShadow);
-		DELETE(m_spriteRenderer);
-		DELETE(m_lineRenderer);
-	}
+	~HDRPipeline();
 
-	void EarlyInitialize(uint width, uint height) {
-		m_width = width;
-		m_height = height;
-		m_uiCamera = NEW(OrthoCamera());
-		m_uiCamera->SetViewport(0, 0, m_width, m_height);
-		Camera::uiActive = m_uiCamera;
-		m_spriteRenderer = NEW(SpriteRenderer());
-		m_ubo = NEW(UniformBuffer<GlobalUniforms>(GetShaderManager()->Get("Geometry")));
-	}
+	void EarlyInitialize(uint width, uint height);
+	void Initialize();
 
 	float Width() { return (float)m_width; }
 	float Height() { return (float)m_height; }
 
-	void Initialize();
 	void Render(float partialUpdate);
 	void RenderGeometry();
 	void RenderGeometryShadow(ShadowType type);
@@ -99,30 +76,13 @@ public:
 	inline GBuffer* GetGBuffer() { return m_gBuffer; }
 	inline bool Initialized() { return m_initialized; }
 
-	Texture* GetHDRTexture() { return m_hdrTexture; }
-	Texture* GetFinalTexture() { return m_finalTexture; }
+	inline Texture* GetHDRTexture() { return m_hdrTexture; }
+	inline Texture* GetFinalTexture() { return m_finalTexture; }
 
-	inline void UILineRect(Rectangle& rect, Color& color = Color::White(), float lineSize = 1.0f) {
-		m_spriteRenderer->LineRect(rect, color, lineSize);
-	}
-
-	inline void UIRect(glm::vec2 origin, float x, float y, float w, float h, float rotation = 0, const Color& color = Color::White(), Texture* texture = nullptr, const glm::vec3 atlasValues = glm::vec3(1.0f, 0.0f, 0.0f)) {
-		m_spriteRenderer->Rect(origin, x, y, w, h, rotation, color, texture, atlasValues);
-	}
-
-	inline void UILine(float x0, float y0, float x1, float y1, Color& color = Color::White(), float size = 1.0f) {
-		m_spriteRenderer->Line(x0, y0, x1, y1, color, size);
-	}
-
-	inline void Bounds(glm::vec3 position, glm::vec3 size, Color color, bool overlay = false) {
-		m_lineRenderer->Bounds(position, size, color, overlay);
-	}
-	
-	inline void Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay = false) {
-		m_lineRenderer->Line(begin, end, color, overlay);
-	}
-	
-	inline void Line(float x0, float y0, float z0, float x1, float y1, float z1, Color& color, bool overlay = false) {
-		m_lineRenderer->Line(x0, y0, z0, x1, y1, z1, color, overlay);
-	}
+	void UILineRect(Rectangle& rect, Color& color = Color::White(), float lineSize = 1.0f);
+	void UIRect(glm::vec2 origin, float x, float y, float w, float h, float rotation = 0, const Color& color = Color::White(), Texture* texture = nullptr, const glm::vec3 atlasValues = glm::vec3(1.0f, 0.0f, 0.0f));
+	void UILine(float x0, float y0, float x1, float y1, Color& color = Color::White(), float size = 1.0f);
+	void Bounds(glm::vec3 position, glm::vec3 size, Color color, bool overlay = false);
+	void Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay = false);
+	void Line(float x0, float y0, float z0, float x1, float y1, float z1, Color& color, bool overlay = false);
 };

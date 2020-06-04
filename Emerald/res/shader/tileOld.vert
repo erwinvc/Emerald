@@ -26,7 +26,7 @@ uniform mat4 _Transforms[4];
 void main(){
 	float yDot = abs(dot(vsNormal, vec3(0, 1, 0)));
 
-	mat4 selectedTransform = _Transforms[int(vsTransformIndex)];
+	mat4 selectedTransform = _Transforms[int(vsTransformIndex)]; //This doesn't work on AMD!
 
 	if(yDot > 0.9f){
 		vec3 tangent = normalize(vsTangents - dot(vsNormal, vsTangents) * vsNormal);

@@ -1,6 +1,36 @@
 #include "stdafx.h"
 #include "graphics/buffers/indexBuffer.h"
 
+ModelLoader::MeshData::MeshData(const String& name, aiMesh* mesh, const aiScene* scene) {
+	m_materialIndex = mesh->mMaterialIndex;
+
+	m_numVertices = mesh->mNumVertices;
+	m_vertices = new Vertex[m_numVertices];
+
+	for (uint32 i = 0; i < mesh->mNumVertices; i++) {
+		m_posMin.x = Math::Min(m_posMin.x, mesh->mVertices[i].x);
+		m_posMin.y = Math::Min(m_posMin.y, mesh->mVertices[i].y);
+		m_posMin.z = Math::Min(m_posMin.z, mesh->mVertices[i].z);
+		m_posMax.x = Math::Max(m_posMax.x, mesh->mVertices[i].x);
+		m_posMax.y = Math::Max(m_posMax.y, mesh->mVertices[i].y);
+		m_posMax.z = Math::Max(m_posMax.z, mesh->mVertices[i].z);
+		m_vertices[i].m_position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+		m_vertices[i].m_normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+		m_vertices[i].m_uv = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+		m_vertices[i].m_tangents = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+		m_vertices[i].m_biTangents = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+	}
+
+	for (uint i = 0; i < mesh->mNumFaces; i++) {
+		aiFace face = mesh->mFaces[i];
+		for (uint j = 0; j < face.mNumIndices; j++)
+			m_indices.push_back(face.mIndices[j]);
+	}
+}
+ModelLoader::MeshData::~MeshData() {
+	delete[] m_vertices;
+}
+
 void ModelLoader::LoadMaterials(const aiScene* scene) {
 	int textureCounts[12] = { 0 };
 	for (int i = 0; i < (int)scene->mNumMaterials; i++) {
@@ -14,13 +44,14 @@ void ModelLoader::LoadMaterials(const aiScene* scene) {
 		m_materialData[i].m_metallic = LoadTexture(i, mat, aiTextureType_AMBIENT);
 		m_materialData[i].m_albedo = LoadTexture(i, mat, aiTextureType_DIFFUSE);
 		m_materialData[i].m_normal = LoadTexture(i, mat, aiTextureType_HEIGHT);
+		m_materialData[i].m_emission= LoadTexture(i, mat, aiTextureType_EMISSIVE);
 	}
 
 	const String_t lookupTable[] = {
 		"NONE","DIFFUSE","SPECULAR","AMBIENT","EMISSIVE","HEIGHT","NORMALS",
 		"SHININESS","OPACITY","DISPLACEMENT","LIGHTMAP","REFLECTION","UNKNOWN" };
 
-	LOG("[~gModel~x]  ~1%s~x contains: ", m_name.c_str());
+	LOG("[~gModel~x] ~1%s~x contains: ", m_name.c_str());
 	for (int i = 0; i < 12; i++) {
 		LOG(textureCounts[i] > 0 ? "	%d %s" : "	~1%d %s", textureCounts[i], lookupTable[i]);
 	}
@@ -36,16 +67,19 @@ String ModelLoader::LoadTexture(int index, aiMaterial* mat, aiTextureType type) 
 				TextureParameters params;
 				switch (type) {
 					case aiTextureType_SHININESS:
-						params = TextureParameters(INT_RED);
+						params = TextureParameters(INT_RED, DATA_UNK, NEAREST, REPEAT);
 						break;
 					case  aiTextureType_AMBIENT:
-						params = TextureParameters(INT_RED);
+						params = TextureParameters(INT_RED, DATA_UNK, NEAREST, REPEAT);
 						break;
 					case aiTextureType_DIFFUSE:
-						params = TextureParameters(INT_SRGBA);
+						params = TextureParameters(INT_SRGBA, DATA_UNK, NEAREST, REPEAT);
 						break;
 					case aiTextureType_HEIGHT:
-						params = TextureParameters(INT_RGB);
+						params = TextureParameters(INT_RGB, DATA_UNK, NEAREST, REPEAT);
+						break;
+					case aiTextureType_EMISSIVE:
+						params = TextureParameters(INT_RGB, DATA_UNK, NEAREST, REPEAT);
 						break;
 				}
 				m_textureData[fullPath] = TextureLoader(fullPath, fullPath, true, params);
@@ -96,6 +130,7 @@ void ModelLoader::SyncLoad(AssetManager* manager) {
 		if (materialData.m_metallic != "") materialData.m_material->SetMetallicIfAvailable(GetAssetManager()->Get<Texture>(materialData.m_metallic));
 		if (materialData.m_albedo != "") materialData.m_material->SetAlbedoIfAvailable(GetAssetManager()->Get<Texture>(materialData.m_albedo));
 		if (materialData.m_normal != "") materialData.m_material->SetNormalIfAvailable(GetAssetManager()->Get<Texture>(materialData.m_normal));
+		if (materialData.m_emission != "") materialData.m_material->SetEmissionIfAvailable(GetAssetManager()->Get<Texture>(materialData.m_emission));
 	}
 
 	for (auto& meshData : m_meshData) {
@@ -120,4 +155,19 @@ void ModelLoader::SyncLoad(AssetManager* manager) {
 	}
 
 	manager->AddAsset<Model>(m_name, NEW(Model(meshes)));
+}
+
+void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene) {
+	for (GLuint i = 0; i < node->mNumMeshes; i++) {
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		m_meshData.push_back(NEW(MeshData(m_name, mesh, scene)));
+	}
+
+	for (GLuint i = 0; i < node->mNumChildren; i++) {
+		ProcessNode(node->mChildren[i], scene);
+	}
+}
+
+float ModelLoader::GetProgress() {
+	return 0;
 }

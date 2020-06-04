@@ -17,3 +17,20 @@ void IndexBuffer::Bind() {
 void IndexBuffer::Unbind() {
     GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }
+
+void IndexBuffer::SetData(uint* data, uint32 count, GLenum usage) {
+	m_count = count;
+	Bind();
+	GL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint), data, usage));
+	Unbind();
+}
+
+void IndexBuffer::Draw(uint mode) {
+	GL(glDrawElements(mode, m_count, GL_UNSIGNED_INT, NULL));
+}
+void IndexBuffer::Draw(uint32 count, uint mode) {
+	GL(glDrawElements(mode, count, GL_UNSIGNED_INT, NULL));
+}
+void IndexBuffer::DrawInstanced(uint32 amount, uint mode) {
+	GL(glDrawElementsInstanced(mode, m_count, GL_UNSIGNED_INT, 0, amount));
+}

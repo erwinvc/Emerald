@@ -3,6 +3,11 @@
 Camera* Camera::active = nullptr;
 Camera* Camera::uiActive = nullptr;
 
+Camera::Camera(glm::vec2 viewportSize, float fov, float nearPlane, float farPlane) : m_viewPort(glm::vec4(0, 0, viewportSize.x, viewportSize.y)) {
+	SetProjectionMatrix(fov, nearPlane, farPlane); UpdateViewMatrix(0);
+}
+
+
 void Camera::UpdateViewMatrix(float partialTicks) {
 	glm::vec3 d = lastUpdateTransform.position + (transform.position - lastUpdateTransform.position) * partialTicks;
 	glm::vec3 dr = lastUpdateTransform.rotation + (transform.rotation - lastUpdateTransform.rotation) * partialTicks;

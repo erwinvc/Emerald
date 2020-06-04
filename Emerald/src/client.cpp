@@ -16,7 +16,7 @@ void Client::Initialize() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-	glfwWindowHint(GLFW_SAMPLES, 8);
+	//glfwWindowHint(GLFW_SAMPLES, 8);
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
 	m_window = NEW(Window("Emerald", 1920, 1080));
@@ -56,7 +56,7 @@ void Client::Initialize() {
 
 	glfwSetWindowSize(m_window->GetHandle(), 1920, 1080);
 	m_netHandler = NEW(NetHandlerClient(this));
-	
+
 	m_window->Show();
 
 	while (!m_window->ShouldClose()) {
@@ -69,6 +69,7 @@ void Client::Run() {
 	float time = 0;
 	while (!m_window->ShouldClose()) {
 		m_updateTimer.Update();
+		GetKeyboard()->Update();
 		for (int i = 0; i < Math::Min(10, m_updateTimer.m_elapsedUpdates); i++) {
 			Update(TimeStep(0.016f, m_updateTimer.m_lastTime, m_frameCount));
 			updates++;
@@ -90,12 +91,16 @@ void Client::Run() {
 }
 
 void Client::Update(TimeStep time) {
+	GetAssetManager()->Update();
+	
+	if (KeyJustUp('M')) {
+		m_lockedMouse ^= true;
+		glfwSetInputMode(GetClient()->GetWindow()->GetHandle(), GLFW_CURSOR, m_lockedMouse ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+	}
 	auto& pCPUFrame = GetProfiler()->Start(ProfilerDataType::Update);
 	GetMouse()->Update();
-	GetKeyboard()->Update();
 	GetStateManager()->Update(time);
 	GetTweenManager()->Update(time);
-	GetShaderManager()->Update(time);
 	GetProfiler()->Update();
 
 	if (m_world)
@@ -108,6 +113,7 @@ void Client::Update(TimeStep time) {
 			packet.salt = m_salt;
 			packet.position = Camera::active->transform.position;
 			packet.rotation = Camera::active->transform.rotation;
+			packet.velocity = Camera::active->velocity;
 			m_serverConnection.SendPacket(&packet);
 		});
 
@@ -133,7 +139,7 @@ void Client::HandleQueue() {
 
 void Client::Render(float partialUpdate) {
 	if (m_world)
-		GetClient()->pipeline->m_directionalLight.SetTime(m_world->GetTime(), partialUpdate);
+		GetClient()->pipeline->directionalLight.SetTime(m_world->GetTime(), partialUpdate);
 
 	auto& pRender = GetProfiler()->Start(ProfilerDataType::Render);
 	auto& pGPUFrame = GetProfiler()->StartGL(ProfilerDataType::GPUFrame);
@@ -151,10 +157,10 @@ void Client::Render(float partialUpdate) {
 					GetFrameBufferManager()->OnImGUI();
 					GetShaderManager()->OnImGUI();
 					GetProfiler()->OnImGui();
-					ImGui::EndTabBar();
+				ImGui::EndTabBar();
 				}
-				UI::EndWindow();
 			}
+			UI::EndWindow();
 			GetProfiler()->OnGlobalImGui();
 
 			GetStateManager()->OnImGUI();
@@ -181,12 +187,13 @@ void Client::Render(float partialUpdate) {
 	pRender.End();
 }
 
-void Client::ConnectToServer(const String& IP, int port) {
+void Client::ConnectToServer(const String& IP, String_t name, int port) {
 	if (m_connectionState != ConnectionState::Disconnected) return;
 	ConnectClientToServer(m_host.m_handle, m_serverConnection, IP, port);
 	m_connectionState = ConnectionState::Pending;
 	PacketHandshake packet;
 	packet.salt = m_salt;
+	packet.SetName(name);
 	packet.handshakeType = HandshakeType::Login;
 	m_serverConnection.SendPacket(&packet);
 }

@@ -2,9 +2,9 @@
 
 class Server : public Singleton<Server> {
 private:
-	Server() : m_updateTimer(UpdateTimer(60.0f)), m_host({ { ENET_HOST_ANY, 25565 }, 4 }) {
+	Server() : m_updateTimer(UpdateTimer(60.0f)), m_host({ { ENET_HOST_ANY, 25565 }, 16 }) {
 		m_salt = Random::Int(0, Math::MAX_INT);
-		m_clients.resize(4);
+		m_clients.resize(16);
 	}
 	~Server() {}
 	friend Singleton;
@@ -25,7 +25,7 @@ private:
 	
 	void Shutdown();
 	void CreatePendingConnection(ENetPeer* peer);
-	uint32 CreateClientSession(ENetPeer* peer, uint32 salt);
+	uint32 CreateClientSession(ENetPeer* peer, String_t name, uint32 salt);
 
 public:
 	bool m_running = true;

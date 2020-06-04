@@ -38,6 +38,7 @@ void NetHandlerServer::OnPlayerState(const PacketPlayerState& packet, ENetPeer* 
 
 	player.position = packet.position;
 	player.rotation = packet.rotation;
+	player.velocity = packet.velocity;
 }
 
 
@@ -63,7 +64,9 @@ void NetHandlerServer::BroadcastPlayerJoin(uint32 playerId) {
 	auto& player = m_server->m_world->GetEntity(playerId);
 	writer.Write(playerId);
 	writer.Write(player.position);
+	writer.Write<char>(player.name, 16);
 	writer.Write(player.rotation);
+	writer.Write(player.velocity);
 
 	BroadcastToPeers(m_server->m_host.m_handle, writer.GetData(), writer.GetSize(), 0, ENET_PACKET_FLAG_RELIABLE);
 }
@@ -106,13 +109,14 @@ void NetHandlerServer::OnPlayerDisconnect(ENetPeer* peer) {
 }
 
 void NetHandlerServer::OnHandshake(const PacketHandshake& packet, ENetPeer* peer) {
-	LOG("[~cNetwork~x] received %s handshake from client", packet.handshakeType == HandshakeType::Login ? "login" : "status");
+	LOG("[~cNetwork~x] received %s handshake from client %s", packet.handshakeType == HandshakeType::Login ? "login" : "status", packet.handshakeType == HandshakeType::Login ? packet.name : "");
 
 	for (auto it = m_server->m_pendingConnections.begin(); it != m_server->m_pendingConnections.end(); it++) {
 		auto& pending = *it;
 		if (pending.connection.m_peer->incomingPeerID == peer->incomingPeerID) {
 			if (packet.handshakeType == HandshakeType::Login) {
 				pending.salt = packet.salt;
+				strcpy(pending.name, packet.name);
 				PacketHandshakeChallenge newPacket;
 				newPacket.salt = m_server->m_salt;
 				pending.connection.SendPacket(&newPacket);
@@ -139,8 +143,8 @@ void NetHandlerServer::OnHandshakeResponse(const PacketHandshakeResponse& packet
 			uint32 salt = pending.salt ^ m_server->m_salt;
 			if (salt == packet.salt) {
 				pending.salt = salt;
-				LOG("[~cNetwork~x] client salt accepted!");
-				int slot = m_server->CreateClientSession(peer, salt);
+				LOG("[~cNetwork~x] client %s salt accepted!", pending.name);
+				int slot = m_server->CreateClientSession(peer, pending.name, salt);
 				if (slot != -1) {
 					PacketConnectionResult connectionResult;
 					connectionResult.result = true;

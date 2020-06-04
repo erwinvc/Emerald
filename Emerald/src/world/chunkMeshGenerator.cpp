@@ -8,6 +8,7 @@ ChunkMesh ChunkMeshGenerator::MakeChunkMesh(const Chunk& chunk) {
 	static float TOP_FACE[] = { 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1 };
 	static float BOTTOM_FACE[] = { 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1 };
 
+	//Timer timer;
 	ChunkMesh mesh;
 	// sf::Clock clock;
 	// static int count = 0;
@@ -52,5 +53,6 @@ ChunkMesh ChunkMeshGenerator::MakeChunkMesh(const Chunk& chunk) {
 			}
 		}
 	}
+	//timer.Print();
 	return mesh;
 }

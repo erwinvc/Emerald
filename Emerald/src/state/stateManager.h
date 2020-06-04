@@ -29,55 +29,14 @@ public:
 
 	void RegisterStates();
 	void RemoveState(State* state);
-	void SetState(State* state) {
-		m_nextState = state;
-	}
 
-	void OnResize(int width, int height) {
-		for (State* state : m_states) state->OnResize(width, height);
-	}
-
-	void RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) { m_currentState->RenderGeometryShadow(pipeline, type); }
-	void Update(TimeStep time) {
-		if (m_nextState != nullptr) {
-			m_currentState->OnExitState();
-			m_currentState = m_nextState;
-			m_currentState->OnEnterState();
-			m_nextState = nullptr;
-			Camera::active->Update(0);
-		}
-		if (m_nextRemoveState != nullptr) {
-			Utils::RemoveFromVector(m_states, m_nextRemoveState);
-			m_nextRemoveState->Cleanup();
-			DELETE(m_nextRemoveState);
-			m_nextRemoveState = nullptr;
-		}
-		m_currentState->Update(time);
-	}
-	void RenderGeometry(HDRPipeline* pipeline) { m_currentState->RenderGeometry(pipeline); }
-	void OnStateImGUI() {
-		if (ImGui::BeginTabItem("State")) {
-			int i = 0;
-			for (State* state : m_states) {
-				if (ImGui::Selectable(state->GetName().c_str(), m_currentState == state)) {
-					SetState(state);
-				}
-			}
-			if (ImGui::CollapsingHeader("Current state")) m_currentState->OnStateImGUI();
-			ImGui::EndTabItem();
-		}
-	}
-
-	void OnImGUI() {
-		m_currentState->OnImGUI();
-	}
-	void Cleanup() {
-		for (State* state : m_states) {
-			state->Cleanup();
-			DELETE(state);
-		}
-		m_states.clear();
-	}
+	void OnResize(int width, int height);
+	void RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type);
+	void Update(TimeStep time);
+	void RenderGeometry(HDRPipeline* pipeline);
+	void OnStateImGUI();
+	void OnImGUI();
+	void Cleanup();
 
 	template<typename T>
 	T* RegisterState() {
@@ -95,9 +54,8 @@ public:
 		return (T*)instance;
 	}
 
-	vector<State*> GetStates() {
-		return m_states;
-	}
+	inline vector<State*> GetStates() { return m_states; }
+	inline void SetState(State* state) { m_nextState = state; }
 };
 
-static StateManager* GetStateManager() { return StateManager::GetInstance(); }
+inline StateManager* GetStateManager() { return StateManager::GetInstance(); }

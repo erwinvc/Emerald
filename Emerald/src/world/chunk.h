@@ -33,22 +33,10 @@ public:
 
 	uint8 GetBlock(const glm::ivec3& position) const;
 
-	void Draw() {
-		if (m_dirty) GenerateMesh();
-		m_mesh.m_mesh->Draw();
-	}
-
-	void GenerateMesh() {
-		m_mesh = ChunkMeshGenerator::MakeChunkMesh(*this);
-		m_mesh.GenerateMesh();
-		m_dirty = false;
-	}
-
-	uint8 GetBlockAtIndex(uint32 index) {
-		ASSERT(index >= 0 && index < CHUNK_VOLUME, "Out of chunk bounds");
-		return m_blocks[index];
-	}
-
+	void Draw();
+	void GenerateMesh();
+	uint8 GetBlockAtIndex(uint32 index);
+	
 	void Compress(PacketWriter& writer);
 	void Decompress(PacketReader& reader);
 };

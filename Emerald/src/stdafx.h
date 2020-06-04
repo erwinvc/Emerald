@@ -67,6 +67,7 @@
 #include "vendor/noise.h"
 #include "vendor/json.h"
 #include "vendor/stb_image.h"
+#include "vendor/stb_image_write.h"
 #include "vendor/shadInclude.h"
 
 using namespace std;
@@ -173,10 +174,7 @@ using namespace std;
 #include "assets/texture/texture.h"
 #include "assets/texture/sprite.h"
 #include "assets/material/material.h"
-#include "assets/material/basicMaterial.h"
-#include "assets/material/tileMaterial.h"
 #include "assets/texture/textureArray.h"
-#include "assets/texture/textureUtils.h"
 #include "assets/texture/blockTextureArrayManager.h"
 #include "assets/texture/icon.h"
 #include "assets/loaders/assetLoader.h"
@@ -199,7 +197,6 @@ using namespace std;
 #include "math/rasterization.h"
 
 #include "graphics/window.h"
-#include "graphics/renderer.h"
 
 #include "graphics/ambientOcclusionRenderer.h"
 #include "graphics/ssrRenderer.h"
@@ -233,13 +230,10 @@ using namespace std;
 #include "assets/materialManager.h"
 #include "assets/textureManager.h"
 
-#include "deferred.h"
 #include "graphics/pipeline/HDRPipeline.h"
 
-#include "util/ludo/aStar.h"
+#include "util/aStar.h"
 
-#include "world/tile.h"
-#include "world/tileGrid.h"
 #include "world/coordinateSystem.h"
 #include "world/chunkMesh.h"
 #include "world/chunkMeshGenerator.h"

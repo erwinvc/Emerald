@@ -26,6 +26,7 @@ void LoadingState::Initialize() {
 	//m_batch->Add(NEW(ModelLoader("Sponza", "res/sponza2/sponzaPBR.obj")));
 	m_batch->Add(NEW(ModelLoader("Mori", "res/LTEO.obj")));
 	m_batch->Add(NEW(ModelLoader("Cube", "res/cube.obj")));
+	m_batch->Add(NEW(ModelLoader("EditorReflection", "res/editor/reflectionObject.obj")));
 
 	m_batch->Add(NEW(ShaderLoader("DirectionalShadowChunk", "res/shader/directionalShadowChunk")));
 	m_batch->Add(NEW(ShaderLoader("DirectionalShadow", "res/shader/directionalShadow")));
@@ -49,6 +50,9 @@ void LoadingState::Initialize() {
 	m_batch->Add(NEW(BlockTextureArrayLoader("Dirt", "dirt")));
 	m_batch->Add(NEW(BlockTextureArrayLoader("DirtGlow", "dirtGlow")));
 	m_batch->Add(NEW(BlockTextureArrayLoader("Metal", "metal")));
+	m_batch->Add(NEW(BlockTextureArrayLoader("Gold", "gold")));
+	m_batch->Add(NEW(BlockTextureArrayLoader("Log", "log")));
+	m_batch->Add(NEW(BlockTextureArrayLoader("GlowStone", "glowStone")));
 
 	m_batch->Add(NEW(TextureLoader("Crosshair", "res/crosshair.png", false, TextureParameters(INT_RGBA, DATA_UNK, NEAREST))));
 	m_batch->Add(NEW(TextureLoader("Dirt", "res/dirt_albedo.png", true, TextureParameters(INT_SRGB, DATA_UNK, NEAREST))));

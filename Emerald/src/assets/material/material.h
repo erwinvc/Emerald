@@ -1,14 +1,5 @@
 #pragma once
 
-//class Material {
-//protected:
-//	friend class MaterialManager;
-//
-//public:
-//	virtual void Bind(AssetRef<Shader> shader) = 0;
-//	//virtual void Unbind() = 0;
-//};
-
 class MaterialMember {
 public:
 	String m_name;
@@ -166,83 +157,28 @@ private:
 	friend class MaterialManager;
 public:
 
-	~Material() {
-		for (auto& member : m_members) DELETE(member);
-		for (auto& callback : m_callbacksOnInstance) DELETE(callback);
-		for (auto& callback : m_callbacksOnBind) DELETE(callback);
+	~Material();
 
-		m_callbacksOnInstance.clear();
-		m_callbacksOnBind.clear();
-		m_members.clear();
-	}
-
-	const String& GetName() { return m_name; }
-
-	Shader* GetShader() { return m_shader; }
+	inline const String& GetName() { return m_name; }
+	inline Shader* GetShader() { return m_shader; }
 
 
-	void AddOnBindCallback(MaterialCallback* callback) {
-		callback->SetUniformLocation(m_shader);
-		m_callbacksOnBind.push_back(callback);
-	}
-
-	void AddOnInstanceCallback(MaterialCallback* callback) {
-		callback->SetUniformLocation(m_shader);
-		m_callbacksOnInstance.push_back(callback);
-	}
+	void AddOnBindCallback(MaterialCallback* callback);
+	void AddOnInstanceCallback(MaterialCallback* callback);
 
 	void Bind();
 	void BindInstance();
 
-	void OnImGui() {
-		for (auto& member : m_members) {
-			member->OnImGui();
-		}
-	}
 
 	uint GetID() const { return m_ID; }
 
-	//#Dirty!
-	void SetRoughnessIfAvailable(Texture* tex) {
-		if (!tex)return;
-		for (auto& member : m_members) {
-			if (member->m_type == ShaderPropertyType::TEXTURE) {
-				if (member->m_uniform.compare("_Roughness") == 0) {
-					((MaterialMemberTexture*)member)->m_texture = tex;
-				}
-			}
-		}
-	}
-	void SetAlbedoIfAvailable(Texture* tex) {
-		if (!tex)return;
-		for (auto& member : m_members) {
-			if (member->m_type == ShaderPropertyType::TEXTURE) {
-				if (member->m_uniform.compare("_Albedo") == 0) {
-					((MaterialMemberTexture*)member)->m_texture = tex;
-				}
-			}
-		}
-	}
-	void SetNormalIfAvailable(Texture* tex) {
-		if (!tex)return;
-		for (auto& member : m_members) {
-			if (member->m_type == ShaderPropertyType::TEXTURE) {
-				if (member->m_uniform.compare("_Normal") == 0) {
-					((MaterialMemberTexture*)member)->m_texture = tex;
-				}
-			}
-		}
-	}
-	void SetMetallicIfAvailable(Texture* tex) {
-		if (!tex)return;
-		for (auto& member : m_members) {
-			if (member->m_type == ShaderPropertyType::TEXTURE) {
-				if (member->m_uniform.compare("_Metallic") == 0) {
-					((MaterialMemberTexture*)member)->m_texture = tex;
-				}
-			}
-		}
-	}
-
+	void SetRoughnessIfAvailable(Texture* tex);
+	void SetAlbedoIfAvailable(Texture* tex);
+	void SetNormalIfAvailable(Texture* tex);
+	void SetMetallicIfAvailable(Texture* tex);
+	void SetEmissionIfAvailable(Texture* tex);
+	
 	void SetPBR(const String& name);
+
+	void OnImGui();
 };

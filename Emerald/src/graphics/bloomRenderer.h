@@ -16,17 +16,13 @@ public:
 	int m_gaussianIterations = 8;
 	bool m_enabled = true;
 	float m_bloomMultiplier = 1.0f;
-	
+
 	BloomRenderer();
 
 	void Draw(HDRPipeline* pipeline);
 
-	Texture* GetBloomedTexture() {
-		return m_pingPongTexture[1];
-	}
 
-	void OnImGui() {
-		UI::Float("Multiplier", &m_bloomMultiplier, 0, 5.0f);
-		UI::Int("Iterations", &m_gaussianIterations, 0, 20);
-	}
+	void OnImGui();
+	
+	inline Texture* GetBloomedTexture() { return m_pingPongTexture[1]; }
 };

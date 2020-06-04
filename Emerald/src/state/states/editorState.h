@@ -13,7 +13,7 @@ private:
 public:
 	EditorState() : State("Editor") {}
 
-
+	void ReloadTexture(const String& file);
 	void Initialize() override;
 	void Update(const TimeStep& time) override;
 	void RenderGeometry(HDRPipeline* pipeline) override;

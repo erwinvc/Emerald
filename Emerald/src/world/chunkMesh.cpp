@@ -28,7 +28,7 @@ void ChunkMesh::GenerateMesh() {
 		{VertexBufferDataType::Float3, "vsIndex", 1}
 	};
 
-	vao->AddBuffer(NEW(VertexBuffer(m_vertices.data(), m_vertices.size(), layout)));
+	vao->AddBuffer(NEW(VertexBuffer((float*)m_vertices.data(), m_vertices.size(), layout)));
 	vao->ApplyLayouts();
 	m_mesh = NEW(Mesh(vao, ibo));
 	m_generated = true;

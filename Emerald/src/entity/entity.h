@@ -1,6 +1,7 @@
 #pragma once
 
 struct EntityState {
+	char name[16];
 	glm::vec3 position{ 0.0f };
 	glm::vec3 rotation{ 0.0f };
 
@@ -9,7 +10,6 @@ struct EntityState {
 
 	glm::vec3 velocity{ 0.0 };
 
-	float lastUpdateTime = 0;
 	bool active = false;
 };
 
@@ -24,17 +24,10 @@ public:
 	Entity(AssetRef<Model> model) : m_model(model) {}
 	virtual ~Entity() {}
 
-	void Draw(uint mode = GL_TRIANGLES) {
-		m_model->Draw(transform.GetTransformationMatrix(), mode);
-	}
-
-	void DrawShadow(Shader* shadowShader, uint mode = GL_TRIANGLES) {
-		shadowShader->Set("_TransformationMatrix", transform.GetTransformationMatrix());
-		m_model->DrawShadow(mode);
-	}
+	void Draw(uint mode = GL_TRIANGLES);
+	void DrawShadow(Shader* shadowShader, uint mode = GL_TRIANGLES);
 
 	void OnImGui() {
-		//m_transform.OnImGui();
 	}
 };
 

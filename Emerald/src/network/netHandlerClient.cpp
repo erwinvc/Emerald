@@ -63,8 +63,10 @@ void NetHandlerClient::OnGameData(const void* data) {
 	for (uint32 i = 0; i < count; i++) {
 		uint32 id = reader.Read<uint32>();
 		auto position = reader.Read<glm::vec3>();
+		char* name = reader.Read<char>(16);
 		auto rotation = reader.Read<glm::vec3>();
-		GameStates::VOXEL->GetWorld()->AddEntity(id, position, rotation);
+		glm::vec3 velocity = reader.Read<glm::vec3>();
+		GameStates::VOXEL->GetWorld()->AddEntity(id, position, name, rotation, velocity);
 	}
 
 	LOG("[~cNetwork~x] parsing %u chunks took %.2fms", chunkCount, timer.Get());
@@ -73,16 +75,18 @@ void NetHandlerClient::OnGameData(const void* data) {
 }
 
 void NetHandlerClient::OnAddEntity(const void* data) {
-	LOG("[~cNetwork~x] added entity");
 
 	PacketReader reader(data);
 	uint32 count = reader.Read<uint32>();
 	for (uint32 i = 0; i < count; i++) {
 		uint32 entityId = reader.Read<uint32>();
 		glm::vec3 position = reader.Read<glm::vec3>();
+		char* name = reader.Read<char>(16);
 		glm::vec3 rotation = reader.Read<glm::vec3>();
+		glm::vec3 velocity = reader.Read<glm::vec3>();
 
-		GameStates::VOXEL->GetWorld()->AddEntity(entityId, position, rotation);
+		GameStates::VOXEL->GetWorld()->AddEntity(entityId, position, name, rotation, velocity);
+		LOG("[~cNetwork~x] added entity %s", name);
 	}
 }
 
@@ -98,8 +102,11 @@ void NetHandlerClient::OnUpdateEntities(const void* data) {
 	for (uint32 i = 0; i < count; i++) {
 		uint32 entityId = reader.Read<uint32>();
 		glm::vec3 position = reader.Read<glm::vec3>();
+		reader.Read<char>(16);
 		glm::vec3 rotation = reader.Read<glm::vec3>();
-		GameStates::VOXEL->GetWorld()->UpdateEntity(entityId, position, rotation);
+		glm::vec3 velocity = reader.Read<glm::vec3>();
+		
+		GameStates::VOXEL->GetWorld()->UpdateEntity(entityId, position, rotation, velocity);
 	}
 }
 

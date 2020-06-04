@@ -89,6 +89,21 @@ void LineRenderer::Line(float x1, float y1, float z1, float x2, float y2, float 
 	else m_depthRenderer->Submit(vertices, 2, 1);
 }
 
+void LineRenderer::DrawRect(const Rectangle& rect, Color& color, float y) {
+	glm::vec4 c = rect.GetCornerPositions();
+	Line(c.x, y, c.y, c.z, y, c.y, color);
+	Line(c.z, y, c.y, c.z, y, c.w, color);
+	Line(c.z, y, c.w, c.x, y, c.w, color);
+	Line(c.x, y, c.w, c.x, y, c.y, color);
+}
+void LineRenderer::DrawRectCentered(const Rectangle& rect, Color& color, float y) {
+	glm::vec4 c = glm::vec4(rect.m_position.x, rect.m_position.y, rect.m_size.x, rect.m_size.y);
+	Line(c.x, y, c.y, c.z, y, c.y, color);
+	Line(c.z, y, c.y, c.z, y, c.w, color);
+	Line(c.z, y, c.w, c.x, y, c.w, color);
+	Line(c.x, y, c.w, c.x, y, c.y, color);
+}
+
 void LineRenderer::End() {
 	m_overlayRenderer->End();
 	m_depthRenderer->End();

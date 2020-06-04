@@ -1,90 +1,44 @@
 #pragma once
 #include <filesystem>
 
+enum class WatchType {
+	ADDED,
+	REMOVED,
+	CHANGED
+};
+
+struct Tracker {
+	Path m_path;
+	filesystem::file_time_type m_time;
+	Tracker(Path& path, filesystem::file_time_type& time) : m_path(path), m_time(time) {}
+	Tracker() : m_path(), m_time(filesystem::file_time_type()) {}
+};
+
 class AssetWatcher : public Singleton<AssetWatcher> {
 private:
 	struct QueueEntry {
-		function<void(const String&)> m_function;
-		String m_file;
+		function<void(const Tracker&)> m_function;
+		Tracker m_file;
 	};
+
 	AsyncQueue<QueueEntry> m_queue;
-	unordered_map<String, filesystem::file_time_type> m_paths;
-	map<String, function<void(const String&)>> m_handlers;
+	unordered_map<String, Tracker> m_paths;
+	map<String, function<void(const Tracker&)>> m_removedHandlers;
+	map<String, function<void(const Tracker&)>> m_addedHandlers;
+	map<String, function<void(const Tracker&)>> m_changedHandlers;
 	AssetRef<Thread> m_thread;
 	bool m_initialized = false;
 	vector<String> m_dirs;
-	void Watch() {
-		Sleep(500);
-
-		for (auto it = m_paths.begin(); it != m_paths.end();) {
-			if (!filesystem::exists(it->first)) {
-				it = m_paths.erase(it);
-			} else it++;
-		}
-
-		for (String& dir : m_dirs) {
-			for (auto &file : std::filesystem::recursive_directory_iterator(dir)) {
-				auto current_file_last_write_time = std::filesystem::last_write_time(file);
-
-				String path = file.path().string();
-				if (m_paths.find(path) == m_paths.end()) {
-					m_paths[file.path().string()] = current_file_last_write_time;
-				} else {
-					if (m_paths[path] != current_file_last_write_time) {
-						m_paths[path] = current_file_last_write_time;
-						HandleChange(dir, path);
-					}
-				}
-			}
-		}
-	}
-
-	void HandleChange(const String& dir, const filesystem::path& path) {
-		String fileName = path.filename().string();
-		String extention = path.extension().string();
-		auto it = m_handlers.find(extention);
-		LOG("[~yResource~x] detected change in ~1%s", fileName.c_str());
-		if (it != m_handlers.end()) {
-			m_queue.Add({ it->second, dir + "/" + fileName.substr(0, fileName.size() - extention.size()) });
-		}
-	}
+	void Watch();
+	void HandleChange(const Tracker& tracker, WatchType type);
+	
 public:
-	void Initialize() {
-		if (m_initialized) return;
-		m_thread = GetThreadManager()->RegisterThread("AssetWatcher", [] {GetInstance()->Watch(); });
-		LOG("[~yResource~x] initialized Asset Watcher");
-		AddDirectory("res/shader", false);
-		AddChangeHandler(".vert", [](const String& file) { GetShaderManager()->ReloadShaderByFileName(file); });
-		AddChangeHandler(".frag", [](const String& file) { GetShaderManager()->ReloadShaderByFileName(file); });
-		AddChangeHandler(".tesc", [](const String& file) { GetShaderManager()->ReloadShaderByFileName(file); });
-		AddChangeHandler(".tese", [](const String& file) { GetShaderManager()->ReloadShaderByFileName(file); });
-		m_initialized = true;
-	}
-
-	void AddDirectory(const String& dir, bool watchSubTree) {
-		if (!Utils::VectorContains(m_dirs, dir)) {
-			for (auto &file : filesystem::recursive_directory_iterator(dir)) {
-				m_paths[file.path().string()] = std::filesystem::last_write_time(file);
-			}
-			m_dirs.push_back(dir);
-			LOG("[~yResource~x] added ~1%s~x to Asset Watcher", dir.c_str());
-		} else LOG("[~yResource~x] failed to create Asset Watcher for ~x%s", dir.c_str());
-	}
-
-	void AddChangeHandler(const String& extention, function<void(const String&)> handler) {
-		if (m_handlers.find(extention) == m_handlers.end()) {
-			m_handlers.emplace(extention, handler);
-		} else LOG_ERROR("[~yResource~x] asset Watcher already contains handler for ~1%s", extention.c_str());
-	}
-
-	void HandleQueue() {
-		QueueEntry entry;
-		if (m_queue.TryToGet(entry)) {
-			entry.m_function(entry.m_file);
-		}
-	}
+	void Initialize();
+	void AddDirectory(const String& dir, bool watchSubTree);
+	void AddChangeHandler(WatchType type, const String& extention, function<void(const Tracker&)> handler);
+	void HandleQueue();
 };
 
-static AssetWatcher* GetAssetWatcher() {
+inline AssetWatcher* GetAssetWatcher() {
 	return AssetWatcher::GetInstance();
 }

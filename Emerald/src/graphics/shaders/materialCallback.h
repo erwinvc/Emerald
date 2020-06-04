@@ -76,12 +76,7 @@ private:
 	uint m_uniformLocation2;
 	uint m_uniformLocation3;
 
-	void SetUniformLocation(Shader* shader) override {
-		m_uniformLocation = shader->GetUniformLocation("_Depth");
-		m_uniformLocation1 = shader->GetUniformLocation("_GAlbedo");
-		m_uniformLocation2 = shader->GetUniformLocation("_GNormal");
-		m_uniformLocation3 = shader->GetUniformLocation("_GMisc");
-	}
+	void SetUniformLocation(Shader* shader) override;
 
 public:
 	MaterialCallbackGBuffer() : MaterialCallback("") {}

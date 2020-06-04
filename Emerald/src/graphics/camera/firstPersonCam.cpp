@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 struct {
-	glm::vec3 dimensions{ 0.3f, 1.62f, 0.3f };
+	glm::vec3 dimensions{ 0.3f, 1.42f, 0.3f };
 } box;
 
 float RoughRound(float value) {
@@ -11,29 +11,42 @@ float RoughRound(float value) {
 void FirstPersonCam::Collide(const glm::vec3& vel) {
 	auto& position = transform.position;
 	for (float x = Math::Floor(position.x - box.dimensions.x); x < position.x + box.dimensions.x; x++) {
-		for (float y = Math::Floor(position.y - box.dimensions.y); y < position.y + 0.28f; y++) {
+		for (float y = Math::Floor(position.y - box.dimensions.y); y < position.y + 0.38f; y++) {
 			for (float z = Math::Floor(position.z - box.dimensions.z); z < position.z + box.dimensions.z; z++) {
 				auto block = GetWorld()->GetBlock(glm::vec3{ x, y, z });
 				if (block != 0) {
 					if (vel.y > 0) {
-						position.y = y - 0.28f - 0.002f;
-						m_velocity.y = 0;
+						float diff = position.y - (y - 0.38f - 0.002f);
+						if (diff < 0.5f)
+							position.y = y - 0.38f - 0.002f;
+						velocity.y = 0;
 					} else if (vel.y < 0) {
 						m_isOnGround = true;
-						position.y = y + box.dimensions.y + 1.001f;
-						m_velocity.y = 0;
+
+						float diff = position.y - (y + box.dimensions.y + 1.001f);
+						if (diff > -0.5f)
+							position.y = y + box.dimensions.y + 1.001f;
+						velocity.y = 0;
 					}
 
 					if (vel.x > 0) {
-						position.x = x - box.dimensions.x - 0.001f;
+						float diff = position.x - (x - box.dimensions.x - 0.001f);
+						if (diff < 0.5f)
+							position.x = x - box.dimensions.x - 0.001f;
 					} else if (vel.x < 0) {
-						position.x = x + box.dimensions.x + 1.001f;
+						float diff = position.x - (x + box.dimensions.x + 1.001f);
+						if (diff > -0.5f)
+							position.x = x + box.dimensions.x + 1.001f;
 					}
 
 					if (vel.z > 0) {
-						position.z = z - box.dimensions.z - 0.001f;
+						float diff = position.z - (z - box.dimensions.z - 0.001f);
+						if (diff < 0.5f)
+							position.z = z - box.dimensions.z - 0.001f;
 					} else if (vel.z < 0) {
-						position.z = z + box.dimensions.z + 1.001f;
+						float diff = position.z - (z + box.dimensions.z + 1.001f);
+						if (diff > -0.5f)
+							position.z = z + box.dimensions.z + 1.001f;
 					}
 				}
 			}
@@ -41,12 +54,10 @@ void FirstPersonCam::Collide(const glm::vec3& vel) {
 	}
 }
 
-static float FOV = 90;
-static float goalFov = 90;
-void FirstPersonCam::Update(const TimeStep& time) {
+void FirstPersonCam::Update() {
 	lastUpdateTransform = transform;
 
-	FOV = Math::Lerp(FOV, goalFov, 0.016f * 12);
+	m_FOV = Math::Lerp(m_FOV, m_targetFOV, 0.016f * 12);
 	float moveForward = 0.0f;
 	float moveStrafe = 0.0f;
 
@@ -63,15 +74,15 @@ void FirstPersonCam::Update(const TimeStep& time) {
 		moveStrafe += 1.0f;
 	}
 	if (KeyDown(' ') && m_isOnGround) {
-		m_velocity.y += 0.48f;
+		velocity.y += 0.48f;
 	}
 
 	if (moveForward > 0 && KeyDown(LSHIFT)) {
 		moveForward *= 2.70f;
-		goalFov = 90 * 1.1f;
-	} else goalFov = 90;
+		m_targetFOV = 90 * 1.1f;
+	} else m_targetFOV = 90;
 
-	SetProjectionMatrix(FOV, m_nearPlane, m_farPlane);
+	SetProjectionMatrix(m_FOV, m_nearPlane, m_farPlane);
 	float multiplier;
 	float slipperiness;
 	float jumpMovementFactor = 0.02f;
@@ -103,11 +114,10 @@ void FirstPersonCam::Update(const TimeStep& time) {
 
 		float xComponent = moveForward * yawXComponent - moveStrafe * yawYComponent;
 		float zComponent = moveStrafe * yawXComponent + moveForward * yawYComponent;
-		m_velocity += glm::vec3(xComponent, 0.0f, zComponent);
+		velocity += glm::vec3(xComponent, 0.0f, zComponent);
 	}
 
-	if (KeyJustDown('N')) m_grabMouse ^= true;
-	if (m_grabMouse || ButtonDown(VK_MOUSE_LEFT)) {
+	if (GetClient()->m_lockedMouse || ButtonDown(VK_MOUSE_LEFT)) {
 		auto change = GetMouse()->GetDelta();
 		transform.rotation.x -= glm::radians(change.y * 0.15f);
 		transform.rotation.y -= glm::radians(change.x * 0.15f);
@@ -118,32 +128,49 @@ void FirstPersonCam::Update(const TimeStep& time) {
 
 	m_isOnGround = false;
 
+	//LOG("%f %f %f", velocity.x, velocity.y, velocity.z);
 
-	transform.position.x += m_velocity.x * 0.333333f;
-	Collide({ m_velocity.x, 0, 0 });
+	transform.position.x += velocity.x * 0.333333f;
+	Collide({ velocity.x, 0, 0 });
 
-	transform.position.y += m_velocity.y * 0.333333f;
-	Collide({ 0, m_velocity.y, 0 });
+	transform.position.y += velocity.y * 0.333333f;
+	Collide({ 0, velocity.y, 0 });
 
-	transform.position.z += m_velocity.z * 0.333333f;
-	Collide({ 0, 0, m_velocity.z });
+	transform.position.z += velocity.z * 0.333333f;
+	Collide({ 0, 0, velocity.z });
 
 	if (transform.position.x < -31.5f) {
 		transform.position.x = -31.5f;
-		if (m_velocity.x < 0) m_velocity.x = 0;
+		if (velocity.x < 0) velocity.x = 0;
 	} else if (transform.position.x > 31.5f) {
 		transform.position.x = 31.5f;
-		if (m_velocity.x > 0) m_velocity.x = 0;
+		if (velocity.x > 0) velocity.x = 0;
 	}
 	if (transform.position.z < -31.5f) {
 		transform.position.z = -31.5f;
-		if (m_velocity.z < 0) m_velocity.z = 0;
+		if (velocity.z < 0) velocity.z = 0;
 	} else if (transform.position.z > 31.5f) {
 		transform.position.z = 31.5f;
-		if (m_velocity.z > 0) m_velocity.z = 0;
+		if (velocity.z > 0) velocity.z = 0;
 	}
-	m_velocity.x *= slipperiness;
-	m_velocity.z *= slipperiness;
-	m_velocity.y -= 0.02666666666f;
-	m_velocity.y *= 0.99328838838f;
+	velocity.x *= slipperiness;
+	velocity.z *= slipperiness;
+	velocity.y -= 0.02666666666f;
+	velocity.y *= 0.99328838838f;
+}
+
+void FirstPersonCam::OnImGui() {
+	ImGui::InputFloat3("Position", (float*)&transform.position);
+	ImGui::InputFloat3("Rotation", (float*)&transform.rotation);
+	if (ImGui::InputFloat("Near", &m_nearPlane, 0.000001f, 10000.0f)) {
+		UpdateProjectionMatrix();
+	}
+
+	if (ImGui::InputFloat("Far", &m_farPlane, 0.000001f, 10000.0f)) {
+		UpdateProjectionMatrix();
+	}
+
+	if (ImGui::SliderFloat("FOV", &m_FOV, 0, 180)) {
+		UpdateProjectionMatrix();
+	}
 }

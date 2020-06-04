@@ -8,10 +8,8 @@ private:
 public:
 	StateLoader(State* state);
 
-	void AsyncLoad() override {};
+	void AsyncLoad() override;
 	void SyncLoad(AssetManager* manager) override;
 
-	float GetProgress() override {
-		return 0;
-	}
+	float GetProgress() override;
 };

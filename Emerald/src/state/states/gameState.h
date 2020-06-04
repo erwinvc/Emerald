@@ -8,7 +8,7 @@ public:
 	void Initialize() override {}
 
 	void Update(const TimeStep& time) override {
-		Camera::active->Update(time);
+		Camera::active->Update();
 	}
 	void RenderGeometry(HDRPipeline* pipeline) override {}
 	void OnStateImGUI() override {}

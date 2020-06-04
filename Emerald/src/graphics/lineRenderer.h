@@ -25,23 +25,13 @@ public:
 	~LineRenderer();
 
 	void Begin();
+	
 	void Bounds(glm::vec3 position, glm::vec3 size, Color& color, bool overlay = false);
 	void Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay = false);
 	void Line(float x1, float y1, float z1, float x2, float y2, float z2, Color& color, bool overlay = false);
+	void DrawRect(const Rectangle& rect, Color& color, float y = 1.01f);
+	void DrawRectCentered(const Rectangle& rect, Color& color, float y = 1.01f);
+	
 	void End();
 	void Draw();
-	void DrawRect(const Rectangle& rect, Color& color, float y = 1.01f) {
-		glm::vec4 c = rect.GetCornerPositions();
-		Line(c.x, y, c.y, c.z, y, c.y, color);
-		Line(c.z, y, c.y, c.z, y, c.w, color);
-		Line(c.z, y, c.w, c.x, y, c.w, color);
-		Line(c.x, y, c.w, c.x, y, c.y, color);
-	}
-	void DrawRectCentered(const Rectangle& rect, Color& color, float y = 1.01f) {
-		glm::vec4 c = glm::vec4(rect.m_position.x, rect.m_position.y, rect.m_size.x, rect.m_size.y);
-		Line(c.x, y, c.y, c.z, y, c.y, color);
-		Line(c.z, y, c.y, c.z, y, c.w, color);
-		Line(c.z, y, c.w, c.x, y, c.w, color);
-		Line(c.x, y, c.w, c.x, y, c.y, color);
-	}
 };

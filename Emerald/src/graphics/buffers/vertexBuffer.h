@@ -7,29 +7,13 @@ private:
 public:
 	VertexBuffer() {}
 	
-	template<typename T>
-	VertexBuffer(T* data, uint32 vertexCount, BufferLayout layout, GLenum usage = GL_STATIC_DRAW) : m_layout(layout), m_data((float*)data) {
-		GL(glGenBuffers(1, &m_bufferID));
-		SetData(data, vertexCount, usage);
-	}
+	VertexBuffer(float* data, uint32 vertexCount, BufferLayout layout, GLenum usage = GL_STATIC_DRAW);
 
-	~VertexBuffer() {
-		glDeleteBuffers(1, &m_bufferID);
-	}
+	~VertexBuffer();
+	void ApplyLayout(uint32 attributeIndex);
 
-	void ApplyLayout(uint32 attributeIndex) {
-		Bind();
-		m_layout.Apply(attributeIndex);
-		Unbind();
-	}
-
-	template<typename T>
-	void SetData(T* data, uint32 vertexCount, GLenum usage = GL_STATIC_DRAW) {
-		Bind();
-		GL(glBufferData(GL_ARRAY_BUFFER, vertexCount * m_layout.GetTotalComponentCountSize(), (const void*)data, usage));
-		Unbind();
-	}
-
+	void SetData(const void* data, uint32 vertexCount, GLenum usage = GL_STATIC_DRAW);
+	
 	inline const BufferLayout& GetLayout() { return m_layout; }
 	inline void SetLayout(BufferLayout& layout) { m_layout = layout; }
 

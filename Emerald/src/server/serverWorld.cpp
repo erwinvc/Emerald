@@ -34,6 +34,31 @@ ServerWorld::ServerWorld() {
 	}
 }
 
+uint8 ServerWorld::GetBlock(const WorldPos& blockPosition) const {
+	auto chunkPosition = ToChunkPosition(blockPosition);
+	auto itr = m_chunks.find(chunkPosition);
+	if (itr == m_chunks.cend()) {
+		return 0;
+	}
+	return itr->second.GetBlockFast(ToLocalBlockPosition(blockPosition));
+}
+
+void ServerWorld::SetBlock(const WorldPos& blockPosition, uint8 voxel) {
+	auto chunkPosition = ToChunkPosition(blockPosition);
+	auto itr = m_chunks.find(chunkPosition);
+	auto local = ToLocalBlockPosition(blockPosition);
+	if (itr != m_chunks.cend()) {
+		itr->second.SetBlock(local, voxel);
+	}
+}
+
+void ServerWorld::Update() {
+	m_time++;
+	if (m_time > (uint64)(0.85f * 12000.0f)) {
+		m_time = (uint64)(0.15f * 12000.0f);
+	}
+}
+
 uint32 ServerWorld::AddEntity() {
 	for (int i = 1; i < m_entities.size(); i++) {
 		auto& state = m_entities[i];
@@ -46,8 +71,26 @@ uint32 ServerWorld::AddEntity() {
 	return 0;
 }
 
+void ServerWorld::RemoveEntity(uint id) {
+	assert(id < m_entities.size());
+	m_entities[id].active = false;
+	m_entityCount--;
+}
 
+EntityState& ServerWorld::GetEntity(uint32 id) {
+	return m_entities[id];
+}
 
-void ServerWorld::Update() {
-	m_time++;
+void ServerWorld::WriteEntities(PacketWriter& writer) const {
+	writer.Write(m_entityCount);
+	for (int i = 0; i < m_entities.size(); i++) {
+		const auto& state = m_entities[i];
+		if (state.active) {
+			writer.Write<uint32>(static_cast<uint32>(i));
+			writer.Write<glm::vec3>(state.position);
+			writer.Write<char>(state.name, 16);
+			writer.Write<glm::vec3>(state.rotation);
+			writer.Write<glm::vec3>(state.velocity);
+		}
+	}
 }

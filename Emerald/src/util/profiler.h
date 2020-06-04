@@ -149,8 +149,8 @@ public:
 					UI::Text(names[i], Format("%.4fms", m_profilerData[i]));
 				}
 				UI::End();
-				UI::EndWindow();
 			}
+			UI::EndWindow();
 		}
 	}
 };

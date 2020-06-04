@@ -10,22 +10,13 @@ public:
 	AssetRef<Texture> m_normalTexture;
 
 	GBuffer();
-	GBuffer::~GBuffer() {
-	}
+	GBuffer::~GBuffer() {}
 
 	void BindTextures();
 
-	void Bind() {
-		m_fbo->Bind();
-	}
+	void Bind();
+	void Clear();
+	void Unbind();
 
-	void Clear() {
-		m_fbo->Clear();
-	}
-
-	void Unbind() {
-		m_fbo->Unbind();
-	}
-
-	AssetRef<FrameBuffer> GetFBO() const { return m_fbo; }
+	inline FrameBuffer* GetFBO() const { return m_fbo.Get(); }
 };

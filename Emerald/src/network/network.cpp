@@ -12,7 +12,8 @@ void Network::GetServerStatus(const String& ip, int port, ServerStatus* result) 
 	}
 
 	GetThreadPool()->DoJob([result, ip, port] {
-		LOG("[~cNetwork~x] server status request started %s:%d", ip.c_str(), port);
+		//LOG("[~cNetwork~x] server status request started %s:%d", ip.c_str(), port);
+		LOG("[~cNetwork~x] server status request started");
 		result->active = true;
 		result->status = ServerStatusResult::Pending;
 

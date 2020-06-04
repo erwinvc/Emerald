@@ -22,6 +22,13 @@ FrameBuffer::FrameBuffer(String name, uint width, uint height, const Color& clea
 	GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
 }
 
+FrameBuffer::~FrameBuffer() {
+	GL(glDeleteFramebuffers(1, &m_fbo));
+	for (AssetRef<Texture> texture : m_textures) {
+		DELETE(texture.Get());
+	}
+}
+
 void FrameBuffer::Resize(uint width, uint height) {
 	if (m_scale == FBOScale::STATIC) return;
 	m_realWidth = width;
@@ -36,11 +43,21 @@ void FrameBuffer::Resize(uint width, uint height) {
 	CheckStatus();
 }
 
-FrameBuffer::~FrameBuffer() {
-	GL(glDeleteFramebuffers(1, &m_fbo));
-	for (AssetRef<Texture> texture : m_textures) {
-		DELETE(texture.Get());
+
+void FrameBuffer::SetScale(FBOScale scale) {
+	if (m_scale == scale) return;
+	m_scale = scale;
+	Resize(m_realWidth, m_realHeight);
+}
+
+float FrameBuffer::FBOScaleToFloat(FBOScale scale) {
+	switch (scale) {
+		case FBOScale::FULL: return 1.0f;
+		case FBOScale::HALF: return 0.5f;
+		case FBOScale::QUARTER: return 0.25f;
+		case FBOScale::ONEEIGHTH: return 0.125f;
 	}
+	return 1.0f;
 }
 
 bool FrameBuffer::CheckStatus() {
@@ -92,6 +109,73 @@ void FrameBuffer::BlitDepthOnly(FrameBuffer* targetFBO) {
 	GL(glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, targetFBO ? targetFBO->GetWidth() : GetClient()->GetWidth(), targetFBO ? targetFBO->GetHeight() : GetClient()->GetHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST));
 }
 
+void FrameBuffer::Bind() const {
+	GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
+	GL(glViewport(0, 0, m_width, m_height));
+}
+void FrameBuffer::Unbind() const {
+	GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+}
+void FrameBuffer::Clear() const {
+	GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
+	GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+}
+
+void FrameBuffer::ClearDepthOnly() const {
+	GL(glClear(GL_DEPTH_BUFFER_BIT));
+}
+
+void FrameBuffer::ClearColorOnly() const {
+	GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
+	GL(glClear(GL_COLOR_BUFFER_BIT));
+}
+
+void FrameBuffer::ClearStencilOnly() const {
+	GL(glClear(GL_STENCIL_BUFFER_BIT));
+}
+
+void FrameBuffer::SetDrawAndReadBuffersToNone() {
+	Bind();
+	GL(glDrawBuffer(GL_NONE));
+	GL(glReadBuffer(GL_NONE));
+	Unbind();
+}
+
+AssetRef<FrameBuffer> FrameBufferManager::Create(const String& name, uint width, uint height, const Color& clearColor) {
+	for (FrameBuffer* fbo : m_frameBuffers) {
+		if (fbo->GetName().compare(name) == 0) {
+			LOG_ERROR("[~cBuffers~x] Framebuffer ~1%s~x already exists", fbo->GetName().c_str());
+			return AssetRef<FrameBuffer>(fbo);
+		}
+	}
+	AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, width, height, clearColor));
+	m_frameBuffers.push_back(fbo);
+	return AssetRef<FrameBuffer>(fbo);
+}
+
+AssetRef<FrameBuffer> FrameBufferManager::Create(const String& name, FBOScale scale, const Color& clearColor) {
+	for (FrameBuffer* fbo : m_frameBuffers) {
+		if (fbo->GetName().compare(name) == 0) {
+			LOG_ERROR("[~cBuffers~x] Framebuffer ~1%s~x already exists", fbo->GetName().c_str());
+			return AssetRef<FrameBuffer>(fbo);
+		}
+	}
+	AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, scale, clearColor));
+	m_frameBuffers.push_back(fbo);
+	return AssetRef<FrameBuffer>(fbo);
+}
+
+void FrameBufferManager::BindDefaultFBO() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GL(glViewport(0, 0, GetClient()->GetWidth(), GetClient()->GetHeight()));
+}
+
+void FrameBufferManager::OnResize(uint width, uint height) {
+	if (m_width == width && m_height == height)return;
+	m_width = width;
+	m_height = height;
+	for (FrameBuffer* fbo : m_frameBuffers) fbo->Resize(m_width, m_height);
+}
 
 void FrameBufferManager::OnImGUI() {
 	if (ImGui::BeginTabItem("Framebuffers")) {
@@ -123,9 +207,4 @@ void FrameBufferManager::OnImGUI() {
 
 		ImGui::EndTabItem();
 	}
-}
-
-void FrameBufferManager::BindDefaultFBO() {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	GL(glViewport(0, 0, GetClient()->GetWidth(), GetClient()->GetHeight()));
 }

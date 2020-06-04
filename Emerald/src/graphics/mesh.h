@@ -17,8 +17,6 @@ public:
 	}
 	Mesh(ManagedRef<VertexArray> vao, ManagedRef<IndexBuffer> ibo);
 	virtual ~Mesh() {}
-	Material* GetMaterial() { return m_material; }
-	void SetMaterial(Material* mat) { m_material = mat; }
 
 	void Bind();
 	void Unbind();
@@ -32,6 +30,8 @@ public:
 
 	inline ManagedRef<VertexArray> GetVAO() { return m_vao; }
 	inline ManagedRef<IndexBuffer> GetIBO() { return m_ibo; }
-
+	inline Material* GetMaterial() { return m_material; }
+	inline void SetMaterial(Material* mat) { m_material = mat; }
+	
 	static const String GetAssetTypeName() { return "Mesh"; }
 };

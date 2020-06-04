@@ -7,6 +7,6 @@ int main(int argc, char** argv) {
 		if (strcmp(argv[i], "server") == 0) isServer = true;
 
 	srand((uint)time(NULL));
-
+	Random::Initialize();
 	GetApp()->Initialize(isServer);
 }

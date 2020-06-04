@@ -53,3 +53,8 @@ void BloomRenderer::Draw(HDRPipeline* pipeline) {
 	}
 	pBloom.End();
 }
+
+void BloomRenderer::OnImGui() {
+	UI::Float("Multiplier", &m_bloomMultiplier, 0, 5.0f);
+	UI::Int("Iterations", &m_gaussianIterations, 0, 20);
+}

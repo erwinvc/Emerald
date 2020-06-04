@@ -105,6 +105,11 @@ struct PacketHandshake {
 	PacketType type = PacketType::Handshake;
 	HandshakeType handshakeType;
 	uint32 salt;
+	char name[16];
+
+	void SetName(const String& str) {
+		strcpy(name, str.c_str());
+	}
 };
 
 struct PacketHandshakeChallenge {
@@ -155,11 +160,6 @@ struct PacketKick {
 		int size = str.size();
 		strcpy(reason, str.c_str());
 	}
-};
-
-struct PacketGameData {
-	PacketType type = PacketType::GameData;
-
 };
 
 struct PacketChunk {

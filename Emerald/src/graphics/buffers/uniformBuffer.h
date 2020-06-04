@@ -73,10 +73,11 @@ class UniformBuffer {
 private:
 	uint m_bufferID;
 	uint m_uniformBlockIndex;
+	
 public:
 	T data;
 
-	UniformBuffer(const Shader* shader) {
+	UniformBuffer::UniformBuffer(const Shader* shader) {
 		GL(glGenBuffers(1, &m_bufferID));
 		GL(glBindBuffer(GL_UNIFORM_BUFFER, m_bufferID));
 		GL(glBufferData(GL_UNIFORM_BUFFER, sizeof(T), &data, GL_DYNAMIC_DRAW));
@@ -85,11 +86,11 @@ public:
 	}
 
 
-	~UniformBuffer() {
+	UniformBuffer::~UniformBuffer() {
 		GL(glDeleteBuffers(1, &m_bufferID));
 	}
 
-	void SetData() {
+	void UniformBuffer::SetData() {
 		GL(glBindBuffer(GL_UNIFORM_BUFFER, m_bufferID));
 		GL(glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), &data));
 		GL(glBindBuffer(GL_UNIFORM_BUFFER, 0));

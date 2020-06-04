@@ -1,5 +1,23 @@
 #include "stdafx.h"
-#include <random>
+
+HDRPipeline::~HDRPipeline() {
+	DELETE(m_gBuffer);
+	DELETE(m_aoRenderer);
+	DELETE(m_ssrRenderer);
+	DELETE(m_directionalShadow);
+	DELETE(m_spriteRenderer);
+	DELETE(m_lineRenderer);
+}
+
+void HDRPipeline::EarlyInitialize(uint width, uint height) {
+	m_width = width;
+	m_height = height;
+	m_uiCamera = NEW(OrthoCamera());
+	m_uiCamera->SetViewport(0, 0, m_width, m_height);
+	Camera::uiActive = m_uiCamera;
+	m_spriteRenderer = NEW(SpriteRenderer());
+	m_ubo = NEW(UniformBuffer<GlobalUniforms>(GetShaderManager()->Get("Geometry")));
+}
 
 void HDRPipeline::Initialize() {
 
@@ -76,7 +94,7 @@ void HDRPipeline::Initialize() {
 	//skyboxMat->AddOnBindCallback(NEW(MaterialCallbackPtr("_LightPos", GetTextureManager()->GetBlackTexture(), 0)));
 	m_cube->m_model->SetMaterial(skyboxMat);
 	m_cube->transform.size = glm::vec3(32, 32, 32);
-	
+
 	GL(glEnable(GL_LINE_SMOOTH));
 	GL(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
 
@@ -99,7 +117,7 @@ void HDRPipeline::Render(float partialUpdate) {
 	}
 
 	if (aaa) {
-		GameStates::VOXEL->m_dcm->Draw(this, GameStates::VOXEL->m_pointlight.m_position);
+		GameStates::VOXEL->m_dcm->Draw(this, GameStates::VOXEL->m_pointlight.position);
 	}
 
 	Camera::active->DrawUpdate(partialUpdate);
@@ -155,9 +173,9 @@ void HDRPipeline::PreGeometryRender() {
 
 	//Draw directional shadow
 	auto& pDShadow = GetProfiler()->StartGL(ProfilerDataType::DirectionalShadow);
-	m_directionalShadow->Draw(this, m_directionalLight.GetDirection());
+	m_directionalShadow->Draw(this, directionalLight.GetDirection());
 	pDShadow.End();
-	
+
 	//Draw to gBuffer
 	m_gBuffer->Bind();
 	m_gBuffer->Clear();
@@ -183,7 +201,7 @@ void HDRPipeline::PostGeometryRender() {
 	//Emission
 	auto& pEmissionAmbient = GetProfiler()->StartGL(ProfilerDataType::EmissionAmbient);
 	m_emissionAmbientShader->Bind();
-	m_emissionAmbientShader->Set("_AmbientIntensity", m_ambientIntensity);
+	m_emissionAmbientShader->Set("_AmbientIntensity", ambientIntensity);
 	m_aoRenderer->GetTexture()->Bind(4);
 	m_gBuffer->BindTextures();
 	m_quad->Bind();
@@ -193,15 +211,15 @@ void HDRPipeline::PostGeometryRender() {
 	//Blend lighting
 	GL(glEnable(GL_BLEND));
 	GL(glBlendFunc(GL_ONE, GL_ONE));
-	
+
 	//Draw directional light
 	auto& pDSLighting = GetProfiler()->StartGL(ProfilerDataType::DirectionalLighting);
 	m_directionalLightShader->Bind();
 
 	m_gBuffer->BindTextures();
 	m_aoRenderer->GetTexture()->Bind(4);
-	m_directionalLightShader->Set("_Color", m_directionalLight.GetColor());
-	m_directionalLightShader->Set("_Directional", m_directionalLight.GetDirection());
+	m_directionalLightShader->Set("_Color", directionalLight.GetColor());
+	m_directionalLightShader->Set("_Directional", directionalLight.GetDirection());
 	m_directionalLightShader->Set("_Shadow", 5);
 	m_directionalLightShader->Set("_LightSpaceMatrix", m_directionalShadow->m_lightSpaceMatrix);
 
@@ -210,7 +228,7 @@ void HDRPipeline::PostGeometryRender() {
 	m_quad->Bind();
 	m_quad->Draw();
 	pDSLighting.End();
-	
+
 	GLUtils::DisableDepthTest();
 	GL(glFrontFace(GL_CW));
 
@@ -220,16 +238,16 @@ void HDRPipeline::PostGeometryRender() {
 	m_pointLightShader->Set("depthMap", 5);
 
 	if (aaa) {
-		m_pointLightShader->Set("Far", GameStates::VOXEL->m_dcm->m_farPlane);
-		glActiveTexture(GL_TEXTURE5);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, ((VoxelState*)GameStates::VOXEL)->m_dcm->m_handle);
+		//m_pointLightShader->Set("Far", GameStates::VOXEL->m_dcm->m_farPlane);
+		//glActiveTexture(GL_TEXTURE5);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, ((VoxelState*)GameStates::VOXEL)->m_dcm->m_handle);
 	}
 	m_gBuffer->BindTextures();
 	m_aoRenderer->GetTexture()->Bind(4);
 	GetPointlightRenderer()->End();
 	GetPointlightRenderer()->Draw();
 	pPLighting.End();
-	
+
 	m_hdrFBO->Unbind();
 
 	//Draw to finalFBO
@@ -252,9 +270,9 @@ void HDRPipeline::PostGeometryRender() {
 	m_hdrShader->Set("_BloomMultiplier", m_bloomRenderer->m_bloomMultiplier);
 	m_hdrShader->Set("_ApplyPostProcessing", GetFrameBufferManager()->GetSelectedTexture() == m_hdrTexture && m_applyPostProcessing);
 	m_hdrShader->Set("_FXAA", m_FXAA);
-	m_hdrShader->Set("_Gamma", m_gamma);
-	m_hdrShader->Set("_Exposure", m_exposure);
-	m_hdrShader->Set("_Tonemapping", m_selectedTonemapping);
+	m_hdrShader->Set("_Gamma", gamma);
+	m_hdrShader->Set("_Exposure", exposure);
+	m_hdrShader->Set("_Tonemapping", selectedTonemapping);
 	m_hdrShader->Set("_ScreenSize", glm::vec2(m_width, m_height));
 	GetFrameBufferManager()->GetSelectedTexture()->Bind(0);
 	m_bloomRenderer->GetBloomedTexture()->Bind(1);
@@ -266,13 +284,14 @@ void HDRPipeline::PostGeometryRender() {
 	m_lineRenderer->Draw();
 
 	//Atmosphere
-	auto& pAtmosphere = GetProfiler()->StartGL(ProfilerDataType::Atmosphere);
-	m_atmosphereShader->Bind();
-	m_atmosphereShader->Set("_LightPos", m_directionalLight.GetDirection());
-	//GL(glFrontFace(GL_CW));
-	m_cube->Draw();
-	//GL(glFrontFace(GL_CCW));
-	pAtmosphere.End();
+	if (GetFrameBufferManager()->GetSelectedTexture() == m_hdrTexture) {
+		auto& pAtmosphere = GetProfiler()->StartGL(ProfilerDataType::Atmosphere);
+		m_atmosphereShader->Bind();
+		m_atmosphereShader->Set("_LightPos", directionalLight.GetDirection());
+		m_cube->transform.position.y = Camera::active->transform.position.y;
+		m_cube->Draw();
+		pAtmosphere.End();
+	}
 }
 
 void HDRPipeline::OnImGUI() {
@@ -287,9 +306,9 @@ void HDRPipeline::OnImGUI() {
 			UI::Bool("SSR", &m_ssrRenderer->m_enabled);
 			UI::Bool("AAA", &aaa);
 			UI::Separator();
-			UI::Float("Gamma", &m_gamma, 0, 5);
-			UI::Float("Exposure", &m_exposure, 0, 5);
-			UI::Combo("Tonemapping", &m_selectedTonemapping, tonemapping, NUMOF(tonemapping));
+			UI::Float("Gamma", &gamma, 0, 5);
+			UI::Float("Exposure", &exposure, 0, 5);
+			UI::Combo("Tonemapping", &selectedTonemapping, tonemapping, NUMOF(tonemapping));
 			UI::End();
 
 			if (ImGui::TreeNode("Bloom")) {
@@ -323,8 +342,8 @@ void HDRPipeline::OnImGUI() {
 		if (ImGui::CollapsingHeader("Scene")) {
 			if (ImGui::TreeNode("Lighting")) {
 				UI::Begin();
-				UI::Float("Ambient", &m_ambientIntensity, 0.0f, 1.0f);
-				m_directionalLight.OnImGui();
+				UI::Float("Ambient", &ambientIntensity, 0.0f, 1.0f);
+				directionalLight.OnImGui();
 				UI::End();
 				ImGui::TreePop();
 			}
@@ -332,14 +351,13 @@ void HDRPipeline::OnImGUI() {
 
 		if (ImGui::CollapsingHeader("Camera")) {
 			if (ImGui::Button("Freecam")) {
+				m_freeCam->transform.position = Camera::active->transform.position;
 				Camera::active = m_freeCam;
-				m_selectedCamera = 0;
-				glfwSetInputMode(GetClient()->GetWindow()->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
+			
 			if (ImGui::Button("First person")) {
 				m_firstPersonCamera->transform.position = Camera::active->transform.position;
 				Camera::active = m_firstPersonCamera;
-				m_selectedCamera = 1;
 			}
 			Camera::active->OnImGui();
 		}
@@ -354,12 +372,34 @@ void HDRPipeline::OnImGUI() {
 	}
 }
 
-
-//#TODO properly resize fbos
 void HDRPipeline::OnResize(uint width, uint height) {
 	m_width = width;
 	m_height = height;
 	Camera::uiActive->SetViewport(0, 0, width, height);
 	if (!m_initialized) return;
 	Camera::active->SetViewport(0, 0, width, height);
+}
+
+void HDRPipeline::UILineRect(Rectangle& rect, Color& color, float lineSize) {
+	m_spriteRenderer->LineRect(rect, color, lineSize);
+}
+
+void HDRPipeline::UIRect(glm::vec2 origin, float x, float y, float w, float h, float rotation, const Color& color, Texture* texture, const glm::vec3 atlasValues) {
+	m_spriteRenderer->Rect(origin, x, y, w, h, rotation, color, texture, atlasValues);
+}
+
+void HDRPipeline::UILine(float x0, float y0, float x1, float y1, Color& color, float size) {
+	m_spriteRenderer->Line(x0, y0, x1, y1, color, size);
+}
+
+void HDRPipeline::Bounds(glm::vec3 position, glm::vec3 size, Color color, bool overlay) {
+	m_lineRenderer->Bounds(position, size, color, overlay);
+}
+
+void HDRPipeline::Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay) {
+	m_lineRenderer->Line(begin, end, color, overlay);
+}
+
+void HDRPipeline::Line(float x0, float y0, float z0, float x1, float y1, float z1, Color& color, bool overlay) {
+	m_lineRenderer->Line(x0, y0, z0, x1, y1, z1, color, overlay);
 }

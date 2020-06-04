@@ -10,10 +10,8 @@ private:
 
 	void Load();
 public:
-	Icon(const String& file) : m_file(Format("res/%s.png", file.c_str())) { Load(); }
+	Icon(const String& file);
 	~Icon();
 
-	const GLFWimage* GetImage() const {
-		return &m_icon;
-	}
+	inline const GLFWimage* GetImage() const { return &m_icon; }
 };

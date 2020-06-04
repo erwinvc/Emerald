@@ -3,6 +3,7 @@
 struct PendingClientSession {
 	Connection connection;
 	uint32 salt = 0;
+	char name[16];
 };
 
 class ClientSession {
@@ -15,7 +16,9 @@ private:
 
 	int dist = 4;
 public:
-	void Initialize(ENetPeer* peer, uint32 salt, uint32 playerId);
+	char m_name[16];
+
+	void Initialize(ENetPeer* peer, uint32 salt, String_t name, uint32 playerId);
 	void Disconnect();
 
 	template<typename T>

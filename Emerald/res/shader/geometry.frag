@@ -20,7 +20,7 @@ uniform float _RoughnessStrength;	//(FLOAT, Roughness strength) = (1.0, 0.0, 1.0
 uniform sampler2D _Metallic;		//(TEXTURE, Metallic) = (black, 3)
 uniform float _MetallicStrength;	//(FLOAT, Metallic strength) = (1.0, 0.0, 1.0)
 uniform sampler2D _Emission;		//(TEXTURE, Emission) = (white, 4)
-uniform float _EmissionStrength;	//(FLOAT, Emission strength) = (0.0, 0.0, 1.0)
+uniform float _EmissionStrength;	//(FLOAT, Emission strength) = (1.0, 0.0, 1.0)
 
 //uniform float Iri;					//(FLOAT, Iridescence) = (0.0, 0.0, 1.0)
 //uniform sampler2D _Iridescence;		//(TEXTURE, Iridescence) = (black, 5)

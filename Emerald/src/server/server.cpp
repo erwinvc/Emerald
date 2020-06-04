@@ -52,10 +52,12 @@ void Server::Update() {
 }
 
 void Server::Shutdown() {
+	LOG("Shutdown!");
 	m_netHandler->BroadcastServerShutdown();
 	enet_host_flush(m_host.m_handle);
 	for (auto& session : m_clients) {
 		session.Disconnect();
+		LOG("Disconnect %s!", session.m_name);
 	}
 }
 
@@ -66,11 +68,12 @@ void Server::CreatePendingConnection(ENetPeer* peer) {
 	m_pendingConnections.push_back(session);
 }
 
-uint32 Server::CreateClientSession(ENetPeer* peer, uint32 salt) {
+uint32 Server::CreateClientSession(ENetPeer* peer, String_t name, uint32 salt) {
 	for (unsigned i = 0; i < m_clients.size(); i++) {
 		if (!m_clients[i].IsActive()) {
 			uint32 playerId = m_world->AddEntity();
-			m_clients[i].Initialize(peer, salt, playerId);
+			strcpy(m_world->GetEntity(playerId).name, name);
+			m_clients[i].Initialize(peer, salt, name, playerId);
 			m_clientsMap[peer->incomingPeerID] = i;
 
 			m_netHandler->BroadcastPlayerJoin(playerId);

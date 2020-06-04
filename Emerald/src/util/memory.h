@@ -40,34 +40,7 @@ public:
 	//	return first.m_totalAllocations < second.m_totalAllocations;
 	//}
 
-	void OnImGui() {
-		ImGui::BeginTabBar("tab");
-		ImGui::DragInt64("Total allocated", &m_totalAllocated, 0);
-		ImGui::DragInt64("Total freed", &m_totalFreed, 0);
-		ImGui::DragInt64("Currently used", &m_currentUsed, 0);
-		ImGui::DragInt64("Total allocations", &m_totalAllocations, 0);
-
-		ImGui::EndTabBar();
-
-		ImGui::Columns(4, "Allocations");
-		ImGui::Separator();
-		ImGui::Text("Name"); ImGui::NextColumn();
-		ImGui::Text("Total allocated"); ImGui::NextColumn();
-		ImGui::Text("Allocated"); ImGui::NextColumn();
-		ImGui::Text("Freed"); ImGui::NextColumn();
-		ImGui::Separator();
-
-		//sort(m_allocations.begin(), m_allocations.end(), compareAllocations); 
-
-		foreach(a, m_allocations) {
-			ImGui::Text(a.first.c_str()); ImGui::NextColumn();
-			ImGui::Text("%d", a.second.m_totalAllocations); ImGui::NextColumn();
-			ImGui::Text("%d", a.second.m_allocations); ImGui::NextColumn();
-			ImGui::Text("%d", a.second.m_freed); ImGui::NextColumn();
-		}
-		ImGui::Columns(1);
-		ImGui::Separator();
-	}
+	void OnImGui();
 };
 
 static Memory* GetMemory() { return Memory::GetInstance(); }

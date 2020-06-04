@@ -133,3 +133,81 @@ void Material::SetPBR(const String& name) {
 	SetRoughnessIfAvailable(GetAssetManager()->Get<Texture>(name + "_roughness"));
 	SetMetallicIfAvailable(GetAssetManager()->Get<Texture>(name + "_metallic"));
 }
+
+Material::~Material() {
+	for (auto& member : m_members) DELETE(member);
+	for (auto& callback : m_callbacksOnInstance) DELETE(callback);
+	for (auto& callback : m_callbacksOnBind) DELETE(callback);
+
+	m_callbacksOnInstance.clear();
+	m_callbacksOnBind.clear();
+	m_members.clear();
+}
+
+void Material::AddOnBindCallback(MaterialCallback* callback) {
+	callback->SetUniformLocation(m_shader);
+	m_callbacksOnBind.push_back(callback);
+}
+
+void Material::AddOnInstanceCallback(MaterialCallback* callback) {
+	callback->SetUniformLocation(m_shader);
+	m_callbacksOnInstance.push_back(callback);
+}
+
+void Material::OnImGui() {
+	for (auto& member : m_members) {
+		member->OnImGui();
+	}
+}
+
+//#Dirty!
+void Material::SetRoughnessIfAvailable(Texture* tex) {
+	if (!tex)return;
+	for (auto& member : m_members) {
+		if (member->m_type == ShaderPropertyType::TEXTURE) {
+			if (member->m_uniform.compare("_Roughness") == 0) {
+				((MaterialMemberTexture*)member)->m_texture = tex;
+			}
+		}
+	}
+}
+void Material::SetAlbedoIfAvailable(Texture* tex) {
+	if (!tex)return;
+	for (auto& member : m_members) {
+		if (member->m_type == ShaderPropertyType::TEXTURE) {
+			if (member->m_uniform.compare("_Albedo") == 0) {
+				((MaterialMemberTexture*)member)->m_texture = tex;
+			}
+		}
+	}
+}
+void Material::SetNormalIfAvailable(Texture* tex) {
+	if (!tex)return;
+	for (auto& member : m_members) {
+		if (member->m_type == ShaderPropertyType::TEXTURE) {
+			if (member->m_uniform.compare("_Normal") == 0) {
+				((MaterialMemberTexture*)member)->m_texture = tex;
+			}
+		}
+	}
+}
+void Material::SetMetallicIfAvailable(Texture* tex) {
+	if (!tex)return;
+	for (auto& member : m_members) {
+		if (member->m_type == ShaderPropertyType::TEXTURE) {
+			if (member->m_uniform.compare("_Metallic") == 0) {
+				((MaterialMemberTexture*)member)->m_texture = tex;
+			}
+		}
+	}
+}
+void Material::SetEmissionIfAvailable(Texture* tex) {
+	if (!tex)return;
+	for (auto& member : m_members) {
+		if (member->m_type == ShaderPropertyType::TEXTURE) {
+			if (member->m_uniform.compare("_Emission") == 0) {
+				((MaterialMemberTexture*)member)->m_texture = tex;
+			}
+		}
+	}
+}

@@ -29,54 +29,20 @@ private:
 
 	void OnKey(int key, int scancode, int action, int mods);
 
-	bool CheckImGuiControl() {
-		if (m_overrideImGuiThisFrame) return false;
-		return ImGui::GetCurrentContext()->NavWindow || ImGui::GetIO().WantCaptureKeyboard;
-	}
+	bool CheckImGuiControl();
 
 public:
 	void Initialize(Window* window);
-	void Update() {
-		m_imGuiControlThisFrame = CheckImGuiControl();
-		m_overrideImGuiThisFrame = m_overrideImGuiNextFrame;
-		m_overrideImGuiNextFrame = false;
-	}
-	void ResetKeyState(DWORD key) {
-		if ((int)key < KEYSIZE) memset(&m_keyStates[key], 0, sizeof(m_keyStates[0]));
-	}
+	void Update();
+	void ResetKeyState(DWORD key);
+	bool KeyDown(DWORD key);
+	bool AnyKeyDown();
+	bool KeyJustUp(DWORD key);
+	bool AnyKeyJustUp();
+	bool KeyJustDown(DWORD key);
+	bool AnyKeyJustDown();
 
-	bool KeyDown(DWORD key) {
-		if ((int)key >= KEYSIZE || CheckImGuiControl() || m_imGuiControlThisFrame) return false;
-		return (GetTickCount() < m_keyStates[key].time + m_MAXDOWN) && !m_keyStates[key].m_isUpNow;
-	}
-
-	bool AnyKeyDown() {
-		return KeyDown(m_lastKey);
-	}
-
-	bool KeyJustUp(DWORD key) {
-		if ((int)key >= KEYSIZE || CheckImGuiControl() || m_imGuiControlThisFrame) return false;
-		bool result = GetTickCount() < m_keyStates[key].time + m_NOWPERIOD && m_keyStates[key].m_isUpNow;
-		if (result) ResetKeyState(key);
-		return result;
-	}
-
-	bool AnyKeyJustUp() {
-		return KeyJustUp(m_lastKey);
-	}
-
-	bool KeyJustDown(DWORD key) {
-		if ((int)key >= KEYSIZE || CheckImGuiControl() || m_imGuiControlThisFrame) return false;
-		bool result = m_keyStates[key].m_justDown;
-		if (result) m_keyStates[key].m_justDown = false;
-		return result;
-	}
-
-	bool AnyKeyJustDown() {
-		return KeyJustDown(m_lastKey);
-	}
-
-	void OverrideImGuiCapture() { m_overrideImGuiNextFrame = true; }
+	inline void OverrideImGuiCapture() { m_overrideImGuiNextFrame = true; }
 };
 
 static Keyboard* GetKeyboard() { return Keyboard::GetInstance(); }

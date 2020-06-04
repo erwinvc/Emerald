@@ -59,57 +59,21 @@ private:
 
 	friend FrameBufferManager;
 
-	void SetScale(FBOScale scale) {
-		if (m_scale == scale) return;
-		m_scale = scale;
-		Resize(m_realWidth, m_realHeight);
-	}
-
-	float FBOScaleToFloat(FBOScale scale) {
-		switch (scale) {
-			case FBOScale::FULL: return 1.0f;
-			case FBOScale::HALF: return 0.5f;
-			case FBOScale::QUARTER: return 0.25f;
-			case FBOScale::ONEEIGHTH: return 0.125f;
-		}
-		return 1.0f;
-	}
+	void SetScale(FBOScale scale);
+	float FBOScaleToFloat(FBOScale scale);
 
 public:
 	AssetRef<Texture> AddBuffer(const String& name, const TextureParameters& params, FBOAttachment type = FBOAttachment::COLOR);
 
 	const String& GetName() { return m_name; }
-	void Bind() const {
-		GL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
-		GL(glViewport(0, 0, m_width, m_height));
-	}
-	void Unbind() const {
-		GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-	}
-	void Clear() const {
-		GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
-		GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-	}
-
-	void ClearDepthOnly() const {
-		GL(glClear(GL_DEPTH_BUFFER_BIT));
-	}
-
-	void ClearColorOnly() const {
-		GL(glClearColor(m_color.R, m_color.G, m_color.B, m_color.A));
-		GL(glClear(GL_COLOR_BUFFER_BIT));
-	}
-
-	void ClearStencilOnly() const {
-		GL(glClear(GL_STENCIL_BUFFER_BIT));
-	}
-
-	void SetDrawAndReadBuffersToNone() {
-		Bind();
-		GL(glDrawBuffer(GL_NONE));
-		GL(glReadBuffer(GL_NONE));
-		Unbind();
-	}
+	
+	void Bind() const;
+	void Unbind() const;
+	void Clear() const;
+	void ClearDepthOnly() const;
+	void ClearColorOnly() const;
+	void ClearStencilOnly() const;
+	void SetDrawAndReadBuffersToNone();
 	
 	void Blit(FrameBuffer* targetFBO);
 	void BlitDepthOnly(FrameBuffer* targetFBO);
@@ -137,49 +101,18 @@ private:
 
 	uint m_width = 0;
 	uint m_height = 0;
+	
 public:
-	AssetRef<FrameBuffer> Create(const String& name, uint width, uint height, const Color& clearColor = Color::Black()) {
-		for (FrameBuffer* fbo : m_frameBuffers) {
-			if (fbo->GetName().compare(name) == 0) {
-				LOG_ERROR("[~cBuffers~x] Framebuffer ~1%s~x already exists", fbo->GetName().c_str());
-				return AssetRef<FrameBuffer>(fbo);
-			}
-		}
-		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, width, height, clearColor));
-		m_frameBuffers.push_back(fbo);
-		return AssetRef<FrameBuffer>(fbo);
-	}
-
-	AssetRef<FrameBuffer> Create(const String& name, FBOScale scale, const Color& clearColor = Color::Black()) {
-		for (FrameBuffer* fbo : m_frameBuffers) {
-			if (fbo->GetName().compare(name) == 0) {
-				LOG_ERROR("[~cBuffers~x] Framebuffer ~1%s~x already exists", fbo->GetName().c_str());
-				return AssetRef<FrameBuffer>(fbo);
-			}
-		}
-		AssetRef<FrameBuffer> fbo = NEW(FrameBuffer(name, scale, clearColor));
-		m_frameBuffers.push_back(fbo);
-		return AssetRef<FrameBuffer>(fbo);
-	}
+	AssetRef<FrameBuffer> Create(const String& name, uint width, uint height, const Color& clearColor = Color::Black());
+	AssetRef<FrameBuffer> Create(const String& name, FBOScale scale, const Color& clearColor = Color::Black());
 
 	void BindDefaultFBO();
 
-	void Delete(AssetRef<FrameBuffer>& fbo) {
-		Utils::RemoveFromVector(m_frameBuffers, fbo.Get());
-	}
-
+	void OnResize(uint width, uint height);
 	void OnImGUI();
+	
 	inline AssetRef<Texture> GetSelectedTexture() { return m_selectedTexture; }
-	void SetSelectedTexture(AssetRef<Texture> texture) {
-		m_selectedTexture = texture;
-	}
-
-	void OnResize(uint width, uint height) {
-		if (m_width == width && m_height == height)return;
-		m_width = width;
-		m_height = height;
-		for (FrameBuffer* fbo : m_frameBuffers) fbo->Resize(m_width, m_height);
-	}
+	inline void SetSelectedTexture(Texture* texture) {	m_selectedTexture = texture; }
 };
 
-static FrameBufferManager* GetFrameBufferManager() { return FrameBufferManager::GetInstance(); }
+inline FrameBufferManager* GetFrameBufferManager() { return FrameBufferManager::GetInstance(); }

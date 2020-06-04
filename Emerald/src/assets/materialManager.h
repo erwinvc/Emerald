@@ -12,34 +12,13 @@ private:
 	friend Singleton;
 
 public:
-	void Initialize() {
-		if (m_initialized) return;
-		//m_nullMaterial = NEW(BasicMaterial());
-
-		LOG("[~GMaterial~x] Material Manager initialized");
-		m_initialized = true;
-	}
-
-	//template<typename T>
-	//AssetRef<T> Create(const String& name) {
-	//	m_materials[name] = NEW(T());
-	//	return (T*)m_materials[name];
-	//}
-
-	Material* GetBasicMaterial(Shader* shader) {
-		if (!shader) LOG_ERROR("[~GMaterial~x] Shader is a nullptr");
-		if (m_defaultMaterials.find(shader->GetName()) == m_defaultMaterials.end()) {
-			m_defaultMaterials[shader->GetName()] = NEW(Material(Format("%s_Default", shader->GetName().c_str()), shader, m_globalID++));
-		}
-		return m_defaultMaterials[shader->GetName()];
-	}
+	void Initialize();
+	Material* GetBasicMaterial(Shader* shader);
 
 	Material* Create(const String& name, Shader* shader);
 	Material* Create(const String& name);
 
-	AssetRef<Material> Get(const String& name) {
-		return m_materials[name];
-	}
+	inline AssetRef<Material> Get(const String& name) { return m_materials[name]; }
 };
 
 static MaterialManager* GetMaterialManager() { return MaterialManager::GetInstance(); }
