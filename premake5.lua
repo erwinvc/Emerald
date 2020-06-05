@@ -89,8 +89,12 @@ project "Emerald"
 			links
 			{
 				"Emerald/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib",
-				"Emerald/vendor/assimp/bin/Debug/IrrXMLd",
 				"Emerald/vendor/assimp/bin/Debug/zlibstaticd"
+			}
+			
+			postbuildcommands 
+			{
+				'{COPY} "../Emerald/vendor/assimp/bin/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"'
 			}
 			
 	filter "configurations:Release"
@@ -102,10 +106,15 @@ project "Emerald"
 			links
 			{
 				"Emerald/vendor/assimp/bin/Release/assimp-vc141-mt.lib",
-				"Emerald/vendor/assimp/bin/Release/IrrXML",
 				"Emerald/vendor/assimp/bin/Release/zlibstatic"
 			}
 			
+			postbuildcommands 
+			{
+				'{COPY} "../Emerald/vendor/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"'
+			}
+
+
 	filter "configurations:DebugServer"
 		defines "EE_DEBUG"
 		debugargs {"server"}
@@ -115,8 +124,12 @@ project "Emerald"
 			links
 			{
 				"Emerald/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib",
-				"Emerald/vendor/assimp/bin/Debug/IrrXMLd",
 				"Emerald/vendor/assimp/bin/Debug/zlibstaticd"
+			}
+			
+			postbuildcommands 
+			{
+				'{COPY} "../Emerald/vendor/assimp/bin/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"'
 			}
 			
 	filter "configurations:ReleaseServer"
@@ -129,6 +142,10 @@ project "Emerald"
 			links
 			{
 				"Emerald/vendor/assimp/bin/Release/assimp-vc141-mt.lib",
-				"Emerald/vendor/assimp/bin/Release/IrrXML",
 				"Emerald/vendor/assimp/bin/Release/zlibstatic"
+			}
+			
+			postbuildcommands 
+			{
+				'{COPY} "../Emerald/vendor/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"'
 			}

@@ -44,7 +44,7 @@ void ModelLoader::LoadMaterials(const aiScene* scene) {
 		m_materialData[i].m_metallic = LoadTexture(i, mat, aiTextureType_AMBIENT);
 		m_materialData[i].m_albedo = LoadTexture(i, mat, aiTextureType_DIFFUSE);
 		m_materialData[i].m_normal = LoadTexture(i, mat, aiTextureType_HEIGHT);
-		m_materialData[i].m_emission= LoadTexture(i, mat, aiTextureType_EMISSIVE);
+		m_materialData[i].m_emission = LoadTexture(i, mat, aiTextureType_EMISSIVE);
 	}
 
 	const String_t lookupTable[] = {
@@ -60,33 +60,34 @@ void ModelLoader::LoadMaterials(const aiScene* scene) {
 String ModelLoader::LoadTexture(int index, aiMaterial* mat, aiTextureType type) {
 	if (mat->GetTextureCount(type) > 0) {
 		aiString path;
-		mat->GetTexture(type, 0, &path);
-		String fullPath = m_path.GetDirectory() + "\\" + path.C_Str();
-		if (m_textureData.find(fullPath) == m_textureData.end()) {
-			if (FileSystem::DoesFileExist(fullPath)) {
-				TextureParameters params;
-				switch (type) {
-					case aiTextureType_SHININESS:
-						params = TextureParameters(INT_RED, DATA_UNK, NEAREST, REPEAT);
-						break;
-					case  aiTextureType_AMBIENT:
-						params = TextureParameters(INT_RED, DATA_UNK, NEAREST, REPEAT);
-						break;
-					case aiTextureType_DIFFUSE:
-						params = TextureParameters(INT_SRGBA, DATA_UNK, NEAREST, REPEAT);
-						break;
-					case aiTextureType_HEIGHT:
-						params = TextureParameters(INT_RGB, DATA_UNK, NEAREST, REPEAT);
-						break;
-					case aiTextureType_EMISSIVE:
-						params = TextureParameters(INT_RGB, DATA_UNK, NEAREST, REPEAT);
-						break;
-				}
-				m_textureData[fullPath] = TextureLoader(fullPath, fullPath, true, params);
-				m_textureData[fullPath].AsyncLoad();
-				return fullPath;
-			} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
-		} else return fullPath;
+		if (mat->GetTexture(type, 0, &path, NULL, NULL, NULL, NULL, NULL) == aiReturn_SUCCESS) {
+			String fullPath = m_path.GetDirectory() + "\\" + path.C_Str();
+			if (m_textureData.find(fullPath) == m_textureData.end()) {
+				if (FileSystem::DoesFileExist(fullPath)) {
+					TextureParameters params;
+					switch (type) {
+						case aiTextureType_SHININESS:
+							params = TextureParameters(INT_RED, DATA_UNK, NEAREST, REPEAT);
+							break;
+						case  aiTextureType_AMBIENT:
+							params = TextureParameters(INT_RED, DATA_UNK, NEAREST, REPEAT);
+							break;
+						case aiTextureType_DIFFUSE:
+							params = TextureParameters(INT_SRGBA, DATA_UNK, NEAREST, REPEAT);
+							break;
+						case aiTextureType_HEIGHT:
+							params = TextureParameters(INT_RGB, DATA_UNK, NEAREST, REPEAT);
+							break;
+						case aiTextureType_EMISSIVE:
+							params = TextureParameters(INT_RGB, DATA_UNK, NEAREST, REPEAT);
+							break;
+					}
+					m_textureData[fullPath] = TextureLoader(fullPath, fullPath, true, params);
+					m_textureData[fullPath].AsyncLoad();
+					return fullPath;
+				} else LOG("[~gTexture~x] ~rTexture does not exist at location ~1%s", fullPath.c_str());
+			} else return fullPath;
+		}
 	}
 	return "";
 }

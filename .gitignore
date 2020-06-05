@@ -1,6 +1,6 @@
 # Directories
 .vs/
-bin/
+/bin/
 bin-int/
 
 # Files
@@ -11,4 +11,3 @@ bin-int/
 
 !premake5.exe
 Emerald/imgui.ini
-Profiling/
