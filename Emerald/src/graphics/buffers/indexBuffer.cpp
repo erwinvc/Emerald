@@ -8,14 +8,14 @@ IndexBuffer::IndexBuffer(uint* data, uint32 count) : m_count(count) {
 
 
 IndexBuffer::~IndexBuffer() {
-    glDeleteBuffers(1, &m_bufferID);
+	glDeleteBuffers(1, &m_bufferID);
 }
 
 void IndexBuffer::Bind() {
-    GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_bufferID));
+	GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_bufferID));
 }
 void IndexBuffer::Unbind() {
-    GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+	GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }
 
 void IndexBuffer::SetData(uint* data, uint32 count, GLenum usage) {
@@ -26,11 +26,14 @@ void IndexBuffer::SetData(uint* data, uint32 count, GLenum usage) {
 }
 
 void IndexBuffer::Draw(uint mode) {
-	GL(glDrawElements(mode, m_count, GL_UNSIGNED_INT, NULL));
+	if (m_count > 0)
+		GL(glDrawElements(mode, m_count, GL_UNSIGNED_INT, NULL));
 }
 void IndexBuffer::Draw(uint32 count, uint mode) {
-	GL(glDrawElements(mode, count, GL_UNSIGNED_INT, NULL));
+	if (count > 0)
+		GL(glDrawElements(mode, count, GL_UNSIGNED_INT, NULL));
 }
 void IndexBuffer::DrawInstanced(uint32 amount, uint mode) {
+	if (m_count > 0)
 	GL(glDrawElementsInstanced(mode, m_count, GL_UNSIGNED_INT, 0, amount));
 }

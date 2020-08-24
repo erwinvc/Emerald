@@ -6,7 +6,8 @@ ModelLoader::MeshData::MeshData(const String& name, aiMesh* mesh, const aiScene*
 
 	m_numVertices = mesh->mNumVertices;
 	m_vertices = new Vertex[m_numVertices];
-
+	bool hasTangents = mesh->HasTangentsAndBitangents();
+	
 	for (uint32 i = 0; i < mesh->mNumVertices; i++) {
 		m_posMin.x = Math::Min(m_posMin.x, mesh->mVertices[i].x);
 		m_posMin.y = Math::Min(m_posMin.y, mesh->mVertices[i].y);
@@ -17,8 +18,9 @@ ModelLoader::MeshData::MeshData(const String& name, aiMesh* mesh, const aiScene*
 		m_vertices[i].m_position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 		m_vertices[i].m_normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 		m_vertices[i].m_uv = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
-		m_vertices[i].m_tangents = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
-		m_vertices[i].m_biTangents = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+		
+		if(hasTangents) m_vertices[i].m_tangents = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+		if (hasTangents) m_vertices[i].m_biTangents = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
 	}
 
 	for (uint i = 0; i < mesh->mNumFaces; i++) {
@@ -66,21 +68,11 @@ String ModelLoader::LoadTexture(int index, aiMaterial* mat, aiTextureType type) 
 				if (FileSystem::DoesFileExist(fullPath)) {
 					TextureParameters params;
 					switch (type) {
-						case aiTextureType_SHININESS:
-							params = TextureParameters(INT_RED, DATA_UNK, NEAREST, REPEAT);
-							break;
-						case  aiTextureType_AMBIENT:
-							params = TextureParameters(INT_RED, DATA_UNK, NEAREST, REPEAT);
-							break;
-						case aiTextureType_DIFFUSE:
-							params = TextureParameters(INT_SRGBA, DATA_UNK, NEAREST, REPEAT);
-							break;
-						case aiTextureType_HEIGHT:
-							params = TextureParameters(INT_RGB, DATA_UNK, NEAREST, REPEAT);
-							break;
-						case aiTextureType_EMISSIVE:
-							params = TextureParameters(INT_RGB, DATA_UNK, NEAREST, REPEAT);
-							break;
+						case aiTextureType_SHININESS:params = TextureParameters(INT_RED, DATA_UNK, NEAREST, REPEAT); break;
+						case aiTextureType_AMBIENT:params = TextureParameters(INT_RED, DATA_UNK, NEAREST, REPEAT); break;
+						case aiTextureType_DIFFUSE:params = TextureParameters(INT_SRGBA, DATA_UNK, NEAREST, REPEAT); break;
+						case aiTextureType_HEIGHT:params = TextureParameters(INT_RGB, DATA_UNK, NEAREST, REPEAT); break;
+						case aiTextureType_EMISSIVE:params = TextureParameters(INT_RGB, DATA_UNK, NEAREST, REPEAT); break;
 					}
 					m_textureData[fullPath] = TextureLoader(fullPath, fullPath, true, params);
 					m_textureData[fullPath].AsyncLoad();

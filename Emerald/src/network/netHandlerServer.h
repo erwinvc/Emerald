@@ -5,11 +5,13 @@ class NetHandlerServer
 {
 private:
 	Server* m_server;
+	Timer m_timer;
 public:
 	NetHandlerServer(Server* server) : m_server(server) {}
 
 	void HandlePacket(const ReceivedPacket& packet, ENetPeer* peer);
 
+	void Update();
 	void BroadcastTime(uint64 time);
 	void BroadcastEntityStates();
 	void BroadcastPlayerJoin(uint32 playerId);

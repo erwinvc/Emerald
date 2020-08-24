@@ -22,7 +22,7 @@ public:
 	void* GetImGuiHandle() { return (void*)(uint64)m_textureID; }
 	void Bind(uint slot = 0);
 	void Unbind(uint slot = 0);
-	void Resize(int width, int height);
+	void Resize(uint width, uint height);
 
 	inline const uint32 GetWidth() const { return m_width; }
 	inline const uint32 GetHeight() const { return m_height; }

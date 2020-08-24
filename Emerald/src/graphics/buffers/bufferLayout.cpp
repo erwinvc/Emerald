@@ -14,10 +14,33 @@ uint32 BufferElement::GetComponentCount() const {
 		case VertexBufferDataType::UInt: return 1;
 		case VertexBufferDataType::Int: return 1;
 		case VertexBufferDataType::Int2: return 2;
+		case VertexBufferDataType::UInt2: return 2;
 		case VertexBufferDataType::Int3: return 3;
+		case VertexBufferDataType::UInt3: return 3;
 		case VertexBufferDataType::Int4: return 4;
+		case VertexBufferDataType::UInt4: return 4;
 		case VertexBufferDataType::Mat3: return 9;
 		case VertexBufferDataType::Mat4: return 16;
+	}
+	LOG_ERROR("[~cBuffers~x] Unknow VertexBufferDataType!");
+	return 0;
+}
+
+bool BufferElement::IsVertexAttribI() const {
+	switch (m_type) {
+		case VertexBufferDataType::Bool:
+		case VertexBufferDataType::Float:
+		case VertexBufferDataType::Float2:
+		case VertexBufferDataType::Float3:
+		case VertexBufferDataType::Float4: return false;
+		case VertexBufferDataType::UInt:
+		case VertexBufferDataType::Int:
+		case VertexBufferDataType::Int2:
+		case VertexBufferDataType::Int3:
+		case VertexBufferDataType::Int4:
+		case VertexBufferDataType::UInt2:
+		case VertexBufferDataType::UInt3:
+		case VertexBufferDataType::UInt4: return true;
 	}
 	LOG_ERROR("[~cBuffers~x] Unknow VertexBufferDataType!");
 	return 0;
@@ -32,9 +55,15 @@ uint32 BufferLayout::GetTotalComponentCountSize() {
 void BufferLayout::Apply(uint32 attributeIndex) {
 	uint32 index = attributeIndex;
 	for (BufferElement& element : m_elements) {
-		glEnableVertexAttribArray(index);
-		glVertexAttribPointer(index, element.GetComponentCount(), VertexBufferDataTypeToOpenGLBaseType(element.m_type), element.m_normalized, m_stride, (const void*)(uint64_t)element.m_offset);
-		if (element.m_divisor) glVertexAttribDivisor(index, 1);
+		GL(glEnableVertexAttribArray(index));
+		if (element.IsVertexAttribI()) {
+			GL(glVertexAttribIPointer(index, element.GetComponentCount(), VertexBufferDataTypeToOpenGLBaseType(element.m_type), m_stride, (const void*)(uint64_t)element.m_offset));
+		} else {
+			GL(glVertexAttribPointer(index, element.GetComponentCount(), VertexBufferDataTypeToOpenGLBaseType(element.m_type), element.m_normalized, m_stride, (const void*)(uint64_t)element.m_offset));
+		}
+		if (element.m_divisor) {
+			GL(glVertexAttribDivisor(index, 1));
+		}
 		index++;
 	}
 }

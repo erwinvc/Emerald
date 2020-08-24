@@ -50,6 +50,7 @@ project "Emerald"
 		"%{prj.name}/vendor/GLFW/include",
 		"%{prj.name}/vendor/GLEW/include",
 		"%{prj.name}/vendor/imgui",
+		"%{prj.name}/vendor/tracy",
 		"%{prj.name}/vendor",
 		"%{prj.name}",
 		"%{prj.name}/src"
@@ -89,7 +90,7 @@ project "Emerald"
 			links
 			{
 				"Emerald/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib",
-				"Emerald/vendor/assimp/bin/Debug/zlibstaticd"
+				"Emerald/vendor/assimp/bin/Debug/zlibstatic"
 			}
 			
 			postbuildcommands 
@@ -124,7 +125,7 @@ project "Emerald"
 			links
 			{
 				"Emerald/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib",
-				"Emerald/vendor/assimp/bin/Debug/zlibstaticd"
+				"Emerald/vendor/assimp/bin/Debug/zlibstatic"
 			}
 			
 			postbuildcommands 

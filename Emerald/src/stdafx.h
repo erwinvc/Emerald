@@ -1,12 +1,12 @@
 #pragma once
 
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 
 #define _HAS_STD_BYTE 0
 #define NOGDI
-
 
 //#define MEMORY_CHECK
 #pragma warning (disable: 4244) /*type_traits conversion warning*/
@@ -50,6 +50,8 @@
 // OpenGL
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+//#include <TracyOpenGL.hpp>
 
 // ImGui
 #include <imgui.h>
@@ -100,6 +102,7 @@ using namespace std;
 #include "math/blockIterator.h"
 #include "math/transform.h"
 #include "math/coordinates.h"
+#include "math/blockPos.h"
 #include "math/aabb.h"
 
 #include "util/color.h"
@@ -237,6 +240,7 @@ using namespace std;
 #include "world/coordinateSystem.h"
 #include "world/chunkMesh.h"
 #include "world/chunkMeshGenerator.h"
+#include "world/blockState.h"
 #include "world/chunk.h"
 #include "world/chunkManager.h"
 #include "world/clientWorld.h"

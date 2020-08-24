@@ -1,5 +1,5 @@
 #version 330 core
-layout (location = 0) in vec3 vsPos;
+in uvec2 vsData;
 
 uniform mat4 _LightSpaceMatrix;
 
@@ -17,6 +17,15 @@ layout (std140) uniform GlobalUniforms {
 };
 
 void main(){
-    vec3 pos = vsPos + _ChunkPos;
+	float x = float(vsData.x & 0x3FFu);
+	float y = float((vsData.x & 0xFFC00u) >> 10u);
+	float z = float((vsData.x & 0x3FF00000u) >> 20u);
+	vec3 pos = vec3(x, y, z);
+	pos += _ChunkPos;
+
+	x += _ChunkPos.x;
+	y += _ChunkPos.y;
+	z += _ChunkPos.z;
+
     gl_Position = _LightSpaceMatrix * vec4(pos, 1.0);
 }  

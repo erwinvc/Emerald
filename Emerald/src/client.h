@@ -27,6 +27,7 @@ private:
 	uint64 m_frameCount = 0;
 	float m_lastFrameTime = 0;
 	int m_fps = 0;
+	bool m_lockedMouse = false;
 
 	bool m_running = true;
 
@@ -37,7 +38,6 @@ public:
 	float globalValue = 0;
 
 	ClientWorld* m_world;
-	bool m_lockedMouse = false;
 	HDRPipeline* pipeline = nullptr;
 
 
@@ -71,7 +71,8 @@ public:
 	float GetTotalFrameTime() { return m_totalFrameTime; }
 
 	inline void QueueTask(function<void()> task) { m_queue.Add(task); }
-
+	inline bool IsMouseLocked() { return m_lockedMouse; }
+	
 	friend NetHandlerClient;
 };
 

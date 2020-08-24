@@ -24,7 +24,6 @@ void VoxelState::Update(const TimeStep& time) {
 	if (KeyDown('U'))m_pointlight.position.y += 0.016f;
 	if (KeyDown('O'))m_pointlight.position.y -= 0.016f;
 
-
 	float goalAmbient = Math::Clamp(Math::Map(Camera::active->transform.position.y, -8.0f, 0.0f, 0.0f, 0.05f), 0.0f, 1.0f);
 	GetClient()->pipeline->ambientIntensity = Math::Lerp(GetClient()->pipeline->ambientIntensity, goalAmbient, 0.02f);
 }
@@ -33,6 +32,28 @@ void VoxelState::RenderGeometry(HDRPipeline* pipeline) {
 	m_world->RenderGeometry(pipeline);
 	GetPointlightRenderer()->Submit(m_pointlight);
 	pipeline->UIRect(Origin::CENTER, pipeline->Width() / 2.0f, pipeline->Height() / 2.0f, 35, 35, 0, Color::White(), crosshair);
+
+	//AABB player(Camera::active->transform.position.x - 0.3f, Camera::active->transform.position.y - 1.42f, Camera::active->transform.position.z - 0.3f, Camera::active->transform.position.x + 0.3f, Camera::active->transform.position.y + 0.38f, Camera::active->transform.position.z + 0.3f);
+	//player.Expand(0.5f, 0.5f, 0.5f);
+	//auto& aabbs = m_world->GetAABBs(player);
+	//for (auto& aabb : aabbs) {
+	//	pipeline->DrawAABB(aabb, Color::Cyan(), true);
+	//}
+	//pipeline->DrawAABB(player, Color::Red(), true);
+	//const float offset = 0.5f;
+	//AABB player(Camera::active->transform.position.x - 0.3f, Camera::active->transform.position.y - 1.42f, Camera::active->transform.position.z - 0.3f, Camera::active->transform.position.x + 0.3f, Camera::active->transform.position.y + 0.38f, Camera::active->transform.position.z + 0.3f);
+	//for (float x = Math::Floor(Camera::active->transform.position.x - box2.dimensions.x - offset); x < Camera::active->transform.position.x + box2.dimensions.x + offset; x++) {
+	//	for (float y = Math::Floor(Camera::active->transform.position.y - box2.dimensions.y - offset); y < Camera::active->transform.position.y + 0.38f + offset; y++) {
+	//		for (float z = Math::Floor(Camera::active->transform.position.z - box2.dimensions.z - offset); z < Camera::active->transform.position.z + box2.dimensions.z + offset; z++) {
+	//			BlockState* blockState = nullptr;
+	//			GetWorld()->GetBlock(glm::vec3(x, y, z), blockState);
+	//			if (blockState && blockState->blockID != 0) {
+	//				AABB aabb(x + ((float)blockState->dWest / 16.0f), y + ((float)blockState->dDown / 16.0f), z + ((float)blockState->dNorth / 16.0f), x + 1 - ((float)blockState->dEast / 16.0f), y + 1 - ((float)blockState->dUp / 16.0f), z + 1 - ((float)blockState->dSouth / 16.0f));
+	//				pipeline->DrawAABB(aabb, Color::Cyan(), true);
+	//			}
+	//		}
+	//	}
+	//}
 }
 
 void VoxelState::RenderGeometryShadow(HDRPipeline* pipeline, ShadowType type) {

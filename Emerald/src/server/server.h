@@ -50,6 +50,8 @@ public:
 
 	ServerWorld* GetWorld() { return m_world; }
 
+	inline uint32 GetPlayerCount() { return m_clientsMap.size(); }
+	
 	friend NetHandlerServer;
 };
 

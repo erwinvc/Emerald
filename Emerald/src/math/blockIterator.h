@@ -23,6 +23,7 @@
 //----------------------------------------------------------------------------
 //https://github.com/thegedge/voxel_iterator
 
+class BlockPos;
 class BlockIterator {
 public:
 	BlockIterator();
@@ -36,8 +37,8 @@ public:
 	BlockIterator operator++();
 
 	// Dereferencing
-	glm::ivec3 operator*();
-	const glm::ivec3 operator*() const;
+	BlockPos operator*();
+	const BlockPos operator*() const;
 
 	/// @return the current t value (distance to initial point)
 	double t() const { return currentT; }
@@ -45,9 +46,9 @@ public:
 private:
 	const glm::vec3 size; //BlockSize
 	const glm::vec3 dir;
-	const glm::vec3 step; // The integral steps in each direction when we iterate (either 1 or -1)
+	const glm::ivec3 step; // The integral steps in each direction when we iterate (either 1 or -1)
 	const glm::vec3 tDelta; // The t value which moves us from one voxel to the next
 	glm::vec3 tNext; // The t value which will get us to the next voxel
-	glm::vec3 voxel; // The integer indices for the current voxel
+	glm::ivec3 voxel; // The integer indices for the current voxel
 	double currentT; // The t value representing the current point
 };

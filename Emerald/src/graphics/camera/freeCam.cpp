@@ -23,7 +23,7 @@ void FreeCam::Update() {
 	//	transform.rotation.x = Math::Clamp(transform.rotation.x - GetMouse()->GetDelta().y * 0.005f, -Math::HALF_PI, Math::HALF_PI);
 	//}
 
-	if (GetClient()->m_lockedMouse || ButtonDown(VK_MOUSE_LEFT)) {
+	if (GetClient()->IsMouseLocked() || ButtonDown(VK_MOUSE_LEFT)) {
 		auto change = GetMouse()->GetDelta();
 		transform.rotation.x -= glm::radians(change.y * 0.15f);
 		transform.rotation.y -= glm::radians(change.x * 0.15f);

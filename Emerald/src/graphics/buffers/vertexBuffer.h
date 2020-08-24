@@ -3,11 +3,11 @@ class VertexBuffer : public Ref<VertexBuffer> {
 private:
 	uint32 m_bufferID;
 	BufferLayout m_layout;
-	GLfloat* m_data;
+	const void* m_data;
 public:
 	VertexBuffer() {}
 	
-	VertexBuffer(float* data, uint32 vertexCount, BufferLayout layout, GLenum usage = GL_STATIC_DRAW);
+	VertexBuffer(const void* data, uint32 vertexCount, BufferLayout layout, GLenum usage = GL_STATIC_DRAW);
 
 	~VertexBuffer();
 	void ApplyLayout(uint32 attributeIndex);

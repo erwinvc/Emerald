@@ -71,6 +71,7 @@ NetHost::NetHost() {
 }
 
 NetHost::NetHost(const ENetAddress& address, int maximumConnections) {
+	m_maxConnections = maximumConnections;
 	m_handle = enet_host_create(&address, maximumConnections, 2, 0, 0);
 	if (!m_handle) {
 		LOG_ERROR("[~cNetwork~x] failed to create server");

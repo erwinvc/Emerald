@@ -10,7 +10,6 @@ class Mouse : public Singleton<Mouse> {
 private:
 	const int m_NOWPERIOD = 100, m_MAXDOWN = 600000, m_DOUBLECLICKPERIOD = 200;
 	Window* m_window;
-	bool m_locked = false;
 	bool m_imGuiControlThisFrame = false;
 	bool m_overrideImGuiThisFrame = false;
 	bool m_overrideImGuiNextFrame = false;
@@ -41,6 +40,7 @@ public:
 	int m_lastButton;
 	float m_sensitivity = 0.5f;
 	void Update();
+	void UpdateTick();
 
 	bool CheckImGuiControl();
 	void Initialize(Window* window);
@@ -48,8 +48,6 @@ public:
 	bool MouseWithinCentered(float x, float y, float width, float height);
 	void SetPosition(glm::vec2& position);
 
-	void SetLocked(bool locked) { m_locked = locked; }
-	bool IsLocked() { return m_locked; }
 	void OverrideImGuiCapture() { m_overrideImGuiNextFrame = true; }
 	
 	inline bool ButtonDown(DWORD button) { return !CheckImGuiControl() && !m_imGuiControlThisFrame && !m_buttonStates[button].m_isUpNow; }

@@ -18,6 +18,7 @@ enum class PacketType : uint16 {
 	PlayerState,
 	Interaction,
 	Time,
+	Teleport,
 };
 
 enum class HandshakeType : byte {
@@ -196,6 +197,11 @@ struct PacketPlayerState {
 struct PacketTime {
 	PacketType type = PacketType::Time;
 	uint64 time;
+};
+
+struct PacketTeleport {
+	PacketType type = PacketType::Teleport;
+	glm::vec3 position;
 };
 
 //struct PacketInteraction {

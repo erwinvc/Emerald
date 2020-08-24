@@ -14,6 +14,7 @@ struct CornerRayPositions {
 	CornerRayPositions() {}
 };
 
+enum class BlockSide;
 class Camera {
 protected:
 	glm::mat4 m_projectionMatrix;
@@ -31,10 +32,10 @@ protected:
 public:
 	static Camera* active;
 	static Camera* uiActive;
-	Transform lastUpdateTransform;
-	Transform transform;
-	glm::vec3 velocity;
-	
+	Transform lastUpdateTransform{};
+	Transform transform{};
+	glm::vec3 velocity{};
+
 	Camera(glm::vec2 viewportSize, float fov, float nearPlane, float farPlane);
 	virtual ~Camera() {}
 	
@@ -54,6 +55,8 @@ public:
 	inline float GetNear() const { return m_nearPlane; }
 	inline float GetFar() const { return m_farPlane; }
 
+	BlockSide GetFacingDirection();
+	
 	virtual void OnImGui();
 
 	static CornerRayPositions GetCornerRays(float offset);

@@ -151,7 +151,7 @@ void UI::Finish() {
 }
 
 bool UI::BeginWindow(const String_t name, ImVec2 size, bool* open) {
-	return ImGui::Begin(name, open, size, -1, GetMouse()->IsLocked() ? ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoDocking: ImGuiWindowFlags_NoDocking);
+	return ImGui::Begin(name, open, size, -1, GetClient()->IsMouseLocked() ? ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoDocking : ImGuiWindowFlags_NoDocking);
 }
 
 void UI::EndWindow() {

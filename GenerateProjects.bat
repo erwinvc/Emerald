@@ -1,2 +1,2 @@
-call %~dp0\vendor\premake\premake5.exe vs2017
+call "%~dp0\vendor\premake\premake5.exe" vs2017
 PAUSE

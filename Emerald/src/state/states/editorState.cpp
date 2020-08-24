@@ -62,7 +62,6 @@ void EditorState::Initialize() {
 	m_editorCam->transform.position = glm::vec3(0.2f, 1.7f, 2.5f);
 	m_editorCam->transform.rotation = glm::vec3(0.5f, 0.0f, 0.0f);
 
-
 	m_albedo = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&albedoLoader);
 	m_normal = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&normalLoader);
 	m_roughness = GetAssetManager()->ForceLoad<Texture>((AssetLoader*)&roughnessLoader);
@@ -173,6 +172,10 @@ void EditorState::OnImGuiViewport() {
 	Logger::OnImGui();
 
 
+}
+
+void EditorState::OnStateImGUI()
+{
 }
 
 void EditorState::OnImGUI() {

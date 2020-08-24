@@ -62,10 +62,10 @@ BlockIterator BlockIterator::operator++() {
 	return *this;
 }
 
-glm::ivec3 BlockIterator::operator*() {
+BlockPos BlockIterator::operator*() {
 	return voxel;
 }
 
-const glm::ivec3 BlockIterator::operator*() const {
+const BlockPos BlockIterator::operator*() const {
 	return voxel;
 }

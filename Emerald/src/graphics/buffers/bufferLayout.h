@@ -12,8 +12,11 @@ enum class VertexBufferDataType {
 	UInt,
 	Int,
 	Int2,
+	UInt2,
 	Int3,
+	UInt3,
 	Int4,
+	UInt4,
 	Mat3,
 	Mat4
 };
@@ -28,8 +31,11 @@ static uint32 VertexBufferDataTypeToSize(VertexBufferDataType type) {
 	case VertexBufferDataType::UInt: return 4;
 	case VertexBufferDataType::Int: return 4;
 	case VertexBufferDataType::Int2: return 4 * 2;
+	case VertexBufferDataType::UInt2: return 4 * 2;
 	case VertexBufferDataType::Int3: return 4 * 3;
+	case VertexBufferDataType::UInt3: return 4 * 3;
 	case VertexBufferDataType::Int4: return 4 * 4;
+	case VertexBufferDataType::UInt4: return 4 * 4;
 	case VertexBufferDataType::Mat3: return 4 * 4 * 3;
 	case VertexBufferDataType::Mat4: return 4 * 4 * 4;
 	}
@@ -51,6 +57,9 @@ static GLenum VertexBufferDataTypeToOpenGLBaseType(VertexBufferDataType type) {
 	case VertexBufferDataType::Int2:
 	case VertexBufferDataType::Int3:
 	case VertexBufferDataType::Int4: return GL_INT;
+	case VertexBufferDataType::UInt2:
+	case VertexBufferDataType::UInt3:
+	case VertexBufferDataType::UInt4: return GL_UNSIGNED_INT;
 	}
 	LOG_ERROR("[~cBuffers~x] Unknow VertexBufferDataType!");
 	return 0;
@@ -68,6 +77,7 @@ struct BufferElement {
 	BufferElement(VertexBufferDataType type, const String& name, uint32 bufferIndex, bool divisor = false) : m_name(name), m_type(type), m_size(VertexBufferDataTypeToSize(type)), m_offset(0), m_bufferIndex(bufferIndex), m_divisor(divisor), m_normalized(false) {}
 
 	uint32 GetComponentCount() const;
+	bool IsVertexAttribI() const;
 };
 
 class BufferLayout {

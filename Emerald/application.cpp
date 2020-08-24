@@ -5,7 +5,7 @@ void Application::Initialize(bool isServer) {
 
 	Network::Initialize();
 	Logger::Initialize(GetTitle());
-	
+
 	if (m_isServer) {
 		GetServer()->Initialize();
 	} else {

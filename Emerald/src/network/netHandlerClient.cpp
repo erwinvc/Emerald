@@ -11,6 +11,7 @@ void NetHandlerClient::HandlePacket(const ReceivedPacket& packet) {
 		case PacketType::UpdateEntities: OnUpdateEntities(packet.GetData()); break;
 		case PacketType::BlockUpdate: OnBlockUpdate(packet.As<PacketBlockUpdate>()); break;
 		case PacketType::Time: OnTime(packet.As<PacketTime>()); break;
+		case PacketType::Teleport: OnTeleport(packet.As<PacketTeleport>()); break;
 	}
 }
 
@@ -71,6 +72,7 @@ void NetHandlerClient::OnGameData(const void* data) {
 
 	LOG("[~cNetwork~x] parsing %u chunks took %.2fms", chunkCount, timer.Get());
 
+	Camera::active->transform.position.y = 2.0f;
 	GetStateManager()->SetState(GameStates::VOXEL);
 }
 
@@ -91,9 +93,8 @@ void NetHandlerClient::OnAddEntity(const void* data) {
 }
 
 void NetHandlerClient::OnRemoveEntity(const PacketRemoveEntity& packet) {
-	LOG("[~cNetwork~x] removed entity");
-
 	GameStates::VOXEL->GetWorld()->RemoveEntity(packet.entity);
+	LOG("[~cNetwork~x] removed entity");
 }
 
 void NetHandlerClient::OnUpdateEntities(const void* data) {
@@ -105,7 +106,7 @@ void NetHandlerClient::OnUpdateEntities(const void* data) {
 		reader.Read<char>(16);
 		glm::vec3 rotation = reader.Read<glm::vec3>();
 		glm::vec3 velocity = reader.Read<glm::vec3>();
-		
+
 		GameStates::VOXEL->GetWorld()->UpdateEntity(entityId, position, rotation, velocity);
 	}
 }
@@ -113,6 +114,13 @@ void NetHandlerClient::OnUpdateEntities(const void* data) {
 void NetHandlerClient::OnBlockUpdate(const PacketBlockUpdate& packet) {
 	GameStates::VOXEL->GetWorld()->SetBlock(packet.blockPosition, packet.blockType);
 }
+
 void NetHandlerClient::OnTime(const PacketTime& packet) {
-	m_client->m_world->SetTime(packet.time);
+	if (m_client->m_world)
+		m_client->m_world->SetTime(packet.time);
+}
+
+void NetHandlerClient::OnTeleport(const PacketTeleport& packet) {
+	Camera::active->transform.position = packet.position;
+	LOG("Teleported!");
 }

@@ -39,6 +39,25 @@ void NetHandlerServer::OnPlayerState(const PacketPlayerState& packet, ENetPeer* 
 	player.position = packet.position;
 	player.rotation = packet.rotation;
 	player.velocity = packet.velocity;
+	if (player.position.y < -1024.0f) {
+		PacketTeleport tpPacket;
+		tpPacket.position = glm::vec3(0.0f, 2.0f, 0.0f); //Find free position for teleport!
+		//client.SendPacket(&tpPacket, 0, ENET_PACKET_FLAG_RELIABLE);
+		//
+		//for (auto& a : m_server->m_clients) {
+		//	a.Disconnect();
+		//}
+		//client.Disconnect();hj
+		LOG("%s", client.m_name);
+		auto enetPacket = CreatePacket((const void*)&tpPacket, sizeof(tpPacket), ENET_PACKET_FLAG_RELIABLE);
+		enet_peer_send(peer, 0, enetPacket);
+	}
+	//BroadcastToPeers(m_server->m_host.m_handle, &tpPacket, sizeof(PacketTeleport), 0, ENET_PACKET_FLAG_RELIABLE);
+}
+
+
+void NetHandlerServer::Update() {
+
 }
 
 
@@ -92,11 +111,11 @@ void NetHandlerServer::OnPlayerDisconnect(ENetPeer* peer) {
 	auto itr = m_server->m_clientsMap.find(peer->incomingPeerID);
 	if (itr != m_server->m_clientsMap.end()) {
 		auto index = itr->second;
+		LOG("[~cNetwork~x] player disconnected %s", m_server->m_clients[index].m_name);
 		m_server->m_world->RemoveEntity(m_server->m_clients[index].GetPlayerId());
 		m_server->m_clients[index].Disconnect();
 		BroadcastPlayerLeave(m_server->m_clients[index].GetPlayerId());
 		m_server->m_clientsMap.erase(itr);
-		LOG("[~cNetwork~x] player disconnected");
 	} else if (m_server->m_pendingConnections.size() > 0) {
 		auto it = m_server->m_pendingConnections.begin();
 		while (it != m_server->m_pendingConnections.end()) {
@@ -122,9 +141,9 @@ void NetHandlerServer::OnHandshake(const PacketHandshake& packet, ENetPeer* peer
 				pending.connection.SendPacket(&newPacket);
 			} else {
 				PacketServerStatus newPacket;
-				newPacket.maxPlayers = 4;
-				newPacket.playerCount = m_server->m_clients.size();
-				newPacket.SetTitle("ServerTitle");
+				newPacket.maxPlayers = (uint8)m_server->m_host.m_maxConnections;
+				newPacket.playerCount = m_server->GetPlayerCount();
+				newPacket.SetTitle("Emerald server");
 				newPacket.SetMotd("Motd!");
 				pending.connection.SendPacket(&newPacket);
 
@@ -153,7 +172,7 @@ void NetHandlerServer::OnHandshakeResponse(const PacketHandshakeResponse& packet
 
 					PacketWriter gameData(PacketType::GameData);
 					auto& chunks = m_server->m_world->GetChunks();
-					
+
 					gameData.Write((uint32)chunks.size());
 					for (auto& chunk : chunks) {
 						gameData.Write(chunk.first);

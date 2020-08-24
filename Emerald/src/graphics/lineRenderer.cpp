@@ -69,6 +69,9 @@ void LineRenderer::Bounds(glm::vec3 position, glm::vec3 size, Color& color, bool
 	Line(x4, x8, color, overlay);
 }
 
+void LineRenderer::DrawAABB(const AABB& aabb, Color& color, bool overlay) {
+	Bounds(aabb.GetCenter(), aabb.GetSize() / 2.0f, color, overlay);
+}
 
 void LineRenderer::Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay) {
 	LineVertex vertices[2];

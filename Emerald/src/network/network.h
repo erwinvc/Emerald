@@ -19,7 +19,8 @@ struct ServerStatus {
 
 	String ToString() {
 		switch (status) {
-			case ServerStatusResult::Succesful: return "Succesful";
+			case ServerStatusResult::Succesful: return Format("%s %u/%u", name.c_str(), playerCount, maxPlayers);
+			//case ServerStatusResult::Succesful: return "Succesful";
 			case ServerStatusResult::Pending: return "Pending";
 			case ServerStatusResult::Failed: return "Failed";
 			case ServerStatusResult::TimedOut: return "Timed out";
@@ -66,6 +67,7 @@ public:
 
 class NetHost {
 public:
+	int m_maxConnections = 0;
 	ENetHost* m_handle = nullptr;
 
 	NetHost();

@@ -1,9 +1,9 @@
 #include "stdafx.h"
-
 //uint Application::s_globalLogValue = 0;
 
 void Client::Initialize() {
 	glfwSetErrorCallback(ErrorCallback);
+	
 	if (!glfwInit()) {
 		LOG_ERROR("[GLFW] GLFW failed to initialize");
 		return;
@@ -70,7 +70,9 @@ void Client::Run() {
 	while (!m_window->ShouldClose()) {
 		m_updateTimer.Update();
 		GetKeyboard()->Update();
+		GetMouse()->Update();
 		for (int i = 0; i < Math::Min(10, m_updateTimer.m_elapsedUpdates); i++) {
+			GetMouse()->UpdateTick();
 			Update(TimeStep(0.016f, m_updateTimer.m_lastTime, m_frameCount));
 			updates++;
 		}
@@ -92,13 +94,12 @@ void Client::Run() {
 
 void Client::Update(TimeStep time) {
 	GetAssetManager()->Update();
-	
+
 	if (KeyJustUp('M')) {
 		m_lockedMouse ^= true;
 		glfwSetInputMode(GetClient()->GetWindow()->GetHandle(), GLFW_CURSOR, m_lockedMouse ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 	}
 	auto& pCPUFrame = GetProfiler()->Start(ProfilerDataType::Update);
-	GetMouse()->Update();
 	GetStateManager()->Update(time);
 	GetTweenManager()->Update(time);
 	GetProfiler()->Update();
@@ -149,6 +150,7 @@ void Client::Render(float partialUpdate) {
 		pipeline->Render(partialUpdate);
 
 		if (GetImGuiManager()->IsInitialized()) {
+			//if (m_lockedMouse) ImGui::GetCurrentContext()->NavWindow = nullptr;
 			GetImGuiManager()->Begin();
 			if (UI::BeginWindow("Emerald", ImVec2(576, 680))) {
 				if (ImGui::BeginTabBar("Tab", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
@@ -157,10 +159,11 @@ void Client::Render(float partialUpdate) {
 					GetFrameBufferManager()->OnImGUI();
 					GetShaderManager()->OnImGUI();
 					GetProfiler()->OnImGui();
-				ImGui::EndTabBar();
+					ImGui::EndTabBar();
 				}
 			}
 			UI::EndWindow();
+			//ImGui::ShowDemoWindow();
 			GetProfiler()->OnGlobalImGui();
 
 			GetStateManager()->OnImGUI();

@@ -62,7 +62,7 @@ void Server::Shutdown() {
 }
 
 void Server::CreatePendingConnection(ENetPeer* peer) {
-	LOG("[~cNetwork~x] new client connected %s", peer->address.host.u.Byte);
+	LOG("[~cNetwork~x] new client connected %s", (char*)peer->address.host.u.Byte);
 	PendingClientSession session;
 	session.connection.m_peer = peer;
 	m_pendingConnections.push_back(session);

@@ -1,18 +1,10 @@
 #pragma once
 
+class BlockState;
 class ChunkMeshGenerator {
 private:
-	static bool MakeFace(uint8 thisId, uint8 compareVoxel) {
-		uint8 air = 0;
-
-		if (compareVoxel == air) {
-			return true;
-		//} else if (compareVoxel != thisId) {
-		//	return true;
-		}
-		return false;
-	}
+	static bool MakeFace(BlockState* block, Chunk& chunk, glm::vec3&& position);
 
 public:
-	static ChunkMesh MakeChunkMesh(const Chunk& chunk);
+	static ChunkMesh MakeChunkMesh(Chunk& chunk);
 };

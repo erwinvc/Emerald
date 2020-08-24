@@ -18,7 +18,7 @@ typedef const char* String_t;
 typedef const wchar_t* WString_t;
 
 typedef glm::vec3 WorldPos;
-typedef glm::ivec3 BlockPos;
+//typedef glm::ivec3 BlockPos;
 typedef glm::ivec3 ChunkPos;
 
 #define BIT(x) (1 << x)

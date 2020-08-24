@@ -2,8 +2,9 @@
 
 #include "includes/globalUniforms.incl"
 
-in vec3 vsPos;
-in vec3 vsIndex; //x = vertex; y = block side; z = texture;
+in uvec2 vsData;
+//in ivec3 vsPos;
+//in vec3 vsIndex; //x = vertex; y = block side; z = texture;
 
 out vec2 fsUv;
 out vec3 fsNormal;
@@ -19,29 +20,44 @@ struct Data {
 out Data fsData;
 
 vec2 texCoords[4] = vec2[4](
-    vec2(0.0f, 0.0f),
-    vec2(1.0f, 0.0f),
-    vec2(1.0f, 1.0f),
-    vec2(0.0f, 1.0f)
+    vec2(0.0, 0.0),
+    vec2(1.0, 0.0),
+    vec2(1.0, 1.0),
+    vec2(0.0, 1.0)
 );
 
 vec3 normals[6] = vec3[6](
-	vec3( -1, 0, 0 ),
-	vec3( 1, 0, 0 ),
-	vec3( 0, 0, 1 ),
-	vec3( 0, 0, -1 ),
-	vec3( 0, 1, 0 ),
-	vec3( 0, -1, 0 )
+	vec3(0, -1, 0),
+	vec3(0, 1, 0),
+	vec3(0, 0, -1),
+	vec3(0, 0, 1),
+	vec3(-1, 0, 0),
+	vec3(1, 0, 0)
 );
 
+	//vec3(-1, 0, 0),
+	//vec3(1, 0, 0),
+	//vec3(0, 0, 1),
+	//vec3(0, 0, -1),
+	//vec3(0, 1, 0),
+	//vec3(0, -1, 0)
+
+
 vec3 tangents[6] = vec3[6](
-	vec3( 0, 0, -1 ),
-	vec3( 0, 0, -1 ),
-	vec3( 1, 0, 0 ),
-	vec3( 1, 0, 0 ),
-	vec3( 1, 0, 0 ),
-	vec3( 1, 0, 0 )
+	vec3(-1, 0, 0),
+	vec3(1, 0, 0),
+	vec3(-1, 0, 0),
+	vec3(1, 0, 0),
+	vec3(0, 0, -1),
+	vec3(0, 0, 1)
 );
+
+	//vec3(0, 0, -1), L
+	//vec3(0, 0, -1), R
+	//vec3(1, 0, 0), F
+	//vec3(1, 0, 0), B
+	//vec3(1, 0, 0), T
+	//vec3(1, 0, 0) B
 
 vec2 GetTexCoords(float index){
 	switch(int(index)){
@@ -52,7 +68,7 @@ vec2 GetTexCoords(float index){
 	}
 }
 
-vec3 GetNormals(float index){
+vec3 GetNormals(int index){
 	switch(int(index)){
 		case 0:	return normals[0]; break;
 		case 1:	return normals[1]; break;
@@ -63,7 +79,7 @@ vec3 GetNormals(float index){
 	}
 }
 
-vec3 GetTangents(float index){
+vec3 GetTangents(int index){
 	switch(int(index)){
 		case 0:	return tangents[0]; break;
 		case 1:	return tangents[1]; break;
@@ -74,13 +90,30 @@ vec3 GetTangents(float index){
 	}
 }
 
-void main() {  
-    vec3 pos = vsPos + _ChunkPos;
+void main() { 
+
+	float x = float(vsData.x & 0x3FFu);
+	float y = float((vsData.x & 0xFFC00u) >> 10u);
+	float z = float((vsData.x & 0x3FF00000u) >> 20u);
+	vec3 pos = vec3(x, y, z);
+	pos *= 0.0625;
+	pos += _ChunkPos;
+
+	float index = float((vsData.x & 0xC0000000u) >> 30u);
+
+	float material = float((vsData.y & 0xFFFu));
+	//uint side = uint((vsData.y & 0x7000u) >> 12u);
+
+	int side = int((vsData.y & 0x7000u) >> 12u);
+
+	float uvX = float((vsData.y & 0xF8000u) >> 15u) * 0.0625;
+	float uvY = float((vsData.y & 0x1F00000u) >> 20u) * 0.0625;
+
     gl_Position = _Projection * _View * vec4(pos, 1.0);
-    vec3 n = GetNormals(vsIndex.y);
-	vec3 t = GetTangents(vsIndex.y);
+    vec3 n = GetNormals(side);
+	vec3 t = GetTangents(side);
 	vec3 b = cross(n, t);
 	fsData.TBNMatrix = mat3(t, b, n);
 
-    fsData.uv = vec3(GetTexCoords(vsIndex.x), vsIndex.z);
+    fsData.uv = vec3(uvX, uvY, material);
 }

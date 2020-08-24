@@ -63,7 +63,7 @@ void Texture::Cleanup() {
 	}
 }
 
-void Texture::Resize(int width, int height) {
+void Texture::Resize(uint width, uint height) {
 	if (m_width == width && m_height == height) return;
 	m_width = width;
 	m_height = height;

@@ -14,7 +14,7 @@ private:
 	ElementsRenderer<LineVertex>* m_depthRenderer;
 	ElementsRenderer<LineVertex>* m_overlayRenderer;
 	
-	const uint MAX_OBJECTS = 512;
+	const uint MAX_OBJECTS = 1024;
 	const uint INDICES_COUNT = 2;
 	const uint VERTICES_COUNT = 2;
 	const uint INDICES_SIZE = MAX_OBJECTS * INDICES_COUNT;
@@ -27,6 +27,7 @@ public:
 	void Begin();
 	
 	void Bounds(glm::vec3 position, glm::vec3 size, Color& color, bool overlay = false);
+	void DrawAABB(const AABB& aabb, Color& color, bool overlay = false);
 	void Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay = false);
 	void Line(float x1, float y1, float z1, float x2, float y2, float z2, Color& color, bool overlay = false);
 	void DrawRect(const Rectangle& rect, Color& color, float y = 1.01f);

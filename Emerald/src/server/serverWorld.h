@@ -11,8 +11,12 @@ private:
 public:
 	ServerWorld();
 
-	uint8 GetBlock(const WorldPos& blockPosition) const;
+	bool GetBlock(const WorldPos& blockPosition, BlockState*& blockState);
+	bool GetBlock(const BlockPos& blockPosition, BlockState*& blockState);
+	uint8 GetBlockID(const WorldPos& blockPosition) const;
+	uint8 GetBlockID(const BlockPos& blockPosition) const;
 	void SetBlock(const WorldPos& blockPosition, uint8 voxel);
+	void SetBlock(const BlockPos& blockPosition, uint8 voxel);
 	
 	void Update();
 

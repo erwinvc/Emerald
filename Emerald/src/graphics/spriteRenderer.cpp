@@ -13,7 +13,6 @@ SpriteRenderer::SpriteRenderer() {
 		indicesBuffer[i + 3] = offset + 2;
 		indicesBuffer[i + 4] = offset + 3;
 		indicesBuffer[i + 5] = offset + 0;
-
 		offset += 4;
 	}
 	m_shader = GetShaderManager()->Get("UI");

@@ -35,20 +35,61 @@ ClientWorld::~ClientWorld() {
 	DELETE(m_blockEntityModel);
 }
 
+BlockSide GetHitSide(const BlockPos currentBlock, const BlockPos& presviousBlock) {
+	if (currentBlock.y - presviousBlock.y > 0) return BlockSide::DOWN;
+	if (currentBlock.y - presviousBlock.y < 0) return BlockSide::UP;
+	if (currentBlock.z - presviousBlock.z > 0) return BlockSide::NORTH;
+	if (currentBlock.z - presviousBlock.z < 0) return BlockSide::SOUTH;
+	if (currentBlock.x - presviousBlock.x > 0) return BlockSide::WEST;
+	else return BlockSide::EAST;
+}
+
 void ClientWorld::Update(const TimeStep& time) {
 	m_time++;
 	if (m_rightClickDelayTimer > 0)	m_rightClickDelayTimer -= 0.016f;
-	//for (int i = 0; i < m_entities.size(); i++) {
-	//	if (i == GetClient()->GetPlayerID()) continue;
-	//	auto& entity = m_entities[i];
-	//	if (entity.active) {
-	//		//entity.position += entity.velocity;
-	//	}
-	//}
+	if (m_leftClickDelayTimer > 0)	m_leftClickDelayTimer -= 0.016f;
 
+	BlockIterator blockIter(Camera::active->transform.position, Utils::RotationToDirection(Camera::active->transform.rotation));
+	BlockState* blockState2 = nullptr;
+	BlockSide blockSide;
 	m_hasHoveredBlock = false;
-	BlockIterator iter(Camera::active->transform.position, Utils::RotationToDirection(Camera::active->transform.rotation));
 	glm::vec3 previousBlock;
+
+	for (; blockIter.t() < 5; ++blockIter) {
+		if (GetBlock(*blockIter, blockState2) && blockState2->IsSolid()) {
+
+			glm::vec3 start = Camera::active->transform.position;
+			glm::vec3 end = Camera::active->transform.position + (Utils::RotationToDirection(Camera::active->transform.rotation) * glm::vec3(5, 5, 5));
+			if (blockState2->GetAABB().CalculateIntercept(blockSide, start - glm::vec3(*blockIter), end - glm::vec3(*blockIter))) {
+				if (GetMouse()->ButtonDown(VK_MOUSE_LEFT) && m_leftClickDelayTimer <= 0) {
+					GetWorld()->BreakBlock(*blockIter, blockSide);
+					m_leftClickDelayTimer = 0.2f;
+				} else if (GetMouse()->ButtonDown(VK_MOUSE_MIDDLE) && m_rightClickDelayTimer <= 0) {
+					GetClient()->SetBlock(*blockIter, 0);
+					m_rightClickDelayTimer = 0.2f;
+				} else if (GetMouse()->ButtonDown(VK_MOUSE_RIGHT) && m_rightClickDelayTimer <= 0) {
+					glm::vec3& pos = Camera::active->transform.position;
+					AABB player(pos.x - 0.3f, pos.y - 1.42f, pos.z - 0.3f, pos.x + 0.3f, pos.y + 0.38f, pos.z + 0.3f);
+					BlockPos blockPos = ToBlockPosition(previousBlock);
+					AABB block(blockPos);
+					if (!player.Intersects(block)) {
+						BlockPos blockPos = BlockPos(*blockIter).Offset(blockSide);
+						if (GetWorld()->GetBlockID(blockPos) == 0) {
+							GetClient()->SetBlock(BlockPos(*blockIter).Offset(blockSide), m_selectedBlock);
+							m_rightClickDelayTimer = 0.2f;
+						}
+					}
+				}
+				m_hoveredBlock = blockState2;
+				m_hoveredBlockPos = *blockIter;
+				m_hasHoveredBlock = true;
+				break;
+			}
+			previousBlock = *blockIter;
+		}
+	}
+
+	BlockIterator iter(Camera::active->transform.position, Utils::RotationToDirection(Camera::active->transform.rotation));
 	float scroll = GetMouse()->GetScroll().y;
 	static int32 blockCount = 6;
 	if (scroll > 0) {
@@ -56,23 +97,14 @@ void ClientWorld::Update(const TimeStep& time) {
 	} else if (scroll < 0) {
 		if (--m_selectedBlock < 1) m_selectedBlock = blockCount;
 	}
-
+	m_hasHoveredBlock2 = false;
+	BlockState* blockState = nullptr;
 	for (; iter.t() < 5; ++iter) {
-		if (GetBlock(*iter) != 0) {
-			if (GetMouse()->ButtonJustDown(VK_MOUSE_LEFT)) {
-				GetClient()->SetBlock(*iter, 0);
-			} else if (GetMouse()->ButtonDown(VK_MOUSE_RIGHT) && m_rightClickDelayTimer <= 0) {
-				glm::vec3& pos = Camera::active->transform.position;
-				AABB player(pos.x - 0.3f, pos.y - 1.42f, pos.z - 0.3f, pos.x + 0.3f, pos.y + 0.38f, pos.z + 0.3f);
-				BlockPos blockPos = ToBlockPosition(previousBlock);
-				AABB block(blockPos);
-				if (!player.Intersects(block)) {
-					GetClient()->SetBlock(previousBlock, m_selectedBlock);
-					m_rightClickDelayTimer = 0.2f;
-				}
-			}
-			m_hoveredBlock = *iter;
-			m_hasHoveredBlock = true;
+		if (GetBlock(*iter, blockState) && blockState->IsSolid()) {
+
+			m_hoveredBlock2 = blockState2;
+			m_hoveredBlockPos2 = *blockIter;
+			m_hasHoveredBlock2 = true;
 			break;
 		}
 		previousBlock = *iter;
@@ -92,6 +124,7 @@ void ClientWorld::RenderChunks(Shader* shader) {
 }
 
 void ClientWorld::RenderGeometry(HDRPipeline* pipeline) {
+
 	static Timer timer;
 	m_chunkMaterial->Bind();
 	m_chunkMaterial->GetShader()->Set("_Time", timer.Get());
@@ -114,19 +147,43 @@ void ClientWorld::RenderGeometry(HDRPipeline* pipeline) {
 	}
 
 	if (m_hasHoveredBlock) {
-		pipeline->Bounds(m_hoveredBlock + glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.501f, 0.501f, 0.501f), Color(0.0f, 0.0f, 0.0f, 0.85f), false);
-		pipeline->Bounds(m_hoveredBlock + glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.503f, 0.503f, 0.503f), Color(0.0f, 0.0f, 0.0f, 0.85f), false);
-		pipeline->Bounds(m_hoveredBlock + glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.505f, 0.505f, 0.505f), Color(0.0f, 0.0f, 0.0f, 0.85f), false);
+		pipeline->DrawAABB(m_hoveredBlock->GetAABB().Expand(0.001f, 0.001f, 0.001f).Offset(m_hoveredBlockPos), Color(0.0f, 0.0f, 0.0f, 0.85f));
+		pipeline->DrawAABB(m_hoveredBlock->GetAABB().Expand(0.003f, 0.003f, 0.003f).Offset(m_hoveredBlockPos), Color(0.0f, 0.0f, 0.0f, 0.85f));
+		pipeline->DrawAABB(m_hoveredBlock->GetAABB().Expand(0.005f, 0.005f, 0.005f).Offset(m_hoveredBlockPos), Color(0.0f, 0.0f, 0.0f, 0.85f));
+	}
+	if (m_hasHoveredBlock2) {
+		//pipeline->Bounds(m_hoveredBlockPos2 + glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.501f, 0.501f, 0.501f), Color(0.0f, 0.0f, 0.0f, 0.85f), false);
+		//pipeline->Bounds(m_hoveredBlockPos2 + glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.503f, 0.503f, 0.503f), Color(0.0f, 0.0f, 0.0f, 0.85f), false);
+		//pipeline->Bounds(m_hoveredBlockPos2 + glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.505f, 0.505f, 0.505f), Color(0.0f, 0.0f, 0.0f, 0.85f), false);
 	}
 }
 
-uint8 ClientWorld::GetBlock(const glm::vec3& blockPosition) const {
+bool ClientWorld::GetBlock(const WorldPos& blockPosition, BlockState*& blockState) {
 	auto chunkPosition = ToChunkPosition(blockPosition);
 	auto itr = m_chunks.find(chunkPosition);
-	if (itr == m_chunks.cend()) {
-		return 0;
-	}
-	return itr->second.GetBlockFast(ToLocalBlockPosition(blockPosition));
+	if (itr == m_chunks.cend()) return false;
+	return itr->second.GetBlockFast(ToLocalBlockPosition(blockPosition), blockState);
+}
+
+bool ClientWorld::GetBlock(const BlockPos& blockPosition, BlockState*& blockState) {
+	auto chunkPosition = ToChunkPosition(blockPosition);
+	auto itr = m_chunks.find(chunkPosition);
+	if (itr == m_chunks.cend()) return false;
+	return itr->second.GetBlockFast(ToLocalBlockPosition(blockPosition), blockState);
+}
+
+uint8 ClientWorld::GetBlockID(const WorldPos& blockPosition) const {
+	auto chunkPosition = ToChunkPosition(blockPosition);
+	auto itr = m_chunks.find(chunkPosition);
+	if (itr == m_chunks.cend()) return 0;
+	return itr->second.GetBlockID(ToLocalBlockPosition(blockPosition));
+}
+
+uint8 ClientWorld::GetBlockID(const BlockPos& blockPosition) const {
+	auto chunkPosition = ToChunkPosition(blockPosition);
+	auto itr = m_chunks.find(chunkPosition);
+	if (itr == m_chunks.cend()) return 0;
+	return itr->second.GetBlockID(ToLocalBlockPosition(blockPosition));
 }
 
 void ClientWorld::SetChunkDirty(const ChunkPos& chunkPosition) {
@@ -136,12 +193,32 @@ void ClientWorld::SetChunkDirty(const ChunkPos& chunkPosition) {
 	}
 }
 
-void ClientWorld::SetBlock(const glm::vec3& blockPosition, uint8 voxel) {
+void ClientWorld::SetBlock(const WorldPos& blockPosition, uint8 voxel) {
 	auto chunkPosition = ToChunkPosition(blockPosition);
 	auto itr = m_chunks.find(chunkPosition);
 	auto local = ToLocalBlockPosition(blockPosition);
 	if (itr != m_chunks.cend()) {
 		itr->second.SetBlock(local, voxel);
+		itr->second.m_dirty = true;
+	}
+}
+
+void ClientWorld::SetBlock(const BlockPos& blockPosition, uint8 voxel) {
+	auto chunkPosition = ToChunkPosition(blockPosition);
+	auto itr = m_chunks.find(chunkPosition);
+	auto local = ToLocalBlockPosition(blockPosition);
+	if (itr != m_chunks.cend()) {
+		itr->second.SetBlock(local, voxel);
+		itr->second.m_dirty = true;
+	}
+}
+
+void ClientWorld::BreakBlock(const BlockPos& blockPosition, BlockSide blockSide) {
+	auto chunkPosition = ToChunkPosition(blockPosition);
+	auto itr = m_chunks.find(chunkPosition);
+	auto local = ToLocalBlockPosition(blockPosition);
+	if (itr != m_chunks.cend()) {
+		itr->second.BreakBlock(local, blockSide);
 		itr->second.m_dirty = true;
 	}
 }
@@ -163,4 +240,42 @@ void ClientWorld::AddEntity(uint32 id, const glm::vec3& position, String_t name,
 	m_entities[id].position = position;
 	strcpy(m_entities[id].name, name);
 	m_entities[id].rotation = rotation;
+}
+
+vector<AABB> ClientWorld::GetAABBs(const AABB& aabb) {
+	vector<AABB> aabbs;
+	for (float x = Math::Floor(aabb.minX); x < aabb.maxX; x++) {
+		for (float y = Math::Floor(aabb.minY); y < aabb.maxY; y++) {
+			for (float z = Math::Floor(aabb.minZ); z < aabb.maxZ; z++) {
+				BlockState* blockState = nullptr;
+				GetBlock(WorldPos(x, y, z), blockState);
+				if (blockState && blockState->IsSolid()) {
+					aabbs.emplace_back(blockState->GetAABB().Offset(x, y, z));
+				}
+			}
+		}
+	}
+	return aabbs;
+}
+
+void ClientWorld::RayTraceBlocks(glm::vec3 pos1, glm::vec3 pos2, bool returnLastUncollidableBlock) {
+	//int i = Math::Floor(pos2.x);
+	//int j = Math::Floor(pos2.y);
+	//int k = Math::Floor(pos2.z);
+	//int l = Math::Floor(pos1.x);
+	//int i1 = Math::Floor(pos1.y);
+	//int j1 = Math::Floor(pos1.z);
+	//BlockState* blockState = nullptr;
+	//GetBlock(pos1, blockState);
+	//if (blockState) {
+	//	Block block = iblockstate.getBlock();
+	//
+	//	if ((!ignoreBlockWithoutBoundingBox || iblockstate.getCollisionBoundingBox(this, blockpos) != Block.NULL_AABB) && block.canCollideCheck(iblockstate, stopOnLiquid)) {
+	//		RayTraceResult raytraceresult = iblockstate.collisionRayTrace(this, blockpos, vec31, vec32);
+	//
+	//		if (raytraceresult != null) {
+	//			return raytraceresult;
+	//		}
+	//	}
+	//}
 }

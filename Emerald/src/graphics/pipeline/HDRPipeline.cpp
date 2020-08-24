@@ -279,10 +279,7 @@ void HDRPipeline::PostGeometryRender() {
 	m_quad->Bind();
 	m_quad->Draw();
 
-	//Draw lines
-	m_lineRenderer->End();
-	m_lineRenderer->Draw();
-
+	GLUtils::EnableDepthTest();
 	//Atmosphere
 	if (GetFrameBufferManager()->GetSelectedTexture() == m_hdrTexture) {
 		auto& pAtmosphere = GetProfiler()->StartGL(ProfilerDataType::Atmosphere);
@@ -292,6 +289,10 @@ void HDRPipeline::PostGeometryRender() {
 		m_cube->Draw();
 		pAtmosphere.End();
 	}
+	
+	//Draw lines
+	m_lineRenderer->End();
+	m_lineRenderer->Draw();
 }
 
 void HDRPipeline::OnImGUI() {
@@ -354,7 +355,7 @@ void HDRPipeline::OnImGUI() {
 				m_freeCam->transform.position = Camera::active->transform.position;
 				Camera::active = m_freeCam;
 			}
-			
+
 			if (ImGui::Button("First person")) {
 				m_firstPersonCamera->transform.position = Camera::active->transform.position;
 				Camera::active = m_firstPersonCamera;
@@ -402,4 +403,8 @@ void HDRPipeline::Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay
 
 void HDRPipeline::Line(float x0, float y0, float z0, float x1, float y1, float z1, Color& color, bool overlay) {
 	m_lineRenderer->Line(x0, y0, z0, x1, y1, z1, color, overlay);
+}
+
+void HDRPipeline::DrawAABB(const AABB& aabb, Color& color, bool overlay) {
+	m_lineRenderer->DrawAABB(aabb, color, overlay);
 }

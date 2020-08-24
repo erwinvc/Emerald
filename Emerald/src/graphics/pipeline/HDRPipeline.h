@@ -85,4 +85,5 @@ public:
 	void Bounds(glm::vec3 position, glm::vec3 size, Color color, bool overlay = false);
 	void Line(glm::vec3 begin, glm::vec3 end, Color color, bool overlay = false);
 	void Line(float x0, float y0, float z0, float x1, float y1, float z1, Color& color, bool overlay = false);
+	void DrawAABB(const AABB& aabb, Color& color, bool overlay = false);
 };

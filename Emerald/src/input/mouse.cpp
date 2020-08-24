@@ -40,13 +40,7 @@ void Mouse::OnScroll(double xoffset, double yoffset) {
 void Mouse::Update() {
 	m_overrideImGuiThisFrame = m_overrideImGuiNextFrame;
 	m_overrideImGuiNextFrame = false;
-	if (m_locked) ImGui::GetCurrentContext()->NavWindow = nullptr;
-	for (int i = 0; i < 5; i++) {
-		m_buttonStates[i].m_wasUp = m_buttonStates[i].m_isUpNow;
-		m_buttonStates[i].m_isUpNow = m_buttonStates[i].m_glIsUpNow;
-		m_buttonStates[i].m_justDown = m_buttonStates[i].m_wasUp && !m_buttonStates[i].m_isUpNow;
-		m_buttonStates[i].m_justUp = !m_buttonStates[i].m_wasUp && m_buttonStates[i].m_isUpNow;
-	}
+
 
 	m_prevPosition = m_usePosition;
 	m_usePosition = m_position;
@@ -62,6 +56,16 @@ void Mouse::Update() {
 	m_delta = m_rawDelta * sensitivity;
 
 	m_imGuiControlThisFrame = CheckImGuiControl();
+}
+
+void Mouse::UpdateTick()
+{
+	for (int i = 0; i < 5; i++) {
+		m_buttonStates[i].m_wasUp = m_buttonStates[i].m_isUpNow;
+		m_buttonStates[i].m_isUpNow = m_buttonStates[i].m_glIsUpNow;
+		m_buttonStates[i].m_justDown = m_buttonStates[i].m_wasUp && !m_buttonStates[i].m_isUpNow;
+		m_buttonStates[i].m_justUp = !m_buttonStates[i].m_wasUp && m_buttonStates[i].m_isUpNow;
+	}
 }
 
 bool Mouse::MouseWithin(float x, float y, float width, float height) {

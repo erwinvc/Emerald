@@ -16,6 +16,7 @@ public:
 	void OnUpdateEntities(const void* data);
 	void OnBlockUpdate(const PacketBlockUpdate& packet);
 	void OnTime(const PacketTime& packet);
+	void OnTeleport(const PacketTeleport& packet);
 	void HandlePacket(const ReceivedPacket& packet);
 	void OnHandshakeChallenge(const PacketHandshakeChallenge& packet);
 };

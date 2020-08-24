@@ -23,7 +23,7 @@ public:
 	static int PathFilter(ImGuiTextEditCallbackData* data);
 };
 
-static ImGuiManager* GetImGuiManager() { return ImGuiManager::GetInstance(); }
+inline ImGuiManager* GetImGuiManager() { return ImGuiManager::GetInstance(); }
 
 class UI {
 private:
