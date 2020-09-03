@@ -51,8 +51,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-//#include <TracyOpenGL.hpp>
-
 // ImGui
 #include <imgui.h>
 #include "imgui_impl_glfw.h"
@@ -75,8 +73,8 @@
 using namespace std;
 
 #pragma warning (disable: 4267) /*size_t conversions*/
-
 #pragma warning (default: 4244) /*size_t conversions*/
+
 #define loop(x, n) for(int x = 0; x < n; ++x)
 #define foreach(x, y) for(auto& x : y)
 #define BUFFEROFFSET(i) ((char *)NULL + (i))

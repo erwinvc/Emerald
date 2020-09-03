@@ -13,18 +13,6 @@ bool ChunkMeshGenerator::MakeFace(BlockState* block, Chunk& chunk, glm::vec3&& p
 		//	return true;
 	}
 
-	if (blockState->dDown != 0) return true;
-	if (blockState->dUp != 0) return true;
-	if (blockState->dNorth != 0) return true;
-	if (blockState->dSouth != 0) return true;
-	if (blockState->dWest != 0) return true;
-	if (blockState->dEast != 0) return true;
-	if (block->dDown != 0) return true;
-	if (block->dUp != 0) return true;
-	if (block->dNorth != 0) return true;
-	if (block->dSouth != 0) return true;
-	if (block->dWest != 0) return true;
-	if (block->dEast != 0) return true;
 	return false;
 }
 
@@ -45,41 +33,35 @@ ChunkMesh ChunkMeshGenerator::MakeChunkMesh(Chunk& chunk) {
 				BlockState* blockState = nullptr;
 				uint8 block = 0;
 				if (chunk.GetBlock(voxelPosition, blockState)) block = blockState->blockID;
-				uint8 dW = blockState->dWest;
-				uint8 dE = blockState->dEast;
-				uint8 dD = blockState->dDown;
-				uint8 dU = blockState->dUp;
-				uint8 dS = blockState->dSouth;
-				uint8 dN = blockState->dNorth;
 				if (block > 0) {
 					// Bottom chunk face NEGATIVE Y
 					if (MakeFace(blockState, chunk, { x, y - 1, z })) {
-						mesh.AddFace(BOTTOM_FACE, BlockSide::DOWN, voxelPosition, block, dW, dE, dD, dU, dN, dS);
+						mesh.AddFace(BOTTOM_FACE, BlockSide::DOWN, voxelPosition, block);
 					}
 
 					// Top chunk face POSITIVE Y
 					if (MakeFace(blockState, chunk, { x, y + 1, z })) {
-						mesh.AddFace(TOP_FACE, BlockSide::UP, voxelPosition, block, dW, dE, dD, dU, dN, dS);
+						mesh.AddFace(TOP_FACE, BlockSide::UP, voxelPosition, block);
 					}
 
 					// Back chunk face NEGATIVE Z
 					if (MakeFace(blockState, chunk, { x, y, z - 1 })) {
-						mesh.AddFace(BACK_FACE, BlockSide::NORTH, voxelPosition, block, dW, dE, dD, dU, dN, dS);
+						mesh.AddFace(BACK_FACE, BlockSide::NORTH, voxelPosition, block);
 					}
 
 					// Front chunk face POSITIVE Z
 					if (MakeFace(blockState, chunk, { x, y, z + 1 })) {
-						mesh.AddFace(FRONT_FACE, BlockSide::SOUTH, voxelPosition, block, dW, dE, dD, dU, dN, dS);
+						mesh.AddFace(FRONT_FACE, BlockSide::SOUTH, voxelPosition, block);
 					}
 					
 					// Left voxel face NEGATIVE X
 					if (MakeFace(blockState, chunk, { x - 1, y, z })) {
-						mesh.AddFace(LEFT_FACE, BlockSide::WEST, voxelPosition, block, dW, dE, dD, dU, dN, dS);
+						mesh.AddFace(LEFT_FACE, BlockSide::WEST, voxelPosition, block);
 					}
 
 					// Right chunk face POSITIVE X
 					if (MakeFace(blockState, chunk, { x + 1, y, z })) {
-						mesh.AddFace(RIGHT_FACE, BlockSide::EAST, voxelPosition, block, dW, dE, dD, dU, dN, dS);
+						mesh.AddFace(RIGHT_FACE, BlockSide::EAST, voxelPosition, block);
 					}
 				}
 			}

@@ -96,7 +96,6 @@ void main() {
 	float y = float((vsData.x & 0xFFC00u) >> 10u);
 	float z = float((vsData.x & 0x3FF00000u) >> 20u);
 	vec3 pos = vec3(x, y, z);
-	pos *= 0.0625;
 	pos += _ChunkPos;
 
 	float index = float((vsData.x & 0xC0000000u) >> 30u);
@@ -106,8 +105,8 @@ void main() {
 
 	int side = int((vsData.y & 0x7000u) >> 12u);
 
-	float uvX = float((vsData.y & 0xF8000u) >> 15u) * 0.0625;
-	float uvY = float((vsData.y & 0x1F00000u) >> 20u) * 0.0625;
+	float uvX = float((vsData.y & 0xF8000u) >> 15u);
+	float uvY = float((vsData.y & 0x1F00000u) >> 20u);
 
     gl_Position = _Projection * _View * vec4(pos, 1.0);
     vec3 n = GetNormals(side);

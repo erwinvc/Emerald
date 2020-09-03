@@ -56,18 +56,7 @@ uint8 Chunk::GetBlockID(const glm::ivec3& position) const {
 
 void Chunk::BreakBlock(const BlockPos& blockPosition, BlockSide blockSide) {
 	BlockState& blockState = m_blocks[ToLocalBlockIndex(blockPosition)];
-	switch (blockSide) {
-		case BlockSide::WEST: blockState.dWest++; break;
-		case BlockSide::EAST: blockState.dEast++; break;
-		case BlockSide::SOUTH: blockState.dSouth++; break;
-		case BlockSide::NORTH: blockState.dNorth++; break;
-		case BlockSide::UP: blockState.dUp++; break;
-		case BlockSide::DOWN: blockState.dDown++; break;
-	}
-
-	if (blockState.dWest + blockState.dEast == 16) m_blocks[ToLocalBlockIndex(blockPosition)] = BlockState(0);
-	if (blockState.dSouth + blockState.dNorth == 16) m_blocks[ToLocalBlockIndex(blockPosition)] = BlockState(0);
-	if (blockState.dUp + blockState.dDown == 16) m_blocks[ToLocalBlockIndex(blockPosition)] = BlockState(0);
+	m_blocks[ToLocalBlockIndex(blockPosition)] = BlockState(0);
 }
 
 void Chunk::Draw() {

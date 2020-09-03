@@ -46,6 +46,6 @@ public:
 		if (m_generated) DELETE(m_mesh);
 	}
 
-	void AddFace(const bool face[12], BlockSide side, const glm::ivec3 position, uint8 block, uint8 xMinOffset, uint8 xMaxOffset, uint8 yMinOffset, uint8 yMaxOffset, uint8 zMinOffset, uint8 zMaxOffset);
+	void AddFace(const bool face[12], BlockSide side, const glm::ivec3 position, uint8 block);
 	void GenerateMesh();
 };
