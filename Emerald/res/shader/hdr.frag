@@ -278,7 +278,7 @@ void main(){
 		case 12: color = Cherno(color); break;
 	}
 
-	color = ToGreyScale(color);
+	//color = ToGreyScale(color);
 
 	out_color = vec4(Vignette(color, vec3(0), 0.3, 0.8), 1);
 }
