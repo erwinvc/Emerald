@@ -8,6 +8,7 @@ private:
 	uint64 m_frameCount;
 public:
 
+	//https://gyazo.com/3beb3d4d8b88517ebd327028747be10c
 	TimeStep(float initial = 0.0, float totalTime = 0.0f, uint64 frameCount = 0)
 		: m_time(initial), m_deltaTime(initial / 1000.0f), m_totalTime(totalTime), m_frameCount(frameCount) {
 	}
