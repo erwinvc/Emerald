@@ -1,5 +1,5 @@
 # Emerald
-A C++/OpenGL game engine I've been working on for a while.
+A simple C++/OpenGL game engine used for various projects.
 [Showcase video](https://www.youtube.com/watch?v=Qxd_SE8Ga7M)
 
 ## Features
