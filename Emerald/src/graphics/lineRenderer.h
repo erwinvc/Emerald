@@ -12,7 +12,7 @@ private:
 	};
 
 	InstancedRenderer2D<Line>* m_renderer;
-	const uint MAX_OBJECTS = 4096 * 128;
+	const uint MAX_OBJECTS = 4096 * 128*4;
 	AssetRef<Shader> m_shader;
 	void Initialize();
 

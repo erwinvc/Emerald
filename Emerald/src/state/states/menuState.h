@@ -149,6 +149,7 @@ public:
 			if (c.weight < 0) color.B = -value;
 			else color.R = value;
 			if (lineRendererIndex++ % 111 == 0) {
+			//if (value > 0.9f)
 			GetLineRenderer()->Submit(m_entity->m_position, c.neuron->m_entity->m_position, color);
 			}
 		}

@@ -31,7 +31,7 @@ enum class Ease {
 	INOUTBACK
 };
 
-String_t g_easeStrings[] = {
+inline String_t g_easeStrings[] = {
 	"LINEAR",
 	"INSINE",
 	"OUTSINE",
