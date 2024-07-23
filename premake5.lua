@@ -1,76 +1,19 @@
 workspace "Emerald"
-	architecture "x64"
+   architecture "x64"
+   configurations { "Debug", "Release", "Dist" }
+   startproject "Editor"
 
-	configurations
-	{
-		"Debug",
-		"Release"
-	}
+   -- Workspace-wide build options for MSVC
+   filter "system:windows"
+      buildoptions { "/EHsc", "/Zc:preprocessor", "/Zc:__cplusplus" }
 
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+OutputDir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 
-project "Emerald"
-	location "Emerald"
-	kind "ConsoleApp"
-	language "C++"
-	staticruntime "off"
-	
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-	
-	pchheader "stdafx.h"
-	pchsource "Emerald/stdafx.cpp"
-   
-	files
-	{
-		"%{prj.name}/**.h",
-		"%{prj.name}/**.cpp"
-	}
+group "Engine"
+	include "engine/dependencies/GLAD"
+	include "engine/dependencies/GLFW"
+	include "engine"
+group ""
 
-	includedirs
-	{
-		"%{prj.name}/vendor/AssImp/include",
-		"%{prj.name}/vendor/AssImp/build/include",
-		"%{prj.name}/vendor/GLFW/include",
-		"%{prj.name}/vendor/GLEW/include",
-		"%{prj.name}/vendor/imgui",
-		"%{prj.name}/src",
-		"."
-	}
-	
-	libdirs  
-	{ 
-		"$(SolutionDir)%{prj.name}/vendor/GLFW/lib-vc2015",
-		"$(SolutionDir)%{prj.name}/vendor/AssImp",
-		"$(SolutionDir)%{prj.name}/vendor/GLEW/lib/Release/x64"
-	}
-
-	links
-	{
-		"glfw3",
-		"glew32s",
-		"opengl32",
-		"IrrXML",
-		"zlib.lib",
-		"zlibstatic",
-		"assimp-vc140-mt"
-	}
-	
-	filter "system:windows"
-		cppdialect "C++17"
-		systemversion "latest"
-
-		defines
-		{
-			"GLEW_STATIC"
-		}
-
-	filter "configurations:Debug"
-		defines "EE_DEBUG"
-		runtime "Debug"
-		symbols "On"
-
-	filter "configurations:Release"
-		defines "EE_RELEASE"
-		runtime "Release"
-		optimize "On"
+include "editor"
+include "runtime"

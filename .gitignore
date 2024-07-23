@@ -1,7 +1,6 @@
 # Directories
 .vs/
-bin/
-bin-int/
+binaries/
 
 # Files
 *.user
@@ -10,5 +9,5 @@ bin-int/
 *.vcxproj
 
 !premake5.exe
-Emerald/imgui.ini
-Profiling/
+imgui.ini
+*.log
