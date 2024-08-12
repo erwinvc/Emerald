@@ -6,11 +6,16 @@
 #include "ui/iconsFontAwesome.h"
 #include "ui/imguiManager.h"
 #include "ui/iconsFontSegoeMDL2.h"
+#include "editor.h"
+#include "graphics/renderPipeline.h"
+#include "graphics/renderPass.h"
+#include "graphics/frameBuffer.h"
+#include "graphics/texture.h"
 
 namespace emerald {
 	static bool m_TitleBarHovered = false;
 	void EditorWindow::initialize() {
-		glfwSetTitlebarHitTestCallback(App->getWindow()->getHandle(), [](GLFWwindow* window, int x, int y, int* hit) {
+		glfwSetTitlebarHitTestCallback(App->getWindow()->handle(), [](GLFWwindow* window, int x, int y, int* hit) {
 			*hit = m_TitleBarHovered;
 			});
 	}
@@ -168,23 +173,24 @@ namespace emerald {
 	} Key;
 
 	bool IsKeyDown(KeyCode keycode) {
-		GLFWwindow* windowHandle = App->getWindow()->getHandle();
+		GLFWwindow* windowHandle = App->getWindow()->handle();
 		int state = glfwGetKey(windowHandle, (int)keycode);
 		return state == GLFW_PRESS;/* || state == GLFW_REPEAT;*/
 	}
 
 	bool IsMouseButtonDown(MouseButton button) {
-		GLFWwindow* windowHandle = App->getWindow()->getHandle();
+		GLFWwindow* windowHandle = App->getWindow()->handle();
 		int state = glfwGetMouseButton(windowHandle, (int)button);
 		return state == GLFW_PRESS;
 	}
+	static int offset = 32;
 
 	void drawTitlebar(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
 		const bool maximized = App->getWindow()->isMaximized();
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
 			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoScrollbar;
-		
+
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, maximized ? ImVec2(6.0f, 6.0f) : ImVec2(1.0f, 1.0f));
 		ImGui::SetNextWindowPos(pos);
 		ImGui::SetNextWindowSize(size);
@@ -202,11 +208,13 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		ImGui::SetCursorPos(ImVec2(windowPadding.x, windowPadding.y + (maximized ? 2.0f : 0.0f)));
 		ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth(), titlebarHeight });
-		ImGui::BeginDisabled(true);
-		ImGui::Button((const char*)SEGOE_MDL2_ICON_COMPONENT, buttonSize);
+		ImGui::BeginHorizontal("TitlebarLogo", ImVec2(46, 46), 0.5f);
+		ImGui::Spring();
+		ImGui::Image((void*)(uint64_t)App->tex.handle(), ImVec2(32.0f, 32.0f));
+		ImGui::Spring();
+		ImGui::EndHorizontal();
 		m_TitleBarHovered = ImGui::IsItemHovered();
 
-		ImGui::EndDisabled();
 		ImGui::InvisibleButton("", ImVec2(w - buttonsAreaWidth + 2, titlebarHeight));
 		m_TitleBarHovered |= ImGui::IsItemHovered();
 
@@ -228,6 +236,7 @@ namespace emerald {
 		ImGui::PopStyleVar(2);
 
 		ImGui::End();
+
 	}
 
 	void applyNodeFlagsToNextWindow(ImGuiDockNodeFlags flags) {
@@ -238,7 +247,6 @@ namespace emerald {
 
 	void drawMenuBar() {
 		if (ImGui::BeginMenuBar()) {
-			//m_MenubarCallback();
 			if (ImGui::BeginMenu("Edit")) {
 				ImGui::MenuItem("Dummy");
 				ImGui::MenuItem("Dummy");
@@ -251,7 +259,6 @@ namespace emerald {
 			ImGui::EndMenuBar();
 		}
 	}
-	static int offset = 0;
 
 	void drawAppArea(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
@@ -259,13 +266,15 @@ namespace emerald {
 			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar;
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1.0f, 1.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
 		ImGui::SetNextWindowPos(pos);
 		ImGui::SetNextWindowSize(size);
 		ImGui::SetNextWindowViewport(viewportID);
 
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
 		ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
+		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 
 		ImGuiIO& io = ImGui::GetIO();
@@ -286,6 +295,7 @@ namespace emerald {
 			ImGuiID down = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_main_id);
 
 			ImGui::DockBuilderDockWindow("Inspector", right);
+			ImGui::DockBuilderDockWindow("Dear ImGui Demo", right);
 			ImGui::DockBuilderDockWindow("Hierarchy", left);
 			ImGui::DockBuilderDockWindow("Log", down);
 			ImGui::DockBuilderDockWindow("Viewport", dockspace_main_id);
@@ -301,8 +311,12 @@ namespace emerald {
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingOverMe);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("Viewport", nullptr, windowFlags);
+		ImVec2 actualWindowSize = ImGui::GetContentRegionAvail();
+		ImGui::Image((void*)(uint64_t)Editor->pipeline()->mainPass()->descriptor().frameBuffer->getTextures()[0]->handle(), actualWindowSize);
 		ImGui::End();
+		ImGui::PopStyleVar();
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::Begin("Inspector", nullptr, windowFlags);
@@ -314,100 +328,15 @@ namespace emerald {
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::Begin("Hierarchy", nullptr, windowFlags);
+		ImGui::Button("TestButton");
+		static bool b;
+		ImGui::Checkbox("TestCheckbox", &b);
+		static float v;
+		ImGui::SliderFloat("TestSlider", &v, 0.0f, 1.0f);
 		ImGui::End();
 	}
 
 	void EditorWindow::update(Timestep ts) {
-		/*
-		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
-		window_flags |= ImGuiWindowFlags_MenuBar;
-
-		const ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->WorkPos);
-		ImGui::SetNextWindowSize(viewport->WorkSize);
-		ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		//ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5, 4));
-		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 16);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4);
-		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 2);
-		ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 4);
-		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 8);
-		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin("DockSpace Demo", nullptr, window_flags);
-		ImGui::PopStyleVar();
-
-
-		ImGuiIO& io = ImGui::GetIO();
-		ImGuiID dockspace_id = ImGui::GetID("VulkanAppDockspace");
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-		ImGui::PopStyleVar();
-
-		//if (m_MenubarCallback) {
-		if (ImGui::BeginMenuBar()) {
-			//m_MenubarCallback();
-			if (ImGui::BeginMenu("Edit")) {
-				ImGui::MenuItem("Dummy");
-				ImGui::MenuItem("Dummy");
-				ImGui::MenuItem("Dummy");
-				ImGui::EndMenu();
-			}
-			if (ImGui::MenuItem("File")) {}
-			if (ImGui::MenuItem("View")) {}
-			if (ImGui::MenuItem("Window")) {}
-			ImGui::EndMenuBar();
-		}
-
-		ImGui::ShowDemoWindow(nullptr);
-		ImGuiWindowFlags window_flags2 = ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
-
-		ImGui::GetStyle().WindowMenuButtonPosition = ImGuiDir_None;
-		ImGui::Begin("Viewport", nullptr, window_flags2);
-		ImGui::End();
-		ImGui::Begin("Inspector", nullptr, window_flags2);
-		ImGui::End();
-		ImGui::Begin("Log", nullptr, window_flags2);
-		ImGui::End();
-		ImGui::Begin("Hierarchy", nullptr, window_flags2);
-		ImGui::End();
-		//}
-
-		static auto first_time = true;
-		if (first_time) {
-			first_time = false;
-			ImGui::DockBuilderRemoveNode(dockspace_id);
-			ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
-			// Main node should cover entire window
-			ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetWindowSize());
-			// get id of main dock space area
-			ImGuiID dockspace_main_id = dockspace_id;
-			// Create a dock node for the right docked window
-			ImGuiID right = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 0.25f, nullptr, &dockspace_main_id);
-			ImGuiID left = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Left, 0.25f, nullptr, &dockspace_main_id);
-			ImGuiID down = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_main_id);
-
-			ImGui::DockBuilderDockWindow("Inspector", right);
-			ImGui::DockBuilderDockWindow("Hierarchy", left);
-			ImGui::DockBuilderDockWindow("Log", down);
-			ImGui::DockBuilderDockWindow("Viewport", dockspace_main_id);
-			ImGui::DockBuilderFinish(dockspace_id);
-		}
-		ImGui::PopStyleVar(8);
-
-		//ImGui::End();
-		ImGui::End();
-
-
-		*/
-
 		static bool p = false;
 		static bool p2 = false;
 
@@ -431,7 +360,7 @@ namespace emerald {
 
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
 		float titlebarYOffset = App->getWindow()->isMaximized() ? 8.0f : 0.0f;
 		const float titleBarHeight = 44;

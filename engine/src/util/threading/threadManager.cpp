@@ -37,9 +37,9 @@ namespace emerald::threading {
 		try {
 			m_function();
 		} catch (const std::exception& e) {
-			Log::error("Exception in thread {}: {}", m_name.c_str(), e.what());
+			Log::fatal("Exception in thread {}: {}", m_name.c_str(), e.what());
 		} catch (...) {
-			Log::error("Unknown exception in thread {}", m_name.c_str());
+			Log::fatal("Unknown exception in thread {}", m_name.c_str());
 		}
 		m_finished = true;
 	}

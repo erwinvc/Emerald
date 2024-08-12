@@ -58,6 +58,6 @@ namespace emerald {
 		//inline void setIcon(const Icon& icon) { GL(glfwSetWindowIcon(GetHandle(), 1, icon.GetImage())); }
 		void onResize(uint32_t width, uint32_t height);
 
-		GLFWwindow* getHandle() const { return m_window; }
+		GLFWwindow* handle() const { return m_window; }
 	};
 }

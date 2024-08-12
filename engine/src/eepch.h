@@ -17,6 +17,17 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#pragma warning(push, 0)
+#include <json.h>
+#pragma warning(pop)
+
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/integer.hpp>
+
+#include "assrt.h"
 
 #include "util/log.h"
+
+#define NUMOF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))

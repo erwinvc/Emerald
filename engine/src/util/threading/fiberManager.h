@@ -38,7 +38,7 @@ namespace emerald {
 		bool isSleeping() const { return m_isSleeping; }
 		bool isCompleted() const { return m_completed; }
 		const std::string& getName() const { return m_name; }
-		LPVOID getHandle() const { return m_handle; }
+		LPVOID handle() const { return m_handle; }
 
 		void tryWake();
 

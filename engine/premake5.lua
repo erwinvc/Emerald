@@ -5,7 +5,9 @@ project "Engine"
     targetdir "binaries/%{cfg.buildcfg}"
     staticruntime "off"
 	targetname "EmeraldEngine"
-		
+	externalwarnings "Default"
+	externalanglebrackets "On"
+	
     files
 	{
 		"**.h",
@@ -16,12 +18,16 @@ project "Engine"
     includedirs
     {
 	 	"src",
+    }
+	
+	externalincludedirs
+	{
 		"dependencies/assimp/include",
 	 	"dependencies/GLFW/include",
 	 	"dependencies/GLAD/include",
 	 	"dependencies/imgui",
 		"dependencies"
-    }
+	}
    
    	libdirs  
 	{ 
@@ -50,6 +56,7 @@ project "Engine"
 		{
 			"GLEW_STATIC"
 		}
+		ignoredefaultlibraries { "libcmt" }
     
     filter "configurations:Debug"
         defines { "EE_DEBUG" }
@@ -67,7 +74,7 @@ project "Engine"
         defines { "EE_RELEASE" }
         runtime "Release"
         optimize "On"
-        symbols "On"
+		symbols "Off"
 		libdirs { "dependencies/assimp/bin/Release" }
 		links
 		{

@@ -25,13 +25,13 @@ namespace emerald {
 	void Window::clearColor(const Color& col) { glClearColor(col.r, col.g, col.b, col.a); }
 	void Window::clear() { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }
 
-	bool Window::isMaximized() const { return (bool)glfwGetWindowAttrib(getHandle(), GLFW_MAXIMIZED); }
+	bool Window::isMaximized() const { return (bool)glfwGetWindowAttrib(handle(), GLFW_MAXIMIZED); }
 	void Window::minimize() { glfwIconifyWindow(m_window); }
 	void Window::maximize() { glfwMaximizeWindow(m_window); }
 	void Window::restore() { glfwRestoreWindow(m_window); }
 
 	void Window::setLimits(uint32_t minWidth, uint32_t minHeight, uint32_t maxWidth, uint32_t maxHeight) {
-		glfwSetWindowSizeLimits(getHandle(), minWidth, minHeight, maxWidth, maxHeight);
+		glfwSetWindowSizeLimits(handle(), minWidth, minHeight, maxWidth, maxHeight);
 	}
 
 	void Window::onResize(uint32_t width, uint32_t height) {

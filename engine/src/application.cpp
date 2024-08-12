@@ -3,12 +3,15 @@
 #include "graphics/window.h"
 #include "imgui.h"
 #include "stdIncl.h"
-#include "threading/fiberManager.h"
+#include "util/threading/fiberManager.h"
 #include "ui/imguiManager.h"
 #include "util/timestep.h"
 #include <format>
 #include <util/color.h>
 #include "GLFW/glfw3.h"
+#include "graphics/engineIcon.h"
+#include "graphics/texture.h"
+#include "graphics/framebuffer.h"
 
 namespace emerald {
 	void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -54,11 +57,13 @@ namespace emerald {
 
 		m_mainWindow = new Window("Diamond", 1920, 1080);
 		m_mainWindow->makeContextCurrent();
-
+		
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 			//LOG_ERROR("[GLAD] failed to initialize");
 			return;
 		}
+
+		icon::loadIcon(m_mainWindow->handle());
 
 		m_mainWindow->getCallbacks().addOnResizeCallback(this, &Application::onResize);
 		m_mainWindow->clearColor(Color(0.5f, 0.7f, 1.0f, 1.0f));
@@ -72,6 +77,8 @@ namespace emerald {
 
 		FiberManager::initializeMainFiber();
 
+		onInitialize();
+
 		FiberManager::registerFiber("Gameloop", FiberLifetime::LOOPING, [this]() {this->loop(); });
 
 		m_mainWindow->show();
@@ -83,13 +90,23 @@ namespace emerald {
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); // Makes debugging easier
 		//glDebugMessageCallback(MessageCallback, 0);
 
-		onInitialize();
+		TextureDesc desc;
+		desc.m_hasMipmaps = false;
+		desc.m_anisotropyLevel = 0;
+		desc.m_format = RGBA;
+		desc.m_readWrite = false;
+		desc.m_filter = NEAREST;
+		tex = Texture(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
+		tex.invalidate();
 
 		while (!m_mainWindow->shouldClose() && m_running) {
 			FiberManager::run();
 		}
 
 		imGuiManager::shutdown();
+		FrameBufferManager::shutdown();
+
+		onShutdown();
 
 		delete m_mainWindow;
 		glfwTerminate();
@@ -155,8 +172,6 @@ namespace emerald {
 	double Application::getTime() const {
 		return glfwGetTime();
 	}
-
-	Application* App;
 }
 //		m_pipeline->PreGeometryRender();
 //

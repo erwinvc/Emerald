@@ -3,9 +3,11 @@
 #include <string>
 #include <functional>
 #include "util/datastructures/asyncQueue.h"
+#include "graphics/texture.h"
 
 namespace emerald {
 	class Window;
+	class Texture;
 
 	struct ApplicationSettings {
 		std::string m_name;
@@ -15,7 +17,6 @@ namespace emerald {
 	class Application {
 	private:
 		static Application* instance;
-
 		Window* m_mainWindow = nullptr;
 		std::string m_name;
 		AsyncQueue<std::function<void()>> m_eventQueue;
@@ -31,6 +32,7 @@ namespace emerald {
 		uint32_t m_ups = 0;
 
 	public:
+		Texture tex;
 
 		Application(const ApplicationSettings& settings = { "Emerald", 1920, 1080 });
 		virtual ~Application();
@@ -57,6 +59,6 @@ namespace emerald {
 		}
 	};
 
-	extern Application* App;
+	inline Application* App;
 	Application* createApplication(int argc, char** argv);
 }

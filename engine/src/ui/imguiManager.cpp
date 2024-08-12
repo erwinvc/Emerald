@@ -27,47 +27,49 @@ namespace emerald::imGuiManager {
 		ImGuiStyle* style = &ImGui::GetStyle();
 		ImVec4* colors = style->Colors;
 
-		colors[ImGuiCol_Text] = Color(0xD6D6D6);
-		colors[ImGuiCol_TextDisabled] = Color(0xafafaf);
-		colors[ImGuiCol_WindowBg] = Color(0x1F1F1F);
-		colors[ImGuiCol_ChildBg] = Color(0x282828);
-		colors[ImGuiCol_PopupBg] = Color(0x2B2A33);
-		colors[ImGuiCol_Border] = Color(0x3D3D3D);
-		colors[ImGuiCol_BorderShadow] = Color(0x0000ff); //Todo?
-		//colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.29f, 0.48f, 0.54f);
-		//colors[ImGuiCol_FrameBgHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+		Color transparent = Color(0x00000000);
+
+		colors[ImGuiCol_Text] = Color(0xD6D6D6FF);
+		colors[ImGuiCol_TextDisabled] = Color(0xafafafFF);
+		colors[ImGuiCol_WindowBg] = Color(0x1F1F1FFF);
+		colors[ImGuiCol_ChildBg] = Color(0x1B1B1BFF);
+		colors[ImGuiCol_PopupBg] = Color(0x303030FF);
+		colors[ImGuiCol_Border] = Color(0x3D3D3DFF);
+		colors[ImGuiCol_BorderShadow] = Color(0x00000080); //Todo?
+		colors[ImGuiCol_FrameBg] = Color(0x0C0C0C8A);
+		colors[ImGuiCol_FrameBgHovered] = Color(0x3D3D3DFF);
 		//colors[ImGuiCol_FrameBgActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-		colors[ImGuiCol_TitleBg] = Color(0x282828);
-		colors[ImGuiCol_TitleBgActive] = Color(0x282828);
+		colors[ImGuiCol_TitleBg] = Color(0x282828FF);
+		colors[ImGuiCol_TitleBgActive] = Color(0x282828FF);
 		//colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
-		colors[ImGuiCol_MenuBarBg] = Color(0x282828);
+		colors[ImGuiCol_MenuBarBg] = Color(0x282828FF);
 		//colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
 		//colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
 		//colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
 		//colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
-		//colors[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		//colors[ImGuiCol_SliderGrab] = ImVec4(0.24f, 0.52f, 0.88f, 1.00f);
-		//colors[ImGuiCol_SliderGrabActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		colors[ImGuiCol_Button] = Color(0x1F1F1F);
-		colors[ImGuiCol_ButtonHovered] = Color(0x3D3D3D);
-		colors[ImGuiCol_ButtonActive] = Color(0x383838);
+		colors[ImGuiCol_CheckMark] = Color(0xD6D6D6FF);
+		//colors[ImGuiCol_SliderGrab] = Color(0xD6D6D6FF);
+		//colors[ImGuiCol_SliderGrabActive] = Color(0xafafafFF);
+		colors[ImGuiCol_Button] = Color(0x1F1F1FFF);
+		colors[ImGuiCol_ButtonHovered] = Color(0x3D3D3DFF);
+		colors[ImGuiCol_ButtonActive] = Color(0x383838FF);
 		//colors[ImGuiCol_Header] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
 		//colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
 		//colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		//colors[ImGuiCol_Separator] = colors[ImGuiCol_Border];
-		//colors[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);
-		//colors[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.40f, 0.75f, 1.00f);
-		colors[ImGuiCol_ResizeGrip] = Color(0x1F1F1F);
-		colors[ImGuiCol_ResizeGripHovered] = Color(0x3D3D3D);
-		colors[ImGuiCol_ResizeGripActive] = Color(0x383838);
-		//colors[ImGuiCol_TabHovered] = colors[ImGuiCol_HeaderHovered];
-		//colors[ImGuiCol_Tab] = ImLerp(colors[ImGuiCol_Header], colors[ImGuiCol_TitleBgActive], 0.80f);
-		//colors[ImGuiCol_TabSelected] = ImLerp(colors[ImGuiCol_HeaderActive], colors[ImGuiCol_TitleBgActive], 0.60f);
-		//colors[ImGuiCol_TabSelectedOverline] = colors[ImGuiCol_HeaderActive];
-		//colors[ImGuiCol_TabDimmed] = ImLerp(colors[ImGuiCol_Tab], colors[ImGuiCol_TitleBg], 0.80f);
-		//colors[ImGuiCol_TabDimmedSelected] = ImLerp(colors[ImGuiCol_TabSelected], colors[ImGuiCol_TitleBg], 0.40f);
-		//colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-		colors[ImGuiCol_DockingPreview] = Color(0x6E6E6E);
+		colors[ImGuiCol_Separator] = Color(0x1F1F1FFF);
+		colors[ImGuiCol_SeparatorHovered] = Color(0x3D3D3DFF);
+		colors[ImGuiCol_SeparatorActive] = Color(0x383838FF);
+		colors[ImGuiCol_ResizeGrip] = Color(0x1F1F1FFF);
+		colors[ImGuiCol_ResizeGripHovered] = Color(0x3D3D3DFF);
+		colors[ImGuiCol_ResizeGripActive] = Color(0x383838FF);
+		colors[ImGuiCol_TabHovered] = Color(0x3D3D3DFF);
+		colors[ImGuiCol_Tab] = Color(0x1F1F1FFF);
+		colors[ImGuiCol_TabSelected] = Color(0x383838FF);
+		colors[ImGuiCol_TabSelectedOverline] = transparent;
+		colors[ImGuiCol_TabDimmed] = Color(0x1F1F1FFF);
+		colors[ImGuiCol_TabDimmedSelected] = Color(0x383838FF);
+		colors[ImGuiCol_TabDimmedSelectedOverline] = transparent;
+		colors[ImGuiCol_DockingPreview] = Color(0x6E6E6EFF);
 		//colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
 		//colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
 		//colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
@@ -79,7 +81,7 @@ namespace emerald::imGuiManager {
 		//colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 		//colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
 		colors[ImGuiCol_TextLink] = colors[ImGuiCol_HeaderActive];
-		colors[ImGuiCol_TextSelectedBg] = Color(0xD6D6D6);
+		colors[ImGuiCol_TextSelectedBg] = Color(0x3D3D3DFF);
 		//colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
 		//colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
 		//colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
@@ -88,7 +90,9 @@ namespace emerald::imGuiManager {
 
 		style->SeparatorTextPadding = ImVec2(20, 0);
 		style->SeparatorTextBorderSize = 5;
+		style->TabRounding = 3;
 		style->DockingSeparatorSize = 3;
+		style->TabBarBorderSize = 1;
 		//style->WindowBorderSize;
 	}
 
@@ -106,7 +110,7 @@ namespace emerald::imGuiManager {
 
 		io.SetClipboardTextFn = ImGui_ImplGlfw_SetClipboardText;
 		io.GetClipboardTextFn = ImGui_ImplGlfw_GetClipboardText;
-		io.ClipboardUserData = window->getHandle();
+		io.ClipboardUserData = window->handle();
 
 		ImGui::StyleColorsDark();
 
@@ -114,7 +118,7 @@ namespace emerald::imGuiManager {
 		style.WindowRounding = 0.0f;
 		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 
-		ImGui_ImplGlfw_InitForOpenGL(window->getHandle(), true);
+		ImGui_ImplGlfw_InitForOpenGL(window->handle(), true);
 		ImGui_ImplOpenGL3_Init("#version 410");
 
 		ImGui::GetIO().Fonts->AddFontDefault();

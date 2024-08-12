@@ -5,3 +5,5 @@
 
 #include "ref.h"
 #include "assert.h"
+
+typedef unsigned char byte;

@@ -31,12 +31,13 @@ namespace emerald {
 	};
 
 	enum class LogLevel {
-		FAIL = 0,
+		FATAL = 0,
+		FAIL,
 		WARN,
 		INFO
 	};
 
-	/*Non-blocking logger with color formatting*/
+	/*Non-blocking logger*/
 	class Log {
 	public:
 		struct QueuedMessage {
@@ -66,6 +67,11 @@ namespace emerald {
 		template<typename... Args>
 		static void error(std::format_string<Args...> format, Args&&... args) {
 			logMessage(LogLevel::FAIL, "[Fail]", std::format(format, std::forward<Args>(args)...));
+		}
+
+		template<typename... Args>
+		static void fatal(std::format_string<Args...> format, Args&&... args) {
+			logMessage(LogLevel::FATAL, "[Fatal]", std::format(format, std::forward<Args>(args)...));
 			Log::forceEmptyQueue();
 			__debugbreak();
 		}

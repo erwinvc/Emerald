@@ -47,17 +47,17 @@ namespace emerald {
 		Color() : r(0), g(0), b(0), a(0) {}
 
 		Color(int32_t hexValue) {
-			if ((hexValue & 0xFF000000) == 0) { // 6-digit hex
-				r = ((hexValue >> 16) & 0xFF) / 255.0f;
-				g = ((hexValue >> 8) & 0xFF) / 255.0f;
-				b = (hexValue & 0xFF) / 255.0f;
-				a = 1.0f;
-			} else { // 8-digit hex
-				r = ((hexValue >> 24) & 0xFF) / 255.0f;
-				g = ((hexValue >> 16) & 0xFF) / 255.0f;
-				b = ((hexValue >> 8) & 0xFF) / 255.0f;
-				a = (hexValue & 0xFF) / 255.0f;
-			}
+			r = ((hexValue >> 24) & 0xFF) / 255.0f;
+			g = ((hexValue >> 16) & 0xFF) / 255.0f;
+			b = ((hexValue >> 8) & 0xFF) / 255.0f;
+			a = (hexValue & 0xFF) / 255.0f;
+		}
+
+		Color(uint32_t hexValue) {
+			r = ((hexValue >> 24) & 0xFF) / 255.0f;
+			g = ((hexValue >> 16) & 0xFF) / 255.0f;
+			b = ((hexValue >> 8) & 0xFF) / 255.0f;
+			a = (hexValue & 0xFF) / 255.0f;
 		}
 
 		Color(float val) : r(val), g(val), b(val), a(val) {}

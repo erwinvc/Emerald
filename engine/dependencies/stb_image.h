@@ -872,20 +872,20 @@ static int stbi__mul2sizes_valid(int a, int b) {
 
 // returns 1 if "a*b + add" has no negative terms/factors and doesn't overflow
 static int stbi__mad2sizes_valid(int a, int b, int add) {
-    return stbi__mul2sizes_valid(a, b) && stbi__addsizes_valid(a*b, add);
+    return (bool)(stbi__mul2sizes_valid(a, b) && stbi__addsizes_valid(a*b, add));
 }
 
 // returns 1 if "a*b*c + add" has no negative terms/factors and doesn't overflow
 static int stbi__mad3sizes_valid(int a, int b, int c, int add) {
-    return stbi__mul2sizes_valid(a, b) && stbi__mul2sizes_valid(a*b, c) &&
-        stbi__addsizes_valid(a*b*c, add);
+    return (bool)(stbi__mul2sizes_valid(a, b) && stbi__mul2sizes_valid(a*b, c) &&
+        stbi__addsizes_valid(a*b*c, add));
 }
 
 // returns 1 if "a*b*c*d + add" has no negative terms/factors and doesn't overflow
 #if !defined(STBI_NO_LINEAR) || !defined(STBI_NO_HDR)
 static int stbi__mad4sizes_valid(int a, int b, int c, int d, int add) {
-    return stbi__mul2sizes_valid(a, b) && stbi__mul2sizes_valid(a*b, c) &&
-        stbi__mul2sizes_valid(a*b*c, d) && stbi__addsizes_valid(a*b*c*d, add);
+    return (bool)(stbi__mul2sizes_valid(a, b) && stbi__mul2sizes_valid(a*b, c) &&
+        stbi__mul2sizes_valid(a*b*c, d) && stbi__addsizes_valid(a*b*c*d, add));
 }
 #endif
 
@@ -3600,6 +3600,7 @@ static stbi_uc *load_jpeg_image(stbi__jpeg *z, int *out_x, int *out_y, int *comp
                         out += n;
                     }
                 } else {
+#pragma warning(suppress: 6001)
                     stbi_uc *y = coutput[0];
                     if (n == 1)
                         for (i = 0; i < z->s->img_x; ++i) out[i] = y[i];

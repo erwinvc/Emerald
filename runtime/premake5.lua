@@ -5,7 +5,9 @@ project "Runtime"
 	targetdir "binaries/%{cfg.buildcfg}"
 	staticruntime "off"
 	targetname "EmeraldRuntime"
-		
+	externalwarnings "Default"
+	externalanglebrackets "On"
+	
 	files
 	{
 		"**.h",
@@ -19,6 +21,10 @@ project "Runtime"
 	
 	-- Include Engine
 		"../engine/src",
+	}
+	
+	externalincludedirs
+	{
 		"../engine/dependencies/GLFW/include",
 	 	"../engine/dependencies/GLAD/include",
 	 	"../engine/dependencies/imgui",
@@ -41,17 +47,21 @@ project "Runtime"
         defines { "EE_DEBUG" }
         runtime "Debug"
         symbols "On"
+		kind ("ConsoleApp")
 	    postbuildcommands { '{COPY} "../engine/dependencies/assimp/bin/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"' }
 
 	filter "configurations:Release"
         defines { "EE_RELEASE" }
         runtime "Release"
         optimize "On"
-        symbols "On"
+		symbols "Off"
+		kind ("ConsoleApp")
 		postbuildcommands { '{COPY} "../engine/dependencies/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"' }
+		
     filter "configurations:Dist"
         defines { "EE_DIST" }
         runtime "Release"
         optimize "On"
         symbols "Off"
+		kind ("WindowedApp")
 		postbuildcommands { '{COPY} "../engine/dependencies/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"' }
