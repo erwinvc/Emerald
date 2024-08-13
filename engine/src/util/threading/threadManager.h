@@ -24,7 +24,7 @@ namespace emerald::threading {
 		bool m_background;
 		std::atomic<bool> m_shutDown;
 		std::atomic<bool> m_finished;
-		std::unique_ptr<std::thread> m_thread;
+		std::unique_ptr<std::thread> m_handle;
 
 		void run();
 	};

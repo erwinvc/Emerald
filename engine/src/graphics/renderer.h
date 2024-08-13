@@ -1,6 +1,6 @@
 #pragma once
-#include <memory>
 
+#include "commandBuffer.h"
 namespace emerald {
 	class RenderPass;
 
@@ -16,6 +16,7 @@ namespace emerald {
 
 	struct RendererData {
 		std::shared_ptr<RenderPass> m_activeRenderPass;
+		CommandBuffer m_commandBuffer;
 	};
 
 	class Renderer {
@@ -25,6 +26,9 @@ namespace emerald {
 
 		static void bindDefaultFBO();
 
+		static void executeCommandBuffer();
+
+		static void submit(Command command);
 		static void drawIndexed(uint32_t count, PrimitiveType type, bool depthTest);
 	};
 }

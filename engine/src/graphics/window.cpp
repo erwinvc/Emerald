@@ -22,8 +22,6 @@ namespace emerald {
 	bool Window::shouldClose() { return glfwWindowShouldClose(m_window); }
 	void Window::makeContextCurrent() { glfwMakeContextCurrent(m_window); }
 	void Window::show() { glfwShowWindow(m_window); }
-	void Window::clearColor(const Color& col) { glClearColor(col.r, col.g, col.b, col.a); }
-	void Window::clear() { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }
 
 	bool Window::isMaximized() const { return (bool)glfwGetWindowAttrib(handle(), GLFW_MAXIMIZED); }
 	void Window::minimize() { glfwIconifyWindow(m_window); }

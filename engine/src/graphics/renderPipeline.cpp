@@ -15,7 +15,7 @@ namespace emerald {
 		mainfbDesc.width = App->getWidth();
 		mainfbDesc.height = App->getHeight();
 		mainfbDesc.attachments = { {"Main", TextureFormat::RGBA} };
-		mainfbDesc.clearColor = { 0.5f, 0.5f, 0.8f, 1.0f };
+		mainfbDesc.clearColor = { 0.5f, 0.7f, 1.0f, 1.0f };
 		mainfbDesc.name = "MainFB";
 
 		RenderPassDesc mainPassDesc;
@@ -82,6 +82,7 @@ namespace emerald {
 		m_ibo->bind();
 		Renderer::drawIndexed(6, PrimitiveType::TRIANGLES, true);
 		Renderer::endRenderPass();
+
 		FrameBufferManager::bindDefaultFBO();
 	}
 }

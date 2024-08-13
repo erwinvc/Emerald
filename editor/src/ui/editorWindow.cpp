@@ -1,3 +1,4 @@
+#include "eepch.h"
 #include "editorWindow.h"
 #include "imgui.h"
 #include <imgui_internal.h>
@@ -11,13 +12,27 @@
 #include "graphics/renderPass.h"
 #include "graphics/frameBuffer.h"
 #include "graphics/texture.h"
+#include "graphics/engineIcon.h"
+#include "graphics/renderer.h"
 
 namespace emerald {
-	static bool m_TitleBarHovered = false;
+	static bool s_TitleBarHovered = false;
+	static Ref<Texture> s_icon;
+
 	void EditorWindow::initialize() {
 		glfwSetTitlebarHitTestCallback(App->getWindow()->handle(), [](GLFWwindow* window, int x, int y, int* hit) {
-			*hit = m_TitleBarHovered;
-			});
+			*hit = s_TitleBarHovered;
+		});
+
+		TextureDesc desc;
+		desc.m_hasMipmaps = false;
+		desc.m_anisotropyLevel = 0;
+		desc.m_format = RGBA;
+		desc.m_readWrite = false;
+		desc.m_filter = NEAREST;
+
+		s_icon = Ref<Texture>::create(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
+		Renderer::submit([] { s_icon->invalidate(); });
 	}
 
 	enum class CursorMode {
@@ -185,7 +200,7 @@ namespace emerald {
 	}
 	static int offset = 32;
 
-	void drawTitlebar(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
+	void EditorWindow::drawTitlebar(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
 		const bool maximized = App->getWindow()->isMaximized();
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
@@ -210,13 +225,13 @@ namespace emerald {
 		ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth(), titlebarHeight });
 		ImGui::BeginHorizontal("TitlebarLogo", ImVec2(46, 46), 0.5f);
 		ImGui::Spring();
-		ImGui::Image((void*)(uint64_t)App->tex.handle(), ImVec2(32.0f, 32.0f));
+		ImGui::Image((void*)(uint64_t)s_icon->handle(), ImVec2(32.0f, 32.0f));
 		ImGui::Spring();
 		ImGui::EndHorizontal();
-		m_TitleBarHovered = ImGui::IsItemHovered();
+		s_TitleBarHovered = ImGui::IsItemHovered();
 
 		ImGui::InvisibleButton("", ImVec2(w - buttonsAreaWidth + 2, titlebarHeight));
-		m_TitleBarHovered |= ImGui::IsItemHovered();
+		s_TitleBarHovered |= ImGui::IsItemHovered();
 
 		if (ImGui::Button((const char*)SEGOE_MDL2_ICON_CHROME_MINIMIZE, buttonSize)) {
 			App->QueueEvent([] {App->getWindow()->minimize(); });
@@ -227,7 +242,7 @@ namespace emerald {
 			App->QueueEvent([maximized] {
 				if (maximized) App->getWindow()->restore();
 				else App->getWindow()->maximize();
-				});
+			});
 		}
 		if (ImGui::Button((const char*)SEGOE_MDL2_ICON_CHROME_CLOSE, buttonSize)) App->close();
 		ImGui::EndHorizontal();
@@ -357,12 +372,14 @@ namespace emerald {
 			p2 = false;
 			offset--;
 		}
+	}
 
+	void EditorWindow::onImGuiRender() {
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-		float titlebarYOffset = App->getWindow()->isMaximized() ? 8.0f : 0.0f;
+		float titlebarYOffset = App->getWindow()->isMaximized() ? 8.0f : 0.0f + offset;
 		const float titleBarHeight = 44;
 
 		drawTitlebar(viewport->Pos, ImVec2(viewport->Size.x, titleBarHeight + titlebarYOffset), viewport->ID, titleBarHeight);

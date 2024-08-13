@@ -1,8 +1,10 @@
+#include "eepch.h"
 #include <windows.h>
 #include "emerald.h"
 #include "ui/editorWindow.h"
 #include "graphics/renderPipeline.h"
 #include "editor.h"
+#include "graphics/renderer.h"
 
 namespace emerald {
 	std::unique_ptr<EditorWindow> editorWindow;
@@ -20,12 +22,14 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::update(Timestep ts) {
-
-		imGuiManager::begin();
 		editorWindow->update(ts);
-		imGuiManager::end();
 
-		renderPipeline->render();
+		Renderer::submit([ts] {
+			imGuiManager::begin();
+			editorWindow->onImGuiRender();
+			imGuiManager::end();
+			renderPipeline->render();
+		});
 
 	}
 

@@ -16,7 +16,7 @@ namespace emerald::imGuiManager {
 
 	bool ColoredButton(const char* label, const ImVec2& size_arg, ImU32 text_color, ImU32 bg_color_1, ImU32 bg_color_2);
 
-	void initialize(emerald::Window* window);
+	void initialize(Ref<Window> window);
 	void begin();
 	void end();
 	void shutdown();

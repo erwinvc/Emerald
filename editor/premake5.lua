@@ -39,6 +39,9 @@ project "Editor"
 	targetdir ("../binaries/" .. OutputDir .. "/%{prj.name}")
 	objdir ("../binaries/intermediates/" .. OutputDir .. "/%{prj.name}")
 
+	pchheader "eepch.h"
+	pchsource "src/eepch.cpp"
+	
 	filter "system:windows"
 		systemversion "latest"
         defines { "WINDOWS" }

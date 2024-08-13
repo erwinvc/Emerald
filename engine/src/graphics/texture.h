@@ -10,7 +10,7 @@ namespace emerald {
 		FILE
 	};
 
-	class Texture {
+	class Texture : public RefCounted {
 	private:
 		TextureDesc m_desc;
 		Buffer<byte> m_buffer;

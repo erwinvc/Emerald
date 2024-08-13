@@ -4,6 +4,16 @@
 
 namespace emerald {
 	namespace GLUtils {
+		void GLAPIENTRY debugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+			if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) return;
+
+			Log::info("GL CALLBACK: type = 0x{0:x}, severity = 0x{1:x}, message = {2}", type, severity, message);
+		}
+
+		void setDebugMessageCallback() {
+			glDebugMessageCallback(debugMessageCallback, 0);
+		}
+
 		const char* shaderTypeToString(int type, bool upperCase) {
 			switch (type) {
 				case GL_VERTEX_SHADER: return upperCase ? "Vertex" : "vertex";

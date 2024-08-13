@@ -14,22 +14,22 @@ namespace emerald::threading {
 	}
 
 	Thread::~Thread() {
-		if (m_thread && m_thread->joinable()) {
-			m_thread->join();
+		if (m_handle && m_handle->joinable()) {
+			m_handle->join();
 		}
 	}
 
 	void Thread::start() {
-		m_thread = std::make_unique<std::thread>(&Thread::run, this);
+		m_handle = std::make_unique<std::thread>(&Thread::run, this);
 		if (m_background) {
-			m_thread->detach();
+			m_handle->detach();
 		}
 	}
 
 	void Thread::shutdown() {
 		m_shutDown = true;
-		if (m_thread && m_thread->joinable()) {
-			m_thread->join();
+		if (m_handle && m_handle->joinable()) {
+			m_handle->join();
 		}
 	}
 

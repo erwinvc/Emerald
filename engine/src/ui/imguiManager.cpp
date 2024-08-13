@@ -96,7 +96,7 @@ namespace emerald::imGuiManager {
 		//style->WindowBorderSize;
 	}
 
-	void initialize(Window* window) {
+	void initialize(Ref<Window> window) {
 		IMGUI_CHECKVERSION();
 		context = ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;

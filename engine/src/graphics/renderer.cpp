@@ -4,6 +4,7 @@
 #include "framebuffer.h"
 #include "application.h"
 #include "util/GLUtils.h"
+#include "../glError.h"
 
 namespace emerald {
 	static RendererData s_data;
@@ -21,6 +22,14 @@ namespace emerald {
 	void Renderer::bindDefaultFBO() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, App->getWidth(), App->getHeight());
+	}
+
+	void Renderer::executeCommandBuffer() {
+		s_data.m_commandBuffer.executeCommands();
+	}
+
+	void Renderer::submit(Command command) {
+		s_data.m_commandBuffer.pushCommand(command);
 	}
 
 	void Renderer::drawIndexed(uint32_t count, PrimitiveType type, bool depthTest) {

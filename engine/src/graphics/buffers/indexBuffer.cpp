@@ -1,5 +1,6 @@
 #include "eepch.h"
 #include "indexBuffer.h"
+#include "../renderer.h"
 
 namespace emerald {
 	IndexBuffer::IndexBuffer(const byte* data, uint32_t size) {
@@ -14,10 +15,16 @@ namespace emerald {
 
 	void IndexBuffer::setData(const byte* data, uint32_t size, uint32_t offset) {
 		m_data = Buffer<byte>::copy((byte*)data, size);
-		glNamedBufferSubData(m_handle, offset, size, data);
+
+		//Ref<IndexBuffer> instance = this;
+		//Renderer::submit([instance, offset, size]() {
+			glNamedBufferSubData(m_handle, offset, size, m_data.data());
+		//});
 	}
 
 	void IndexBuffer::bind() const {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_handle);
+		//Renderer::submit([=]() {
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_handle);
+		//});
 	}
 }

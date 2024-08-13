@@ -14,11 +14,31 @@ namespace emerald {
 		uint32_t m_width, m_height;
 	};
 
+	class Synchronizer {
+	public:
+		void wait() {
+			std::unique_lock<std::mutex> lock(mutex_);
+			cv_.wait(lock);
+		}
+
+		void notify() {
+			cv_.notify_all();
+		}
+
+		bool logicReady = true;
+		bool renderReady = true;
+
+	private:
+		std::mutex mutex_;
+		std::condition_variable cv_;
+	};
+
 	class Application {
 	private:
 		static Application* instance;
-		Window* m_mainWindow = nullptr;
-		std::string m_name;
+		ApplicationSettings m_settings;
+		Synchronizer m_synchronizer;
+		Ref<Window> m_mainWindow;
 		AsyncQueue<std::function<void()>> m_eventQueue;
 		bool m_running = true;
 
@@ -32,13 +52,13 @@ namespace emerald {
 		uint32_t m_ups = 0;
 
 	public:
-		Texture tex;
-
 		Application(const ApplicationSettings& settings = { "Emerald", 1920, 1080 });
 		virtual ~Application();
 
 		void run();
-		void loop();
+		void logicLoop();
+		void renderLoop();
+
 		void close();
 		void onResize(uint32_t width, uint32_t height);
 
@@ -48,8 +68,8 @@ namespace emerald {
 		virtual void fixedUpdate(Timestep ts) = 0;
 
 		uint32_t getWidth() const;
-		uint32_t getHeight()const;
-		Window* getWindow() const { return m_mainWindow; }
+		uint32_t getHeight() const;
+		Ref<Window>& getWindow() { return m_mainWindow; }
 
 		double getTime() const;
 

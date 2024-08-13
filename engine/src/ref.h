@@ -3,7 +3,7 @@
 
 namespace emerald {
 	template<typename T>
-	class ManagedRef;
+	class Ref;
 
 	class RefCounted {
 	public:
@@ -11,40 +11,61 @@ namespace emerald {
 	};
 
 	template<typename T>
-	class ManagedRef {
+	class Ref {
 	public:
-		ManagedRef() {
-			m_reference == nullptr;
+		// Default constructor: Creates an empty Ref object with no referenced object.
+		Ref() : m_reference(nullptr) {}
+
+		// Nullptr constructor: Creates an empty Ref object with no referenced object.
+		Ref(std::nullptr_t) : m_reference(nullptr) {}
+
+		// Pointer constructor: Creates a Ref object that references the given object.
+		Ref(T* pointer) : m_reference(pointer) {
+			incrementRef();
 		}
 
-		ManagedRef(std::nullptr_t) {
-			m_reference == nullptr;
+		// Copy constructor: Creates a new Ref object that references the same object as the given Ref object.
+		// The referenced object's reference count is incremented.
+		Ref(const Ref& other) : m_reference(other.m_reference) {
+			incrementRef();
 		}
 
-		ManagedRef(T* pointer) {
-			m_reference = pointer;
-			IncrementRef();
-		}
-		ManagedRef(const ManagedRef& managedRef) {
-			m_reference = managedRef.m_reference;
-			IncrementRef();
-		}
-
-		~ManagedRef() {
-			DecrementRef();
-		}
-
-		ManagedRef& operator=(std::nullptr_t) {
-			DecrementRef();
+		Ref& operator=(std::nullptr_t) {
+			decrementRef();
 			m_reference = nullptr;
 			return *this;
 		}
 
-		ManagedRef& operator=(const ManagedRef& other) {
-			other->IncrementRef();
-			DecrementRef();
-			m_reference = other->m_reference;
+		// Move constructor: Creates a new Ref object that takes ownership of the referenced object from the given Ref object.
+		// The referenced object's reference count is not incremented.
+		Ref(Ref&& other) noexcept : m_reference(other.m_reference) {
+			other.m_reference = nullptr;
+		}
+
+		// Copy assignment operator: Assigns the referenced object of the given Ref object to this Ref object.
+		// The previously referenced object's reference count is decremented, and the new referenced object's reference count is incremented.
+		Ref& operator=(const Ref& other) {
+			if (this != &other) {
+				decrementRef();
+				m_reference = other.m_reference;
+				incrementRef();
+			}
 			return *this;
+		}
+
+		// Move assignment operator: Assigns the referenced object of the given Ref object to this Ref object, transferring ownership.
+		// The previously referenced object's reference count is decremented, but the new referenced object's reference count is not incremented.
+		Ref& operator=(Ref&& other) noexcept {
+			if (this != &other) {
+				decrementRef();
+				m_reference = other.m_reference;
+				other.m_reference = nullptr;
+			}
+			return *this;
+		}
+
+		~Ref() {
+			decrementRef();
 		}
 
 		operator bool() { return m_reference != nullptr; }
@@ -52,40 +73,61 @@ namespace emerald {
 
 		T* operator->() { return m_reference; }
 		const T* operator->() const { return m_reference; }
+
 		T& operator*() { return *m_reference; }
 		const T& operator*() const { return *m_reference; }
-		T* Raw() { return  m_reference; }
-		const T* Raw() const { return  m_reference; }
 
-		bool operator==(const ManagedRef<T>& other) const {
+		T* raw() { return  m_reference; }
+		const T* raw() const { return  m_reference; }
+
+		template<typename T2>
+		Ref<T2> as() const {
+			return Ref<T2>(*this);
+		}
+
+		template<typename... Args>
+		static Ref<T> create(Args&&... args) {
+			return Ref<T>(new T(std::forward<Args>(args)...));
+		}
+
+		void reset() {
+			decrementRef();
+			m_reference = nullptr;
+		}
+
+		bool operator==(const Ref<T>& other) const {
 			return m_reference == other.m_reference;
 		}
 
-		bool operator!=(const ManagedRef<T>& other) const {
+		bool operator!=(const Ref<T>& other) const {
 			return !(*this == other);
 		}
 
-		bool EqualsObject(const ManagedRef<T>& other) {
+		bool EqualsObject(const Ref<T>& other) {
 			if (!m_reference || !other.m_reference)
 				return false;
 
 			return *m_reference == *other.m_reference;
 		}
 
-		template<typename... Args>
-		static ManagedRef<T> Create(Args&&... args) {
-			return ManagedRef<T>(new T(std::forward<Args>(args)...));
+		uint32_t getRefCount() const {
+			if (m_reference) {
+				return m_reference->m_refCount.load();
+			} else return 0;
 		}
 
 	private:
+		template<class T2>
+		friend class Ref;
+
 		T* m_reference;
 
-		void IncrementRef() const {
+		void incrementRef() const {
 			if (m_reference)
 				m_reference->m_refCount++;
 		}
 
-		void DecrementRef() const {
+		void decrementRef() const {
 			if (m_reference) {
 				m_reference->m_refCount--;
 				if (m_reference->m_refCount == 0) {
