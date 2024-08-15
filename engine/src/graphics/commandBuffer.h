@@ -5,7 +5,9 @@ namespace emerald {
 
 	class CommandBuffer {
 	private:
-		std::mutex m_mutex;
+		bool m_executingCommands = false;
+		std::mutex m_commandsMutex;
+		std::mutex m_executingMutex;
 		std::vector<Command> m_commands;
 
 	public:

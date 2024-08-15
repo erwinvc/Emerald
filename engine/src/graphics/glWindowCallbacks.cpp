@@ -14,48 +14,48 @@ namespace emerald {
 			for (auto& callback : getWindowCallbacks(wnd).m_onFocusCallbacks) {
 				callback(focussed);
 			}
-			});
+		});
 
 		glfwSetWindowSizeCallback(window->handle(), [](GLFWwindow* wnd, int width, int height) {
 			for (auto& callback : getWindowCallbacks(wnd).m_onResizeCallbacks) {
 				callback(width, height);
 			}
-			});
+		});
 
 		glfwSetWindowCloseCallback(window->handle(), [](GLFWwindow* wnd) {
 			for (auto& callback : getWindowCallbacks(wnd).m_onCloseCallbacks) {
 				callback();
 			}
-			});
+		});
 
 		glfwSetKeyCallback(window->handle(), [](GLFWwindow* wnd, int key, int scancode, int action, int mods) {
 			for (auto& callback : getWindowCallbacks(wnd).m_onKeyCallbacks) {
 				callback(key, scancode, action, mods);
 			}
-			});
+		});
 
 		glfwSetMouseButtonCallback(window->handle(), [](GLFWwindow* wnd, int button, int action, int mods) {
 			for (auto& callback : getWindowCallbacks(wnd).m_onMouseButtonCallbacks) {
 				callback(button, action, mods);
 			}
-			});
+		});
 
 		glfwSetCursorPosCallback(window->handle(), [](GLFWwindow* wnd, double xpos, double ypos) {
 			for (auto& callback : getWindowCallbacks(wnd).m_onMousePosCallbacks) {
 				callback(xpos, ypos);
 			}
-			});
+		});
 
 		glfwSetScrollCallback(window->handle(), [](GLFWwindow* wnd, double xoffset, double yoffset) {
 			for (auto& callback : getWindowCallbacks(wnd).m_onScrollCallbacks) {
 				callback(xoffset, yoffset);
 			}
-			});
+		});
 
 		glfwSetCharCallback(window->handle(), [](GLFWwindow* wnd, uint32_t character) {
 			for (auto& callback : getWindowCallbacks(wnd).m_onKeyTypedCallbacks) {
 				callback(character);
 			}
-			});
+		});
 	}
 }

@@ -9,6 +9,7 @@
 #include "graphics/Window.h"
 #include "iconsFontAwesome.h"
 #include "imguiManager.h"
+#include "imguiProfiler/IconsFontAwesome4.h"
 
 namespace emerald::imGuiManager {
 	ImGuiContext* context;
@@ -125,15 +126,20 @@ namespace emerald::imGuiManager {
 
 		ImFontConfig config;
 		config.MergeMode = true;
+		config.GlyphMinAdvanceX = 15.0f;
 		const ImWchar segmdl2Ranges[] = { 0xE700, 0xF624, 0 };
 		const ImWchar awesomeRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		const ImWchar profilerAwesomeRanges[] = { P_ICON_MIN_FA, P_ICON_MAX_FA, 0 };
 
-		//io.Fonts->AddFontFromFileTTF("res/fonts/fa-regular-400.ttf", 15.0f, &config, icon_ranges);
-		//io.Fonts->AddFontFromFileTTF("res/fonts/fa-solid-900.ttf", 15.0f, &config, icon_ranges);
-		fonts[ImGUIFont::SEGOE] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 10.0f, NULL, segmdl2Ranges);
-		fonts[ImGUIFont::AWESOME_R] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-regular-400.ttf", 24.0f, NULL, awesomeRanges);
-		fonts[ImGUIFont::AWESOME_S] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-solid-900.ttf", 24.0f, &config, awesomeRanges);
-		fonts[ImGUIFont::DEFAULT] = io.FontDefault = io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 16.0f, NULL);
+		fonts[ImGUIFont::CONSOLAS] =	io.FontDefault = io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 16.0f, NULL);
+		fonts[ImGUIFont::INTER] =		io.Fonts->AddFontFromFileTTF("res/fonts/Inter.ttc", 18.0f, NULL);
+										io.Fonts->AddFontFromFileTTF("res/fonts/fontawesome-webfont.ttf", 15.0f, &config, profilerAwesomeRanges); //Profiler lib
+
+		config.MergeMode = false;
+		fonts[ImGUIFont::AWESOME_R] =	io.Fonts->AddFontFromFileTTF("res/fonts/fa-regular-400.ttf", 24.0f, NULL, awesomeRanges);
+		fonts[ImGUIFont::AWESOME_S] =	io.Fonts->AddFontFromFileTTF("res/fonts/fa-solid-900.ttf", 24.0f, &config, awesomeRanges);
+		fonts[ImGUIFont::SEGOE] =		io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 10.0f, NULL, segmdl2Ranges);
+
 		io.Fonts->Build();
 		
 		applyEmeraldTheme();

@@ -14,6 +14,7 @@
 #include "graphics/texture.h"
 #include "graphics/engineIcon.h"
 #include "graphics/renderer.h"
+#include "imguiProfiler/Profiler.h"
 
 namespace emerald {
 	static bool s_TitleBarHovered = false;
@@ -212,7 +213,7 @@ namespace emerald {
 		ImGui::SetNextWindowViewport(viewportID);
 
 		ImGui::Begin("TitleBarWindow", nullptr, window_flags);
-		imGuiManager::pushFont(imGuiManager::ImGUIFont::SEGOE);
+		imGuiManager::pushFont(ImGUIFont::SEGOE);
 
 		const ImVec2 windowPadding = ImGui::GetCurrentWindow()->WindowPadding;
 		const float titleBarButtonSize = 46;
@@ -325,7 +326,7 @@ namespace emerald {
 	void drawWindows() {
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingOverMe);
+		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("Viewport", nullptr, windowFlags);
 		ImVec2 actualWindowSize = ImGui::GetContentRegionAvail();
@@ -339,6 +340,15 @@ namespace emerald {
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::Begin("Log", nullptr, windowFlags);
+		ImGui::End();
+
+		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(800, 300));
+		ImGui::Begin("Profiler");
+		imGuiManager::pushFont(ImGUIFont::INTER);
+		DrawProfilerHUD();
+		imGuiManager::popFont();
+		ImGui::PopStyleVar();
 		ImGui::End();
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
@@ -379,7 +389,7 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-		float titlebarYOffset = App->getWindow()->isMaximized() ? 8.0f : 0.0f + offset;
+		float titlebarYOffset = App->getWindow()->isMaximized() ? 8.0f : 0.0f;
 		const float titleBarHeight = 44;
 
 		drawTitlebar(viewport->Pos, ImVec2(viewport->Size.x, titleBarHeight + titlebarYOffset), viewport->ID, titleBarHeight);

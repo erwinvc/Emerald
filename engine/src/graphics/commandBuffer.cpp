@@ -3,19 +3,31 @@
 
 namespace emerald {
 	void CommandBuffer::pushCommand(Command command) {
-		std::lock_guard<std::mutex> lock(m_mutex);
+        std::lock_guard<std::mutex> lock(m_commandsMutex);
+        //		ASSERT(!m_executingCommands, "Cannot push command while executing commands");
 		m_commands.push_back(command);
 	}
 
 	void CommandBuffer::executeCommands() {
-		std::unique_lock<std::mutex> lock(m_mutex);
-		std::vector<Command> commands = std::move(m_commands);
-		lock.unlock();
+        std::vector<Command> commands;
+        {
+            std::lock_guard<std::mutex> lock(m_commandsMutex);
+			//if (m_commands.empty()) {
+			//    Log::info("Empty");
+			//}
+            commands = std::move(m_commands);
+        }
 
-		for (const auto& command : commands) {
-			command();
-		}
+        std::unique_lock<std::mutex> lock(m_executingMutex);
+        m_executingCommands = true;
+        lock.unlock();
 
-		//Log::info("Executed {} commands", commands.size());
+        for (const auto& command : commands) {
+            command();
+        }
+
+        lock.lock();
+        m_executingCommands = false;
+        lock.unlock();
 	}
 }

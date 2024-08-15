@@ -15,29 +15,43 @@
 #include "util/GLUtils.h"
 #include "util/timer.h"
 #include "glfw.h"
+#include "imguiProfiler/Profiler.h"
 
 namespace emerald {
-	Application::Application(const ApplicationSettings& settings) : m_settings(settings) {
+	static std::mutex g_mtx;
+	static std::condition_variable g_cvRender, g_cvLogic;
+	static std::atomic<bool> g_renderFinished = true;
+	static std::atomic<bool> g_logicFinished = false;
+	static std::atomic<bool> g_running = true;
+
+	Application::Application(const ApplicationSettings& settings)
+		: m_settings(settings) {
 		App = this;
 	}
 
 	Application::~Application() {
-
+		App = nullptr;
 	}
 
-	std::mutex mtx;
-	std::condition_variable cv;
-
-	bool keepRunning = true;
-	bool renderFinished = false;
-	auto MainThreadStart = std::chrono::high_resolution_clock::now();
-	auto MainThreadEnd = std::chrono::high_resolution_clock::now();
+	int x = 0;
+	int y = 0;
+	void window_refresh_callback(GLFWwindow* window) {
+		if (x != 0) {
+			FrameBufferManager::onResize(x, y);
+			FrameBufferManager::bindDefaultFBO();
+			glViewport(0, 0, x, y);
+			App->update(Timestep(0, 0, 0));
+			x = 0;
+			y = 0;
+			Renderer::executeCommandBuffer();
+			glfwSwapBuffers(window);
+		}
+	}
 
 	void Application::run() {
 		GLFW::GLFWConfiguration config;
 		GLFW::initialize(config);
 
-		//m_mainWindow = std::make_unique<Window>(m_settings.m_name, m_settings.m_width, m_settings.m_height);
 		m_mainWindow = Ref<Window>::create(m_settings.m_name, m_settings.m_width, m_settings.m_height);
 		m_mainWindow->makeContextCurrent();
 
@@ -58,19 +72,19 @@ namespace emerald {
 		imGuiManager::initialize(m_mainWindow);
 
 		onInitialize();
+		glfwSetWindowRefreshCallback(m_mainWindow->handle(), window_refresh_callback);
 
 		m_mainWindow->show();
-		m_mainWindow->setVSync(false);
 
 		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); // Makes debugging easier
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
 		GLUtils::setDebugMessageCallback();
 
 		threading::registerThread("Logic", [this]() { logicLoop(); });
 
-		while (!m_mainWindow->shouldClose() && m_running) {
-			renderLoop();
-		}
+		renderLoop();
+
 		close();
 
 		imGuiManager::shutdown();
@@ -83,32 +97,51 @@ namespace emerald {
 	}
 
 	void Application::renderLoop() {
-		auto renderThreadStart = std::chrono::high_resolution_clock::now();
+		PROFILE_REGISTER_RENDER_THREAD();
+		while (g_running) {
+			PROFILE_RENDER_FRAME();
 
-		m_mainWindow->pollEvents();
-		Renderer::executeCommandBuffer();
-		m_mainWindow->swapBuffers();
-		renderFinished = true;
-		cv.notify_all();
+			if (m_mainWindow->shouldClose()) {
+				g_running = false;
+			}
+			waitForLogic();
 
-		auto renderThreadEnd = std::chrono::high_resolution_clock::now();
-		auto renderDuration = std::chrono::duration_cast<std::chrono::milliseconds>(renderThreadEnd - renderThreadStart);
-		//Log::info("Render thread {}ms", renderDuration.count());
+			PROFILE_RENDER_BEGIN("Render");
+
+			PROFILE_RENDER_BEGIN("PollEvents");
+			m_mainWindow->pollEvents();
+			PROFILE_RENDER_END();
+
+			PROFILE_RENDER_BEGIN("CommandBuffer");
+			Renderer::executeCommandBuffer();
+			PROFILE_RENDER_END();
+
+			PROFILE_RENDER_BEGIN("SwapBuffers");
+			m_mainWindow->swapBuffers();
+			m_fps++;
+			PROFILE_RENDER_END();
+
+			g_renderFinished.store(true);
+			g_cvLogic.notify_one();
+
+			PROFILE_RENDER_END();
+		}
 	}
 
+
 	void Application::logicLoop() {
-		while (m_running) {
-			MainThreadStart = std::chrono::high_resolution_clock::now();
+		PROFILE_REGISTER_LOGIC_THREAD("Logic");
 
-			std::unique_lock<std::mutex> lock(mtx);
-			cv.wait(lock, [] { return renderFinished; });
-			renderFinished = false;
+		while (g_running) {
+			PROFILE_LOGIC_FRAME();
 
+			waitForRender();
+
+			PROFILE_LOGIC_BEGIN("Logic");
 			float currentTime = (float)glfwGetTime();
 			float deltaTime = currentTime - m_lastFrameTime;
 			m_totalFrameTime += deltaTime;
 			m_frameCount++;
-			m_fps++;
 
 			accumulatedTime += deltaTime;
 
@@ -123,7 +156,10 @@ namespace emerald {
 				accumulatedTime -= m_fixedTimeStep;
 			}
 
+			PROFILE_LOGIC_BEGIN("Update");
 			update(Timestep(deltaTime, m_totalFrameTime, m_frameCount));
+			PROFILE_LOGIC_END();
+
 			m_lastFrameTime = currentTime;
 
 			if (currentTime - m_lastTitleUpdateTime >= 1.0f) {
@@ -134,24 +170,55 @@ namespace emerald {
 				m_lastTitleUpdateTime = currentTime;
 			}
 
-			MainThreadEnd = std::chrono::high_resolution_clock::now();
-			auto MainThreadDuration = std::chrono::duration_cast<std::chrono::milliseconds>(MainThreadEnd - MainThreadStart);
-			//Log::info("Main thread {}ms", MainThreadDuration.count());
+			PROFILE_LOGIC_END();
 		}
+
+		// Let the render thread know that the logic thread has finished
+		g_logicFinished.store(true);
+		g_cvRender.notify_one();
+	}
+
+
+	void Application::waitForRender() {
+		PROFILE_LOGIC_BEGIN("WaitForRender");
+		std::unique_lock<std::mutex> lock(g_mtx);
+		g_cvLogic.wait(lock, [] { return g_renderFinished.load(); });
+		g_renderFinished.store(false);
+		lock.unlock();  // Unlock before notifying to avoid holding the lock while the other thread runs.
+		g_logicFinished.store(true);
+		g_cvRender.notify_one();
+		PROFILE_LOGIC_END();
+	}
+	void Application::waitForLogic() {
+		PROFILE_RENDER_BEGIN("WaitForLogic");
+		std::unique_lock<std::mutex> lock(g_mtx);
+		g_cvRender.wait(lock, [] { return g_logicFinished.load(); });
+		g_logicFinished.store(false);
+		lock.unlock();  // Unlock before notifying to avoid holding the lock while the other thread runs.
+		g_renderFinished.store(true);
+		g_cvLogic.notify_one();
+		PROFILE_RENDER_END();
 	}
 
 	void Application::close() {
-		m_running = false;
+		glfwSetWindowShouldClose(m_mainWindow->handle(), true);
 	}
 
 	void Application::onResize(uint32_t width, uint32_t height) {
-		Renderer::submit([width, height, this] {
-			FrameBufferManager::onResize(width, height);
-			glViewport(0, 0, width, height);
-			update(Timestep(0, m_totalFrameTime, m_frameCount));
-			m_mainWindow->swapBuffers();
-		});
-		Renderer::executeCommandBuffer();
+		x = width;
+		y = height;
+		//QueueEvent([width, height, this] {
+		//	Renderer::submit([width, height, this] {
+		//		
+		//	});
+		//});
+		//Renderer::submit([width, height, this] {
+		//	FrameBufferManager::onResize(width, height);
+		//	glViewport(0, 0, width, height);
+		//	update(Timestep(0, m_totalFrameTime, m_frameCount));
+		//	m_mainWindow->swapBuffers();
+		//});
+		//Renderer::executeCommandBuffer();
 	}
 
 	uint32_t Application::getWidth() const {

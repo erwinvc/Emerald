@@ -20,13 +20,16 @@ namespace emerald::threading {
 	}
 
 	void Thread::start() {
+		std::wstring wsTmp(m_name.begin(), m_name.end());
 		m_handle = std::make_unique<std::thread>(&Thread::run, this);
+		SetThreadDescription(m_handle->native_handle(), wsTmp.c_str());
 		if (m_background) {
 			m_handle->detach();
 		}
 	}
 
 	void Thread::shutdown() {
+		if (m_shutDown) return;
 		m_shutDown = true;
 		if (m_handle && m_handle->joinable()) {
 			m_handle->join();
@@ -34,13 +37,13 @@ namespace emerald::threading {
 	}
 
 	void Thread::run() {
-		try {
+		//try {
 			m_function();
-		} catch (const std::exception& e) {
-			Log::fatal("Exception in thread {}: {}", m_name.c_str(), e.what());
-		} catch (...) {
-			Log::fatal("Unknown exception in thread {}", m_name.c_str());
-		}
+			//} catch (const std::exception& e) {
+			//	Log::fatal("Exception in thread {}: {}", m_name.c_str(), e.what());
+			//} catch (...) {
+			//	Log::fatal("Unknown exception in thread {}", m_name.c_str());
+			//}
 		m_finished = true;
 	}
 
@@ -68,6 +71,6 @@ namespace emerald::threading {
 				}
 			}
 			return true;
-			});
+		});
 	}
 }

@@ -91,6 +91,7 @@ namespace emerald {
 	}
 
 	void Log::logMessage(LogLevel level, const std::string& type, const std::string& message) {
+		if (s_shutdown) return;
 		if (level > s_currentLogLevel) return;
 		ConsoleColor color = ConsoleColor::WHITE; // Default color
 		switch (level) {
