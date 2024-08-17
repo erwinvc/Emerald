@@ -16,13 +16,11 @@
 #include "util/timer.h"
 #include "glfw.h"
 #include "imguiProfiler/Profiler.h"
+#include "renderSyncManager.h"
 
 namespace emerald {
-	static std::mutex g_mtx;
-	static std::condition_variable g_cvRender, g_cvLogic;
-	static std::atomic<bool> g_renderFinished = true;
-	static std::atomic<bool> g_logicFinished = false;
 	static std::atomic<bool> g_running = true;
+
 
 	Application::Application(const ApplicationSettings& settings)
 		: m_settings(settings) {
@@ -31,21 +29,6 @@ namespace emerald {
 
 	Application::~Application() {
 		App = nullptr;
-	}
-
-	int x = 0;
-	int y = 0;
-	void window_refresh_callback(GLFWwindow* window) {
-		if (x != 0) {
-			FrameBufferManager::onResize(x, y);
-			FrameBufferManager::bindDefaultFBO();
-			glViewport(0, 0, x, y);
-			App->update(Timestep(0, 0, 0));
-			x = 0;
-			y = 0;
-			Renderer::executeCommandBuffer();
-			glfwSwapBuffers(window);
-		}
 	}
 
 	void Application::run() {
@@ -63,7 +46,7 @@ namespace emerald {
 		icon::loadIcon(m_mainWindow->handle());
 
 		m_mainWindow->getCallbacks().addOnResizeCallback(this, &Application::onResize);
-		m_mainWindow->setVSync(true);
+		m_mainWindow->setVSync(false);
 		m_mainWindow->setLimits(200, 60, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 		//LOG("[~cGPU~x] %-26s %s", "GPU~1", glGetString(GL_RENDERER));
@@ -72,17 +55,16 @@ namespace emerald {
 		imGuiManager::initialize(m_mainWindow);
 
 		onInitialize();
-		glfwSetWindowRefreshCallback(m_mainWindow->handle(), window_refresh_callback);
-
-		m_mainWindow->show();
 
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-
 		GLUtils::setDebugMessageCallback();
 
-		threading::registerThread("Logic", [this]() { logicLoop(); });
+		m_mainWindow->show();
 
+		m_initialized = true;
+
+		threading::registerThread("Logic", [this]() { logicLoop(); });
 		renderLoop();
 
 		close();
@@ -104,7 +86,10 @@ namespace emerald {
 			if (m_mainWindow->shouldClose()) {
 				g_running = false;
 			}
-			waitForLogic();
+
+			PROFILE_RENDER_BEGIN("Wait for render buffer");
+			Renderer::acquireRenderBuffer();
+			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("Render");
 
@@ -118,24 +103,21 @@ namespace emerald {
 
 			PROFILE_RENDER_BEGIN("SwapBuffers");
 			m_mainWindow->swapBuffers();
-			m_fps++;
+			m_fpsCounter++;
 			PROFILE_RENDER_END();
-
-			g_renderFinished.store(true);
-			g_cvLogic.notify_one();
 
 			PROFILE_RENDER_END();
 		}
 	}
 
-
 	void Application::logicLoop() {
 		PROFILE_REGISTER_LOGIC_THREAD("Logic");
-
 		while (g_running) {
 			PROFILE_LOGIC_FRAME();
 
-			waitForRender();
+			PROFILE_LOGIC_BEGIN("Wait");
+			Renderer::waitForBufferAvailability();
+			PROFILE_LOGIC_END();
 
 			PROFILE_LOGIC_BEGIN("Logic");
 			float currentTime = (float)glfwGetTime();
@@ -143,61 +125,49 @@ namespace emerald {
 			m_totalFrameTime += deltaTime;
 			m_frameCount++;
 
-			accumulatedTime += deltaTime;
+			m_accumulatedTime += deltaTime;
 
 			static std::function<void()> func;
 			while (m_eventQueue.tryToGet(func)) {
 				func();
 			}
 
-			while (accumulatedTime >= m_fixedTimeStep) {
+			while (m_accumulatedTime >= m_fixedTimeStep) {
 				fixedUpdate(Timestep(m_fixedTimeStep, m_totalFrameTime, m_frameCount));
-				m_ups++;
-				accumulatedTime -= m_fixedTimeStep;
+				m_upsCounter++;
+				m_accumulatedTime -= m_fixedTimeStep;
 			}
 
 			PROFILE_LOGIC_BEGIN("Update");
 			update(Timestep(deltaTime, m_totalFrameTime, m_frameCount));
 			PROFILE_LOGIC_END();
 
+			//PROFILE_LOGIC_BEGIN("Index");
+			//Sleep(20);
+			//PROFILE_LOGIC_END();
+			//
+			//Renderer::submit([] {
+			//	PROFILE_RENDER_BEGIN("Index");
+			//	Sleep(20);
+			//	PROFILE_RENDER_END();
+			//});
+
 			m_lastFrameTime = currentTime;
 
-			if (currentTime - m_lastTitleUpdateTime >= 1.0f) {
-				Log::info("{} | UPS: {} FPS: {}", m_settings.m_name, m_ups, m_fps);
-
-				m_fps = 0;
-				m_ups = 0;
-				m_lastTitleUpdateTime = currentTime;
+			if (currentTime - m_upsfpsCounter >= 1.0f) {
+				m_fps = m_fpsCounter;
+				m_ups = m_upsCounter;
+				m_fpsCounter = 0;
+				m_upsCounter = 0;
+				m_upsfpsCounter = currentTime;
 			}
 
 			PROFILE_LOGIC_END();
+
+			PROFILE_LOGIC_BEGIN("Submit buffer");
+			Renderer::submitBufferForRendering();
+			PROFILE_LOGIC_END();
 		}
-
-		// Let the render thread know that the logic thread has finished
-		g_logicFinished.store(true);
-		g_cvRender.notify_one();
-	}
-
-
-	void Application::waitForRender() {
-		PROFILE_LOGIC_BEGIN("WaitForRender");
-		std::unique_lock<std::mutex> lock(g_mtx);
-		g_cvLogic.wait(lock, [] { return g_renderFinished.load(); });
-		g_renderFinished.store(false);
-		lock.unlock();  // Unlock before notifying to avoid holding the lock while the other thread runs.
-		g_logicFinished.store(true);
-		g_cvRender.notify_one();
-		PROFILE_LOGIC_END();
-	}
-	void Application::waitForLogic() {
-		PROFILE_RENDER_BEGIN("WaitForLogic");
-		std::unique_lock<std::mutex> lock(g_mtx);
-		g_cvRender.wait(lock, [] { return g_logicFinished.load(); });
-		g_logicFinished.store(false);
-		lock.unlock();  // Unlock before notifying to avoid holding the lock while the other thread runs.
-		g_renderFinished.store(true);
-		g_cvLogic.notify_one();
-		PROFILE_RENDER_END();
 	}
 
 	void Application::close() {
@@ -205,20 +175,14 @@ namespace emerald {
 	}
 
 	void Application::onResize(uint32_t width, uint32_t height) {
-		x = width;
-		y = height;
-		//QueueEvent([width, height, this] {
-		//	Renderer::submit([width, height, this] {
-		//		
-		//	});
-		//});
-		//Renderer::submit([width, height, this] {
-		//	FrameBufferManager::onResize(width, height);
-		//	glViewport(0, 0, width, height);
-		//	update(Timestep(0, m_totalFrameTime, m_frameCount));
-		//	m_mainWindow->swapBuffers();
-		//});
-		//Renderer::executeCommandBuffer();
+		if (!m_initialized) return;
+		FrameBufferManager::onResize(width, height);
+		FrameBufferManager::bindDefaultFBO();
+		glViewport(0, 0, width, height);
+		Renderer::setTempBuffer();
+		update(Timestep(0, m_totalFrameTime, m_frameCount));
+		Renderer::executeCommandBuffer();
+		m_mainWindow->swapBuffers();
 	}
 
 	uint32_t Application::getWidth() const {

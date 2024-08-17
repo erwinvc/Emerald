@@ -5,18 +5,35 @@
 #include "application.h"
 #include "util/GLUtils.h"
 #include "../glError.h"
+#include "renderSyncManager.h"
 
 namespace emerald {
-	static RendererData s_data;
+	static std::shared_ptr<RenderPass> s_activeRenderPass;
+	static RenderSyncManager s_renderSyncManager;
+
+	void Renderer::setTempBuffer() {
+		s_renderSyncManager.SetTempBuffer();
+	}
+		void Renderer::acquireRenderBuffer() {
+		s_renderSyncManager.acquireRenderBuffer();
+	}
+
+	void Renderer::waitForBufferAvailability() {
+		s_renderSyncManager.waitForBufferAvailability();
+	}
+
+	void Renderer::submitBufferForRendering() {
+		s_renderSyncManager.submitBufferForRendering();
+	}
 
 	void Renderer::beginRenderPass(std::shared_ptr<RenderPass> renderPass) {
-		s_data.m_activeRenderPass = renderPass;
-		s_data.m_activeRenderPass->bind();
-		s_data.m_activeRenderPass->clear();
+		s_activeRenderPass = renderPass;
+		s_activeRenderPass->bind();
+		s_activeRenderPass->clear();
 	}
 
 	void Renderer::endRenderPass() {
-		s_data.m_activeRenderPass = nullptr;
+		s_activeRenderPass = nullptr;
 	}
 
 	void Renderer::bindDefaultFBO() {
@@ -25,11 +42,11 @@ namespace emerald {
 	}
 
 	void Renderer::executeCommandBuffer() {
-		s_data.m_commandBuffer.executeCommands();
+		s_renderSyncManager.executeRenderBuffer();
 	}
 
 	void Renderer::submit(Command command) {
-		s_data.m_commandBuffer.pushCommand(command);
+		s_renderSyncManager.submit(command);
 	}
 
 	void Renderer::drawIndexed(uint32_t count, PrimitiveType type, bool depthTest) {

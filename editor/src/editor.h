@@ -3,6 +3,18 @@
 namespace emerald {
 	class RenderPipeline;
 
+	struct EditorHeaderInformation {
+		std::string title = "Emerald Engine Editor";
+		std::string subTitle = "";
+	};
+
+	struct EditorWindowsVisibility {
+		bool profiler = false;
+	};
+
+	inline EditorWindowsVisibility EditorWindows;
+	inline EditorHeaderInformation EditorHeader;
+
 	class EmeraldEditorApplication : public Application {
 	public:
 		void onInitialize() override;

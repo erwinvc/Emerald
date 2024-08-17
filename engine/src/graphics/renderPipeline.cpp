@@ -52,7 +52,6 @@ namespace emerald {
 	}
 
 	RenderPipeline::~RenderPipeline() {
-		Log::info("RenderPipeline destroyed");
 	}
 
 	void RenderPipeline::createRenderQueue() {}

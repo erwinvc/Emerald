@@ -12,7 +12,7 @@ namespace emerald {
 		m_desc = desc;
 		if (!FileSystem::doesFileExist(path)) {
 			//Log::info(path.c_str(), "");
-			Log::error("Texture file at {} does not exist!", path);
+			Log::error("[Texture] texture file at {} does not exist!", path);
 			return;
 		}
 
@@ -28,7 +28,7 @@ namespace emerald {
 		//	return false;
 		//}
 
-		if (channelCount < 1 || channelCount > 4) Log::error("Unsupported image channel count ({}) {}", channelCount, path.c_str());
+		if (channelCount < 1 || channelCount > 4) Log::error("[Texture] unsupported image channel count ({}) {}", channelCount, path.c_str());
 
 		uint32_t size = channelCount * width * height;
 
@@ -38,8 +38,8 @@ namespace emerald {
 			m_height = height;
 			m_buffer = Buffer<byte>::copy(data, size);
 			stbi_image_free(data);
-			Log::info("Loaded {}", path.c_str());
-		} else Log::error("Failed to load {}", path.c_str());
+			Log::info("[Texture] loaded {}", path.c_str());
+		} else Log::error("[Texture] failed to load {}", path.c_str());
 	}
 
 	Texture::Texture(TextureDesc desc, uint32_t width, uint32_t height, const byte* data, uint32_t dataSize, TextureDataType textureDataType)
@@ -54,7 +54,7 @@ namespace emerald {
 
 			byte* loadedData = stbi_load_from_memory(data, dataSize, &width, &height, &channelCount, 4);
 
-			if (channelCount < 1 || channelCount > 4) Log::error("Unsupported image channel count ({})", channelCount);
+			if (channelCount < 1 || channelCount > 4) Log::error("[Texture] unsupported image channel count ({})", channelCount);
 
 			uint32_t size = channelCount * width * height;
 
@@ -64,8 +64,8 @@ namespace emerald {
 				m_height = height;
 				m_buffer = Buffer<byte>::copy(loadedData, size);
 				stbi_image_free(loadedData);
-				Log::info("Loaded texture from memory");
-			} else Log::error("Failed to load texture from memory");
+				Log::info("[Texture] loaded texture from memory");
+			} else Log::error("[Texture] failed to load texture from memory");
 		}
 	}
 
@@ -113,7 +113,7 @@ namespace emerald {
 				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value);
 				float amount = glm::min(4.0f, value);
 				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
-			} else Log::warn("GL_EXT_texture_filter_anisotropic not supported");
+			} else Log::warn("[Texture] GL_EXT_texture_filter_anisotropic not supported");
 		}
 	}
 
@@ -138,7 +138,7 @@ namespace emerald {
 		if (m_desc.m_readWrite && m_buffer) {
 			uint32_t channels = m_desc.getChannelCount();
 			stbi_write_png(file.c_str(), getWidth(), getHeight(), channels, m_buffer.data(), channels * getWidth());
-			Log::info("Saved texture to {}", file.c_str());
-		} else Log::warn("Failed to save texture because texture has no data");
+			Log::info("[Texture] saved texture to {}", file.c_str());
+		} else Log::warn("[Texture] failed to save texture because texture has no data");
 	}
 }

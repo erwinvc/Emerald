@@ -73,10 +73,13 @@ struct URange {
 #define PROFILE_LOGIC_END()									gCPUProfiler.EndEvent()
 #define PROFILE_RENDER_END()								gGPUProfiler.EndEvent()
 
+#define PROFILE_INITIALIZE() gCPUProfiler.Initialize(20, 1024 * 4); gGPUProfiler.Initialize(20, 1024 * 4);
+
+#define PROFILE_DISABLE() gCPUProfiler.SetPaused(true); gGPUProfiler.SetPaused(true);
 #else
 
-#define PROFILE_REGISTER_THREAD(...)
-#define PROFILE_REGISTER_THREAD2(...)
+#define PROFILE_REGISTER_LOGIC_THREAD(...)
+#define PROFILE_REGISTER_RENDER_THREAD(...)
 #define PROFILE_LOGIC_FRAME()
 #define PROFILE_RENDER_FRAME()
 
@@ -86,6 +89,9 @@ struct URange {
 #define PROFILE_RENDER_BEGIN(...)
 #define PROFILE_LOGIC_END()
 #define PROFILE_RENDER_END()
+
+#define PROFILE_INITIALIZE()
+#define PROFILE_DISABLE()
 
 #endif
 

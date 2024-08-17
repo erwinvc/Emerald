@@ -2,7 +2,6 @@
 #include "emerald.h"
 
 namespace emerald {
-
 	class EditorWindow {
 	public:
 		EditorWindow() = default;

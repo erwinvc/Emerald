@@ -8,7 +8,7 @@
 namespace emerald {
 	Shader::Shader(const std::string& name, const std::string& filePath, bool hasGeometry, bool hasTessellation) : m_shaderProgram(nullptr), m_hasGeometry(hasGeometry), m_hasTessellation(hasTessellation), m_name(name), m_shaderPath(filePath) {
 		m_shaderProgram = load();
-		if (!m_shaderProgram) Log::fatal("Shader {} failed to compile", name.c_str());
+		if (!m_shaderProgram) Log::fatal("[Shader] {} failed to compile", name.c_str());
 		m_uniformBuffer.initialize(m_shaderProgram);
 	}
 
@@ -18,12 +18,12 @@ namespace emerald {
 
 	uint32_t Shader::loadShader(const std::string& path, uint32_t type) {
 		uint32_t shader = glCreateShader(type);
-		if (!FileSystem::doesFileExist(path)) Log::warn("[~bShaders~x] ~1%s ~xshader ~1%s ~xat ~1%s does not exist", m_name.c_str(), GLUtils::shaderTypeToString(type), path.c_str());
+		if (!FileSystem::doesFileExist(path)) Log::warn("[Shader] {} {} at {} does not exist", m_name.c_str(), GLUtils::shaderTypeToString(type), path.c_str());
 
 		std::string source;
 		std::string logOutput;
 		if (!Shadinclude::load(path, source, logOutput)) {
-			Log::warn("[~bShaders~x] Failed to load ~1%s ~xshader ~1%s ~xat ~1%s~x [~1%s]", m_name.c_str(), GLUtils::shaderTypeToString(type), path.c_str(), logOutput.c_str());
+			Log::warn("[Shader] Failed to load {} xshader {} at {} [{}]", m_name.c_str(), GLUtils::shaderTypeToString(type), path.c_str(), logOutput.c_str());
 			return 0xffffffff;
 		}
 
@@ -39,10 +39,10 @@ namespace emerald {
 			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
 			std::vector<char> error(length);
 			glGetShaderInfoLog(shader, length, &length, &error[0]);
-			Log::warn("[~bShaders~x] Failed to compile %s %s shader with error: \n%s", m_name.c_str(), GLUtils::shaderTypeToString(type), &error[0]);
+			Log::warn("[Shader] Failed to compile {} {} shader with error: \n{}", m_name.c_str(), GLUtils::shaderTypeToString(type), &error[0]);
 			return 0xffffffff;
 		}
-		Log::info("[~bShaders~x] Compiled ~1%s~x %s", m_name.c_str(), GLUtils::shaderTypeToString(type));
+		Log::info("[Shader] Compiled {} {} shader", m_name.c_str(), GLUtils::shaderTypeToString(type));
 		return shader;
 	}
 

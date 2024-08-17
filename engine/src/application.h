@@ -8,6 +8,7 @@
 namespace emerald {
 	class Window;
 	class Texture;
+	class CommandBuffer;
 
 	struct ApplicationSettings {
 		std::string m_name;
@@ -37,28 +38,39 @@ namespace emerald {
 		void QueueEvent(F&& function) {
 			m_eventQueue.add(function);
 		}
+		int logicBufferIndex = 0;
+
+	protected:
+		uint64_t getFrameCount() const { return m_frameCount; }
+		uint32_t getFPS() const { return m_fps; }
+		uint32_t getUPS() const { return m_ups; }
+		float getTotalFrameTime() const { return m_totalFrameTime; }
+		float getLastFrameTime() const { return m_lastFrameTime; }
+		float getFixedTimeStep() const { return m_fixedTimeStep; }
+		void setFixedTimeStep(float timeStep) { m_fixedTimeStep = timeStep; }
 
 	private:
 		void logicLoop();
 		void renderLoop();
-		void waitForLogic();
-		void waitForRender();
 
 	private:
 		ApplicationSettings m_settings;
 		Ref<Window> m_mainWindow;
 		AsyncQueue<std::function<void()>> m_eventQueue;
 
-		const float m_fixedTimeStep = 0.02f; // Fixed timestep of 20 ms (50 times per second)
-		float accumulatedTime = 0.0f;
-		float m_totalFrameTime = 0.0f;
-		float m_lastFrameTime = 0.0f;
-		float m_lastTitleUpdateTime = 0.0f;
+		bool m_initialized = false;
 		uint64_t m_frameCount = 0;
+		uint32_t m_fpsCounter = 0;
+		uint32_t m_upsCounter = 0;
 		uint32_t m_fps = 0;
 		uint32_t m_ups = 0;
+		float m_fixedTimeStep = 0.02f; // Fixed timestep of 20 ms (50 times per second)
+		float m_accumulatedTime = 0.0f;
+		float m_totalFrameTime = 0.0f;
+		float m_lastFrameTime = 0.0f;
+		float m_upsfpsCounter = 0.0f;
 	};
 
 	inline Application* App;
-	Application* createApplication(int argc, char** argv);
+	Application* createApplication();
 }

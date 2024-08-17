@@ -8,16 +8,26 @@
 #include "imguiProfiler/Profiler.h"
 
 namespace emerald {
-	std::unique_ptr<EditorWindow> editorWindow;
-	std::unique_ptr<RenderPipeline> renderPipeline;
+	static std::unique_ptr<EditorWindow> editorWindow;
+	static std::unique_ptr<RenderPipeline> renderPipeline;
+	static float s_lastTitleUpdateTime = 0.0f;
+
+	void updateTitlebar(float time, uint32_t ups, uint32_t fps, bool force = false) {
+		if (time - s_lastTitleUpdateTime >= 1.0f || force) {
+			EditorHeader.subTitle = std::format("UPS: {} FPS: {}", ups, fps);
+			s_lastTitleUpdateTime = time;
+		}
+	}
 
 	void EmeraldEditorApplication::onInitialize() {
 		editorWindow = std::make_unique<EditorWindow>();
 		renderPipeline = std::make_unique<RenderPipeline>();
 		editorWindow->initialize();
 
-		gCPUProfiler.Initialize(8, 1024 * 4);
-		gGPUProfiler.Initialize(8, 1024 * 4);
+		PROFILE_INITIALIZE();
+		PROFILE_DISABLE();
+
+		updateTitlebar(0, 0, 0, true);
 	}
 
 	void EmeraldEditorApplication::onShutdown() {
@@ -25,9 +35,10 @@ namespace emerald {
 		renderPipeline.reset();
 	}
 
-	int index = 0;
 	void EmeraldEditorApplication::update(Timestep ts) {
+		updateTitlebar(getTime(), getUPS(), getFPS());
 		editorWindow->update(ts);
+
 		Renderer::submit([ts] {
 			PROFILE_RENDER_BEGIN("ImGui start");
 			imGuiManager::begin();
@@ -44,7 +55,6 @@ namespace emerald {
 			renderPipeline->render();
 			PROFILE_RENDER_END();
 		});
-		index++;
 	}
 
 	void EmeraldEditorApplication::fixedUpdate(Timestep ts) {
@@ -55,7 +65,7 @@ namespace emerald {
 		return renderPipeline.get();
 	}
 
-	Application* createApplication(int argc, char** argv) {
+	Application* createApplication() {
 		return new EmeraldEditorApplication();
 	}
 }

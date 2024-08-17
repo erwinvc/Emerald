@@ -46,7 +46,7 @@ namespace emerald {
 
 		s_initialized = true;
 
-		Log::info("Console allocated");
+		Log::info("[Console] allocated");
 
 		s_outputThread = threading::registerThread("Console output", handleQueue);
 
@@ -115,7 +115,7 @@ namespace emerald {
 	}
 
 	void Log::cleanup() {
-		Log::info("Deallocating console");
+		Log::info("[Console] deallocating...");
 		if (m_logFile.is_open()) m_logFile.close();
 		if (!s_initialized) return;
 		forceEmptyQueue();

@@ -1,6 +1,6 @@
 #pragma once
+#include "renderSyncManager.h"
 
-#include "commandBuffer.h"
 namespace emerald {
 	class RenderPass;
 
@@ -14,13 +14,13 @@ namespace emerald {
 		TRIANGLE_FAN = 0x0006,
 	};
 
-	struct RendererData {
-		std::shared_ptr<RenderPass> m_activeRenderPass;
-		CommandBuffer m_commandBuffer;
-	};
-
 	class Renderer {
 	public:
+		static void setTempBuffer();
+		static void acquireRenderBuffer();
+		static void waitForBufferAvailability();
+		static void submitBufferForRendering();
+
 		static void beginRenderPass(std::shared_ptr<RenderPass> renderPass);
 		static void endRenderPass();
 

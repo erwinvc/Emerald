@@ -144,7 +144,7 @@ namespace emerald::imGuiManager {
 		
 		applyEmeraldTheme();
 
-		Log::info("ImGui initialized");
+		Log::info("[ImGui] initialized");
 	}
 
 	void pushFont(ImGUIFont font) {

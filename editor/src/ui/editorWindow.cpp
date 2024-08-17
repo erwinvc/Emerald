@@ -220,10 +220,13 @@ namespace emerald {
 		const float buttonsAreaWidth = titleBarButtonSize * 4;
 		const ImVec2 buttonSize = ImVec2(titleBarButtonSize, 46);
 
-		const float w = ImGui::GetContentRegionAvail().x;
+		//Titlebar
+		const float contentRegionWidth = ImGui::GetContentRegionAvail().x;
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		ImGui::SetCursorPos(ImVec2(windowPadding.x, windowPadding.y + (maximized ? 2.0f : 0.0f)));
 		ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth(), titlebarHeight });
+
+		//Logo
 		ImGui::BeginHorizontal("TitlebarLogo", ImVec2(46, 46), 0.5f);
 		ImGui::Spring();
 		ImGui::Image((void*)(uint64_t)s_icon->handle(), ImVec2(32.0f, 32.0f));
@@ -231,9 +234,26 @@ namespace emerald {
 		ImGui::EndHorizontal();
 		s_TitleBarHovered = ImGui::IsItemHovered();
 
-		ImGui::InvisibleButton("", ImVec2(w - buttonsAreaWidth + 2, titlebarHeight));
+		//Title and subtitle
+		ImVec2 backupPos = ImGui::GetCursorPos();
+		ImGui::BeginGroup();
+		imGuiManager::pushFont(ImGUIFont::INTER);
+		ImGui::Spring();
+		ImGui::Text(EditorHeader.title.c_str());
+		ImGui::SameLine();
+		ImGui::BeginDisabled(true);
+		ImGui::Text(EditorHeader.subTitle.c_str());
+		ImGui::EndDisabled();
+		ImGui::Spring();
+		imGuiManager::popFont();
+		ImGui::EndGroup();
+		ImGui::SetCursorPos(backupPos);
+		s_TitleBarHovered = ImGui::IsItemHovered();
+
+		ImGui::InvisibleButton("", ImVec2(contentRegionWidth - buttonsAreaWidth + 2, titlebarHeight));
 		s_TitleBarHovered |= ImGui::IsItemHovered();
 
+		//Buttons
 		if (ImGui::Button((const char*)SEGOE_MDL2_ICON_CHROME_MINIMIZE, buttonSize)) {
 			App->QueueEvent([] {App->getWindow()->minimize(); });
 		}
@@ -246,6 +266,7 @@ namespace emerald {
 			});
 		}
 		if (ImGui::Button((const char*)SEGOE_MDL2_ICON_CHROME_CLOSE, buttonSize)) App->close();
+
 		ImGui::EndHorizontal();
 		imGuiManager::popFont();
 
@@ -271,7 +292,12 @@ namespace emerald {
 			}
 			if (ImGui::MenuItem("File")) {}
 			if (ImGui::MenuItem("View")) {}
-			if (ImGui::MenuItem("Window")) {}
+			if (ImGui::BeginMenu("Window")) {
+				if (ImGui::MenuItem("Profiler")) {
+					EditorWindows.profiler = true;
+				}
+				ImGui::EndMenu();
+			}
 			ImGui::EndMenuBar();
 		}
 	}
@@ -342,14 +368,21 @@ namespace emerald {
 		ImGui::Begin("Log", nullptr, windowFlags);
 		ImGui::End();
 
-		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(800, 300));
-		ImGui::Begin("Profiler");
-		imGuiManager::pushFont(ImGUIFont::INTER);
-		DrawProfilerHUD();
-		imGuiManager::popFont();
-		ImGui::PopStyleVar();
-		ImGui::End();
+		if (EditorWindows.profiler) {
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(800, 300));
+			applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
+			if (ImGui::Begin("Profiler", &EditorWindows.profiler)) {
+				imGuiManager::pushFont(ImGUIFont::INTER);
+				DrawProfilerHUD();
+				imGuiManager::popFont();
+			}
+			ImGui::PopStyleVar();
+			ImGui::End();
+
+			if (!EditorWindows.profiler) {
+				PROFILE_DISABLE();
+			}
+		}
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::Begin("Hierarchy", nullptr, windowFlags);
