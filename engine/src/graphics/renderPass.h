@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "graphics/buffers/vertexBufferLayout.h"
+#include "graphics/shaders/shader.h"
 
 namespace emerald {
 	class FrameBuffer;
@@ -8,8 +9,8 @@ namespace emerald {
 
 	struct RenderPassDesc {
 		std::string name;
-		std::shared_ptr<FrameBuffer> frameBuffer;
-		std::shared_ptr<Shader> shader;
+		Ref<FrameBuffer> frameBuffer;
+		Ref<Shader> shader;
 	};
 
 	class RenderPass {
@@ -21,6 +22,6 @@ namespace emerald {
 		~RenderPass();
 		void clear();
 		void bind();
-		const RenderPassDesc& descriptor() { return m_desc; }
+		RenderPassDesc& descriptor() { return m_desc; }
 	};
 }

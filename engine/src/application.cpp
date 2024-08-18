@@ -17,6 +17,7 @@
 #include "glfw.h"
 #include "imguiProfiler/Profiler.h"
 #include "renderSyncManager.h"
+#include "tests/test.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -205,7 +206,7 @@ namespace emerald {
 		return m_mainWindow->getHeight();
 	}
 
-	double Application::getTime() const {
-		return glfwGetTime();
+	float Application::getTime() const {
+		return (float)glfwGetTime();
 	}
 }

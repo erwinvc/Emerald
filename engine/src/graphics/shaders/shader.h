@@ -2,7 +2,7 @@
 #include "shaderUniformBuffer.h"
 
 namespace emerald {
-	class Shader {
+	class Shader : public RefCounted {
 	private:
 		ShaderProgram* m_shaderProgram;
 		ShaderUniformBuffer m_uniformBuffer;

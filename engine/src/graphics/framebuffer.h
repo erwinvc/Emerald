@@ -35,7 +35,7 @@ namespace emerald {
 		uint32_t samples = 1;
 	};
 
-	class FrameBuffer {
+	class FrameBuffer : public RefCounted {
 	private:
 		std::shared_ptr<Texture> m_depthTexture;
 		std::vector<std::shared_ptr<Texture>> m_textures;
@@ -59,7 +59,7 @@ namespace emerald {
 
 		const FramebufferDesc& descriptor() const { return m_desc; }
 
-		static std::shared_ptr<FrameBuffer> create(FramebufferDesc desc);
+		static Ref<FrameBuffer> create(FramebufferDesc desc);
 
 		void bind() const;
 		void unbind() const;
@@ -89,8 +89,8 @@ namespace emerald {
 	};
 
 	namespace FrameBufferManager {
-		inline std::vector<std::weak_ptr<FrameBuffer>> m_frameBuffers;
-		void add(const std::shared_ptr<FrameBuffer>& fbo);
+		inline std::vector<Ref<FrameBuffer>> m_frameBuffers;
+		void add(const Ref<FrameBuffer>& fbo);
 		void bindDefaultFBO();
 		void onResize(uint32_t width, uint32_t height);
 		void shutdown();

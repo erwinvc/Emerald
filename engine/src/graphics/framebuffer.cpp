@@ -47,12 +47,11 @@ namespace emerald {
 		resize(width, height, true);
 	}
 
-	std::shared_ptr<FrameBuffer> FrameBuffer::create(FramebufferDesc desc) {
-		auto fbo = std::shared_ptr<FrameBuffer>(new FrameBuffer(desc)); 
+	Ref<FrameBuffer> FrameBuffer::create(FramebufferDesc desc) {
+		Ref<FrameBuffer> fbo{ new FrameBuffer(desc) };
 		FrameBufferManager::add(fbo);
 		return fbo;
 	}
-
 
 	FrameBuffer::~FrameBuffer() {
 		glDeleteFramebuffers(1, &m_handle);
@@ -184,7 +183,7 @@ namespace emerald {
 	}
 
 	namespace FrameBufferManager {
-		void add(const std::shared_ptr<FrameBuffer>& fbo) {
+		void add(const Ref<FrameBuffer>& fbo) {
 			m_frameBuffers.push_back(fbo);
 		}
 
@@ -196,9 +195,9 @@ namespace emerald {
 		void onResize(uint32_t width, uint32_t height) {
 			auto it = m_frameBuffers.begin();
 			while (it != m_frameBuffers.end()) {
-				if (auto framebuffer = it->lock()) { 
-					framebuffer->resize(width, height, false);
-					++it; 
+				if ((*it).getRefCount() > 1) {
+					(*it)->resize(width, height, false);
+					++it;
 				} else {
 					it = m_frameBuffers.erase(it);
 				}

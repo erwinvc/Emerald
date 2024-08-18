@@ -20,7 +20,7 @@ namespace emerald {
 
 		RenderPassDesc mainPassDesc;
 		mainPassDesc.frameBuffer = FrameBuffer::create(mainfbDesc);
-		mainPassDesc.shader = std::make_shared<Shader>("Geometry", "res/shaders/geometry");
+		mainPassDesc.shader = Ref<Shader>::create("Geometry", "res/shaders/geometry");
 		m_mainPass = std::make_shared<RenderPass>(mainPassDesc);
 
 		struct Vertex {
