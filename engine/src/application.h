@@ -15,6 +15,11 @@ namespace emerald {
 		uint32_t m_width, m_height;
 	};
 
+	struct ResizeData {
+		uint32_t m_width, m_height;
+		bool m_shouldResize;
+	};
+
 	class Application {
 	public:
 		Application(const ApplicationSettings& settings = { "Emerald", 1920, 1080 });
@@ -22,6 +27,7 @@ namespace emerald {
 
 		void run();
 		void close();
+		void handleResize();
 		void onResize(uint32_t width, uint32_t height);
 
 		virtual void onInitialize() = 0;

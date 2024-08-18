@@ -8,6 +8,7 @@ namespace emerald {
 		tempBuffer = true;
 		tempBufferr.clear();
 	}
+
 	void RenderSyncManager::acquireRenderBuffer() {
 		std::unique_lock<std::mutex> lock(bufferMutex);
 		
@@ -22,6 +23,7 @@ namespace emerald {
 	}
 
 	void RenderSyncManager::submit(Command command) {
+		ASSERT(!ThreadManager::isThread(ThreadType::RENDER), "The render thread is not supposed to queue render commands");
 		if (tempBuffer)tempBufferr.emplace_back(command);
 		else backBuffer->emplace_back(command);
 	}

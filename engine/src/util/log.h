@@ -85,7 +85,7 @@ namespace emerald {
 		static std::ofstream m_logFile;
 
 		static HANDLE s_outputHandle;
-		static threading::Thread* s_outputThread;
+		static Thread* s_outputThread;
 		static CONSOLE_SCREEN_BUFFER_INFO s_screenBuffer;
 
 		static AsyncQueue<Log::QueuedMessage> m_queue;

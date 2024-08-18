@@ -20,7 +20,7 @@
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
-
+	static ResizeData g_resizeData;
 
 	Application::Application(const ApplicationSettings& settings)
 		: m_settings(settings) {
@@ -64,7 +64,8 @@ namespace emerald {
 
 		m_initialized = true;
 
-		threading::registerThread("Logic", [this]() { logicLoop(); });
+		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, "Logic", [this]() { logicLoop(); });
+		ThreadManager::registerCurrentThread(ThreadType::RENDER);
 		renderLoop();
 
 		close();
@@ -96,6 +97,8 @@ namespace emerald {
 			PROFILE_RENDER_BEGIN("PollEvents");
 			m_mainWindow->pollEvents();
 			PROFILE_RENDER_END();
+
+			handleResize();
 
 			PROFILE_RENDER_BEGIN("CommandBuffer");
 			Renderer::executeCommandBuffer();
@@ -174,15 +177,24 @@ namespace emerald {
 		glfwSetWindowShouldClose(m_mainWindow->handle(), true);
 	}
 
+	void Application::handleResize() {
+		if (g_resizeData.m_shouldResize) {
+			FrameBufferManager::onResize(g_resizeData.m_width, g_resizeData.m_height);
+			FrameBufferManager::bindDefaultFBO();
+			glViewport(0, 0, g_resizeData.m_width, g_resizeData.m_height);
+			g_resizeData.m_shouldResize = false;
+		}
+	}
+
 	void Application::onResize(uint32_t width, uint32_t height) {
-		if (!m_initialized) return;
-		FrameBufferManager::onResize(width, height);
-		FrameBufferManager::bindDefaultFBO();
-		glViewport(0, 0, width, height);
-		Renderer::setTempBuffer();
-		update(Timestep(0, m_totalFrameTime, m_frameCount));
-		Renderer::executeCommandBuffer();
-		m_mainWindow->swapBuffers();
+		m_mainWindow->setWidth(width);
+		m_mainWindow->setHeight(height);
+		if (g_resizeData.m_width == width && g_resizeData.m_height == height)
+			return;
+
+		g_resizeData.m_width = width;
+		g_resizeData.m_height = height;
+		g_resizeData.m_shouldResize = true;
 	}
 
 	uint32_t Application::getWidth() const {

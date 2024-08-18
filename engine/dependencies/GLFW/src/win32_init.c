@@ -322,54 +322,54 @@ static void createKeyTables(void)
 
 // Creates a dummy window for behind-the-scenes work
 //
-static GLFWbool createHelperWindow(void)
-{
-    MSG msg;
+static GLFWbool createHelperWindow(void) {
+	_glfw.win32.helperWindowHandle =
+		CreateWindowExW(WS_EX_OVERLAPPEDWINDOW,
+			_GLFW_WNDCLASSNAME,
+			L"GLFW message window",
+			WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+			0, 0, 1, 1,
+			NULL, NULL,
+			GetModuleHandleW(NULL),
+			NULL);
 
-    _glfw.win32.helperWindowHandle =
-        CreateWindowExW(WS_EX_OVERLAPPEDWINDOW,
-                        _GLFW_WNDCLASSNAME,
-                        L"GLFW message window",
-                        WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-                        0, 0, 1, 1,
-                        NULL, NULL,
-                        GetModuleHandleW(NULL),
-                        NULL);
+	if (!_glfw.win32.helperWindowHandle) {
+		_glfwInputErrorWin32(GLFW_PLATFORM_ERROR,
+			"Win32: Failed to create helper window");
+		return GLFW_FALSE;
+	}
 
-    if (!_glfw.win32.helperWindowHandle)
-    {
-        _glfwInputErrorWin32(GLFW_PLATFORM_ERROR,
-                             "Win32: Failed to create helper window");
-        return GLFW_FALSE;
-    }
+	// HACK: The command to the first ShowWindow call is ignored if the parent
+	//       process passed along a STARTUPINFO, so clear that with a no-op call
+	ShowWindow(_glfw.win32.helperWindowHandle, SW_HIDE);
 
-    // HACK: The command to the first ShowWindow call is ignored if the parent
-    //       process passed along a STARTUPINFO, so clear that with a no-op call
-    ShowWindow(_glfw.win32.helperWindowHandle, SW_HIDE);
+	// Register for HID device notifications
+	{
+		DEV_BROADCAST_DEVICEINTERFACE_W dbi;
+		ZeroMemory(&dbi, sizeof(dbi));
+		dbi.dbcc_size = sizeof(dbi);
+		dbi.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+		dbi.dbcc_classguid = GUID_DEVINTERFACE_HID;
 
-    // Register for HID device notifications
-    {
-        DEV_BROADCAST_DEVICEINTERFACE_W dbi;
-        ZeroMemory(&dbi, sizeof(dbi));
-        dbi.dbcc_size = sizeof(dbi);
-        dbi.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-        dbi.dbcc_classguid = GUID_DEVINTERFACE_HID;
+		_glfw.win32.deviceNotificationHandle =
+			RegisterDeviceNotificationW(_glfw.win32.helperWindowHandle,
+				(DEV_BROADCAST_HDR*)&dbi,
+				DEVICE_NOTIFY_WINDOW_HANDLE);
+	}
 
-        _glfw.win32.deviceNotificationHandle =
-            RegisterDeviceNotificationW(_glfw.win32.helperWindowHandle,
-                                        (DEV_BROADCAST_HDR*) &dbi,
-                                        DEVICE_NOTIFY_WINDOW_HANDLE);
-    }
+	if (_glfw.hints.init.win32.msgInFiber) {
+		SwitchToFiber(_glfw.win32.messageFiber);
+	} else {
+		MSG msg;
+		while (PeekMessageW(&msg, _glfw.win32.helperWindowHandle, 0, 0, PM_REMOVE)) {
+			TranslateMessage(&msg);
+			DispatchMessageW(&msg);
+		}
+	}
 
-    //while (PeekMessageW(&msg, _glfw.win32.helperWindowHandle, 0, 0, PM_REMOVE))
-    //{
-    //    TranslateMessage(&msg);
-    //    DispatchMessageW(&msg);
-    //}
-    SwitchToFiber(_glfw.win32.messageFiber);
-
-   return GLFW_TRUE;
+	return GLFW_TRUE;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -507,29 +507,32 @@ void _glfwUpdateKeyNamesWin32(void)
     }
 }
 
-void CALLBACK messageFiberProc(LPVOID lpFiberParameter) {
-	MSG msg;
+void _glfwPollMessageLoopWin32(void) {
 	_GLFWwindow* window;
+	MSG msg;
+	while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
+		if (msg.message == WM_QUIT) {
+			// NOTE: While GLFW does not itself post WM_QUIT, other processes
+			//       may post it to this one, for example Task Manager
+			// HACK: Treat WM_QUIT as a close on all windows
+
+			window = _glfw.windowListHead;
+			while (window) {
+				_glfwInputWindowCloseRequest(window);
+				window = window->next;
+			}
+		} else {
+			TranslateMessage(&msg);
+			DispatchMessageW(&msg);
+		}
+	}
+}
+
+void CALLBACK messageFiberProc(LPVOID lpFiberParameter) {
 	(void)lpFiberParameter;
 
 	for (;;) {
-		while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
-			if (msg.message == WM_QUIT) {
-				// NOTE: While GLFW does not itself post WM_QUIT, other processes
-				//       may post it to this one, for example Task Manager
-				// HACK: Treat WM_QUIT as a close on all windows
-
-				window = _glfw.windowListHead;
-				while (window) {
-					_glfwInputWindowCloseRequest(window);
-					window = window->next;
-				}
-			} else {
-				TranslateMessage(&msg);
-				DispatchMessageW(&msg);
-			}
-		}
-
+		_glfwPollMessageLoopWin32();
 		SwitchToFiber(_glfw.win32.mainFiber);
 	}
 }
@@ -662,13 +665,15 @@ int _glfwInitWin32(void)
     else if (IsWindowsVistaOrGreater())
         SetProcessDPIAware();
 
-	_glfw.win32.mainFiber = ConvertThreadToFiber(NULL);
-	if (!_glfw.win32.mainFiber)
-		return GLFW_FALSE;
+	if (_glfw.hints.init.win32.msgInFiber) {
+		_glfw.win32.mainFiber = ConvertThreadToFiber(NULL);
+		if (!_glfw.win32.mainFiber)
+			return GLFW_FALSE;
 
-	_glfw.win32.messageFiber = CreateFiber(0, &messageFiberProc, NULL);
-	if (!_glfw.win32.messageFiber)
-		return GLFW_FALSE;
+		_glfw.win32.messageFiber = CreateFiber(0, &messageFiberProc, NULL);
+		if (!_glfw.win32.messageFiber)
+			return GLFW_FALSE;
+	}
 
     if (!_glfwRegisterWindowClassWin32())
         return GLFW_FALSE;
@@ -676,22 +681,25 @@ int _glfwInitWin32(void)
     if (!createHelperWindow())
         return GLFW_FALSE;
 
-    _glfwPollMonitorsWin32();
-    return GLFW_TRUE;
+	_glfwPollMonitorsWin32();
+	return GLFW_TRUE;
 }
 
 void _glfwTerminateWin32(void)
 {
-    if (_glfw.win32.deviceNotificationHandle)
-        UnregisterDeviceNotification(_glfw.win32.deviceNotificationHandle);
+	if (_glfw.win32.deviceNotificationHandle)
+		UnregisterDeviceNotification(_glfw.win32.deviceNotificationHandle);
 
-    if (_glfw.win32.helperWindowHandle)
-        DestroyWindow(_glfw.win32.helperWindowHandle);
+	if (_glfw.win32.helperWindowHandle)
+		DestroyWindow(_glfw.win32.helperWindowHandle);
 
     _glfwUnregisterWindowClassWin32();
 
-	DeleteFiber(_glfw.win32.messageFiber);
-	ConvertFiberToThread();
+	if (_glfw.hints.init.win32.msgInFiber) {
+		DeleteFiber(_glfw.win32.messageFiber);
+		ConvertFiberToThread();
+	}
+
 
     _glfw_free(_glfw.win32.clipboardString);
     _glfw_free(_glfw.win32.rawInput);

@@ -59,6 +59,9 @@ static _GLFWinitconfig _glfwInitHints =
         GLFW_TRUE,  // macOS menu bar
         GLFW_TRUE   // macOS bundle chdir
     },
+	{
+		GLFW_FALSE, // Win32 messages in fiber
+	},
     {
         GLFW_TRUE,  // X11 XCB Vulkan surface
     },
@@ -413,6 +416,9 @@ GLFWAPI void glfwInitHint(int hint, int value)
         case GLFW_COCOA_MENUBAR:
             _glfwInitHints.ns.menubar = value;
             return;
+		case GLFW_WIN32_MESSAGES_IN_FIBER:
+			_glfwInitHints.win32.msgInFiber = value;
+			return;
         case GLFW_X11_XCB_VULKAN_SURFACE:
             _glfwInitHints.x11.xcbVulkanSurface = value;
             return;

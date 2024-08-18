@@ -4,7 +4,14 @@
 #include <functional>
 #include <atomic>
 
-namespace emerald::threading {
+namespace emerald {
+	enum ThreadType {
+		LOGIC,
+		RENDER,
+		CONSOLE_OUTPUT,
+		COUNT
+	};
+
 	class Thread {
 	public:
 		Thread(const std::string& name, std::function<void()> func, bool background = false);
@@ -15,6 +22,7 @@ namespace emerald::threading {
 		bool isFinished() const { return m_finished; }
 		bool isBackground() const { return m_background; }
 		const std::string& getName() const { return m_name; }
+		const std::thread::id& getID() const { return m_handle->get_id(); }
 
 		friend class ThreadManager;
 
@@ -29,6 +37,11 @@ namespace emerald::threading {
 		void run();
 	};
 
-	Thread* registerThread(const std::string& name, std::function<void()> func, bool background = false);
-	void cleanup();
+	class ThreadManager {
+	public:
+		static Thread* createAndRegisterThread(ThreadType type, const std::string& name, std::function<void()> func, bool background = false);
+		static void registerCurrentThread(ThreadType type);
+		static bool isThread(ThreadType type);
+		static void cleanup();
+	};
 }

@@ -16,7 +16,7 @@ namespace emerald {
 	std::ofstream Log::m_logFile;
 
 	HANDLE Log::s_outputHandle = INVALID_HANDLE_VALUE;
-	threading::Thread* Log::s_outputThread;
+	Thread* Log::s_outputThread;
 	CONSOLE_SCREEN_BUFFER_INFO Log::s_screenBuffer;
 
 	AsyncQueue<Log::QueuedMessage> Log::m_queue;
@@ -48,7 +48,7 @@ namespace emerald {
 
 		Log::info("[Console] allocated");
 
-		s_outputThread = threading::registerThread("Console output", handleQueue);
+		s_outputThread = ThreadManager::createAndRegisterThread(ThreadType::CONSOLE_OUTPUT, "Console output", handleQueue);
 
 		std::ofstream ofs;
 		ofs.open(s_logPath, std::ofstream::out | std::ofstream::trunc);

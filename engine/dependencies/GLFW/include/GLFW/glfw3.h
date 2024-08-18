@@ -1105,6 +1105,11 @@ extern "C" {
  *  [window hint](@ref GLFW_COCOA_GRAPHICS_SWITCHING_hint).
  */
 #define GLFW_COCOA_GRAPHICS_SWITCHING 0x00023003
+ /*! @brief Windows specific init hint.
+  *
+  *  Windows specific [init hint](@ref GLFW_WIN32_MESSAGES_IN_FIBER_hint).
+  */
+#define GLFW_WIN32_MESSAGES_IN_FIBER 0x00051003
 /*! @brief X11 specific
  *  [window hint](@ref GLFW_X11_CLASS_NAME_hint).
  */

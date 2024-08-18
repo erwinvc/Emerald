@@ -28,6 +28,8 @@ namespace emerald {
 		bool initialize(const GLFWConfiguration& config) {
 			glfwSetErrorCallback(glfwErrorCallback);
 
+			glfwInitHint(GLFW_WIN32_MESSAGES_IN_FIBER, true);
+
 			if (!glfwInit()) return false;
 
 			setWindowHints(config);

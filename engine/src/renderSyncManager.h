@@ -13,7 +13,7 @@ namespace emerald {
 		void SetTempBuffer();
 		bool tempBuffer = false;
 	private:
-		//TODO: improve buffer storage 
+		//TODO: improve buffer storage, std::vector isnt the most efficient
 		std::vector<Command> bufferA, bufferB, bufferC;
 		std::vector<Command>* frontBuffer = &bufferA;    // The buffer being rendered
 		std::vector<Command>* backBuffer = &bufferB;     // The buffer being filled by the logic thread
