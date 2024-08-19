@@ -4,12 +4,17 @@
 #include "shadInclude.h"
 #include "util/glUtils.h"
 #include "util/fileSystem.h"
+#include "../renderer.h"
+#include "glError.h"
 
 namespace emerald {
 	Shader::Shader(const std::string& name, const std::string& filePath, bool hasGeometry, bool hasTessellation) : m_shaderProgram(nullptr), m_hasGeometry(hasGeometry), m_hasTessellation(hasTessellation), m_name(name), m_shaderPath(filePath) {
-		m_shaderProgram = load();
-		if (!m_shaderProgram) Log::fatal("[Shader] {} failed to compile", name.c_str());
-		m_uniformBuffer.initialize(m_shaderProgram);
+		Ref<Shader> instance = this;
+		Renderer::submit([instance]() mutable {
+			instance->m_shaderProgram = instance->load();
+			if (!instance->m_shaderProgram) Log::fatal("[Shader] {} failed to compile", instance->m_name.c_str());
+			instance->m_uniformBuffer.initialize(instance->m_shaderProgram);
+		});
 	}
 
 	Shader::~Shader() {
@@ -29,16 +34,16 @@ namespace emerald {
 
 		const char* sourceCC = source.c_str();
 
-		glShaderSource(shader, 1, &sourceCC, nullptr);
-		glCompileShader(shader);
+		GL(glShaderSource(shader, 1, &sourceCC, nullptr));
+		GL(glCompileShader(shader));
 
 		GLint result;
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+		GL(glGetShaderiv(shader, GL_COMPILE_STATUS, &result));
 		if (result == GL_FALSE) {
 			GLint length;
-			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+			GL(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length));
 			std::vector<char> error(length);
-			glGetShaderInfoLog(shader, length, &length, &error[0]);
+			GL(glGetShaderInfoLog(shader, length, &length, &error[0]));
 			Log::warn("[Shader] Failed to compile {} {} shader with error: \n{}", m_name.c_str(), GLUtils::shaderTypeToString(type), &error[0]);
 			return 0xffffffff;
 		}
@@ -89,15 +94,21 @@ namespace emerald {
 	}
 
 	void Shader::reload() {
-		ShaderProgram* program = load();
-		if (program) {
-			delete m_shaderProgram;
-			m_shaderProgram = program;
-			m_uniformBuffer.reload(m_shaderProgram);
-		};
+		Ref<Shader> instance = this;
+		Renderer::submit([instance]() mutable {
+			ShaderProgram* program = instance->load();
+			if (program) {
+				delete instance->m_shaderProgram;
+				instance->m_shaderProgram = program;
+				instance->m_uniformBuffer.reload(instance->m_shaderProgram);
+			};
+		});
 	}
 
 	void Shader::bind() {
-		m_shaderProgram->bind();
+		Ref<Shader> instance = this;
+		Renderer::submit([instance] {
+			instance->m_shaderProgram->bind();
+		});
 	}
 }

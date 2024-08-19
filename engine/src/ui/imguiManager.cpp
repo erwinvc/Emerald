@@ -11,7 +11,7 @@
 #include "imguiManager.h"
 #include "imguiProfiler/IconsFontAwesome4.h"
 
-namespace emerald::imGuiManager {
+namespace emerald {
 	ImGuiContext* context;
 
 	std::unordered_map<ImGUIFont, ImFont*> fonts;
@@ -39,24 +39,24 @@ namespace emerald::imGuiManager {
 		colors[ImGuiCol_BorderShadow] = Color(0x00000080); //Todo?
 		colors[ImGuiCol_FrameBg] = Color(0x0C0C0C8A);
 		colors[ImGuiCol_FrameBgHovered] = Color(0x3D3D3DFF);
-		//colors[ImGuiCol_FrameBgActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
+		colors[ImGuiCol_FrameBgActive] = Color(0x4A4A4AFF);
 		colors[ImGuiCol_TitleBg] = Color(0x282828FF);
 		colors[ImGuiCol_TitleBgActive] = Color(0x282828FF);
 		//colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
 		colors[ImGuiCol_MenuBarBg] = Color(0x282828FF);
-		//colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
-		//colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
-		//colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
-		//colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+		colors[ImGuiCol_ScrollbarBg] = transparent;
+		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
 		colors[ImGuiCol_CheckMark] = Color(0xD6D6D6FF);
-		//colors[ImGuiCol_SliderGrab] = Color(0xD6D6D6FF);
-		//colors[ImGuiCol_SliderGrabActive] = Color(0xafafafFF);
-		colors[ImGuiCol_Button] = Color(0x1F1F1FFF);
-		colors[ImGuiCol_ButtonHovered] = Color(0x3D3D3DFF);
-		colors[ImGuiCol_ButtonActive] = Color(0x383838FF);
-		//colors[ImGuiCol_Header] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
-		//colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
-		//colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		colors[ImGuiCol_SliderGrab] = ImVec4(0.29f, 0.29f, 0.29f, 1.0f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.41f, 0.41f, 0.41f, 1.0f);
+		colors[ImGuiCol_Button] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.0f);
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.0f);
+		colors[ImGuiCol_Header] = ImVec4(0.29f, 0.29f, 0.29f, 0.31f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.29f, 0.29f, 0.29f, 0.80f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
 		colors[ImGuiCol_Separator] = Color(0x1F1F1FFF);
 		colors[ImGuiCol_SeparatorHovered] = Color(0x3D3D3DFF);
 		colors[ImGuiCol_SeparatorActive] = Color(0x383838FF);
@@ -71,7 +71,7 @@ namespace emerald::imGuiManager {
 		colors[ImGuiCol_TabDimmedSelected] = Color(0x383838FF);
 		colors[ImGuiCol_TabDimmedSelectedOverline] = transparent;
 		colors[ImGuiCol_DockingPreview] = Color(0x6E6E6EFF);
-		//colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
 		//colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
 		//colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
 		//colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
@@ -84,11 +84,12 @@ namespace emerald::imGuiManager {
 		colors[ImGuiCol_TextLink] = colors[ImGuiCol_HeaderActive];
 		colors[ImGuiCol_TextSelectedBg] = Color(0x3D3D3DFF);
 		//colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
-		//colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		//colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
-		//colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
-		//colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+		colors[ImGuiCol_NavHighlight] = ImVec4(0.5f, 0.0f, 1.0f, 1.00f);
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 1.0f);
+		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
+		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
 
+		style->WindowPadding = ImVec2(4, 4);
 		style->SeparatorTextPadding = ImVec2(20, 0);
 		style->SeparatorTextBorderSize = 5;
 		style->TabRounding = 3;
@@ -97,7 +98,7 @@ namespace emerald::imGuiManager {
 		//style->WindowBorderSize;
 	}
 
-	void initialize(Ref<Window> window) {
+	void ImGuiManager::initialize(Ref<Window> window) {
 		IMGUI_CHECKVERSION();
 		context = ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -127,35 +128,97 @@ namespace emerald::imGuiManager {
 		ImFontConfig config;
 		config.MergeMode = true;
 		config.GlyphMinAdvanceX = 15.0f;
+	
 		const ImWchar segmdl2Ranges[] = { 0xE700, 0xF624, 0 };
 		const ImWchar awesomeRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 		const ImWchar profilerAwesomeRanges[] = { P_ICON_MIN_FA, P_ICON_MAX_FA, 0 };
 
-		fonts[ImGUIFont::CONSOLAS] =	io.FontDefault = io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 16.0f, NULL);
-		fonts[ImGUIFont::INTER] =		io.Fonts->AddFontFromFileTTF("res/fonts/Inter.ttc", 18.0f, NULL);
-										io.Fonts->AddFontFromFileTTF("res/fonts/fontawesome-webfont.ttf", 15.0f, &config, profilerAwesomeRanges); //Profiler lib
+		fonts[ImGUIFont::INTER] = io.FontDefault = io.Fonts->AddFontFromFileTTF("res/fonts/Inter.ttc", 18.0f, NULL);
+		io.Fonts->AddFontFromFileTTF("res/fonts/fontawesome-webfont.ttf", 15.0f, &config, profilerAwesomeRanges); //Profiler lib
 
+		config.MergeMode = true;
+		config.GlyphOffset.y = 4;
+		fonts[ImGUIFont::CONSOLAS] =  io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 16.0f, NULL);
+		io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 16.0f, &config, segmdl2Ranges);
+		
 		config.MergeMode = false;
-		fonts[ImGUIFont::AWESOME_R] =	io.Fonts->AddFontFromFileTTF("res/fonts/fa-regular-400.ttf", 24.0f, NULL, awesomeRanges);
-		fonts[ImGUIFont::AWESOME_S] =	io.Fonts->AddFontFromFileTTF("res/fonts/fa-solid-900.ttf", 24.0f, &config, awesomeRanges);
-		fonts[ImGUIFont::SEGOE] =		io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 10.0f, NULL, segmdl2Ranges);
+		fonts[ImGUIFont::SEGOE] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 10.0f, NULL, segmdl2Ranges);
+		fonts[ImGUIFont::AWESOME_R] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-regular-400.ttf", 16.0f, &config, awesomeRanges);
+		fonts[ImGUIFont::AWESOME_S] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-solid-900.ttf", 16.0f, &config, awesomeRanges);
 
 		io.Fonts->Build();
-		
+
 		applyEmeraldTheme();
 
 		Log::info("[ImGui] initialized");
 	}
 
-	void pushFont(ImGUIFont font) {
+	void ImGuiManager::pushFont(ImGUIFont font) {
 		ImGui::PushFont(fonts[font]);
 	}
 
-	void popFont() {
+	void ImGuiManager::popFont() {
 		ImGui::PopFont();
 	}
 
-	// Implementation
+	void ImGuiManager::begin() {
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+	}
+	void ImGuiManager::end() {
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		GLFWwindow* backup = glfwGetCurrentContext();
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
+		glfwMakeContextCurrent(backup);
+	}
+
+	void ImGuiManager::shutdown() {
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext(context);
+	}
+
+}
+namespace ImGui{
+	//Custom widgets
+	void DrawGradientBackgroundForWindow(GradientDirection gradientDirection) {
+		float size = 50;
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+		ImVec2 p_min = ImGui::GetWindowPos();
+		ImVec2 p_max = ImVec2(p_min.x + ImGui::GetWindowWidth(), p_min.y + ImGui::GetWindowHeight());
+
+		ImU32 color_start = IM_COL32(0, 0, 0, 0);       // Transparent
+		ImU32 color_end = IM_COL32(0, 0, 0, 155);       // Semi-transparent black
+
+		switch (gradientDirection) {
+			case RIGHT:
+				p_min.x += (ImGui::GetWindowWidth() - size);
+				p_max.x = p_min.x + size;
+				draw_list->AddRectFilledMultiColor(p_min, p_max, color_start, color_end, color_end, color_start);
+				break;
+			case LEFT:
+				p_max.x = p_min.x + size;
+				draw_list->AddRectFilledMultiColor(p_min, p_max, color_end, color_start, color_start, color_end);
+				break;
+			case TOP:
+				p_max.y = p_min.y + size;
+				draw_list->AddRectFilledMultiColor(p_min, p_max, color_end, color_end, color_start, color_start);
+				break;
+			case BOTTOM:
+				p_min.y += (ImGui::GetWindowHeight() - size);
+				p_max.y = p_min.y + size;
+				draw_list->AddRectFilledMultiColor(p_min, p_max, color_start, color_start, color_end, color_end);
+				break;
+		}
+	}
+
 	bool ColoredButton(const char* label, const ImVec2& size_arg, ImU32 text_color, ImU32 bg_color_1, ImU32 bg_color_2) {
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		if (window->SkipItems)
@@ -231,28 +294,5 @@ namespace emerald::imGuiManager {
 
 		IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
 		return pressed;
-	}
-
-	void begin() {
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-	}
-	void end() {
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		GLFWwindow* backup = glfwGetCurrentContext();
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-		}
-		glfwMakeContextCurrent(backup);
-	}
-
-	void shutdown() {
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext(context);
 	}
 }

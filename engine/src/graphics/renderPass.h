@@ -13,7 +13,7 @@ namespace emerald {
 		Ref<Shader> shader;
 	};
 
-	class RenderPass {
+	class RenderPass : public RefCounted {
 	private:
 		RenderPassDesc m_desc;
 

@@ -73,7 +73,7 @@ struct URange {
 #define PROFILE_LOGIC_END()									gCPUProfiler.EndEvent()
 #define PROFILE_RENDER_END()								gGPUProfiler.EndEvent()
 
-#define PROFILE_INITIALIZE() gCPUProfiler.Initialize(20, 1024 * 4); gGPUProfiler.Initialize(20, 1024 * 4);
+#define PROFILE_INITIALIZE() gCPUProfiler.Initialize("CPU", 20, 1024 * 4); gGPUProfiler.Initialize("CPU", 20, 1024 * 4);
 
 #define PROFILE_DISABLE() gCPUProfiler.SetPaused(true); gGPUProfiler.SetPaused(true);
 #else
@@ -163,7 +163,7 @@ struct CPUProfilerCallbacks {
 // Also responsible for drawing HUD
 class CPUProfiler {
 public:
-	void Initialize(uint32 historySize, uint32 maxEvents);
+	void Initialize(std::string name, uint32 historySize, uint32 maxEvents);
 	void Shutdown();
 
 	// Start and push an event on the current thread
@@ -308,6 +308,7 @@ private:
 	uint32					m_FrameIndex = 0;		// The current frame index
 	bool					m_Paused = false;	// The current pause state
 	bool					m_QueuedPaused = false;	// The queued pause state
+	std::string				m_Name = "";
 };
 
 

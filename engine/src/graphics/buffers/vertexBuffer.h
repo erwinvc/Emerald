@@ -3,7 +3,7 @@
 #include "util/buffer.h"
 
 namespace emerald {
-	class VertexBuffer {
+	class VertexBuffer : public RefCounted {
 	private:
 		uint32_t m_handle;
 		Buffer<byte> m_data;

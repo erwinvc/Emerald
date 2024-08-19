@@ -28,6 +28,8 @@ namespace emerald {
 
 		ShaderUniformType glTypeToShaderUniformType(uint32_t type);
 	public:
+		ShaderUniformBuffer() : m_uniformCount(0) {}
+
 		void initialize(const ShaderProgram* shaderProgram);
 
 		template<typename T>

@@ -2,6 +2,8 @@
 #include "framebuffer.h"
 #include "util/GLUtils.h"
 #include "application.h"
+#include "renderer.h"
+#include "glError.h"
 
 namespace emerald {
 	static const uint32_t drawBuffers[16] = {
@@ -24,27 +26,31 @@ namespace emerald {
 	};
 
 	FrameBuffer::FrameBuffer(FramebufferDesc desc) : m_desc(desc) {
+		Ref<FrameBuffer> instance = this;
+		Renderer::submit([instance]() mutable {
+			uint32_t width = instance->m_desc.width;
+			uint32_t height = instance->m_desc.height;
+			if (width == 0) {
+				width = App->getWidth();
+				height = App->getHeight();
+			}
 
-		uint32_t width = m_desc.width;
-		uint32_t height = m_desc.height;
-		if (width == 0) {
-			width = App->getWidth();
-			height = App->getHeight();
-		}
+			GL(glGenFramebuffers(1, &instance->m_handle));
+			GL(glBindFramebuffer(GL_FRAMEBUFFER, instance->m_handle));
 
-		glGenFramebuffers(1, &m_handle);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_handle);
+			GLUtils::glClearColor(instance->m_desc.clearColor);
 
-		GLUtils::glClearColor(m_desc.clearColor);
+			for (auto& attachmentDesc : instance->m_desc.attachments) {
+				if (!GLUtils::isDepthFormat(attachmentDesc.format))
+					instance->m_textures.emplace_back(instance->addBuffer(attachmentDesc.name, attachmentDesc.format, FBOAttachment::COLOR));
+				else
+					instance->m_depthTexture = instance->addBuffer(attachmentDesc.name, attachmentDesc.format, FBOAttachment::DEPTH);
+			}
 
-		for (auto& attachmentDesc : m_desc.attachments) {
-			if (!GLUtils::isDepthFormat(attachmentDesc.format))
-				m_textures.emplace_back(addBuffer(attachmentDesc.name, attachmentDesc.format, FBOAttachment::COLOR));
-			else
-				m_depthTexture = addBuffer(attachmentDesc.name, attachmentDesc.format, FBOAttachment::DEPTH);
-		}
+			instance->resize(width, height, true);
 
-		resize(width, height, true);
+			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		});
 	}
 
 	Ref<FrameBuffer> FrameBuffer::create(FramebufferDesc desc) {
@@ -53,8 +59,12 @@ namespace emerald {
 		return fbo;
 	}
 
+
 	FrameBuffer::~FrameBuffer() {
-		glDeleteFramebuffers(1, &m_handle);
+		auto handle = m_handle;
+		Renderer::submitFromAnyThread([handle] {
+			GL(glDeleteFramebuffers(1, &handle));
+		});
 	}
 
 	void FrameBuffer::resize(uint32_t width, uint32_t height, bool forceRecreate) {
@@ -90,7 +100,7 @@ namespace emerald {
 	}
 
 	bool FrameBuffer::checkStatus() {
-		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		GL(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
 		if (status != GL_FRAMEBUFFER_COMPLETE) {
 			Log::error("Framebuffer {} failed: {}", m_desc.name.c_str(), GLUtils::getFBOStatus(status));
 			return false;
@@ -108,17 +118,17 @@ namespace emerald {
 		texture->invalidate();
 		//m_textureNames.push_back(name);
 
-		bind();
+		glBindFramebuffer(GL_FRAMEBUFFER, m_handle);
 
 		if (type == FBOAttachment::COLOR) {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->handle(), 0);
-			glDrawBuffers(++m_colorAttachments, drawBuffers);
+			GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->handle(), 0));
+			GL(glDrawBuffers(++m_colorAttachments, drawBuffers));
 		} else if (type == FBOAttachment::DEPTH) {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture->handle(), 0);
+			GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture->handle(), 0));
 		} else if (type == FBOAttachment::STENCIL) {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->handle(), 0);
+			GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->handle(), 0));
 		} else if (type == FBOAttachment::DEPTHSTENCIL) {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->handle(), 0);
+			GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->handle(), 0));
 		}
 
 		checkStatus();
@@ -126,70 +136,103 @@ namespace emerald {
 		return texture;
 	}
 
-	void FrameBuffer::blit(FrameBuffer* targetFBO) const {
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_handle);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO ? targetFBO->handle() : 0);
-		uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
-		uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
-		glBlitFramebuffer(0, 0, m_desc.width, m_desc.height, 0, 0, w, h, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	/*
+	void FrameBuffer::blit(Ref<const FrameBuffer> targetFBO) const {
+		Ref<const FrameBuffer> instance = this;
+		Renderer::submit([instance, targetFBO] {
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, instance->m_handle);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO ? targetFBO->handle() : 0);
+			uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
+			uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
+			glBlitFramebuffer(0, 0, instance->m_desc.width, instance->m_desc.height, 0, 0, w, h, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		});
 	}
 
-	void FrameBuffer::blitColorOnly(FrameBuffer* targetFBO) const {
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_handle);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO ? targetFBO->handle() : 0);
-		uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
-		uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
-		glBlitFramebuffer(0, 0, m_desc.width, m_desc.height, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	void FrameBuffer::blitColorOnly(Ref<const FrameBuffer> targetFBO) const {
+		Ref<const FrameBuffer> instance = this;
+		Renderer::submit([instance, targetFBO] {
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, instance->m_handle);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO ? targetFBO->handle() : 0);
+			uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
+			uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
+			glBlitFramebuffer(0, 0, instance->m_desc.width, instance->m_desc.height, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		});
 	}
 
-	void FrameBuffer::blitDepthOnly(FrameBuffer* targetFBO) const {
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_handle);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO ? targetFBO->handle() : 0);
-		uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
-		uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
-		glBlitFramebuffer(0, 0, m_desc.width, m_desc.height, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	void FrameBuffer::blitDepthOnly(Ref<const FrameBuffer> targetFBO) const {
+		Ref<const FrameBuffer> instance = this;
+		Renderer::submit([instance, targetFBO] {
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, instance->m_handle);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO ? targetFBO->handle() : 0);
+			uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
+			uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
+			glBlitFramebuffer(0, 0, instance->m_desc.width, instance->m_desc.height, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		});
 	}
-
+	*/
 	void FrameBuffer::bind() const {
-		glBindFramebuffer(GL_FRAMEBUFFER, m_handle);
-		glViewport(0, 0, m_desc.width, m_desc.height);
+		Ref<const FrameBuffer> instance = this;
+		Renderer::submit([instance] {
+			GL(glBindFramebuffer(GL_FRAMEBUFFER, instance->m_handle));
+			GL(glViewport(0, 0, instance->m_desc.width, instance->m_desc.height));
+		});
 	}
 	void FrameBuffer::unbind() const {
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		Ref<const FrameBuffer> instance = this;
+		Renderer::submit([instance] {
+			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		});
 	}
 	void FrameBuffer::clear() const {
-		GLUtils::glClearColor(m_desc.clearColor);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		Ref<const FrameBuffer> instance = this;
+		Renderer::submit([instance] {
+			GLUtils::glClearColor(instance->m_desc.clearColor);
+			GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+		});
 	}
 
 	void FrameBuffer::clearDepthOnly() const {
-		glClear(GL_DEPTH_BUFFER_BIT);
+		Renderer::submit([] {
+			GL(glClear(GL_DEPTH_BUFFER_BIT));
+		});
 	}
 
 	void FrameBuffer::clearColorOnly() const {
-		GLUtils::glClearColor(m_desc.clearColor);
-		glClear(GL_COLOR_BUFFER_BIT);
+		Ref<const FrameBuffer> instance = this;
+		Renderer::submit([instance] {
+			GLUtils::glClearColor(instance->m_desc.clearColor);
+			GL(glClear(GL_COLOR_BUFFER_BIT));
+		});
 	}
 
 	void FrameBuffer::clearStencilOnly() const {
-		glClear(GL_STENCIL_BUFFER_BIT);
+		Ref<const FrameBuffer> instance = this;
+		Renderer::submit([instance] {
+			GL(glClear(GL_STENCIL_BUFFER_BIT));
+		});
 	}
 
 	void FrameBuffer::setDrawAndReadBuffersToNone() const {
-		bind();
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
-		unbind();
+		Ref<const FrameBuffer> instance = this;
+		Renderer::submit([instance] {
+			GL(glDrawBuffer(GL_NONE));
+			GL(glReadBuffer(GL_NONE));
+		});
 	}
 
 	namespace FrameBufferManager {
-		void add(const Ref<FrameBuffer>& fbo) {
+		void add(Ref<FrameBuffer> fbo) {
 			m_frameBuffers.push_back(fbo);
 		}
 
 		void bindDefaultFBO() {
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glViewport(0, 0, App->getWidth(), App->getHeight());
+			uint32_t width = App->getWidth();
+			uint32_t height = App->getHeight();
+			Renderer::submit([width, height] {
+				GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+				GL(glViewport(0, 0, width, height));
+				//glViewport(0, 0, width, height);
+			});
 		}
 
 		void onResize(uint32_t width, uint32_t height) {
@@ -199,7 +242,7 @@ namespace emerald {
 					(*it)->resize(width, height, false);
 					++it;
 				} else {
-					it = m_frameBuffers.erase(it);
+					//it = m_frameBuffers.erase(it);
 				}
 			}
 		}

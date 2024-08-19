@@ -123,14 +123,17 @@ namespace emerald {
 		T* m_reference;
 
 		void incrementRef() const {
-			if (m_reference)
-				m_reference->m_refCount++;
+			if (m_reference) {
+				auto& refCount = const_cast<std::atomic<uint32_t>&>(m_reference->m_refCount); // Cast away constness in case we're working with a const Ref object
+				refCount++;
+			}
 		}
 
 		void decrementRef() const {
 			if (m_reference) {
-				m_reference->m_refCount--;
-				if (m_reference->m_refCount == 0) {
+				auto& refCount = const_cast<std::atomic<uint32_t>&>(m_reference->m_refCount);
+				refCount--;
+				if (refCount == 0) {
 					delete m_reference;
 				}
 			}

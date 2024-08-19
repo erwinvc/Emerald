@@ -2206,7 +2206,7 @@ void _glfwPollEventsWin32(void)
 		//       to avoid breaking glfwWaitEvents with WM_MOUSEMOVE
 		if (window->win32.lastCursorPosX != width / 2 ||
 			window->win32.lastCursorPosY != height / 2) {
-            _glfwSetCursorPosWin32(window, width / 2, height / 2);
+            _glfwSetCursorPosWin32(window, (double)width / 2, (double)height / 2);
 		}
 	}
 }

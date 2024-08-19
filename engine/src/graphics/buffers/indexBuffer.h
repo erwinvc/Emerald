@@ -2,7 +2,7 @@
 #include "util/buffer.h"
 
 namespace emerald {
-	class IndexBuffer {
+	class IndexBuffer : public RefCounted {
 	private:
 		uint32_t m_handle = 0;
 		Buffer<byte> m_data;

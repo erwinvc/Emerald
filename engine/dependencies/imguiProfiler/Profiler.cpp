@@ -11,8 +11,10 @@ CPUProfiler gGPUProfiler;
 //-----------------------------------------------------------------------------
 
 
-void CPUProfiler::Initialize(uint32 historySize, uint32 maxEvents)
+void CPUProfiler::Initialize(std::string name, uint32 historySize, uint32 maxEvents)
 {
+	m_Name = name;
+	
 	Shutdown();
 
 	m_pEventData = new EventData[historySize];
@@ -109,7 +111,7 @@ void CPUProfiler::Tick()
 	newData.Allocator.Reset();
 	newData.NumEvents = 0;
 
-	BeginEvent("CPU Frame");
+	BeginEvent(m_Name.c_str());
 }
 
 

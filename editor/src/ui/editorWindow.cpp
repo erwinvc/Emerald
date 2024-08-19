@@ -1,7 +1,6 @@
 #include "eepch.h"
 #include "editorWindow.h"
 #include "imgui.h"
-#include <imgui_internal.h>
 #include <GLFW/glfw3.h>
 #include "graphics/window.h"
 #include "ui/iconsFontAwesome.h"
@@ -15,10 +14,17 @@
 #include "graphics/engineIcon.h"
 #include "graphics/renderer.h"
 #include "imguiProfiler/Profiler.h"
+#include "project.h"
+
+#include <imgui_internal.h>
 
 namespace emerald {
 	static bool s_TitleBarHovered = false;
 	static Ref<Texture> s_icon;
+
+	EditorWindow::~EditorWindow() {
+		s_icon.reset();
+	}
 
 	void EditorWindow::initialize() {
 		glfwSetTitlebarHitTestCallback(App->getWindow()->handle(), [](GLFWwindow* window, int x, int y, int* hit) {
@@ -199,7 +205,7 @@ namespace emerald {
 		int state = glfwGetMouseButton(windowHandle, (int)button);
 		return state == GLFW_PRESS;
 	}
-	static int offset = 32;
+	static int offset = 1;
 
 	void EditorWindow::drawTitlebar(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
 		const bool maximized = App->getWindow()->isMaximized();
@@ -213,7 +219,7 @@ namespace emerald {
 		ImGui::SetNextWindowViewport(viewportID);
 
 		ImGui::Begin("TitleBarWindow", nullptr, window_flags);
-		imGuiManager::pushFont(ImGUIFont::SEGOE);
+		ImGuiManager::pushFont(ImGUIFont::SEGOE);
 
 		const ImVec2 windowPadding = ImGui::GetCurrentWindow()->WindowPadding;
 		const float titleBarButtonSize = 46;
@@ -236,17 +242,16 @@ namespace emerald {
 
 		//Title and subtitle
 		ImVec2 backupPos = ImGui::GetCursorPos();
-		ImGui::BeginGroup();
-		imGuiManager::pushFont(ImGUIFont::INTER);
+		ImGuiManager::pushFont(ImGUIFont::INTER);
+		ImGui::BeginVertical("A", ImVec2(0, 46), (float)offset / 10.0f);
 		ImGui::Spring();
 		ImGui::Text(EditorHeader.title.c_str());
-		ImGui::SameLine();
 		ImGui::BeginDisabled(true);
 		ImGui::Text(EditorHeader.subTitle.c_str());
 		ImGui::EndDisabled();
 		ImGui::Spring();
-		imGuiManager::popFont();
-		ImGui::EndGroup();
+		ImGui::EndVertical();
+		ImGuiManager::popFont();
 		ImGui::SetCursorPos(backupPos);
 		s_TitleBarHovered = ImGui::IsItemHovered();
 
@@ -254,6 +259,9 @@ namespace emerald {
 		s_TitleBarHovered |= ImGui::IsItemHovered();
 
 		//Buttons
+		ImGui::PushStyleColor(ImGuiCol_Button, Color(0x1F1F1FFF));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, Color(0x3D3D3DFF));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, Color(0x383838FF));
 		if (ImGui::Button((const char*)SEGOE_MDL2_ICON_CHROME_MINIMIZE, buttonSize)) {
 			App->QueueEvent([] {App->getWindow()->minimize(); });
 		}
@@ -266,9 +274,9 @@ namespace emerald {
 			});
 		}
 		if (ImGui::Button((const char*)SEGOE_MDL2_ICON_CHROME_CLOSE, buttonSize)) App->close();
-
+		ImGui::PopStyleColor(3);
 		ImGui::EndHorizontal();
-		imGuiManager::popFont();
+		ImGuiManager::popFont();
 
 		ImGui::PopStyleVar(2);
 
@@ -283,14 +291,32 @@ namespace emerald {
 	}
 
 	void drawMenuBar() {
+		bool open = false;
 		if (ImGui::BeginMenuBar()) {
-			if (ImGui::BeginMenu("Edit")) {
-				ImGui::MenuItem("Dummy");
-				ImGui::MenuItem("Dummy");
-				ImGui::MenuItem("Dummy");
+			if (ImGui::BeginMenu("File")) {
+				if (ImGui::MenuItem("New project", "Ctrl+N")) {
+					open = true;
+				}
+				if (ImGui::MenuItem("Open project", "Ctrl+O")) {
+					open = true;
+				}
+				if (ImGui::BeginMenu("Recent projects")) {
+					ImGui::BeginDisabled(true);
+					ImGui::MenuItem("Empty");
+					ImGui::EndDisabled();
+					//Add projects here
+					ImGui::EndMenu();
+				}
+				ImGui::Separator();
+				if (ImGui::MenuItem("Exit", "Ctrl+Q")) {
+					App->close();
+				}
+
 				ImGui::EndMenu();
 			}
-			if (ImGui::MenuItem("File")) {}
+			if (ImGui::BeginMenu("Edit")) {
+				ImGui::EndMenu();
+			}
 			if (ImGui::MenuItem("View")) {}
 			if (ImGui::BeginMenu("Window")) {
 				if (ImGui::MenuItem("Profiler")) {
@@ -300,6 +326,9 @@ namespace emerald {
 			}
 			ImGui::EndMenuBar();
 		}
+		//if (open)ImGui::OpenPopup("Select Project");
+
+		Project::showProjectPopup(open);
 	}
 
 	void drawAppArea(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
@@ -308,8 +337,8 @@ namespace emerald {
 			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar;
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
+		const bool maximized = App->getWindow()->isMaximized();
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, maximized ? ImVec2(4.0f, 0.0f) : ImVec2(0, 0.0f));
 		ImGui::SetNextWindowPos(pos);
 		ImGui::SetNextWindowSize(size);
 		ImGui::SetNextWindowViewport(viewportID);
@@ -362,19 +391,21 @@ namespace emerald {
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::Begin("Inspector", nullptr, windowFlags);
+		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
 		ImGui::End();
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::Begin("Log", nullptr, windowFlags);
+		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
 		ImGui::End();
 
 		if (EditorWindows.profiler) {
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(800, 300));
 			applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 			if (ImGui::Begin("Profiler", &EditorWindows.profiler)) {
-				imGuiManager::pushFont(ImGUIFont::INTER);
+				ImGuiManager::pushFont(ImGUIFont::INTER);
 				DrawProfilerHUD();
-				imGuiManager::popFont();
+				ImGuiManager::popFont();
 			}
 			ImGui::PopStyleVar();
 			ImGui::End();
@@ -386,7 +417,20 @@ namespace emerald {
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::Begin("Hierarchy", nullptr, windowFlags);
+		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
 		ImGui::Button("TestButton");
+		if (ImGui::CollapsingHeader("Header2", ImGuiTreeNodeFlags_SpanFullWidth)) {
+			ImGui::Text("TestText");
+			ImGui::Button("TestButton");
+		}
+		if (ImGui::CollapsingHeader("Header3", ImGuiTreeNodeFlags_SpanAvailWidth)) {
+			ImGui::Text("TestText");
+			ImGui::Button("TestButton");
+		}
+		if (ImGui::CollapsingHeader("Header4", ImGuiTreeNodeFlags_CollapsingHeader)) {
+			ImGui::Text("TestText");
+			ImGui::Button("TestButton");
+		}
 		static bool b;
 		ImGui::Checkbox("TestCheckbox", &b);
 		static float v;

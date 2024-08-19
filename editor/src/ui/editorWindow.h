@@ -5,7 +5,7 @@ namespace emerald {
 	class EditorWindow {
 	public:
 		EditorWindow() = default;
-		~EditorWindow() = default;
+		~EditorWindow();
 
 		void drawTitlebar(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight);
 

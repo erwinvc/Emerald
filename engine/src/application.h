@@ -44,7 +44,7 @@ namespace emerald {
 		void QueueEvent(F&& function) {
 			m_eventQueue.add(function);
 		}
-		int logicBufferIndex = 0;
+		void processQueue();
 
 	protected:
 		uint64_t getFrameCount() const { return m_frameCount; }

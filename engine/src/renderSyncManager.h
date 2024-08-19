@@ -7,6 +7,7 @@ namespace emerald {
 	public:
 		void acquireRenderBuffer();
 		void submit(Command command);
+		void submitFromAnyThread(Command command);
 		void executeRenderBuffer();
 		void waitForBufferAvailability();
 		void submitBufferForRendering();

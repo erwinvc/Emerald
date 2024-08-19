@@ -28,6 +28,11 @@ namespace emerald {
 		else backBuffer->emplace_back(command);
 	}
 
+	void RenderSyncManager::submitFromAnyThread(Command command) {
+		if (tempBuffer)tempBufferr.emplace_back(command);
+		else backBuffer->emplace_back(command);
+	}
+
 	void RenderSyncManager::executeRenderBuffer() {
 		if (tempBuffer) {
 			for (const auto& cmd : tempBufferr) {

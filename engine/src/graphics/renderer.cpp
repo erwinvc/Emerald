@@ -8,13 +8,13 @@
 #include "renderSyncManager.h"
 
 namespace emerald {
-	static std::shared_ptr<RenderPass> s_activeRenderPass;
+	static Ref<RenderPass> s_activeRenderPass;
 	static RenderSyncManager s_renderSyncManager;
 
 	void Renderer::setTempBuffer() {
 		s_renderSyncManager.SetTempBuffer();
 	}
-		void Renderer::acquireRenderBuffer() {
+	void Renderer::acquireRenderBuffer() {
 		s_renderSyncManager.acquireRenderBuffer();
 	}
 
@@ -26,7 +26,7 @@ namespace emerald {
 		s_renderSyncManager.submitBufferForRendering();
 	}
 
-	void Renderer::beginRenderPass(std::shared_ptr<RenderPass> renderPass) {
+	void Renderer::beginRenderPass(Ref<RenderPass> renderPass) {
 		s_activeRenderPass = renderPass;
 		s_activeRenderPass->bind();
 		s_activeRenderPass->clear();
@@ -36,27 +36,34 @@ namespace emerald {
 		s_activeRenderPass = nullptr;
 	}
 
-	void Renderer::bindDefaultFBO() {
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, App->getWidth(), App->getHeight());
-	}
-
 	void Renderer::executeCommandBuffer() {
 		s_renderSyncManager.executeRenderBuffer();
+	}
+
+	void Renderer::flushCommandBufferOnThisThread() {
+		waitForBufferAvailability();
+		submitBufferForRendering();
+		acquireRenderBuffer();
+		executeCommandBuffer();
 	}
 
 	void Renderer::submit(Command command) {
 		s_renderSyncManager.submit(command);
 	}
 
-	void Renderer::drawIndexed(uint32_t count, PrimitiveType type, bool depthTest) {
-		if (!depthTest)
-			glDisable(GL_DEPTH_TEST);
-
-		glDrawElements((uint32_t)type, count, GL_UNSIGNED_INT, nullptr);
-
-		if (!depthTest)
-			glEnable(GL_DEPTH_TEST);
+	void Renderer::submitFromAnyThread(Command command) {
+		s_renderSyncManager.submitFromAnyThread(command);
 	}
 
+	void Renderer::drawIndexed(uint32_t count, PrimitiveType type, bool depthTest) {
+		Renderer::submit([count, type, depthTest] {
+			if (!depthTest)
+				GL(glDisable(GL_DEPTH_TEST));
+
+			GL(glDrawElements((uint32_t)type, count, GL_UNSIGNED_INT, nullptr));
+
+			if (!depthTest)
+				GL(glEnable(GL_DEPTH_TEST));
+		});
+	}
 }

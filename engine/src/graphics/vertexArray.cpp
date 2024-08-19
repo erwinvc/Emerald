@@ -1,16 +1,30 @@
 #include "eepch.h"
 #include "graphics/vertexArray.h"
 #include "graphics/buffers/vertexBuffer.h"
+#include "renderer.h"
+#include "glError.h"
 
 namespace emerald {
-	VertexArray::VertexArray(VertexBufferLayout layout) : m_layout(layout), m_validated(false) {
-		glGenVertexArrays(1, &m_handle);
+	VertexArray::VertexArray(VertexBufferLayout layout) : m_layout(layout), m_handle(0), m_validated(false) {
+		Ref<VertexArray> instance = this;
+		Renderer::submit([instance]() mutable {
+			GL(glGenVertexArrays(1, &instance->m_handle));
+
+			const std::string name = "VertexArrayObject";
+		//	GL(glObjectLabel(GL_VERTEX_ARRAY, instance->m_handle, static_cast<GLsizei>(label.size()), label.c_str()));
+			GL(glBindVertexArray(instance->m_handle));
+
+			GL(glObjectLabel(GL_VERTEX_ARRAY, instance->m_handle, -1, name.c_str()));
+		});
 	}
 	VertexArray::~VertexArray() {
-		glDeleteVertexArrays(1, &m_handle);
+		auto handle = m_handle;
+		Renderer::submitFromAnyThread([handle]() mutable {
+			GL(glDeleteVertexArrays(1, &handle));
+		});
 	}
 
-	void VertexArray::addBuffer(std::shared_ptr<VertexBuffer> buffer) {
+	void VertexArray::addBuffer(Ref<VertexBuffer> buffer) {
 		for (const auto& existingBuffer : m_buffers) {
 			if (buffer->handle() != existingBuffer->handle()) Log::error("VAO already contains buffer");
 		}
@@ -19,35 +33,42 @@ namespace emerald {
 		m_validated = false;
 	}
 
-    void VertexArray::validate() {
-		glBindVertexArray(m_handle);
+	void VertexArray::validate() {
+		Ref<VertexArray> instance = this;
+		Renderer::submit([instance]() mutable {
+			GL(glBindVertexArray(instance->m_handle));
 
-        uint32_t index = 0;
-        for (const BufferElement& element : m_layout.elements()) {
-            ASSERT(element.m_bufferIndex < m_buffers.size(), "Invalid buffer index");
+			uint32_t index = 0;
+			for (const BufferElement& element : instance->m_layout.elements()) {
+				ASSERT(element.m_bufferIndex < instance->m_buffers.size(), "Invalid buffer index");
 
-            m_buffers[element.m_bufferIndex]->bind();
-            glEnableVertexAttribArray(index);
+				GL(glBindBuffer(GL_ARRAY_BUFFER, instance->m_buffers[element.m_bufferIndex]->handle()));
+				GL(glEnableVertexAttribArray(index));
 
-            uint32_t baseType = VertexAttribute::toBaseType(element.m_type);
-            uint32_t componentCount = VertexAttribute::toComponentCount(element.m_type);
+				uint32_t baseType = VertexAttribute::toBaseType(element.m_type);
+				uint32_t componentCount = VertexAttribute::toComponentCount(element.m_type);
 
-            if (VertexAttribute::isIntegerType(element.m_type)) {
-                glVertexAttribIPointer(index, componentCount, baseType, m_layout.stride(), (const void*)(uint64_t)element.m_offset);
-            } else {
-                glVertexAttribPointer(index, componentCount, baseType, element.m_normalized, m_layout.stride(), (const void*)(uint64_t)element.m_offset);
-            }
-            if (element.m_divisor) {
-                glVertexAttribDivisor(index, 1);
-            }
-
-            index++;
-        }
-        m_validated = true;
-    }
+				if (VertexAttribute::isIntegerType(element.m_type)) {
+					GL(glVertexAttribIPointer(index, componentCount, baseType, instance->m_layout.stride(), (const void*)(uint64_t)element.m_offset));
+				} else {
+					GL(glVertexAttribPointer(index, componentCount, baseType, element.m_normalized, instance->m_layout.stride(), (const void*)(uint64_t)element.m_offset));
+				}
+				if (element.m_divisor) {
+					GL(glVertexAttribDivisor(index, 1));
+				}
+				index++;
+			}
+			GL(glBindVertexArray(0));
+			instance->m_validated = true;
+		});
+	}
 
 	void VertexArray::bind() const {
-		ASSERT(m_validated, "VertexArray not validated");
-		glBindVertexArray(m_handle);
+		Ref<const VertexArray> instance = this;
+		auto handle = m_handle;
+		Renderer::submit([instance, handle] {
+			ASSERT(instance->m_validated, "VertexArray not validated");
+			GL(glBindVertexArray(handle));
+		});
 	}
 }

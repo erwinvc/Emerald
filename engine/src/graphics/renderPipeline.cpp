@@ -8,6 +8,7 @@
 #include "buffers/indexBuffer.h"
 #include "vertexArray.h"
 #include "glError.h"
+#include "imguiProfiler/Profiler.h"
 
 namespace emerald {
 	RenderPipeline::RenderPipeline() {
@@ -21,7 +22,7 @@ namespace emerald {
 		RenderPassDesc mainPassDesc;
 		mainPassDesc.frameBuffer = FrameBuffer::create(mainfbDesc);
 		mainPassDesc.shader = Ref<Shader>::create("Geometry", "res/shaders/geometry");
-		m_mainPass = std::make_shared<RenderPass>(mainPassDesc);
+		m_mainPass = Ref<RenderPass>::create(mainPassDesc);
 
 		struct Vertex {
 			glm::vec3 m_position;
@@ -44,9 +45,9 @@ namespace emerald {
 			{VertexAttributeType::FLOAT2, "vsUv", 0},
 		};
 
-		m_ibo = std::make_shared<IndexBuffer>((byte*)indices, NUMOF(indices) * sizeof(uint32_t));
-		m_vbo = std::make_shared<VertexBuffer>((byte*)vertices, NUMOF(vertices) * sizeof(Vertex));
-		m_vao = std::make_shared<VertexArray>(layout);
+		m_ibo = Ref<IndexBuffer>::create((byte*)indices, NUMOF(indices) * sizeof(uint32_t));
+		m_vbo = Ref<VertexBuffer>::create((byte*)vertices, NUMOF(vertices) * sizeof(Vertex));
+		m_vao = Ref<VertexArray>::create(layout);
 		m_vao->addBuffer(m_vbo);
 		m_vao->validate();
 	}
@@ -75,13 +76,17 @@ namespace emerald {
 	}
 
 	void RenderPipeline::render() {
+		Renderer::submit([] {PROFILE_RENDER_BEGIN("Pipeline"); });
 		Renderer::beginRenderPass(m_mainPass);
 		m_mainPass->descriptor().shader->bind();
+
 		m_vao->bind();
 		m_ibo->bind();
+
 		Renderer::drawIndexed(6, PrimitiveType::TRIANGLES, true);
 		Renderer::endRenderPass();
 
 		FrameBufferManager::bindDefaultFBO();
+		Renderer::submit([] {PROFILE_RENDER_END(); });
 	}
 }

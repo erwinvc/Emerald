@@ -1,6 +1,7 @@
 #include "eepch.h"
 #include "shaderUniformBuffer.h"
 #include "assert.h"
+#include "glError.h"
 
 namespace emerald {
 
@@ -25,7 +26,7 @@ namespace emerald {
 	void ShaderUniformBuffer::initialize(const ShaderProgram* shaderProgram) {
 		uint32_t handle = shaderProgram->handle();
 		int count;
-		glGetProgramiv(handle, GL_ACTIVE_UNIFORMS, &count);
+		GL(glGetProgramiv(handle, GL_ACTIVE_UNIFORMS, &count));
 		m_uniformCount = count;
 
 		for (uint32_t i = 0; i < m_uniformCount; i++) {
@@ -33,11 +34,12 @@ namespace emerald {
 			int32_t uniformSize;
 			uint32_t glType;
 			char nameBuffer[64];
-			glGetActiveUniform(handle, i, 64, &nameSize, &uniformSize, &glType, nameBuffer);
+			GL(glGetActiveUniform(handle, i, 64, &nameSize, &uniformSize, &glType, nameBuffer));
 			std::string name = std::string(nameBuffer);
 			if (uniformSize > 1) name = name.substr(0, name.size() - 3);
 
-			ShaderUniform uniform = { name, (uint32_t)glGetUniformLocation(handle, name.c_str()), glTypeToShaderUniformType(glType) };
+			GL(uint32_t uniformLocation = (uint32_t)glGetUniformLocation(handle, name.c_str()));
+			ShaderUniform uniform = { name, uniformLocation, glTypeToShaderUniformType(glType) };
 			m_uniforms.emplace(name, uniform);
 		}
 	}
@@ -60,12 +62,12 @@ namespace emerald {
 
 		ShaderUniform& uniform = m_uniforms.at(name);
 		switch (uniform.m_type) {
-			case ShaderUniformType::INT:	glUniform1iv(uniform.m_location, count, (int*)value); break;
-			case ShaderUniformType::FLOAT:	glUniform1fv(uniform.m_location, count, (float*)value); break;
-			case ShaderUniformType::VEC2:	glUniform2fv(uniform.m_location, count, (float*)value); break;
-			case ShaderUniformType::VEC3:	glUniform3fv(uniform.m_location, count, (float*)value); break;
-			case ShaderUniformType::VEC4:	glUniform4fv(uniform.m_location, count, (float*)value); break;
-			case ShaderUniformType::MAT4:	glUniformMatrix4fv(uniform.m_location, count, GL_FALSE, (float*)value); break;
+			case ShaderUniformType::INT:	GL(glUniform1iv(uniform.m_location, count, (int*)value)); break;
+			case ShaderUniformType::FLOAT:	GL(glUniform1fv(uniform.m_location, count, (float*)value)); break;
+			case ShaderUniformType::VEC2:	GL(glUniform2fv(uniform.m_location, count, (float*)value)); break;
+			case ShaderUniformType::VEC3:	GL(glUniform3fv(uniform.m_location, count, (float*)value)); break;
+			case ShaderUniformType::VEC4:	GL(glUniform4fv(uniform.m_location, count, (float*)value)); break;
+			case ShaderUniformType::MAT4:	GL(glUniformMatrix4fv(uniform.m_location, count, GL_FALSE, (float*)value)); break;
 		}
 	}
 

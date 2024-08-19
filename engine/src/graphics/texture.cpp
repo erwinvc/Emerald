@@ -6,6 +6,8 @@
 
 #include <stb_image.h>
 #include <stb_image_write.h>
+#include "renderer.h"
+#include "glError.h"
 
 namespace emerald {
 	Texture::Texture(TextureDesc desc, std::string path) {
@@ -79,51 +81,60 @@ namespace emerald {
 
 	void Texture::cleanup() const {
 		if (m_handle) {
-			glDeleteTextures(1, &m_handle);
+			auto id = m_handle;
+			Renderer::submitFromAnyThread([id] {
+				GL(glDeleteTextures(1, &id));
+			});
 		}
 	}
 
 	void Texture::invalidate() {
 		if (m_handle) cleanup();
 
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_handle);
+
+		GL(glCreateTextures(GL_TEXTURE_2D, 1, &m_handle));
 
 		m_mipmapCount = m_desc.m_hasMipmaps ? utils::calculateMipCount(m_width, m_height) : 1;
 
-		glTextureStorage2D(m_handle, m_mipmapCount, m_desc.getInternalFormat(), m_width, m_height);
+		GL(glTextureStorage2D(m_handle, m_mipmapCount, m_desc.getInternalFormat(), m_width, m_height));
 
 		if (m_buffer) {
 			auto imageFormat = m_desc.getImageFormat();
 			auto dataType = m_desc.getDataType();
-			glTextureSubImage2D(m_handle, 0, 0, 0, m_width, m_height, imageFormat, dataType, m_buffer.data());
-			if (m_desc.m_hasMipmaps) glGenerateTextureMipmap(m_handle);
+			GL(glTextureSubImage2D(m_handle, 0, 0, 0, m_width, m_height, imageFormat, dataType, m_buffer.data()));
+			if (m_desc.m_hasMipmaps) GL(glGenerateTextureMipmap(m_handle));
 		}
 
 		if (!m_desc.m_readWrite) m_buffer.clear();
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, m_desc.getWrap());
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_desc.getWrap());
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_desc.getWrap());
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_desc.getFilter(GL_TEXTURE_MIN_FILTER, m_desc.m_hasMipmaps));
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_desc.getFilter(GL_TEXTURE_MAG_FILTER, m_desc.m_hasMipmaps));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, m_desc.getWrap()));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_desc.getWrap()));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_desc.getWrap()));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_desc.getFilter(GL_TEXTURE_MIN_FILTER, m_desc.m_hasMipmaps)));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_desc.getFilter(GL_TEXTURE_MAG_FILTER, m_desc.m_hasMipmaps)));
 
 		if (m_desc.m_hasMipmaps) {
 			if (GL_EXT_texture_filter_anisotropic) {
 				float value = 0;
-				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value);
+				GL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value));
 				float amount = glm::min(4.0f, value);
-				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
+				GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount));
 			} else Log::warn("[Texture] GL_EXT_texture_filter_anisotropic not supported");
 		}
 	}
 
 	void Texture::bind(uint32_t slot /*= 0*/) const {
-		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, m_handle);
+		Ref<const Texture> instance = this;
+		Renderer::submit([instance, slot] {
+			GL(glActiveTexture(GL_TEXTURE0 + slot));
+			GL(glBindTexture(GL_TEXTURE_2D, instance->m_handle));
+		});
 	}
 
 	void Texture::unbind(uint32_t slot /*= 0*/) const {
-		glBindTexture(GL_TEXTURE_2D, slot);
+		Renderer::submit([slot] {
+			GL(glBindTexture(GL_TEXTURE_2D, slot));
+		});
 	}
 
 	void Texture::resize(uint32_t width, uint32_t height) {
@@ -131,7 +142,10 @@ namespace emerald {
 		m_width = width;
 		m_height = height;
 
-		invalidate();
+		Ref<Texture> instance = this;
+		Renderer::submit([instance]() mutable {
+			instance->invalidate();
+		});
 	}
 
 	void Texture::saveAsPNG(const std::string& file) {

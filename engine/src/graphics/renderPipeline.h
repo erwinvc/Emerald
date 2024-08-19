@@ -1,8 +1,8 @@
 #pragma once
+#include "graphics/renderPass.h"
 
 namespace emerald {
 	class Window;
-	class RenderPass;
 	class VertexBuffer;
 	class VertexArray;
 	class IndexBuffer;
@@ -10,10 +10,10 @@ namespace emerald {
 	class RenderPipeline {
 	private:
 		std::vector<RenderPass> m_renderpasses;
-		std::shared_ptr<RenderPass> m_mainPass;
-		std::shared_ptr<VertexBuffer> m_vbo;
-		std::shared_ptr<VertexArray> m_vao;
-		std::shared_ptr<IndexBuffer> m_ibo;
+		Ref<RenderPass> m_mainPass;
+		Ref<VertexBuffer> m_vbo;
+		Ref<VertexArray> m_vao;
+		Ref<IndexBuffer> m_ibo;
 
 		void createRenderQueue();
 		void processRenderQueue();
@@ -23,6 +23,6 @@ namespace emerald {
 		~RenderPipeline();
 
 		void render();
-		std::shared_ptr<RenderPass> mainPass() { return m_mainPass; }
+		Ref<RenderPass> mainPass() { return m_mainPass; }
 	};
 }

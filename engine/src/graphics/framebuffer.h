@@ -35,7 +35,7 @@ namespace emerald {
 		uint32_t samples = 1;
 	};
 
-	class FrameBuffer : public RefCounted {
+	class FrameBuffer : public RefCounted{
 	private:
 		std::shared_ptr<Texture> m_depthTexture;
 		std::vector<std::shared_ptr<Texture>> m_textures;
@@ -44,7 +44,6 @@ namespace emerald {
 		uint32_t m_handle = 0;
 
 		FrameBuffer(FramebufferDesc desc);
-
 
 		bool checkStatus();
 
@@ -70,9 +69,9 @@ namespace emerald {
 		void setDrawAndReadBuffersToNone() const;
 		void setScale(FBOScale scale);
 
-		void blit(FrameBuffer* targetFBO) const;
-		void blitColorOnly(FrameBuffer* targetFBO) const;
-		void blitDepthOnly(FrameBuffer* targetFBO) const;
+		//void blit(Ref<const FrameBuffer> targetFBO) const;
+		//void blitColorOnly(Ref<const FrameBuffer> targetFBO) const;
+		//void blitDepthOnly(Ref<const FrameBuffer> targetFBO) const;
 
 		void resize(uint32_t width, uint32_t height, bool forceRecreate);
 
@@ -90,7 +89,7 @@ namespace emerald {
 
 	namespace FrameBufferManager {
 		inline std::vector<Ref<FrameBuffer>> m_frameBuffers;
-		void add(const Ref<FrameBuffer>& fbo);
+		void add(Ref<FrameBuffer> fbo);
 		void bindDefaultFBO();
 		void onResize(uint32_t width, uint32_t height);
 		void shutdown();

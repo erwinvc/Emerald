@@ -18,6 +18,7 @@
 #include "imguiProfiler/Profiler.h"
 #include "renderSyncManager.h"
 #include "tests/test.h"
+#include "glError.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -47,19 +48,21 @@ namespace emerald {
 		icon::loadIcon(m_mainWindow->handle());
 
 		m_mainWindow->getCallbacks().addOnResizeCallback(this, &Application::onResize);
-		m_mainWindow->setVSync(false);
+		m_mainWindow->setVSync(true);
 		m_mainWindow->setLimits(200, 60, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 		//LOG("[~cGPU~x] %-26s %s", "GPU~1", glGetString(GL_RENDERER));
 		//LOG("[~cGPU~x] %-26s %s", "OpenGL version~1", glGetString(GL_VERSION));
 
-		imGuiManager::initialize(m_mainWindow);
+		ImGuiManager::initialize(m_mainWindow);
 
-		onInitialize();
 
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		GLUtils::setDebugMessageCallback();
+		GLError::setGLDebugMessageCallback();
+
+		onInitialize();
+		Renderer::flushCommandBufferOnThisThread();
 
 		m_mainWindow->show();
 
@@ -67,11 +70,12 @@ namespace emerald {
 
 		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, "Logic", [this]() { logicLoop(); });
 		ThreadManager::registerCurrentThread(ThreadType::RENDER);
+
 		renderLoop();
 
 		close();
 
-		imGuiManager::shutdown();
+		ImGuiManager::shutdown();
 		FrameBufferManager::shutdown();
 
 		onShutdown();
@@ -88,6 +92,8 @@ namespace emerald {
 			if (m_mainWindow->shouldClose()) {
 				g_running = false;
 			}
+
+			processQueue();
 
 			PROFILE_RENDER_BEGIN("Wait for render buffer");
 			Renderer::acquireRenderBuffer();
@@ -130,11 +136,6 @@ namespace emerald {
 			m_frameCount++;
 
 			m_accumulatedTime += deltaTime;
-
-			static std::function<void()> func;
-			while (m_eventQueue.tryToGet(func)) {
-				func();
-			}
 
 			while (m_accumulatedTime >= m_fixedTimeStep) {
 				fixedUpdate(Timestep(m_fixedTimeStep, m_totalFrameTime, m_frameCount));
@@ -181,8 +182,8 @@ namespace emerald {
 	void Application::handleResize() {
 		if (g_resizeData.m_shouldResize) {
 			FrameBufferManager::onResize(g_resizeData.m_width, g_resizeData.m_height);
-			FrameBufferManager::bindDefaultFBO();
-			glViewport(0, 0, g_resizeData.m_width, g_resizeData.m_height);
+			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+			GL(glViewport(0, 0, g_resizeData.m_width, g_resizeData.m_height));
 			g_resizeData.m_shouldResize = false;
 		}
 	}
@@ -208,5 +209,12 @@ namespace emerald {
 
 	float Application::getTime() const {
 		return (float)glfwGetTime();
+	}
+
+	void Application::processQueue() {
+		static std::function<void()> func;
+		while (m_eventQueue.tryToGet(func)) {
+			func();
+		}
 	}
 }

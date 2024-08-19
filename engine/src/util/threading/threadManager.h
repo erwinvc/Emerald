@@ -22,7 +22,7 @@ namespace emerald {
 		bool isFinished() const { return m_finished; }
 		bool isBackground() const { return m_background; }
 		const std::string& getName() const { return m_name; }
-		const std::thread::id& getID() const { return m_handle->get_id(); }
+		const std::thread::id getID() const { return m_handle->get_id(); }
 
 		friend class ThreadManager;
 

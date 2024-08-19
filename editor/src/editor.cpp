@@ -6,6 +6,7 @@
 #include "editor.h"
 #include "graphics/renderer.h"
 #include "imguiProfiler/Profiler.h"
+#include "project.h"
 
 namespace emerald {
 	static std::unique_ptr<EditorWindow> editorWindow;
@@ -36,25 +37,27 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::update(Timestep ts) {
+		PROFILE_LOGIC_BEGIN("Editor window update");
 		updateTitlebar(getTime(), getUPS(), getFPS());
 		editorWindow->update(ts);
+		PROFILE_LOGIC_END();
 
 		Renderer::submit([ts] {
 			PROFILE_RENDER_BEGIN("ImGui start");
-			imGuiManager::begin();
+			ImGuiManager::begin();
 			PROFILE_RENDER_END();
 			PROFILE_RENDER_BEGIN("ImGui render");
 			editorWindow->onImGuiRender();
 			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("ImGui end");
-			imGuiManager::end();
+			ImGuiManager::end();
 			PROFILE_RENDER_END();
 
-			PROFILE_RENDER_BEGIN("Renderer");
-			renderPipeline->render();
-			PROFILE_RENDER_END();
 		});
+		PROFILE_LOGIC_BEGIN("Pipeline render");
+		renderPipeline->render();
+		PROFILE_LOGIC_END();
 	}
 
 	void EmeraldEditorApplication::fixedUpdate(Timestep ts) {
