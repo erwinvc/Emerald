@@ -13,12 +13,48 @@ namespace emerald {
 		Renderer::submit([instance]() mutable {
 			instance->m_shaderProgram = instance->load();
 			if (!instance->m_shaderProgram) Log::fatal("[Shader] {} failed to compile", instance->m_name.c_str());
-			instance->m_uniformBuffer.initialize(instance->m_shaderProgram);
+			instance->gatherUniforms();
+			instance->m_loaded = true;
 		});
 	}
 
 	Shader::~Shader() {
 		delete m_shaderProgram;
+	}
+
+	ShaderProgram* Shader::load() {
+		ShaderProgram* shaderProgram = new ShaderProgram();
+		shaderProgram->createProgram();
+
+		bool failed = false;
+
+		std::string vertexFile = m_shaderPath + ".vert";
+		std::string fragFile = m_shaderPath + ".frag";
+		failed |= addShaderToProgram(shaderProgram, vertexFile, GL_VERTEX_SHADER);
+		failed |= addShaderToProgram(shaderProgram, fragFile, GL_FRAGMENT_SHADER);
+
+		if (m_hasGeometry) {
+			std::string geomFile = m_shaderPath + ".geom";
+			failed |= addShaderToProgram(shaderProgram, geomFile, GL_GEOMETRY_SHADER);
+		}
+
+		if (m_hasTessellation) {
+			std::string te = m_shaderPath + ".tese";
+			std::string tc = m_shaderPath + ".tesc";
+			failed |= addShaderToProgram(shaderProgram, te, GL_TESS_EVALUATION_SHADER);
+			failed |= addShaderToProgram(shaderProgram, tc, GL_TESS_CONTROL_SHADER);
+		}
+
+
+		if (failed) {
+			delete shaderProgram;
+			shaderProgram = nullptr;
+		} else {
+			shaderProgram->linkAndValidate();
+			shaderProgram->deleteAttachedShaders();
+		}
+
+		return shaderProgram;
 	}
 
 	uint32_t Shader::loadShader(const std::string& path, uint32_t type) {
@@ -58,52 +94,85 @@ namespace emerald {
 		return false;
 	}
 
-	ShaderProgram* Shader::load() {
-		ShaderProgram* shaderProgram = new ShaderProgram();
-		shaderProgram->createProgram();
+	void Shader::gatherUniforms() {
+		uint32_t handle = m_shaderProgram->handle();
+		int count;
+		GL(glGetProgramiv(handle, GL_ACTIVE_UNIFORMS, &count));
 
-		bool failed = false;
+		uint32_t currentOffset = 0;
 
-		std::string vertexFile = m_shaderPath + ".vert";
-		std::string fragFile = m_shaderPath + ".frag";
-		failed |= addShaderToProgram(shaderProgram, vertexFile, GL_VERTEX_SHADER);
-		failed |= addShaderToProgram(shaderProgram, fragFile, GL_FRAGMENT_SHADER);
+		for (int i = 0; i < count; i++) {
+			int32_t nameSize;
+			int32_t elementCount;
+			uint32_t glType;
+			char nameBuffer[64];
+			GL(glGetActiveUniform(handle, i, 64, &nameSize, &elementCount, &glType, nameBuffer));
+			std::string name = std::string(nameBuffer);
+			if (elementCount > 1) name = name.substr(0, name.size() - 3); //Handle arrays
 
-		if (m_hasGeometry) {
-			std::string geomFile = m_shaderPath + ".geom";
-			failed |= addShaderToProgram(shaderProgram, geomFile, GL_GEOMETRY_SHADER);
+			uint32_t uniformLocation;
+			GL(uniformLocation = (uint32_t)glGetUniformLocation(handle, name.c_str()));
+
+			ShaderUniformType type = GLUtils::glTypeToShaderUniformType(glType);
+			uint32_t size = GLUtils::getUniformSize(type);
+
+			m_uniformBuffers[name] = ShaderUniform {
+												name,
+												GLUtils::glTypeToShaderUniformType(glType),
+												elementCount > 1,
+												size,
+												(uint32_t)elementCount,
+												currentOffset,
+												uniformLocation
+			};
+			currentOffset += size * elementCount;
 		}
+	}
 
-		if (m_hasTessellation) {
-			std::string te = m_shaderPath + ".tese";
-			std::string tc = m_shaderPath + ".tesc";
-			failed |= addShaderToProgram(shaderProgram, te, GL_TESS_EVALUATION_SHADER);
-			failed |= addShaderToProgram(shaderProgram, tc, GL_TESS_CONTROL_SHADER);
-		}
+	void Shader::setUniformInt(uint32_t location, uint32_t count, const int32_t* value) {
+		setUniform(glUniform1iv, location, count, (GLint*)value);
+	}
 
+	void Shader::setUniformUInt(uint32_t location, uint32_t count, const uint32_t* value) {
+		setUniform(glUniform1uiv, location, count, (GLuint*)value);
+	}
 
-		if (failed) {
-			delete shaderProgram;
-			shaderProgram = nullptr;
-		} else {
-			shaderProgram->linkAndValidate();
-			shaderProgram->deleteAttachedShaders();
-		}
+	void Shader::setUniformFloat1(uint32_t location, uint32_t count, const float* value) {
+		setUniform(glUniform1fv, location, count, (GLfloat*)value);
+	}
 
-		return shaderProgram;
+	void Shader::setUniformFloat2(uint32_t location, uint32_t count, const float* value) {
+		setUniform(glUniform2fv, location, count, (GLfloat*)value);
+	}
+
+	void Shader::setUniformFloat3(uint32_t location, uint32_t count, const float* value) {
+		setUniform(glUniform3fv, location, count, (GLfloat*)value);
+	}
+
+	void Shader::setUniformFloat4(uint32_t location, uint32_t count, const float* value) {
+		setUniform(glUniform4fv, location, count, (GLfloat*)value);
+	}
+
+	void Shader::setUniformMatrix3(uint32_t location, uint32_t count, const float* value) {
+		setUniform(glUniformMatrix3fv, location, count, GL_FALSE, value);
+	}
+
+	void Shader::setUniformMatrix4(uint32_t location, uint32_t count, const float* value) {
+		setUniform(glUniformMatrix4fv, location, count, GL_FALSE, value);
 	}
 
 	void Shader::reload() {
-		Ref<Shader> instance = this;
-		Renderer::submit([instance]() mutable {
-			ShaderProgram* program = instance->load();
-			if (program) {
-				delete instance->m_shaderProgram;
-				instance->m_shaderProgram = program;
-				instance->m_uniformBuffer.reload(instance->m_shaderProgram);
-			};
-		});
+		//Ref<Shader> instance = this;
+		//Renderer::submit([instance]() mutable {
+		//	ShaderProgram* program = instance->load();
+		//	if (program) {
+		//		delete instance->m_shaderProgram;
+		//		instance->m_shaderProgram = program;
+		//		instance->m_uniformBuffer.reload(instance->m_shaderProgram);
+		//	};
+		//});
 	}
+
 
 	void Shader::bind() {
 		Ref<Shader> instance = this;

@@ -13,40 +13,38 @@ namespace emerald {
 	private:
 		T* m_data;
 		uint32_t m_size;
-		uint32_t m_capacity;
 
 		void cleanup() {
 			delete[] m_data;
 			m_data = nullptr;
-			m_size = m_capacity = 0;
+			m_size = 0;
 		}
 
 	public:
-		Buffer() : m_data(nullptr), m_size(0), m_capacity(0) {}
+		Buffer() : m_data(nullptr), m_size(0) {}
 
-		explicit Buffer(uint32_t size) : m_data(nullptr), m_size(size), m_capacity(size) {
+		explicit Buffer(uint32_t size) : m_data(nullptr), m_size(size) {
 			m_data = new T[size]();
 		}
 
-		Buffer(const Buffer& other) : m_data(nullptr), m_size(other.m_size), m_capacity(other.m_capacity) {
-			if (m_capacity > 0) {
-				m_data = new T[m_capacity];
+		Buffer(const Buffer& other) : m_data(nullptr), m_size(other.m_size) {
+			if (m_size > 0) {
+				m_data = new T[m_size];
 				std::copy(other.m_data, other.m_data + m_size, m_data);
 			}
 		}
 
-		Buffer(Buffer&& other) noexcept : m_data(other.m_data), m_size(other.m_size), m_capacity(other.m_capacity) {
+		Buffer(Buffer&& other) noexcept : m_data(other.m_data), m_size(other.m_size) {
 			other.m_data = nullptr;
-			other.m_size = other.m_capacity = 0;
+			other.m_size  = 0;
 		}
 
 		Buffer& operator=(const Buffer& other) {
 			if (this != &other) {
 				cleanup();
 				m_size = other.m_size;
-				m_capacity = other.m_capacity;
-				if (m_capacity > 0) {
-					m_data = new T[m_capacity];
+				if (m_size > 0) {
+					m_data = new T[m_size];
 					std::copy(other.m_data, other.m_data + m_size, m_data);
 				}
 			}
@@ -58,9 +56,8 @@ namespace emerald {
 				cleanup();
 				m_data = other.m_data;
 				m_size = other.m_size;
-				m_capacity = other.m_capacity;
 				other.m_data = nullptr;
-				other.m_size = other.m_capacity = 0;
+				other.m_size = 0;
 			}
 			return *this;
 		}
@@ -77,23 +74,21 @@ namespace emerald {
 			cleanup();
 		}
 
-		void resize(uint32_t new_size) {
-			if (new_size > m_capacity) {
-				reserve(new_size);
-			}
-			m_size = new_size;
-		}
-
-		void reserve(uint32_t new_capacity) {
-			if (new_capacity > m_capacity) {
-				T* new_data = new T[new_capacity];
+		void reserve(uint32_t new_size) {
+			if (new_size > m_size) {
+				T* new_data = new T[new_size];
 				if (m_data) {
 					std::copy(m_data, m_data + m_size, new_data);
 					delete[] m_data;
 				}
 				m_data = new_data;
-				m_capacity = new_capacity;
+				m_size = new_size;
 			}
+		}
+
+		void zeroInitialize() {
+			if (m_data)
+				memset(m_data, 0, m_size);
 		}
 
 		T& operator[](uint32_t index) { return at(index); }
@@ -109,10 +104,19 @@ namespace emerald {
 			return m_data[index];
 		}
 
+		template<typename T>
+		T& read(uint32_t offset = 0) {
+			return *(T*)((byte*)m_data + offset);
+		}
+
+		void write(void* data, uint32_t size, uint32_t offset = 0) {
+			ASSERT(offset + size <= m_size, "Out of buffer bounds");
+			memcpy((byte*)m_data + offset, data, size);
+		}
+
 		explicit operator bool() const noexcept { return m_data != nullptr; }
 
 		uint32_t size() const noexcept { return m_size; }
-		uint32_t capacity() const noexcept { return m_capacity; }
 		T* data() noexcept { return m_data; }
 		const T* data() const noexcept { return m_data; }
 

@@ -7,10 +7,14 @@
 #include "graphics/renderer.h"
 #include "imguiProfiler/Profiler.h"
 #include "project.h"
+#include "input/keyboard.h"
+#include "editorScene.h"
 
 namespace emerald {
-	static std::unique_ptr<EditorWindow> editorWindow;
-	static std::unique_ptr<RenderPipeline> renderPipeline;
+	static UniqueRef<EditorWindow> s_editorWindow;
+	static UniqueRef<RenderPipeline> s_renderPipeline;
+	static Ref<EditorScene> s_activeScene;
+
 	static float s_lastTitleUpdateTime = 0.0f;
 
 	void updateTitlebar(float time, uint32_t ups, uint32_t fps, bool force = false) {
@@ -21,9 +25,9 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::onInitialize() {
-		editorWindow = std::make_unique<EditorWindow>();
-		renderPipeline = std::make_unique<RenderPipeline>();
-		editorWindow->initialize();
+		s_editorWindow = UniqueRef<EditorWindow>::create();
+		s_renderPipeline = UniqueRef<RenderPipeline>::create();
+		s_editorWindow->initialize();
 
 		PROFILE_INITIALIZE();
 		PROFILE_DISABLE();
@@ -32,41 +36,52 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::onShutdown() {
-		editorWindow.reset();
-		renderPipeline.reset();
+		s_editorWindow.reset();
+		s_renderPipeline.reset();
 	}
 
 	void EmeraldEditorApplication::update(Timestep ts) {
 		PROFILE_LOGIC_BEGIN("Editor window update");
 		updateTitlebar(getTime(), getUPS(), getFPS());
-		editorWindow->update(ts);
+		s_editorWindow->update(ts);
 		PROFILE_LOGIC_END();
+
+		PROFILE_LOGIC_BEGIN("Pipeline render");
+		s_renderPipeline->render();
+		PROFILE_LOGIC_END();
+
+		if (s_activeScene) {
+			s_activeScene->update(ts);
+		}
 
 		Renderer::submit([ts] {
 			PROFILE_RENDER_BEGIN("ImGui start");
 			ImGuiManager::begin();
 			PROFILE_RENDER_END();
 			PROFILE_RENDER_BEGIN("ImGui render");
-			editorWindow->onImGuiRender();
+			s_editorWindow->onImGuiRender();
 			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("ImGui end");
 			ImGuiManager::end();
 			PROFILE_RENDER_END();
-
 		});
-		PROFILE_LOGIC_BEGIN("Pipeline render");
-		renderPipeline->render();
-		PROFILE_LOGIC_END();
+
+
 	}
 
 	void EmeraldEditorApplication::fixedUpdate(Timestep ts) {
-		editorWindow->fixedUpdate(ts);
+		s_editorWindow->fixedUpdate(ts);
 	}
 
-	RenderPipeline* EmeraldEditorApplication::pipeline() {
-		return renderPipeline.get();
+	Ref<Texture> EmeraldEditorApplication::getFinalTexture() {
+		return s_renderPipeline->getFinalTexture();
 	}
+
+	Ref<EditorScene> EmeraldEditorApplication::getActiveScene() {
+		return s_activeScene;
+	}
+
 
 	Application* createApplication() {
 		return new EmeraldEditorApplication();

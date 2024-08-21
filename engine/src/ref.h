@@ -139,4 +139,80 @@ namespace emerald {
 			}
 		}
 	};
+
+	template<typename T>
+	class UniqueRef {
+	public:
+		// Default constructor: Creates an empty UniqueRef object with no referenced object.
+		UniqueRef() : m_reference(nullptr) {}
+
+		// Nullptr constructor: Creates an empty UniqueRef object with no referenced object.
+		UniqueRef(std::nullptr_t) : m_reference(nullptr) {}
+
+		// Pointer constructor: Creates a UniqueRef object that owns the given object.
+		explicit UniqueRef(T* pointer) : m_reference(pointer) {}
+
+		// Move constructor: Transfers ownership from another UniqueRef object.
+		UniqueRef(UniqueRef&& other) noexcept : m_reference(other.m_reference) {
+			other.m_reference = nullptr;
+		}
+
+		// Move assignment operator: Transfers ownership from another UniqueRef object.
+		UniqueRef& operator=(UniqueRef&& other) noexcept {
+			if (this != &other) {
+				reset();
+				m_reference = other.m_reference;
+				other.m_reference = nullptr;
+			}
+			return *this;
+		}
+
+		// Delete copy constructor and copy assignment operator to prevent copying.
+		UniqueRef(const UniqueRef&) = delete;
+		UniqueRef& operator=(const UniqueRef&) = delete;
+
+		~UniqueRef() {
+			reset();
+		}
+
+		operator bool() const { return m_reference != nullptr; }
+
+		T* operator->() { return m_reference; }
+		const T* operator->() const { return m_reference; }
+
+		T& operator*() { return *m_reference; }
+		const T& operator*() const { return *m_reference; }
+
+		T* raw() { return m_reference; }
+		const T* raw() const { return m_reference; }
+
+		void reset(T* pointer = nullptr) {
+			if (m_reference) {
+				delete m_reference;
+			}
+			m_reference = pointer;
+		}
+
+		T* release() {
+			T* temp = m_reference;
+			m_reference = nullptr;
+			return temp;
+		}
+
+		bool operator==(const UniqueRef<T>& other) const {
+			return m_reference == other.m_reference;
+		}
+
+		bool operator!=(const UniqueRef<T>& other) const {
+			return !(*this == other);
+		}
+
+		template<typename... Args>
+		static UniqueRef<T> create(Args&&... args) {
+			return UniqueRef<T>(new T(std::forward<Args>(args)...));
+		}
+
+	private:
+		T* m_reference;
+	};
 }

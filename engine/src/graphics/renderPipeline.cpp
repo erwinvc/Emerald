@@ -9,6 +9,7 @@
 #include "vertexArray.h"
 #include "glError.h"
 #include "imguiProfiler/Profiler.h"
+#include "input/keyboard.h"
 
 namespace emerald {
 	RenderPipeline::RenderPipeline() {
@@ -45,11 +46,21 @@ namespace emerald {
 			{VertexAttributeType::FLOAT2, "vsUv", 0},
 		};
 
-		m_ibo = Ref<IndexBuffer>::create((byte*)indices, NUMOF(indices) * sizeof(uint32_t));
-		m_vbo = Ref<VertexBuffer>::create((byte*)vertices, NUMOF(vertices) * sizeof(Vertex));
+		m_ibo = Ref<IndexBuffer>::create((byte*)indices, (uint32_t)(NUMOF(indices) * sizeof(uint32_t)));
+		m_vbo = Ref<VertexBuffer>::create((byte*)vertices, (uint32_t)(NUMOF(vertices) * sizeof(Vertex)));
 		m_vao = Ref<VertexArray>::create(layout);
 		m_vao->addBuffer(m_vbo);
 		m_vao->validate();
+
+		Renderer::flushCommandBufferOnThisThread();
+
+		m_material = Ref<Material>::create("Geometry", mainPassDesc.shader);
+		//m_material->Set("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+
+		glm::vec4 colors[2] = { glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) };
+		m_material->SetArray("color", colors, 2);
+		m_material->Set("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0);
+		m_material->Set("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 1);
 	}
 
 	RenderPipeline::~RenderPipeline() {
@@ -75,11 +86,20 @@ namespace emerald {
 		//}
 	}
 
+	int index = 0;
 	void RenderPipeline::render() {
+
+		if (Keyboard::keyJustDown(Key::R)) {
+			index++;
+			if(index > 1) index = 0;
+			m_material->Set("colorIndex", index);
+			Log::info("{}", m_material->Get<int>("colorIndex"));
+		}
 		Renderer::submit([] {PROFILE_RENDER_BEGIN("Pipeline"); });
 		Renderer::beginRenderPass(m_mainPass);
 		m_mainPass->descriptor().shader->bind();
-
+		m_material->updateForRendering();
+		//m_mainPass->descriptor().shader->set("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 		m_vao->bind();
 		m_ibo->bind();
 
@@ -89,4 +109,9 @@ namespace emerald {
 		FrameBufferManager::bindDefaultFBO();
 		Renderer::submit([] {PROFILE_RENDER_END(); });
 	}
+
+	Ref<Texture> RenderPipeline::getFinalTexture() {
+		return m_mainPass->descriptor().frameBuffer->getTextures()[0];
+	}
+
 }

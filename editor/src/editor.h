@@ -1,4 +1,5 @@
 #pragma once
+#include "editorScene.h"
 
 namespace emerald {
 	class RenderPipeline;
@@ -22,7 +23,9 @@ namespace emerald {
 		void update(Timestep ts) override;
 		void fixedUpdate(Timestep ts) override;
 
-		RenderPipeline* pipeline();
+		Ref<Texture> getFinalTexture();
+		Ref<EditorScene> getActiveScene();
 	};
+
 	inline EmeraldEditorApplication* Editor;
 }

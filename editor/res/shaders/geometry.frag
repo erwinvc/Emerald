@@ -8,8 +8,11 @@ struct Data {
 in Data vsData;
 out vec4 FragColor;
 
+uniform int colorIndex;
+uniform vec4 color[2];
+
 void main(){
-    FragColor = vec4(1.0, 0.0, 0.0, 1.0); // White color
+    FragColor = color[colorIndex]; // White color
 }
 
 

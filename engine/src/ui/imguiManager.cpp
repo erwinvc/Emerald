@@ -89,13 +89,28 @@ namespace emerald {
 		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
 
+#if 0
+		for (int i = 0; i <= ImGuiCol_COUNT; i++) {
+			ImVec4& col = colors[i];
+			float H, S, V;
+			ImGui::ColorConvertRGBtoHSV(col.x, col.y, col.z, H, S, V);
+
+			if (S < 0.1f) {
+				V = 1.0f - V;
+			}
+			ImGui::ColorConvertHSVtoRGB(H, S, V, col.x, col.y, col.z);
+			if (col.w < 1.00f) {
+				col.w *= 0.5f;
+			}
+		}
+#endif
+
 		style->WindowPadding = ImVec2(4, 4);
 		style->SeparatorTextPadding = ImVec2(20, 0);
 		style->SeparatorTextBorderSize = 5;
 		style->TabRounding = 3;
 		style->DockingSeparatorSize = 3;
 		style->TabBarBorderSize = 1;
-		//style->WindowBorderSize;
 	}
 
 	void ImGuiManager::initialize(Ref<Window> window) {

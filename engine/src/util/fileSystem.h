@@ -1,21 +1,31 @@
 #pragma once
 
 namespace emerald {
-	namespace FileSystem {
-		std::string readFile(const std::string& path);
+	class FileSystem {
+	public:
+		struct FilterSpec {
+			LPCWSTR name;
+			LPCWSTR spec;
+		};
 
-		bool doesFileExist(const std::string& path);
+		static std::filesystem::path openFileDialog(const std::vector<FilterSpec>& filters);
+		static std::filesystem::path saveFileDialog(const std::vector<FilterSpec>& filters);
+		static std::filesystem::path openFolderDialog(LPCWSTR title);
 
-		void saveJsonToFile(const nlohmann::json& jsonOb, const std::string& name);
+		static std::string readFile(const std::string& path);
 
-		nlohmann::json loadJsonFromFile(const std::string& name);
+		static bool doesFileExist(const std::string& path);
 
-		void saveStringToFile(const std::string& str, const std::string& name);
-		void createFile(const std::string& file);
+		static void saveJsonToFile(const nlohmann::json& jsonOb, const std::string& name);
 
-		bool createFileIfDoesntExist(const std::string& file);
+		static nlohmann::json loadJsonFromFile(const std::string& name);
 
-		std::string getShortFilename(const std::string& filename);
-		void copyFile(const std::string& source, const std::string& dest);
-	}
+		static void saveStringToFile(const std::string& str, const std::string& name);
+		static void createFile(const std::string& file);
+
+		static bool createFileIfDoesntExist(const std::string& file);
+
+		static std::string getShortFilename(const std::string& filename);
+		static void copyFile(const std::string& source, const std::string& dest);
+	};
 }

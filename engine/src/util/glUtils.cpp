@@ -2,6 +2,7 @@
 #include "graphics/textureDesc.h"
 #include "color.h"
 #include "glError.h"
+#include "../graphics/shaders/shader.h"
 
 namespace emerald {
 	namespace GLUtils {
@@ -44,6 +45,37 @@ namespace emerald {
 			}
 			return "";
 		}
+
+		ShaderUniformType glTypeToShaderUniformType(uint32_t type) {
+			switch (type) {
+				case GL_FLOAT: 				return ShaderUniformType::FLOAT;
+				case GL_FLOAT_VEC2: 		return ShaderUniformType::VEC2;
+				case GL_FLOAT_VEC3: 		return ShaderUniformType::VEC3;
+				case GL_FLOAT_VEC4: 		return ShaderUniformType::VEC4;
+				case GL_INT: 				return ShaderUniformType::INT;
+				case GL_FLOAT_MAT4: 		return ShaderUniformType::MAT4;
+				case GL_SAMPLER_CUBE: 		return ShaderUniformType::INT;
+				case GL_SAMPLER_1D: 		return ShaderUniformType::INT;
+				case GL_SAMPLER_2D: 		return ShaderUniformType::INT;
+				case GL_SAMPLER_3D: 		return ShaderUniformType::INT;
+				case GL_SAMPLER_2D_ARRAY:	return ShaderUniformType::INT;
+			}
+			Log::error("Unknow GL type {}", type);
+			return ShaderUniformType();
+		}
+
+		uint32_t getUniformSize(ShaderUniformType type) {
+			switch (type) {
+				case ShaderUniformType::INT:   return sizeof(int);
+				case ShaderUniformType::FLOAT: return sizeof(float);
+				case ShaderUniformType::VEC2:  return sizeof(float) * 2;
+				case ShaderUniformType::VEC3:  return sizeof(float) * 3;
+				case ShaderUniformType::VEC4:  return sizeof(float) * 4;
+				case ShaderUniformType::MAT4:  return sizeof(float) * 16;
+			}
+			Log::error("Unknow ShaderUniformType type {}", (uint32_t)type);
+			return 0;
+		};
 
 		bool isDepthFormat(TextureFormat format) {
 			switch (format) {

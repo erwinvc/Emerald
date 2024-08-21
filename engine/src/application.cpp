@@ -19,6 +19,8 @@
 #include "renderSyncManager.h"
 #include "tests/test.h"
 #include "glError.h"
+#include "input/keyboard.h"
+#include "input/mouse.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -48,6 +50,10 @@ namespace emerald {
 		icon::loadIcon(m_mainWindow->handle());
 
 		m_mainWindow->getCallbacks().addOnResizeCallback(this, &Application::onResize);
+		m_mainWindow->getCallbacks().addOnKeyCallback(Keyboard::keyCallback);
+		m_mainWindow->getCallbacks().addOnMouseButtonCallback(Mouse::mouseButtonCallback);
+		m_mainWindow->getCallbacks().addOnMousePosCallback(Mouse::mousePosCallback);
+		m_mainWindow->getCallbacks().addOnScrollCallback(Mouse::mouseScrollCallback);
 		m_mainWindow->setVSync(true);
 		m_mainWindow->setLimits(200, 60, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
@@ -142,6 +148,11 @@ namespace emerald {
 				m_upsCounter++;
 				m_accumulatedTime -= m_fixedTimeStep;
 			}
+
+			PROFILE_LOGIC_BEGIN("Input");
+			Keyboard::update();
+			Mouse::update();
+			PROFILE_LOGIC_END();
 
 			PROFILE_LOGIC_BEGIN("Update");
 			update(Timestep(deltaTime, m_totalFrameTime, m_frameCount));

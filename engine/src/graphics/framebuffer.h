@@ -1,9 +1,9 @@
 #pragma once
 #include <util/color.h>
 #include "textureDesc.h"
+#include "texture.h"
 
 namespace emerald {
-	class Texture;
 
 	enum FBOScale {
 		STATIC,
@@ -37,8 +37,8 @@ namespace emerald {
 
 	class FrameBuffer : public RefCounted{
 	private:
-		std::shared_ptr<Texture> m_depthTexture;
-		std::vector<std::shared_ptr<Texture>> m_textures;
+		Ref<Texture> m_depthTexture;
+		std::vector<Ref<Texture>> m_textures;
 		std::vector<std::string> m_textureNames;
 		uint32_t m_colorAttachments = 0;
 		uint32_t m_handle = 0;
@@ -47,7 +47,7 @@ namespace emerald {
 
 		bool checkStatus();
 
-		std::shared_ptr<Texture> addBuffer(const std::string& name, TextureFormat format, FBOAttachment type);
+		Ref<Texture> addBuffer(const std::string& name, TextureFormat format, FBOAttachment type);
 
 		float fboScaleToFloat(FBOScale scale) const;
 
@@ -82,9 +82,9 @@ namespace emerald {
 
 		uint32_t handle() const { return m_handle; }
 
-		std::vector<std::shared_ptr<Texture>>& getTextures() { return m_textures; }
+		std::vector<Ref<Texture>>& getTextures() { return m_textures; }
 		std::vector<std::string>& getTextureNames() { return m_textureNames; }
-		std::shared_ptr<Texture> getDepthTexture() { return m_textures[0]; }
+		Ref<Texture> getDepthTexture() { return m_textures[0]; }
 	};
 
 	namespace FrameBufferManager {

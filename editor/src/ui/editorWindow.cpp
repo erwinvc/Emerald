@@ -17,8 +17,11 @@
 #include "project.h"
 
 #include <imgui_internal.h>
+#include "util/fileSystem.h"
 
 namespace emerald {
+	static bool s_mouseInViewport = false;
+	static bool s_viewportFocused = false;
 	static bool s_TitleBarHovered = false;
 	static Ref<Texture> s_icon;
 
@@ -295,10 +298,10 @@ namespace emerald {
 		if (ImGui::BeginMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::MenuItem("New project", "Ctrl+N")) {
-					open = true;
+					FileSystem::openFolderDialog(L"Choose location for new project");
 				}
 				if (ImGui::MenuItem("Open project", "Ctrl+O")) {
-					open = true;
+					FileSystem::openFileDialog({ {L"Emerald Project Files", L"*.eep"} });
 				}
 				if (ImGui::BeginMenu("Recent projects")) {
 					ImGui::BeginDisabled(true);
@@ -368,6 +371,7 @@ namespace emerald {
 			ImGui::DockBuilderDockWindow("Inspector", right);
 			ImGui::DockBuilderDockWindow("Dear ImGui Demo", right);
 			ImGui::DockBuilderDockWindow("Hierarchy", left);
+			ImGui::DockBuilderDockWindow("Assets", down);
 			ImGui::DockBuilderDockWindow("Log", down);
 			ImGui::DockBuilderDockWindow("Viewport", dockspace_main_id);
 			ImGui::DockBuilderFinish(dockspace_id);
@@ -378,19 +382,39 @@ namespace emerald {
 		ImGui::End();
 	}
 
-	void drawWindows() {
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
+	void drawViewport() {
+		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoNav;
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
 		ImGui::Begin("Viewport", nullptr, windowFlags);
-		ImVec2 actualWindowSize = ImGui::GetContentRegionAvail();
-		ImGui::Image((void*)(uint64_t)Editor->pipeline()->mainPass()->descriptor().frameBuffer->getTextures()[0]->handle(), actualWindowSize);
+		s_mouseInViewport = ImGui::IsWindowHovered();
+		s_viewportFocused = ImGui::IsWindowFocused();
+		if (s_mouseInViewport) {
+			ImGui::SetNextFrameWantCaptureMouse(false);
+		}
+		if (s_viewportFocused) {
+			ImGui::SetNextFrameWantCaptureKeyboard(false);
+		}
+
+		ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), ImGui::GetContentRegionAvail());
+
 		ImGui::End();
 		ImGui::PopStyleVar();
+	}
+	void drawWindows() {
+		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoNav;
+
+		drawViewport();
 
 		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::Begin("Inspector", nullptr, windowFlags);
+		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
+		ImGui::End();
+
+		applyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
+		ImGui::Begin("Assets", nullptr, windowFlags);
 		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
 		ImGui::End();
 

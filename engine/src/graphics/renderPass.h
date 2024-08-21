@@ -14,14 +14,14 @@ namespace emerald {
 	};
 
 	class RenderPass : public RefCounted {
-	private:
-		RenderPassDesc m_desc;
-
 	public:
 		RenderPass(RenderPassDesc desc);
 		~RenderPass();
 		void clear();
 		void bind();
 		RenderPassDesc& descriptor() { return m_desc; }
+
+	private:
+		RenderPassDesc m_desc;
 	};
 }

@@ -3,4 +3,5 @@
 
 namespace emerald::utils {
 	uint32_t calculateMipCount(uint32_t width, uint32_t height);
+	std::wstring stringToWstring(const std::string& str);
 }

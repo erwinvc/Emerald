@@ -1,5 +1,7 @@
 #pragma once
 #include "graphics/renderPass.h"
+#include "graphics/texture.h"
+#include "material.h"
 
 namespace emerald {
 	class Window;
@@ -14,6 +16,7 @@ namespace emerald {
 		Ref<VertexBuffer> m_vbo;
 		Ref<VertexArray> m_vao;
 		Ref<IndexBuffer> m_ibo;
+		Ref<Material> m_material;
 
 		void createRenderQueue();
 		void processRenderQueue();
@@ -23,6 +26,6 @@ namespace emerald {
 		~RenderPipeline();
 
 		void render();
-		Ref<RenderPass> mainPass() { return m_mainPass; }
+		Ref<Texture> getFinalTexture();
 	};
 }

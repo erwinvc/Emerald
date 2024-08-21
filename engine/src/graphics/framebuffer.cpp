@@ -107,14 +107,14 @@ namespace emerald {
 		} else return true;
 	}
 
-	std::shared_ptr<Texture> FrameBuffer::addBuffer(const std::string& name, TextureFormat format, FBOAttachment type) {
+	Ref<Texture> FrameBuffer::addBuffer(const std::string& name, TextureFormat format, FBOAttachment type) {
 		TextureDesc desc;
 		desc.m_format = format;
 		desc.m_filter = LINEAR;
 		desc.m_wrap = REPEAT;
 		desc.m_hasMipmaps = false;
 
-		std::shared_ptr<Texture> texture = std::make_shared<Texture>(desc, m_desc.width, m_desc.height);
+		Ref<Texture> texture = Ref<Texture>::create(desc, m_desc.width, m_desc.height);
 		texture->invalidate();
 		//m_textureNames.push_back(name);
 

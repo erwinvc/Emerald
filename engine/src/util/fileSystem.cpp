@@ -2,75 +2,204 @@
 #include "fileSystem.h"
 #include <format>
 #include <chrono>
+#include <commdlg.h>
+#include "../application.h"
+#include "GLFW/glfw3native.h"
+#include "../graphics/window.h"
+#include <shobjidl.h>  // Required for IFileDialog
+#include "utils.h"
 
 namespace emerald {
-	namespace FileSystem {
-		std::string readFile(const std::string& path) {
-			std::ifstream stream(path);
-			std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-			stream.close();
-			return str;
-		}
+	std::filesystem::path FileSystem::openFileDialog(const std::vector<FilterSpec>& filters) {
+		std::filesystem::path filePath;
 
-		bool doesFileExist(const std::string& path) {
-			struct stat buffer;
-			return (stat(path.c_str(), &buffer) == 0);
-		}
+		// Initialize COM library
+		HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+		if (SUCCEEDED(hr)) {
+			IFileDialog* pFileDialog = NULL;
 
-		void saveJsonToFile(const nlohmann::json& jsonOb, const std::string& name) {
-			std::string file = std::format("{}.json", name);
-			std::ofstream i(file);
-			i << std::setw(4) << jsonOb;
-			i.close();
-		}
+			// Create the file open dialog object
+			hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileDialog, reinterpret_cast<void**>(&pFileDialog));
+			if (SUCCEEDED(hr)) {
+				// Set the file type filter
+				std::vector<COMDLG_FILTERSPEC> fileTypes;
+				for (const auto& filter : filters) {
+					fileTypes.push_back({ filter.name, filter.spec });
+				}
+				pFileDialog->SetFileTypes(static_cast<UINT>(fileTypes.size()), fileTypes.data());
 
-		nlohmann::json loadJsonFromFile(const std::string& name) {
-			std::string file = std::format("{}.json", name);
-			std::ifstream i(file);
-			if (i.fail()) {
-				Log::error("Failed to open json file");
-				return NULL;
+				// Show the dialog
+				hr = pFileDialog->Show(NULL);
+				if (SUCCEEDED(hr)) {
+					// Get the file the user selected
+					IShellItem* pItem;
+					hr = pFileDialog->GetResult(&pItem);
+					if (SUCCEEDED(hr)) {
+						// Convert the file path to a std::filesystem::path
+						PWSTR pszFilePath;
+						hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+						if (SUCCEEDED(hr)) {
+							filePath = std::filesystem::path(pszFilePath);
+							CoTaskMemFree(pszFilePath);
+						}
+						pItem->Release();
+					}
+				}
+				pFileDialog->Release();
 			}
-			nlohmann::json jsonOb = nlohmann::json::parse(i);
-			i.close();
-			return jsonOb;
+			CoUninitialize();
 		}
+		return filePath;
+	}
 
-		void saveStringToFile(const std::string& str, const std::string& name) {
-			std::string file = std::format("{}.txt", name);
-			std::ofstream i(file);
-			i << str;
-			i.close();
-		}
+	std::filesystem::path FileSystem::saveFileDialog(const std::vector<FilterSpec>& filters) {
+		std::filesystem::path filePath;
 
-		void createFile(const std::string& file) {
-			std::ofstream i(file);
-			i.close();
-		}
+		// Initialize COM library
+		HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+		if (SUCCEEDED(hr)) {
+			IFileDialog* pFileDialog = NULL;
 
-		bool createFileIfDoesntExist(const std::string& file) {
-			bool exists = doesFileExist(file);
-			if (!exists) createFile(file);
-			return !exists;
-		}
+			// Create the file save dialog object
+			hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileDialog, reinterpret_cast<void**>(&pFileDialog));
+			if (SUCCEEDED(hr)) {
+				// Set the file type filter
+				std::vector<COMDLG_FILTERSPEC> fileTypes;
+				for (const auto& filter : filters) {
+					fileTypes.push_back({ filter.name, filter.spec });
+				}
+				pFileDialog->SetFileTypes(static_cast<UINT>(fileTypes.size()), fileTypes.data());
 
-		std::string getShortFilename(const std::string& filename) {
-			const char* lastSlash = strrchr(filename.c_str(), '/');
-			if (lastSlash == nullptr) {
-				lastSlash = strrchr(filename.c_str(), '\\');
+				// Show the dialog
+				hr = pFileDialog->Show(NULL);
+				if (SUCCEEDED(hr)) {
+					// Get the file path the user selected or typed
+					IShellItem* pItem;
+					hr = pFileDialog->GetResult(&pItem);
+					if (SUCCEEDED(hr)) {
+						// Convert the file path to a std::filesystem::path
+						PWSTR pszFilePath;
+						hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+						if (SUCCEEDED(hr)) {
+							filePath = std::filesystem::path(pszFilePath);
+							CoTaskMemFree(pszFilePath);
+						}
+						pItem->Release();
+					}
+				}
+				pFileDialog->Release();
 			}
-			std::string shortFilename = lastSlash != nullptr ? lastSlash + 1 : filename;
-			return shortFilename;
+			CoUninitialize();
+		}
+		return filePath;
+	}
+
+	std::filesystem::path FileSystem::openFolderDialog(LPCWSTR title) {
+			std::filesystem::path folderPath;
+
+			// Initialize COM library
+			HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+			if (SUCCEEDED(hr)) {
+				IFileDialog* pFileDialog = NULL;
+
+				// Create the file open dialog object
+				hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileDialog, reinterpret_cast<void**>(&pFileDialog));
+				if (SUCCEEDED(hr)) {
+					// Set the dialog to pick folders
+					DWORD dwOptions;
+					pFileDialog->GetOptions(&dwOptions);
+					pFileDialog->SetOptions(dwOptions | FOS_PICKFOLDERS);
+					pFileDialog->SetTitle(title);
+					// Show the dialog
+					hr = pFileDialog->Show(NULL);
+					if (SUCCEEDED(hr)) {
+						// Get the folder the user selected
+						IShellItem* pItem;
+						hr = pFileDialog->GetResult(&pItem);
+						if (SUCCEEDED(hr)) {
+							// Convert the folder path to a string
+							PWSTR pszFolderPath;
+							hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFolderPath);
+							if (SUCCEEDED(hr)) {
+								folderPath = std::filesystem::path(pszFolderPath);
+								Log::info("{}", folderPath.string().c_str());
+								CoTaskMemFree(pszFolderPath);
+							}
+							pItem->Release();
+						}
+					}
+					pFileDialog->Release();
+				}
+				CoUninitialize();
+			}
+			return folderPath;
 		}
 
-		void copyFile(const std::string& source, const std::string& dest) {
-			if (doesFileExist(source)) {
-				std::ifstream src(source.c_str(), std::ios::binary);
-				std::ofstream dst(dest.c_str(), std::ios::binary);
-				dst << src.rdbuf();
-				src.close();
-				dst.close();
-			}
+	std::string FileSystem::readFile(const std::string& path) {
+		std::ifstream stream(path);
+		std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+		stream.close();
+		return str;
+	}
+
+	bool FileSystem::doesFileExist(const std::string& path) {
+		struct stat buffer;
+		return (stat(path.c_str(), &buffer) == 0);
+	}
+
+	void FileSystem::saveJsonToFile(const nlohmann::json& jsonOb, const std::string& name) {
+		std::string file = std::format("{}.json", name);
+		std::ofstream i(file);
+		i << std::setw(4) << jsonOb;
+		i.close();
+	}
+
+	nlohmann::json FileSystem::loadJsonFromFile(const std::string& name) {
+		std::string file = std::format("{}.json", name);
+		std::ifstream i(file);
+		if (i.fail()) {
+			Log::error("Failed to open json file");
+			return NULL;
+		}
+		nlohmann::json jsonOb = nlohmann::json::parse(i);
+		i.close();
+		return jsonOb;
+	}
+
+	void FileSystem::saveStringToFile(const std::string& str, const std::string& name) {
+		std::string file = std::format("{}.txt", name);
+		std::ofstream i(file);
+		i << str;
+		i.close();
+	}
+
+	void FileSystem::createFile(const std::string& file) {
+		std::ofstream i(file);
+		i.close();
+	}
+
+	bool FileSystem::createFileIfDoesntExist(const std::string& file) {
+		bool exists = doesFileExist(file);
+		if (!exists) createFile(file);
+		return !exists;
+	}
+
+	std::string FileSystem::getShortFilename(const std::string& filename) {
+		const char* lastSlash = strrchr(filename.c_str(), '/');
+		if (lastSlash == nullptr) {
+			lastSlash = strrchr(filename.c_str(), '\\');
+		}
+		std::string shortFilename = lastSlash != nullptr ? lastSlash + 1 : filename;
+		return shortFilename;
+	}
+
+	void FileSystem::copyFile(const std::string& source, const std::string& dest) {
+		if (doesFileExist(source)) {
+			std::ifstream src(source.c_str(), std::ios::binary);
+			std::ofstream dst(dest.c_str(), std::ios::binary);
+			dst << src.rdbuf();
+			src.close();
+			dst.close();
 		}
 	}
 }

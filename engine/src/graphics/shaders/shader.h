@@ -1,46 +1,74 @@
 #pragma once
-#include "shaderUniformBuffer.h"
+#include "../renderer.h"
+#include "glError.h"
+#include "shaderProgram.h"
 
 namespace emerald {
-	class Shader : public RefCounted {
-	private:
-		ShaderProgram* m_shaderProgram;
-		ShaderUniformBuffer m_uniformBuffer;
+	enum class ShaderUniformType {
+		NONE,
+		BOOL,
+		INT,
+		UINT,
+		FLOAT,
+		VEC2,
+		VEC3,
+		VEC4,
+		MAT3,
+		MAT4,
+	};
 
-		bool m_hasGeometry;
-		bool m_hasTessellation;
+	struct ShaderUniform {
 		std::string m_name;
-		std::string m_shaderPath;
+		ShaderUniformType m_type = ShaderUniformType::NONE;
+		bool m_isArray = false;
+		uint32_t m_size = 0; //Size in bytes
+		uint32_t m_count = 0; //Number of elements
+		uint32_t m_offset = 0; //Offset from previous element in bytes
+		uint32_t m_location = 0; 
+	};
 
-		uint32_t loadShader(const std::string& path, uint32_t type);
-		bool addShaderToProgram(ShaderProgram* program, const std::string& shader, uint32_t shaderType);
-
-		ShaderProgram* load();
-
-		friend class ShaderManager;
-
+	class Shader : public RefCounted {
 	public:
 		Shader(const std::string& name, const std::string& filePath, bool hasGeometry = false, bool hasTessellation = false);
 		~Shader();
 
-		inline const std::string& getName() { return m_name; }
+		const std::string& getName() { return m_name; }
+		const std::unordered_map<std::string, ShaderUniform>& getUniformBuffers() const { return m_uniformBuffers; }
 
-		template<typename T>
-		void set(const std::string& location, const T* value, uint32_t count) {
-			m_uniformBuffer.set(location, value, count);
-		}
-
-		template<typename T>
-		void set(const std::string& location, const T& value) {
-			m_uniformBuffer.set(location, value);
-		}
-
-		template <>
-		void set<bool>(const std::string& location, const bool& value) {
-			m_uniformBuffer.set(location, (int)value);
-		}
-
+		bool isLoaded() const { return m_loaded; }
 		void reload();
 		void bind();
+
+	private:
+		friend class Material;
+
+		std::string m_name;
+		std::string m_shaderPath;
+		ShaderProgram* m_shaderProgram;
+		std::unordered_map<std::string, ShaderUniform> m_uniformBuffers;
+		bool m_loaded = false;
+		bool m_hasGeometry = false;
+		bool m_hasTessellation = false;
+
+		ShaderProgram* load();
+		uint32_t loadShader(const std::string& path, uint32_t type);
+		bool addShaderToProgram(ShaderProgram* program, const std::string& shader, uint32_t shaderType);
+		void gatherUniforms();
+
+		template<typename GLFunc, typename... Args>
+		void setUniform(GLFunc func, uint32_t location, uint32_t count, Args... args) {
+			Renderer::submit([func, location, count, args...] {
+				GL(func(location, count, args...));
+			});
+		}
+
+		void setUniformInt(uint32_t location, uint32_t count, const int32_t* value);
+		void setUniformUInt(uint32_t location, uint32_t count, const uint32_t* value);
+		void setUniformFloat1(uint32_t location, uint32_t count, const float* value);
+		void setUniformFloat2(uint32_t location, uint32_t count, const float* value);
+		void setUniformFloat3(uint32_t location, uint32_t count, const float* value);
+		void setUniformFloat4(uint32_t location, uint32_t count, const float* value);
+		void setUniformMatrix3(uint32_t location, uint32_t count, const float* value);
+		void setUniformMatrix4(uint32_t location, uint32_t count, const float* value);
 	};
 }

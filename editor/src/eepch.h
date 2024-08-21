@@ -1,6 +1,7 @@
 #pragma once
 
 #define IMGUI_DEFINE_MATH_OPERATORS
+#define GLFW_EXPOSE_NATIVE_WIN32
 
 #define WIN32_LEAN_AND_MEAN 
 #include <Windows.h>
@@ -23,6 +24,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/integer.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #include "ref.h"
 
