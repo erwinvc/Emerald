@@ -9,7 +9,7 @@ namespace emerald {
 		LOGIC,
 		RENDER,
 		CONSOLE_OUTPUT,
-		COUNT
+		_COUNT
 	};
 
 	class Thread {

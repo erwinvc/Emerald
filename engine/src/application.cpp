@@ -21,6 +21,7 @@
 #include "glError.h"
 #include "input/keyboard.h"
 #include "input/mouse.h"
+#include "metrics/metrics.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -74,13 +75,17 @@ namespace emerald {
 
 		m_initialized = true;
 
-		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, "Logic", [this]() { logicLoop(); });
 		ThreadManager::registerCurrentThread(ThreadType::RENDER);
+
+		Metrics::initialize();
+
+		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, "Logic", [this]() { logicLoop(); });
 
 		renderLoop();
 
 		close();
 
+		Metrics::shutdown();
 		ImGuiManager::shutdown();
 		FrameBufferManager::shutdown();
 
@@ -102,10 +107,13 @@ namespace emerald {
 			processQueue();
 
 			PROFILE_RENDER_BEGIN("Wait for render buffer");
+			Metrics::startTimer(Metric::RENDERWAIT);
 			Renderer::acquireRenderBuffer();
+			Metrics::endTimer(Metric::RENDERWAIT);
 			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("Render");
+			Metrics::startTimer(Metric::RENDER);
 
 			PROFILE_RENDER_BEGIN("PollEvents");
 			m_mainWindow->pollEvents();
@@ -114,7 +122,9 @@ namespace emerald {
 			handleResize();
 
 			PROFILE_RENDER_BEGIN("CommandBuffer");
+			Metrics::startTimer(Metric::GPU);
 			Renderer::executeCommandBuffer();
+			Metrics::endTimer(Metric::GPU);
 			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("SwapBuffers");
@@ -122,6 +132,7 @@ namespace emerald {
 			m_fpsCounter++;
 			PROFILE_RENDER_END();
 
+			Metrics::endTimer(Metric::RENDER);
 			PROFILE_RENDER_END();
 		}
 	}
@@ -132,10 +143,13 @@ namespace emerald {
 			PROFILE_LOGIC_FRAME();
 
 			PROFILE_LOGIC_BEGIN("Wait");
+			Metrics::startTimer(Metric::LOGICWAIT);
 			Renderer::waitForBufferAvailability();
+			Metrics::endTimer(Metric::LOGICWAIT);
 			PROFILE_LOGIC_END();
 
 			PROFILE_LOGIC_BEGIN("Logic");
+			Metrics::startTimer(Metric::LOGIC);
 			float currentTime = (float)glfwGetTime();
 			float deltaTime = currentTime - m_lastFrameTime;
 			m_totalFrameTime += deltaTime;
@@ -179,6 +193,7 @@ namespace emerald {
 			}
 
 			PROFILE_LOGIC_END();
+			Metrics::endTimer(Metric::LOGIC);
 
 			PROFILE_LOGIC_BEGIN("Submit buffer");
 			Renderer::submitBufferForRendering();

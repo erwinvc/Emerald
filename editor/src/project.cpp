@@ -54,7 +54,6 @@ namespace emerald {
 
 	void Project::showProjectPopup(bool open) {
 		if (open) {
-			Log::info("Showing project popup");
 			ImGui::OpenPopup("Select Project");
 		}
 		if (ImGui::BeginPopupModal("Select Project", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {

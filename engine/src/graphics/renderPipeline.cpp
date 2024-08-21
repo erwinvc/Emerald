@@ -88,18 +88,15 @@ namespace emerald {
 
 	int index = 0;
 	void RenderPipeline::render() {
-
 		if (Keyboard::keyJustDown(Key::R)) {
 			index++;
 			if(index > 1) index = 0;
 			m_material->Set("colorIndex", index);
-			Log::info("{}", m_material->Get<int>("colorIndex"));
 		}
+
 		Renderer::submit([] {PROFILE_RENDER_BEGIN("Pipeline"); });
 		Renderer::beginRenderPass(m_mainPass);
-		m_mainPass->descriptor().shader->bind();
 		m_material->updateForRendering();
-		//m_mainPass->descriptor().shader->set("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 		m_vao->bind();
 		m_ibo->bind();
 

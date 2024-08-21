@@ -8,7 +8,7 @@ namespace emerald {
 	static std::vector<std::unique_ptr<Thread>> m_threads;
 	static std::mutex m_lock;
 	static std::condition_variable m_condVar;
-	static std::array<std::thread::id, ThreadType::COUNT> s_threadIDs;
+	static std::array<std::thread::id, ThreadType::_COUNT> s_threadIDs;
 
 	Thread::Thread(const std::string& name, std::function<void()> func, bool background)
 		: m_name(name), m_function(std::move(func)), m_background(background), m_shutDown(false), m_finished(false) {

@@ -10,6 +10,7 @@
 #include "iconsFontAwesome.h"
 #include "imguiManager.h"
 #include "imguiProfiler/IconsFontAwesome4.h"
+#include "implot/implot.h"
 
 namespace emerald {
 	ImGuiContext* context;
@@ -72,10 +73,10 @@ namespace emerald {
 		colors[ImGuiCol_TabDimmedSelectedOverline] = transparent;
 		colors[ImGuiCol_DockingPreview] = Color(0x6E6E6EFF);
 		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-		//colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
-		//colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-		//colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-		//colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+		colors[ImGuiCol_PlotLines] = ImVec4(0.51f, 0.51f, 0.51f, 1.0f);
+		colors[ImGuiCol_PlotLinesHovered] = Color(0xD6D6D6FF);
+		colors[ImGuiCol_PlotHistogram] = ImVec4(0.51f, 0.51f, 0.51f, 1.0f);
+		colors[ImGuiCol_PlotHistogramHovered] = Color(0xD6D6D6FF);
 		//colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
 		//colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.35f, 1.00f);   // Prefer using Alpha=1.0 here
 		//colors[ImGuiCol_TableBorderLight] = ImVec4(0.23f, 0.23f, 0.25f, 1.00f);   // Prefer using Alpha=1.0 here
@@ -116,6 +117,7 @@ namespace emerald {
 	void ImGuiManager::initialize(Ref<Window> window) {
 		IMGUI_CHECKVERSION();
 		context = ImGui::CreateContext();
+		ImPlot::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 		io.IniFilename = NULL;
@@ -196,12 +198,18 @@ namespace emerald {
 	void ImGuiManager::shutdown() {
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
+		ImPlot::DestroyContext();
 		ImGui::DestroyContext(context);
 	}
 
 }
 namespace ImGui{
 	//Custom widgets
+	void ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags flags) {
+		ImGuiWindowClass window_class;
+		window_class.DockNodeFlagsOverrideSet = flags;
+		ImGui::SetNextWindowClass(&window_class);
+	}
 	void DrawGradientBackgroundForWindow(GradientDirection gradientDirection) {
 		float size = 50;
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();

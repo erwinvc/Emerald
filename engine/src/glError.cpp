@@ -26,7 +26,7 @@ namespace emerald {
 
 	bool GLError::glLogCall(const char* function, const char* file, int line) {
 #if HARD_OPENGL_ERROR_CHECK
-		Log::info("OpenGL: {} in {} at line {}", function, file, line);
+		Log::error("[OpenGL] {} in {} at line {}", function, file, line);
 #endif
 
 		GLenum error = glGetError();

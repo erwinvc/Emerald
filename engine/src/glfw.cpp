@@ -7,7 +7,7 @@ namespace emerald {
 		static bool s_initialized = false;
 
 		void glfwErrorCallback(int error, const char* description) {
-			Log::info("GLFW Error {0}: {1}", error, description);
+			Log::info("[GLFW] Error {0}: {1}", error, description);
 		}
 
 		void setWindowHints(const GLFWConfiguration& config) {

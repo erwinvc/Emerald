@@ -17,7 +17,7 @@ namespace emerald {
 
 		Timer() : m_start(HighResolutionClock::now()) {}
 
-		float get(TimeFormat fmt = MILLISECONDS) {
+		float get(TimeFormat fmt = MILLISECONDS) const {
 			switch (fmt) {
 				case NANOSECONDS: return std::chrono::duration_cast<ChronoNano>(HighResolutionClock::now() - m_start).count();
 				case MICROSECONDS: return std::chrono::duration_cast<ChronoMicro>(HighResolutionClock::now() - m_start).count();

@@ -46,7 +46,6 @@ namespace emerald {
 		}
 		void processQueue();
 
-	protected:
 		uint64_t getFrameCount() const { return m_frameCount; }
 		uint32_t getFPS() const { return m_fps; }
 		uint32_t getUPS() const { return m_ups; }
