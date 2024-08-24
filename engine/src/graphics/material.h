@@ -4,7 +4,7 @@
 #include "renderer.h"
 
 namespace emerald {
-	class Material : public RefCounted{
+	class Material : public RefCounted {
 	public:
 		Material(std::string name, Ref<Shader> shader);
 
@@ -38,12 +38,12 @@ namespace emerald {
 			ASSERT(uniform, "Could not find uniform");
 			return m_uniformStorageBuffer.read<T>(uniform->m_offset);
 		}
+		const ShaderUniform* getShaderUniform(const std::string& name);
 
 	private:
 		std::string m_name;
 		Ref<Shader> m_shader;
 		Buffer<byte> m_uniformStorageBuffer;
 
-		const ShaderUniform* getShaderUniform(const std::string& name);
 	};
 }

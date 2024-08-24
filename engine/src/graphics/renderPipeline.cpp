@@ -10,8 +10,12 @@
 #include "glError.h"
 #include "imguiProfiler/Profiler.h"
 #include "input/keyboard.h"
+#include "../../editor/src/editor.h"
+#include "engineIcon.h"
 
 namespace emerald {
+	static Ref<Texture> s_icon;
+
 	RenderPipeline::RenderPipeline() {
 		FramebufferDesc mainfbDesc;
 		mainfbDesc.width = App->getWidth();
@@ -32,14 +36,63 @@ namespace emerald {
 			Vertex(glm::vec3 pos, glm::vec2 uv) : m_position(pos), m_uv(uv) {}
 		};
 
-		Vertex vertices[4] = {
-		Vertex(glm::vec3(-0.5f, -0.5f, 0), glm::vec2(0, 0)),
-		Vertex(glm::vec3(-0.5f,  0.5f, 0), glm::vec2(0, 1)),
-		Vertex(glm::vec3(0.5f,  0.5f, 0),  glm::vec2(1, 1)),
-		Vertex(glm::vec3(0.5f, -0.5f, 0),  glm::vec2(1, 0))
+		Vertex vertices[24] = {
+			// Front face
+			Vertex(glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec2(0, 0)),
+			Vertex(glm::vec3(0.5f, -0.5f,  0.5f), glm::vec2(1, 0)),
+			Vertex(glm::vec3(0.5f,  0.5f,  0.5f), glm::vec2(1, 1)),
+			Vertex(glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec2(0, 1)),
+
+			// Back face
+			Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0, 0)),
+			Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(1, 0)),
+			Vertex(glm::vec3(0.5f,  0.5f, -0.5f), glm::vec2(1, 1)),
+			Vertex(glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec2(0, 1)),
+
+			// Left face
+			Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0, 0)),
+			Vertex(glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec2(1, 0)),
+			Vertex(glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec2(1, 1)),
+			Vertex(glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec2(0, 1)),
+
+			// Right face
+			Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(0, 0)),
+			Vertex(glm::vec3(0.5f,  0.5f, -0.5f), glm::vec2(1, 0)),
+			Vertex(glm::vec3(0.5f,  0.5f,  0.5f), glm::vec2(1, 1)),
+			Vertex(glm::vec3(0.5f, -0.5f,  0.5f), glm::vec2(0, 1)),
+
+			// Top face
+			Vertex(glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec2(0, 0)),
+			Vertex(glm::vec3(0.5f,  0.5f, -0.5f), glm::vec2(1, 0)),
+			Vertex(glm::vec3(0.5f,  0.5f,  0.5f), glm::vec2(1, 1)),
+			Vertex(glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec2(0, 1)),
+
+			// Bottom face
+			Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0, 0)),
+			Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(1, 0)),
+			Vertex(glm::vec3(0.5f, -0.5f,  0.5f), glm::vec2(1, 1)),
+			Vertex(glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec2(0, 1))
 		};
 
-		uint32_t indices[] = { 0, 1, 2, 0, 2, 3 };
+		uint32_t indices[] = {
+			// Front face
+			0, 1, 2, 0, 2, 3,
+
+			// Back face
+			4, 5, 6, 4, 6, 7,
+
+			// Left face
+			8, 9, 10, 8, 10, 11,
+
+			// Right face
+			12, 13, 14, 12, 14, 15,
+
+			// Top face
+			16, 17, 18, 16, 18, 19,
+
+			// Bottom face
+			20, 21, 22, 20, 22, 23
+		};
 
 		VertexBufferLayout layout = {
 			{VertexAttributeType::FLOAT3, "vsPos", 0},
@@ -61,6 +114,15 @@ namespace emerald {
 		m_material->SetArray("color", colors, 2);
 		m_material->Set("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0);
 		m_material->Set("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 1);
+
+		TextureDesc desc;
+		desc.hasMipmaps = false;
+		desc.anisotropyLevel = 0;
+		desc.format = RGBA;
+		desc.readWrite = false;
+		desc.filter = NEAREST;
+		s_icon = Ref<Texture>::create(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
+		Renderer::submit([] { s_icon->invalidate(); });
 	}
 
 	RenderPipeline::~RenderPipeline() {
@@ -90,17 +152,29 @@ namespace emerald {
 	void RenderPipeline::render() {
 		if (Keyboard::keyJustDown(Key::R)) {
 			index++;
-			if(index > 1) index = 0;
+			if (index > 1) index = 0;
 			m_material->Set("colorIndex", index);
 		}
 
 		Renderer::submit([] {PROFILE_RENDER_BEGIN("Pipeline"); });
 		Renderer::beginRenderPass(m_mainPass);
+		
+		Renderer::submit([] { 
+		glEnable(GL_CULL_FACE);  
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+		});
+
+		m_material->Set("viewMatrix", Editor->getEditorCamera()->getViewMatrix());
+		m_material->Set("projectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
+		m_material->Set("tex", 0);
+		s_icon->bind(0);
 		m_material->updateForRendering();
+
 		m_vao->bind();
 		m_ibo->bind();
 
-		Renderer::drawIndexed(6, PrimitiveType::TRIANGLES, true);
+		Renderer::drawIndexed(36, PrimitiveType::TRIANGLES, true);
 		Renderer::endRenderPass();
 
 		FrameBufferManager::bindDefaultFBO();

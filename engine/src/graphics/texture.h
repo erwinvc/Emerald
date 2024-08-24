@@ -45,7 +45,7 @@ namespace emerald {
 		}
 
 		Buffer<byte>& getBuffer() {
-			ASSERT(m_desc.m_readWrite, "Read write is not enabled for this buffer");
+			ASSERT(m_desc.readWrite, "Read write is not enabled for this buffer");
 			return m_buffer;
 		}
 	};

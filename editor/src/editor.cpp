@@ -9,11 +9,13 @@
 #include "project.h"
 #include "input/keyboard.h"
 #include "editorScene.h"
+#include "graphics/framebuffer.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
 	static UniqueRef<RenderPipeline> s_renderPipeline;
-	static Ref<EditorScene> s_activeScene;
+	static Ref<EditorCamera> s_editorCamera;
+	static Ref<Scene> s_activeScene;
 
 	static float s_lastTitleUpdateTime = 0.0f;
 
@@ -24,13 +26,15 @@ namespace emerald {
 		}
 	}
 
+	EmeraldEditorApplication::EmeraldEditorApplication() {
+		PROFILE_INITIALIZE();
+		PROFILE_DISABLE();
+	}
+
 	void EmeraldEditorApplication::onInitialize() {
 		s_editorWindow = UniqueRef<EditorWindow>::create();
 		s_renderPipeline = UniqueRef<RenderPipeline>::create();
-		s_editorWindow->initialize();
-
-		PROFILE_INITIALIZE();
-		PROFILE_DISABLE();
+		s_editorCamera = Ref<EditorCamera>::create(70.0f, 0.001f, 1000.0f);
 
 		updateTitlebar(0, 0, 0, true);
 	}
@@ -46,15 +50,24 @@ namespace emerald {
 		s_editorWindow->update(ts);
 		PROFILE_LOGIC_END();
 
+		glm::vec2 viewportSize = s_editorWindow->getSceneViewportSize();
+		s_editorCamera->setViewportSize(viewportSize.x, viewportSize.y);
+		s_editorCamera->update(ts);
+
+		Renderer::submit([viewportSize] {
+			FrameBufferManager::onResize(viewportSize.x, viewportSize.y);
+		});
+
 		PROFILE_LOGIC_BEGIN("Pipeline render");
 		s_renderPipeline->render();
 		PROFILE_LOGIC_END();
+
 
 		if (s_activeScene) {
 			s_activeScene->update(ts);
 		}
 
-		Renderer::submit([ts] {
+		Renderer::submit([ts, viewportSize] {
 			PROFILE_RENDER_BEGIN("ImGui start");
 			ImGuiManager::begin();
 			PROFILE_RENDER_END();
@@ -66,8 +79,6 @@ namespace emerald {
 			ImGuiManager::end();
 			PROFILE_RENDER_END();
 		});
-
-
 	}
 
 	void EmeraldEditorApplication::fixedUpdate(Timestep ts) {
@@ -78,10 +89,13 @@ namespace emerald {
 		return s_renderPipeline->getFinalTexture();
 	}
 
-	Ref<EditorScene> EmeraldEditorApplication::getActiveScene() {
+	Ref<Scene> EmeraldEditorApplication::getActiveScene() {
 		return s_activeScene;
 	}
 
+	Ref<EditorCamera> EmeraldEditorApplication::getEditorCamera() {
+		return s_editorCamera;
+	}
 
 	Application* createApplication() {
 		return new EmeraldEditorApplication();

@@ -7,7 +7,7 @@
 namespace emerald::icon {
 	void loadIcon(GLFWwindow* window) {
 		TextureDesc desc;
-		desc.m_readWrite = true;
+		desc.readWrite = true;
 		Texture texture(desc, 32, 32, icon32_map, NUMOF(icon32_map), TextureDataType::FILE);
 
 		GLFWimage icon[1] = {};

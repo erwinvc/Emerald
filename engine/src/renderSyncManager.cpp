@@ -44,6 +44,7 @@ namespace emerald {
 		for (const auto& cmd : *frontBuffer) {
 			cmd();
 		}
+
 		frontBuffer->clear();
 	}
 

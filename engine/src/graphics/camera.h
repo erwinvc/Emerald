@@ -2,16 +2,19 @@
 #include <util/timestep.h>
 
 namespace emerald {
+	enum class ProjectionType {
+		PERSPECTIVE,
+		ORTHOGRAPHIC
+	};
 	class Camera : public RefCounted {
 	public:
-		Camera(float fov, float nearClip, float farClip)
-			: m_fov(fov), m_nearClip(nearClip), m_farClip(farClip), m_aspectRatio(1.0f) {
-			updateProjection();
+		Camera(float fov, float nearClip, float farClip, ProjectionType projectionType = ProjectionType::PERSPECTIVE)
+			: m_fov(fov), m_nearClip(nearClip), m_farClip(farClip), m_projectionType(projectionType){
 		}
 
 		virtual ~Camera() = default;
 
-		void setAspectRatio(float width, float height);
+		void setViewportSize(uint32_t width, uint32_t height);
 		void setPosition(const glm::vec3& position);
 		void setRotation(const glm::vec3& rotation);
 
@@ -20,15 +23,22 @@ namespace emerald {
 		const glm::vec3& getPosition() const { return m_position; }
 		const glm::vec3& getRotation() const { return m_rotation; }
 
+		glm::quat getOrientation() const;
+		glm::vec3 forward() const;
+		glm::vec3 right() const;
+		glm::vec3 up() const;
 
 	protected:
-		float m_fov, m_nearClip, m_farClip, m_aspectRatio;
+		float m_fov, m_nearClip, m_farClip;
+
+		float m_orthographicSize = 10.0f;
+		ProjectionType m_projectionType;
+
 		glm::vec3 m_position = glm::vec3(0.0f);
 		glm::vec3 m_rotation = glm::vec3(0.0f);
 		glm::mat4 m_viewMatrix = glm::mat4(1.0f);
 		glm::mat4 m_projectionMatrix = glm::mat4(1.0f);
 
-		void updateProjection();
-		void updateView();
+		void updateViewMatrix();
 	};
 }

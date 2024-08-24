@@ -39,17 +39,18 @@ namespace emerald {
 
 	class TextureDesc final {
 	public:
-		TextureFormat m_format = RGBA;
-		TextureFilter m_filter = LINEAR;
-		TextureWrap m_wrap = REPEAT;
-		uint32_t m_anisotropyLevel = 0;
-		bool m_hasMipmaps = false;
-		bool m_readWrite = false;
+		TextureFormat format = RGBA;
+		TextureFilter filter = LINEAR;
+		TextureWrap wrap = REPEAT;
+		uint32_t anisotropyLevel = 0;
+		bool hasMipmaps = false;
+		bool readWrite = false;
+		bool isImmutable = true;
 
 		std::string wrapToString(TextureWrap wrap) const;
 		std::string filterToString(TextureFilter filter) const;
 
-		uint32_t getWrap() const { return m_wrap; }
+		uint32_t getWrap() const { return wrap; }
 		uint32_t getFilter(int type, bool mipmap) const;
 
 		uint32_t getChannelCount() const;

@@ -18,13 +18,16 @@ namespace emerald {
 
 	class EmeraldEditorApplication : public Application {
 	public:
+		EmeraldEditorApplication();
+
 		void onInitialize() override;
 		void onShutdown() override;
 		void update(Timestep ts) override;
 		void fixedUpdate(Timestep ts) override;
 
 		Ref<Texture> getFinalTexture();
-		Ref<EditorScene> getActiveScene();
+		Ref<Scene> getActiveScene();
+		Ref<EditorCamera> getEditorCamera();
 	};
 
 	inline EmeraldEditorApplication* Editor;

@@ -9,8 +9,7 @@
 
 namespace emerald {
 	Shader::Shader(const std::string& name, const std::string& filePath, bool hasGeometry, bool hasTessellation) : m_shaderProgram(nullptr), m_hasGeometry(hasGeometry), m_hasTessellation(hasTessellation), m_name(name), m_shaderPath(filePath) {
-		Ref<Shader> instance = this;
-		Renderer::submit([instance]() mutable {
+		Renderer::submit([instance = this]() mutable {
 			instance->m_shaderProgram = instance->load();
 			if (!instance->m_shaderProgram) Log::fatal("[Shader] {} failed to compile", instance->m_name.c_str());
 			instance->gatherUniforms();
@@ -175,8 +174,7 @@ namespace emerald {
 
 
 	void Shader::bind() {
-		Ref<Shader> instance = this;
-		Renderer::submit([instance] {
+		Renderer::submit([instance = this] {
 			instance->m_shaderProgram->bind();
 		});
 	}

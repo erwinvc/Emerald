@@ -91,65 +91,76 @@ namespace emerald {
 	void Texture::invalidate() {
 		if (m_handle) cleanup();
 
-
 		GL(glCreateTextures(GL_TEXTURE_2D, 1, &m_handle));
 
-		m_mipmapCount = m_desc.m_hasMipmaps ? utils::calculateMipCount(m_width, m_height) : 1;
+		m_mipmapCount = m_desc.hasMipmaps ? utils::calculateMipCount(m_width, m_height) : 1;
 
-		GL(glTextureStorage2D(m_handle, m_mipmapCount, m_desc.getInternalFormat(), m_width, m_height));
+		if (m_desc.isImmutable) {
+			// Use immutable texture storage
+			GL(glTextureStorage2D(m_handle, m_mipmapCount, m_desc.getInternalFormat(), m_width, m_height));
+		} else {
+			// Use mutable texture storage
+			GL(glBindTexture(GL_TEXTURE_2D, m_handle));
+			GL(glTexImage2D(GL_TEXTURE_2D, 0, m_desc.getInternalFormat(), m_width, m_height, 0, m_desc.getImageFormat(), m_desc.getDataType(), nullptr));
+			if (m_desc.hasMipmaps) GL(glGenerateMipmap(GL_TEXTURE_2D));
+		}
 
 		if (m_buffer) {
 			auto imageFormat = m_desc.getImageFormat();
 			auto dataType = m_desc.getDataType();
 			GL(glTextureSubImage2D(m_handle, 0, 0, 0, m_width, m_height, imageFormat, dataType, m_buffer.data()));
-			if (m_desc.m_hasMipmaps) GL(glGenerateTextureMipmap(m_handle));
+			if (m_desc.hasMipmaps) GL(glGenerateTextureMipmap(m_handle));
 		}
 
-		if (!m_desc.m_readWrite) m_buffer.clear();
+		if (!m_desc.readWrite) m_buffer.clear();
 
 		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, m_desc.getWrap()));
 		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_desc.getWrap()));
 		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_desc.getWrap()));
-		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_desc.getFilter(GL_TEXTURE_MIN_FILTER, m_desc.m_hasMipmaps)));
-		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_desc.getFilter(GL_TEXTURE_MAG_FILTER, m_desc.m_hasMipmaps)));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_desc.getFilter(GL_TEXTURE_MIN_FILTER, m_desc.hasMipmaps)));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_desc.getFilter(GL_TEXTURE_MAG_FILTER, m_desc.hasMipmaps)));
 
-		if (m_desc.m_hasMipmaps) {
-			if (GL_EXT_texture_filter_anisotropic) {
-				float value = 0;
-				GL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value));
-				float amount = glm::min(4.0f, value);
-				GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount));
-			} else Log::warn("[Texture] GL_EXT_texture_filter_anisotropic not supported");
-		}
+		//if (m_desc.m_hasMipmaps) {
+		//	if (GL_EXT_texture_filter_anisotropic) {
+		//		float value = 0;
+		//		GL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value));
+		//		float amount = glm::min(4.0f, value);
+		//		GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount));
+		//	} else Log::warn("[Texture] GL_EXT_texture_filter_anisotropic not supported");
+		//}
 	}
 
 	void Texture::bind(uint32_t slot /*= 0*/) const {
 		Ref<const Texture> instance = this;
 		Renderer::submit([instance, slot] {
-			GL(glActiveTexture(GL_TEXTURE0 + slot));
-			GL(glBindTexture(GL_TEXTURE_2D, instance->m_handle));
+			GL(glBindTextureUnit(slot, instance->m_handle)); // Use DSA function to bind texture
 		});
 	}
 
 	void Texture::unbind(uint32_t slot /*= 0*/) const {
 		Renderer::submit([slot] {
-			GL(glBindTexture(GL_TEXTURE_2D, slot));
+			GL(glBindTextureUnit(slot, 0)); // Use DSA function to unbind texture
 		});
 	}
 
 	void Texture::resize(uint32_t width, uint32_t height) {
 		if (m_width == width && m_height == height) return;
+
 		m_width = width;
 		m_height = height;
 
-		Ref<Texture> instance = this;
-		Renderer::submit([instance]() mutable {
-			instance->invalidate();
-		});
+		if (!m_desc.isImmutable) {
+			GL(glBindTexture(GL_TEXTURE_2D, m_handle));
+			GL(glTexImage2D(GL_TEXTURE_2D, 0, m_desc.getInternalFormat(), m_width, m_height, 0,
+				m_desc.getImageFormat(), m_desc.getDataType(), nullptr));
+			if (m_desc.hasMipmaps) GL(glGenerateMipmap(GL_TEXTURE_2D));
+		} else {
+			invalidate();
+		}
 	}
 
 	void Texture::saveAsPNG(const std::string& file) {
-		if (m_desc.m_readWrite && m_buffer) {
+		if (m_desc.readWrite && m_buffer) {
 			uint32_t channels = m_desc.getChannelCount();
 			stbi_write_png(file.c_str(), getWidth(), getHeight(), channels, m_buffer.data(), channels * getWidth());
 			Log::info("[Texture] saved texture to {}", file.c_str());

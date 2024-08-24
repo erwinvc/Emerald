@@ -15,8 +15,8 @@ namespace emerald {
 			: m_time(initial), m_deltaTime(initial / 1000.0f), m_totalTime(totalTime), m_frameCount(frameCount) {
 		}
 
-		float deltaTime() const { return m_deltaTime; }
-		float totalTime() const { return m_totalTime; }
+		float deltaTime() const { return m_time; }
+		//float totalTime() const { return m_totalTime; }
 		uint64_t frameCount() const { return m_frameCount; }
 	};
 }

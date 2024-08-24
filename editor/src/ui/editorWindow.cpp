@@ -22,29 +22,29 @@
 #include "debugWindow.h"
 
 namespace emerald {
-	static Ref<Texture> s_icon;
 	static bool s_mouseInViewport = false;
 	static bool s_viewportFocused = false;
 	static bool s_TitleBarHovered = false;
+	static glm::vec2 s_sceneViewportSize = glm::vec2(1.0f, 1.0f);
 
-	EditorWindow::~EditorWindow() {
-		s_icon.reset();
-	}
-
-	void EditorWindow::initialize() {
+	EditorWindow::EditorWindow() {
 		glfwSetTitlebarHitTestCallback(App->getWindow()->handle(), [](GLFWwindow* window, int x, int y, int* hit) {
 			*hit = s_TitleBarHovered;
 		});
 
 		TextureDesc desc;
-		desc.m_hasMipmaps = false;
-		desc.m_anisotropyLevel = 0;
-		desc.m_format = RGBA;
-		desc.m_readWrite = false;
-		desc.m_filter = NEAREST;
+		desc.hasMipmaps = false;
+		desc.anisotropyLevel = 0;
+		desc.format = RGBA;
+		desc.readWrite = false;
+		desc.filter = NEAREST;
 
-		s_icon = Ref<Texture>::create(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
-		Renderer::submit([] { s_icon->invalidate(); });
+		m_icon = Ref<Texture>::create(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
+		Renderer::submit([instance = m_icon]() mutable { instance->invalidate(); });
+	}
+
+	EditorWindow::~EditorWindow() {
+		m_icon.reset();
 	}
 
 	void drawMenuBar() {
@@ -116,7 +116,7 @@ namespace emerald {
 		//Logo
 		ImGui::BeginHorizontal("TitlebarLogo", ImVec2(46, 46), 0.5f);
 		ImGui::Spring();
-		ImGui::Image((void*)(uint64_t)s_icon->handle(), ImVec2(32.0f, 32.0f));
+		ImGui::Image((void*)(uint64_t)m_icon->handle(), ImVec2(32.0f, 32.0f));
 		ImGui::Spring();
 		ImGui::EndHorizontal();
 		s_TitleBarHovered = ImGui::IsItemHovered();
@@ -164,7 +164,7 @@ namespace emerald {
 		ImGui::End();
 	}
 
-	void drawAppArea(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
+	void drawEditor(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
 			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
@@ -222,6 +222,8 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
 		ImGui::Begin("Viewport", nullptr, windowFlags);
+		ImVec2 avail = ImGui::GetContentRegionAvail();
+		s_sceneViewportSize = glm::vec2(avail.x, avail.y);
 		s_mouseInViewport = ImGui::IsWindowHovered();
 		s_viewportFocused = ImGui::IsWindowFocused();
 		if (s_mouseInViewport) {
@@ -231,7 +233,7 @@ namespace emerald {
 			ImGui::SetNextFrameWantCaptureKeyboard(false);
 		}
 
-		ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), ImGui::GetContentRegionAvail());
+		ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), ImGui::GetContentRegionAvail(), { 0, 1 }, { 1, 0 });
 
 		ImGui::End();
 		ImGui::PopStyleVar();
@@ -308,7 +310,7 @@ namespace emerald {
 		const float titleBarHeight = 44;
 
 		drawTitlebar(viewport->Pos, ImVec2(viewport->Size.x, titleBarHeight + titlebarYOffset), viewport->ID, titleBarHeight);
-		drawAppArea(ImVec2(viewport->Pos.x, viewport->Pos.y + titleBarHeight + titlebarYOffset), ImVec2(viewport->Size.x, viewport->Size.y - titleBarHeight - titlebarYOffset), viewport->ID, titleBarHeight);
+		drawEditor(ImVec2(viewport->Pos.x, viewport->Pos.y + titleBarHeight + titlebarYOffset), ImVec2(viewport->Size.x, viewport->Size.y - titleBarHeight - titlebarYOffset), viewport->ID, titleBarHeight);
 
 		ImGui::PopStyleVar(2);
 
@@ -325,4 +327,9 @@ namespace emerald {
 	void EditorWindow::destroy() {
 
 	}
+
+	glm::vec2 EditorWindow::getSceneViewportSize() const {
+		return s_sceneViewportSize;
+	}
+
 }

@@ -104,7 +104,9 @@ namespace emerald {
 				g_running = false;
 			}
 
+			PROFILE_RENDER_BEGIN("Process queue");
 			processQueue();
+			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("Wait for render buffer");
 			Metrics::startTimer(Metric::RENDERWAIT);
@@ -121,14 +123,15 @@ namespace emerald {
 
 			handleResize();
 
-			PROFILE_RENDER_BEGIN("CommandBuffer");
 			Metrics::startTimer(Metric::GPU);
+			PROFILE_RENDER_BEGIN("CommandBuffer");
 			Renderer::executeCommandBuffer();
-			Metrics::endTimer(Metric::GPU);
 			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("SwapBuffers");
 			m_mainWindow->swapBuffers();
+			Metrics::endTimer(Metric::GPU);
+
 			m_fpsCounter++;
 			PROFILE_RENDER_END();
 
@@ -194,7 +197,6 @@ namespace emerald {
 
 			PROFILE_LOGIC_END();
 			Metrics::endTimer(Metric::LOGIC);
-
 			PROFILE_LOGIC_BEGIN("Submit buffer");
 			Renderer::submitBufferForRendering();
 			PROFILE_LOGIC_END();

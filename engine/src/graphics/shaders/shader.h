@@ -39,6 +39,8 @@ namespace emerald {
 		void reload();
 		void bind();
 
+		uint32_t handle(){ return m_shaderProgram->handle(); }
+
 	private:
 		friend class Material;
 

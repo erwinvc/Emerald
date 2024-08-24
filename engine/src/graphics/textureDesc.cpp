@@ -25,18 +25,18 @@ namespace emerald {
 		switch (type) {
 			case GL_TEXTURE_MIN_FILTER:
 			{
-				switch (m_filter) {
+				switch (filter) {
 					case LINEAR: return mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
 					case NEAREST: return mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST;
 				}
 			}break;
-			case GL_TEXTURE_MAG_FILTER: return m_filter == LINEAR ? GL_LINEAR : GL_NEAREST; break;
+			case GL_TEXTURE_MAG_FILTER: return filter == LINEAR ? GL_LINEAR : GL_NEAREST; break;
 		}
 		return GL_LINEAR;
 	}
 
 	uint32_t TextureDesc::getChannelCount() const {
-		switch (m_format) {
+		switch (format) {
 			case TextureFormat::RGB:
 			case TextureFormat::SRGB:    return 3;
 			case TextureFormat::SRGBA:
@@ -48,7 +48,7 @@ namespace emerald {
 	}
 
 	uint32_t TextureDesc::getImageFormat() const {
-		switch (m_format) {
+		switch (format) {
 			case TextureFormat::RGB:     return GL_RGB;
 			case TextureFormat::SRGB:    return GL_RGB;
 			case TextureFormat::SRGBA:    return GL_RGBA;
@@ -60,7 +60,7 @@ namespace emerald {
 	}
 
 	uint32_t TextureDesc::getInternalFormat() const {
-		switch (m_format) {
+		switch (format) {
 			case TextureFormat::RGB:             return GL_RGB8;
 			case TextureFormat::SRGB:            return GL_SRGB8;
 			case TextureFormat::SRGBA:           return GL_SRGB8_ALPHA8;
@@ -74,7 +74,7 @@ namespace emerald {
 	}
 
 	uint32_t TextureDesc::getDataType() const {
-		switch (m_format) {
+		switch (format) {
 			case TextureFormat::RGB:
 			case TextureFormat::SRGB:
 			case TextureFormat::RGBA:    return GL_UNSIGNED_BYTE;

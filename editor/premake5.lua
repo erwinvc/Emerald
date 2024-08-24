@@ -12,9 +12,12 @@ project "Editor"
 	{
 		"**.h",
 		"**.cpp",
-		"**.hpp"
+		"**.hpp",
+		"*.rc",
+		'*.ico',
+		"*.aps"
 	}
-	
+		
 	includedirs
 	{
 		"src",

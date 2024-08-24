@@ -1,55 +1,31 @@
 #include "eepch.h"
 #include "editorCamera.h"
-#include "GLFW/glfw3.h"
+#include "input/keyboard.h"
+#include "input/mouse.h"
+#include "glm/ext/scalar_common.hpp"
+#include "glm/gtc/constants.hpp"
 
 namespace emerald {
 	void EditorCamera::update(Timestep ts) {
-		GLFWwindow* window = glfwGetCurrentContext();
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			m_position += getForwardDirection() * movementSpeed * ts.deltaTime();
-		}
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			m_position -= getForwardDirection() * movementSpeed * ts.deltaTime();
-		}
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			m_position -= getRightDirection() * movementSpeed * ts.deltaTime();
-		}
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			m_position += getRightDirection() * movementSpeed * ts.deltaTime();
-		}
-		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-			m_position -= getUpDirection() * movementSpeed * ts.deltaTime();
-		}
-		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-			m_position += getUpDirection() * movementSpeed * ts.deltaTime();
-		}
+		float deltaSpeed = m_movementSpeed * ts.deltaTime();
 
-		double mouseX, mouseY;
-		glfwGetCursorPos(window, &mouseX, &mouseY);
+		if (Keyboard::keyDown(Key::LEFT_SHIFT)) deltaSpeed *= 10;
+		if (Keyboard::keyDown(Key::LEFT_ALT)) deltaSpeed /= 10;
 
-		float deltaX = static_cast<float>(mouseX - lastMouseX);
-		float deltaY = static_cast<float>(mouseY - lastMouseY);
+		if (Keyboard::keyDown(Key::Q) || Keyboard::keyDown(Key::SPACE)) m_position.y += deltaSpeed;
+		if (Keyboard::keyDown(Key::E) || Keyboard::keyDown(Key::C) /*|| KeyDown(LCTRL)*/) m_position.y -= deltaSpeed;
 
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-			m_rotation.y += deltaX * rotationSpeed * ts.deltaTime();
-			m_rotation.x += deltaY * rotationSpeed * ts.deltaTime();
+		if (Keyboard::keyDown(Key::D)) m_position += right() * deltaSpeed;
+		if (Keyboard::keyDown(Key::A)) m_position -= right() * deltaSpeed;
+
+		if (Keyboard::keyDown(Key::W)) m_position += forward() * deltaSpeed;
+		if (Keyboard::keyDown(Key::S)) m_position -= forward() * deltaSpeed;
+
+		if (Mouse::buttonDown(MouseButton::RIGHT)) {
+			m_rotation.y += Mouse::positionDelta().x * m_rotationSpeed;
+			m_rotation.x = glm::clamp((float)(m_rotation.x + Mouse::positionDelta().y * m_rotationSpeed), -glm::half_pi<float>(), glm::half_pi<float>());
 		}
 
-		lastMouseX = mouseX;
-		lastMouseY = mouseY;
-
-		updateView();
-	}
-
-	glm::vec3 EditorCamera::getForwardDirection() const {
-		return glm::normalize(glm::vec3(glm::sin(m_rotation.y), 0.0f, glm::cos(m_rotation.y)));
-	}
-
-	glm::vec3 EditorCamera::getRightDirection() const {
-		return glm::normalize(glm::vec3(glm::cos(m_rotation.y), 0.0f, -glm::sin(m_rotation.y)));
-	}
-
-	glm::vec3 EditorCamera::getUpDirection() const {
-		return glm::vec3(0.0f, 1.0f, 0.0f);
+		updateViewMatrix();
 	}
 }
