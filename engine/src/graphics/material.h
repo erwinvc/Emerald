@@ -1,7 +1,6 @@
 #pragma once
 #include "shaders/shader.h"
 #include "../util/buffer.h"
-#include "renderer.h"
 
 namespace emerald {
 	class Material : public RefCounted {
@@ -14,7 +13,7 @@ namespace emerald {
 		template <typename T>
 		void Set(const std::string& name, const T& value, uint32_t index = 0) {
 			auto uniform = getShaderUniform(name);
-			ASSERT(uniform, "Could not find uniform");
+			//ASSERT(uniform, "Could not find uniform");
 			if (!uniform)
 				return;
 
@@ -24,7 +23,7 @@ namespace emerald {
 		template <typename T>
 		void SetArray(const std::string& name, const T* value, uint32_t count) {
 			auto uniform = getShaderUniform(name);
-			ASSERT(uniform, "Could not find uniform");
+			//ASSERT(uniform, "Could not find uniform");
 			if (!uniform)
 				return;
 
@@ -44,6 +43,5 @@ namespace emerald {
 		std::string m_name;
 		Ref<Shader> m_shader;
 		Buffer<byte> m_uniformStorageBuffer;
-
 	};
 }

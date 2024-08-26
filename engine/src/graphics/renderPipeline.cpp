@@ -12,15 +12,16 @@
 #include "input/keyboard.h"
 #include "../../editor/src/editor.h"
 #include "engineIcon.h"
+#include "assets/loaders/modelLoader.h"
 
 namespace emerald {
 	static Ref<Texture> s_icon;
-
+	static std::vector<Ref<Mesh>> meshes;
 	RenderPipeline::RenderPipeline() {
 		FramebufferDesc mainfbDesc;
 		mainfbDesc.width = App->getWidth();
 		mainfbDesc.height = App->getHeight();
-		mainfbDesc.attachments = { {"Main", TextureFormat::RGBA} };
+		mainfbDesc.attachments = { {"Main", TextureFormat::RGBA}, {"Depth", TextureFormat::DEPTH24STENCIL8}};
 		mainfbDesc.clearColor = { 0.5f, 0.7f, 1.0f, 1.0f };
 		mainfbDesc.name = "MainFB";
 
@@ -110,9 +111,9 @@ namespace emerald {
 		m_material = Ref<Material>::create("Geometry", mainPassDesc.shader);
 		//m_material->Set("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
-		glm::vec4 colors[2] = { glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) };
-		m_material->SetArray("color", colors, 2);
-		m_material->Set("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0);
+		//glm::vec4 colors[2] = { glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) };
+		//m_material->SetArray("color", colors, 2);
+		m_material->Set("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
 		m_material->Set("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 1);
 
 		TextureDesc desc;
@@ -123,6 +124,9 @@ namespace emerald {
 		desc.filter = NEAREST;
 		s_icon = Ref<Texture>::create(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
 		Renderer::submit([] { s_icon->invalidate(); });
+
+		ModelLoader loader("I:\\Development\\C++\\EmeraldOldStuff\\res\\sponza\\sponza.obj");
+		meshes = loader.load();
 	}
 
 	RenderPipeline::~RenderPipeline() {
@@ -160,21 +164,31 @@ namespace emerald {
 		Renderer::beginRenderPass(m_mainPass);
 		
 		Renderer::submit([] { 
-		glEnable(GL_CULL_FACE);  
-		glCullFace(GL_BACK);
-		glFrontFace(GL_CCW);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			glFrontFace(GL_CCW);
+			GL(glEnable(GL_DEPTH_TEST));
 		});
 
+		glm::mat4 modelMatrix = glm::mat4(1.0f);
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
+
+		m_material->Set("modelMatrix", modelMatrix);
 		m_material->Set("viewMatrix", Editor->getEditorCamera()->getViewMatrix());
 		m_material->Set("projectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
 		m_material->Set("tex", 0);
 		s_icon->bind(0);
 		m_material->updateForRendering();
 
-		m_vao->bind();
-		m_ibo->bind();
+		for(int i = 0 ; i < meshes.size() -1;i++){
+			meshes[i]->bind();
+			Renderer::drawIndexed(meshes[i]->getIBO()->getCount(), PrimitiveType::TRIANGLES);
+		}
 
-		Renderer::drawIndexed(36, PrimitiveType::TRIANGLES, true);
+		//m_vao->bind();
+		//m_ibo->bind();
+
+	//	Renderer::drawIndexed(36, PrimitiveType::TRIANGLES, true);
 		Renderer::endRenderPass();
 
 		FrameBufferManager::bindDefaultFBO();

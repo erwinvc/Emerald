@@ -20,6 +20,7 @@
 #include "util/fileSystem.h"
 #include "metrics/metrics.h"
 #include "debugWindow.h"
+#include "input/keyboard.h"
 
 namespace emerald {
 	static bool s_mouseInViewport = false;
@@ -214,7 +215,6 @@ namespace emerald {
 	}
 
 	//Windows
-
 	void drawViewport() {
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoNav;
 
@@ -223,6 +223,10 @@ namespace emerald {
 
 		ImGui::Begin("Viewport", nullptr, windowFlags);
 		ImVec2 avail = ImGui::GetContentRegionAvail();
+
+		ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), avail, { 0, 1 }, { 1, 0 });
+
+
 		s_sceneViewportSize = glm::vec2(avail.x, avail.y);
 		s_mouseInViewport = ImGui::IsWindowHovered();
 		s_viewportFocused = ImGui::IsWindowFocused();
@@ -233,13 +237,218 @@ namespace emerald {
 			ImGui::SetNextFrameWantCaptureKeyboard(false);
 		}
 
-		ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), ImGui::GetContentRegionAvail(), { 0, 1 }, { 1, 0 });
 
 		ImGui::End();
 		ImGui::PopStyleVar();
 	}
 
+	struct TreeNode {
+		std::string name;
+		std::vector<TreeNode*> children;
+		TreeNode* parent;
+
+		TreeNode(const std::string& n) : name(n), parent(nullptr) {}
+	};
+
+	class ReorderableTree {
+	private:
+		std::vector<TreeNode*> rootNodes;
+		TreeNode* draggedNode = nullptr;
+		TreeNode* dragTargetNode = nullptr;
+		TreeNode* dragTargetParent = nullptr;
+		bool isDragging = false;
+		bool isInsertingBefore = false;
+
+		void renderNode(TreeNode* node, int depth) {
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+
+			if (node->children.empty()) {
+				flags |= ImGuiTreeNodeFlags_Leaf;
+			}
+
+			if (draggedNode == node) {
+				flags |= ImGuiTreeNodeFlags_Selected;
+			}
+
+			// Render a small hitbox for inserting before this node
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.7f, 0.7f, 0.2f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.8f, 0.8f, 0.3f));
+
+			ImGui::InvisibleButton(("##insert_before_" + node->name).c_str(), ImVec2(-1, 5));
+
+			if (ImGui::BeginDragDropTarget()) {
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("TREE_NODE")) {
+					TreeNode* droppedNode = *(TreeNode**)payload->Data;
+					dragTargetNode = node;
+					dragTargetParent = node->parent;
+					isInsertingBefore = true;
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			ImGui::PopStyleColor(3);
+
+			bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)node, flags, node->name.c_str());
+
+			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+				draggedNode = node;
+				isDragging = true;
+			}
+
+			if (ImGui::BeginDragDropSource()) {
+				ImGui::SetDragDropPayload("TREE_NODE", &node, sizeof(TreeNode*));
+				ImGui::Text("Dragging %s", node->name.c_str());
+				ImGui::EndDragDropSource();
+			}
+
+			if (ImGui::BeginDragDropTarget()) {
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("TREE_NODE")) {
+					TreeNode* droppedNode = *(TreeNode**)payload->Data;
+					dragTargetNode = node;
+					dragTargetParent = node;
+					isInsertingBefore = false;
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			if (isOpen) {
+				for (auto& child : node->children) {
+					renderNode(child, depth + 1);
+				}
+				ImGui::TreePop();
+			}
+		}
+
+		void removeNodeFromParent(TreeNode* node) {
+			if (node->parent) {
+				auto& siblings = node->parent->children;
+				siblings.erase(std::remove(siblings.begin(), siblings.end(), node), siblings.end());
+				node->parent = nullptr;
+			} else {
+				rootNodes.erase(std::remove(rootNodes.begin(), rootNodes.end(), node), rootNodes.end());
+			}
+		}
+
+		void addNodeToParent(TreeNode* node, TreeNode* newParent, bool insertBefore = false, TreeNode* beforeNode = nullptr) {
+			std::vector<TreeNode*>& targetList = newParent ? newParent->children : rootNodes;
+
+			if (insertBefore && beforeNode) {
+				auto it = std::find(targetList.begin(), targetList.end(), beforeNode);
+				if (it != targetList.end()) {
+					targetList.insert(it, node);
+				} else {
+					targetList.push_back(node);
+				}
+			} else {
+				targetList.push_back(node);
+			}
+
+			node->parent = newParent;
+		}
+
+	public:
+		void render() {
+			for (auto& node : rootNodes) {
+				renderNode(node, 0);
+			}
+
+			// Handle dragging outside of any node (unparenting)
+			if (ImGui::BeginDragDropTarget()) {
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("TREE_NODE")) {
+					TreeNode* droppedNode = *(TreeNode**)payload->Data;
+					dragTargetNode = nullptr;
+					dragTargetParent = nullptr;
+					isInsertingBefore = false;
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			// Process drag and drop
+			if (isDragging && !ImGui::IsMouseDown(0)) {
+				isDragging = false;
+				if (draggedNode && dragTargetNode != draggedNode) {
+					removeNodeFromParent(draggedNode);
+					addNodeToParent(draggedNode, dragTargetParent, isInsertingBefore, dragTargetNode);
+				}
+				draggedNode = nullptr;
+				dragTargetNode = nullptr;
+				dragTargetParent = nullptr;
+			}
+		}
+
+		// Add a method to initialize the tree with some nodes
+		void initializeTree() {
+			TreeNode* root1 = new TreeNode("Root 1");
+			TreeNode* child1 = new TreeNode("Child 1");
+			TreeNode* child2 = new TreeNode("Child 2");
+			TreeNode* grandchild1 = new TreeNode("Grandchild 1");
+
+			root1->children.push_back(child1);
+			root1->children.push_back(child2);
+			child1->parent = root1;
+			child2->parent = root1;
+
+			child1->children.push_back(grandchild1);
+			grandchild1->parent = child1;
+
+			rootNodes.push_back(root1);
+
+			TreeNode* root2 = new TreeNode("Root 2");
+			rootNodes.push_back(root2);
+		}
+	};
+
+	static ReorderableTree tree;
+	void init() {
+		tree.initializeTree();
+	}
+
+	void ItemRowsBackground(float lineHeight = -1.0f, const ImColor& color = ImColor(20, 20, 20, 64)) {
+		auto* drawList = ImGui::GetWindowDrawList();
+		const auto& style = ImGui::GetStyle();
+
+		if (lineHeight < 0) {
+			lineHeight = ImGui::GetTextLineHeight();
+		}
+		lineHeight += style.ItemSpacing.y;
+
+		float scrollOffsetH = ImGui::GetScrollX();
+		float scrollOffsetV = ImGui::GetScrollY();
+		float scrolledOutLines = floorf(scrollOffsetV / lineHeight);
+		scrollOffsetV -= lineHeight * scrolledOutLines;
+
+		ImVec2 clipRectMin(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+		ImVec2 clipRectMax(clipRectMin.x + ImGui::GetWindowWidth(), clipRectMin.y + ImGui::GetWindowHeight());
+
+		if (ImGui::GetScrollMaxX() > 0) {
+			clipRectMax.y -= style.ScrollbarSize;
+		}
+
+		drawList->PushClipRect(clipRectMin, clipRectMax);
+
+		bool isOdd = (static_cast<int>(scrolledOutLines) % 2) == 0;
+
+		float yMin = clipRectMin.y - scrollOffsetV + ImGui::GetCursorPosY();
+		float yMax = clipRectMax.y - scrollOffsetV + lineHeight;
+		float xMin = clipRectMin.x + scrollOffsetH + ImGui::GetWindowContentRegionMin().x;
+		float xMax = clipRectMin.x + scrollOffsetH + ImGui::GetWindowContentRegionMax().x;
+
+		for (float y = yMin; y < yMax; y += lineHeight, isOdd = !isOdd) {
+			if (isOdd) {
+				drawList->AddRectFilled({ xMin, y - style.ItemSpacing.y }, { xMax, y + lineHeight }, color);
+			}
+		}
+
+		drawList->PopClipRect();
+	}
+
+	bool inita = false;
 	void drawWindows() {
+		if (!inita) {
+			inita = true;
+			init();
+		}
 		drawViewport();
 		DebugWindow::draw();
 
@@ -277,28 +486,19 @@ namespace emerald {
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::Begin("Hierarchy", nullptr, ImGuiWindowFlags_NoNav);
 		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
-		ImGui::Button("TestButton");
-		if (ImGui::CollapsingHeader("Header2", ImGuiTreeNodeFlags_SpanFullWidth)) {
-			ImGui::Text("TestText");
-			ImGui::Button("TestButton");
-		}
-		if (ImGui::CollapsingHeader("Header3", ImGuiTreeNodeFlags_SpanAvailWidth)) {
-			ImGui::Text("TestText");
-			ImGui::Button("TestButton");
-		}
-		if (ImGui::CollapsingHeader("Header4", ImGuiTreeNodeFlags_CollapsingHeader)) {
-			ImGui::Text("TestText");
-			ImGui::Button("TestButton");
-		}
-		static bool b;
-		ImGui::Checkbox("TestCheckbox", &b);
-		static float v;
-		ImGui::SliderFloat("TestSlider", &v, 0.0f, 1.0f);
+		ItemRowsBackground();
+		tree.render();
 		ImGui::End();
 	}
 
 	void EditorWindow::update(Timestep ts) {
-
+		//if (Keyboard::keyDown(Key::N)) {
+		//	offset++;
+		//}
+		//if (Keyboard::keyDown(Key::M)) {
+		//	offset--;
+		//}
+		//Log::info("Offset: {}", offset);
 	}
 
 	void EditorWindow::onImGuiRender() {

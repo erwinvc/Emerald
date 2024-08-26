@@ -13,13 +13,6 @@ namespace emerald {
 		ONEEIGHTH
 	};
 
-	enum class FBOAttachment {
-		COLOR,
-		DEPTH,
-		STENCIL,
-		DEPTHSTENCIL
-	};
-
 	struct FramebufferAttachmentDesc {
 		std::string name;
 		TextureFormat format;
@@ -47,7 +40,7 @@ namespace emerald {
 
 		bool checkStatus();
 
-		Ref<Texture> addBuffer(const std::string& name, TextureFormat format, FBOAttachment type);
+		Ref<Texture> addBuffer(const std::string& name, TextureFormat format);
 
 		float fboScaleToFloat(FBOScale scale) const;
 

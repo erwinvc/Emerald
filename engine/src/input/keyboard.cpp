@@ -14,6 +14,10 @@ namespace emerald {
 	static std::queue<KeyEvent> s_eventQueue;
 
 	void Keyboard::keyCallback(uint32_t key, uint32_t scancode, uint32_t action, uint32_t mods) {
+		if (key >= (uint32_t)Key::_COUNT) {
+			Log::error("[Keyboard] Unhandled key {}", key);
+			return;
+		}
 		s_eventQueue.push(KeyEvent{ key, action, mods });
 	}
 

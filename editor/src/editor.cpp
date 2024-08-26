@@ -34,7 +34,7 @@ namespace emerald {
 	void EmeraldEditorApplication::onInitialize() {
 		s_editorWindow = UniqueRef<EditorWindow>::create();
 		s_renderPipeline = UniqueRef<RenderPipeline>::create();
-		s_editorCamera = Ref<EditorCamera>::create(70.0f, 0.001f, 1000.0f);
+		s_editorCamera = Ref<EditorCamera>::create(70.0f, 0.05f, 500.0f);
 
 		updateTitlebar(0, 0, 0, true);
 	}

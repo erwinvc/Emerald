@@ -13,8 +13,6 @@ namespace emerald {
 
 		DEPTH32F,
 		DEPTH24STENCIL8,
-
-		Depth = DEPTH24STENCIL8
 	};
 
 	enum TextureFilter {
@@ -57,5 +55,7 @@ namespace emerald {
 		uint32_t getImageFormat() const;
 		uint32_t getInternalFormat() const;
 		uint32_t getDataType() const;
+		uint32_t textureFormatToAttachmentType(uint32_t colorAttachmentIndex = 0) const;
+		bool isColorAttachmentType()const;
 	};
 }

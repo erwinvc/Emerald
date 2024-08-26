@@ -29,6 +29,6 @@ namespace emerald {
 
 		static void submit(Command command);
 		static void submitFromAnyThread(Command command);
-		static void drawIndexed(uint32_t count, PrimitiveType type, bool depthTest);
+		static void drawIndexed(uint32_t count, PrimitiveType type);
 	};
 }

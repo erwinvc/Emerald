@@ -55,15 +55,9 @@ namespace emerald {
 		s_renderSyncManager.submitFromAnyThread(command);
 	}
 
-	void Renderer::drawIndexed(uint32_t count, PrimitiveType type, bool depthTest) {
-		Renderer::submit([count, type, depthTest] {
-			if (!depthTest)
-				GL(glDisable(GL_DEPTH_TEST));
-
+	void Renderer::drawIndexed(uint32_t count, PrimitiveType type) {
+		Renderer::submit([count, type] {
 			GL(glDrawElements((uint32_t)type, count, GL_UNSIGNED_INT, nullptr));
-
-			if (!depthTest)
-				GL(glEnable(GL_DEPTH_TEST));
 		});
 	}
 }

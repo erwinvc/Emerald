@@ -40,10 +40,9 @@ namespace emerald {
 			GLUtils::glClearColor(instance->m_desc.clearColor);
 
 			for (auto& attachmentDesc : instance->m_desc.attachments) {
-				if (!GLUtils::isDepthFormat(attachmentDesc.format))
-					instance->m_textures.emplace_back(instance->addBuffer(attachmentDesc.name, attachmentDesc.format, FBOAttachment::COLOR));
-				else
-					instance->m_depthTexture = instance->addBuffer(attachmentDesc.name, attachmentDesc.format, FBOAttachment::DEPTH);
+				Ref<Texture> texture = instance->addBuffer(attachmentDesc.name, attachmentDesc.format);
+				if (!GLUtils::isDepthFormat(attachmentDesc.format)) instance->m_textures.emplace_back(texture);
+				else instance->m_depthTexture = texture;
 			}
 
 			instance->resize(width, height, true);
@@ -80,6 +79,8 @@ namespace emerald {
 			texture->resize(m_desc.width, m_desc.height);
 		}
 
+		if(m_depthTexture != nullptr) m_depthTexture->resize(m_desc.width, m_desc.height);
+
 		checkStatus();
 	}
 
@@ -108,7 +109,7 @@ namespace emerald {
 		} else return true;
 	}
 
-	Ref<Texture> FrameBuffer::addBuffer(const std::string& name, TextureFormat format, FBOAttachment type) {
+	Ref<Texture> FrameBuffer::addBuffer(const std::string& name, TextureFormat format) {
 		TextureDesc desc;
 		desc.format = format;
 		desc.filter = LINEAR;
@@ -122,17 +123,11 @@ namespace emerald {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_handle);
 
-		if (type == FBOAttachment::COLOR) {
-			GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorAttachments, GL_TEXTURE_2D, texture->handle(), 0));
+		GL(glFramebufferTexture2D(GL_FRAMEBUFFER, desc.textureFormatToAttachmentType(m_colorAttachments), GL_TEXTURE_2D, texture->handle(), 0));
+		if(desc.isColorAttachmentType()) {
 			GL(glDrawBuffers(++m_colorAttachments, drawBuffers));
-		} else if (type == FBOAttachment::DEPTH) {
-			GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture->handle(), 0));
-		} else if (type == FBOAttachment::STENCIL) {
-			GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->handle(), 0));
-		} else if (type == FBOAttachment::DEPTHSTENCIL) {
-			GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->handle(), 0));
 		}
-
+		
 		checkStatus();
 
 		return texture;
