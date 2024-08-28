@@ -13754,15 +13754,14 @@ static void ImGui::NavUpdateWindowing()
     }
 
     // Keyboard: Press and Release ALT to toggle menu layer
-    const ImGuiKey windowing_toggle_keys[] = { ImGuiKey_LeftAlt, ImGuiKey_RightAlt };
-    for (ImGuiKey windowing_toggle_key : windowing_toggle_keys)
-        if (nav_keyboard_active && IsKeyPressed(windowing_toggle_key, 0, ImGuiKeyOwner_NoOwner))
-        {
-            g.NavWindowingToggleLayer = true;
-            g.NavWindowingToggleKey = windowing_toggle_key;
-            g.NavInputSource = ImGuiInputSource_Keyboard;
-            break;
-        }
+	const ImGuiKey windowing_toggle_keys[] = { ImGuiKey_LeftAlt, ImGuiKey_RightAlt };
+	for (ImGuiKey windowing_toggle_key : windowing_toggle_keys)
+		if (nav_keyboard_active && IsKeyPressed(windowing_toggle_key, 0, ImGuiKeyOwner_NoOwner)) {
+			g.NavWindowingToggleLayer = false; //Erwin:: set true to false to disable this functionality
+			g.NavWindowingToggleKey = windowing_toggle_key;
+			g.NavInputSource = ImGuiInputSource_Keyboard;
+			break;
+		}
     if (g.NavWindowingToggleLayer && g.NavInputSource == ImGuiInputSource_Keyboard)
     {
         // We cancel toggling nav layer when any text has been typed (generally while holding Alt). (See #370)

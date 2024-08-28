@@ -36,4 +36,5 @@ namespace ImGui {
 	void ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags flags);
 	void DrawGradientBackgroundForWindow(GradientDirection gradientDirection);
 	bool ColoredButton(const char* label, const ImVec2& size_arg, ImU32 text_color, ImU32 bg_color_1, ImU32 bg_color_2);
+	void ItemRowsBackground(float lineHeight = -1.0f, const ImColor& color = ImColor(20, 20, 20, 64));
 }

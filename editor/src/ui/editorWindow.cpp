@@ -15,6 +15,7 @@
 #include "graphics/renderer.h"
 #include "imguiProfiler/Profiler.h"
 #include "project.h"
+#include <bitset>
 
 #include <imgui_internal.h>
 #include "util/fileSystem.h"
@@ -93,7 +94,7 @@ namespace emerald {
 		const bool maximized = App->getWindow()->isMaximized();
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoScrollbar;
+			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoScrollbar;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, maximized ? ImVec2(6.0f, 6.0f) : ImVec2(1.0f, 1.0f));
 		ImGui::SetNextWindowPos(pos);
@@ -168,7 +169,7 @@ namespace emerald {
 	void drawEditor(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav |
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar;
 
 		const bool maximized = App->getWindow()->isMaximized();
@@ -252,6 +253,8 @@ namespace emerald {
 
 	class ReorderableTree {
 	private:
+		TreeNode* nodeToOpenNextTime = nullptr;
+		TreeNode* selectedNode = nullptr;
 		std::vector<TreeNode*> rootNodes;
 		TreeNode* draggedNode = nullptr;
 		TreeNode* dragTargetNode = nullptr;
@@ -260,23 +263,27 @@ namespace emerald {
 		bool isInsertingBefore = false;
 
 		void renderNode(TreeNode* node, int depth) {
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_NavLeftJumpsBackHere;
 
 			if (node->children.empty()) {
 				flags |= ImGuiTreeNodeFlags_Leaf;
 			}
 
-			if (draggedNode == node) {
+			//if (draggedNode == node) {
+			//	flags |= ImGuiTreeNodeFlags_Selected;
+			//}
+
+			if (selectedNode == node) {
 				flags |= ImGuiTreeNodeFlags_Selected;
 			}
 
-			// Render a small hitbox for inserting before this node
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.7f, 0.7f, 0.2f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.8f, 0.8f, 0.3f));
+			flags |= ImGuiTreeNodeFlags_FramePadding;
 
-			ImGui::InvisibleButton(("##insert_before_" + node->name).c_str(), ImVec2(-1, 5));
-
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2);
+			ImGui::PushItemFlag(ImGuiItemFlags_NoNav, true);
+			ImGui::InvisibleButton(("##insert_before_" + node->name).c_str(), ImVec2(-1, 4), ImGuiButtonFlags_AllowOverlap);
+			ImGui::PopItemFlag();
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2);
 			if (ImGui::BeginDragDropTarget()) {
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("TREE_NODE")) {
 					TreeNode* droppedNode = *(TreeNode**)payload->Data;
@@ -287,9 +294,15 @@ namespace emerald {
 				ImGui::EndDragDropTarget();
 			}
 
-			ImGui::PopStyleColor(3);
-
+			if (nodeToOpenNextTime == node) {
+				ImGui::SetNextItemOpen(true);
+				nodeToOpenNextTime = nullptr;
+			}
 			bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)node, flags, node->name.c_str());
+
+			if (ImGui::IsItemFocused()) {
+				selectedNode = node;
+			}
 
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
 				draggedNode = node;
@@ -298,7 +311,7 @@ namespace emerald {
 
 			if (ImGui::BeginDragDropSource()) {
 				ImGui::SetDragDropPayload("TREE_NODE", &node, sizeof(TreeNode*));
-				ImGui::Text("Dragging %s", node->name.c_str());
+				//ImGui::Text("Dragging %s", node->name.c_str());
 				ImGui::EndDragDropSource();
 			}
 
@@ -308,6 +321,8 @@ namespace emerald {
 					dragTargetNode = node;
 					dragTargetParent = node;
 					isInsertingBefore = false;
+
+					nodeToOpenNextTime = node;
 				}
 				ImGui::EndDragDropTarget();
 			}
@@ -347,8 +362,22 @@ namespace emerald {
 			node->parent = newParent;
 		}
 
+		bool isAncestor(TreeNode* possibleParent, TreeNode* node) {
+			while (node != nullptr) {
+				if (node == possibleParent)
+					return true;
+				node = node->parent;
+			}
+			return false;
+		}
+
 	public:
 		void render() {
+
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+			ImGui::ItemRowsBackground(18);
+
 			for (auto& node : rootNodes) {
 				renderNode(node, 0);
 			}
@@ -367,14 +396,17 @@ namespace emerald {
 			// Process drag and drop
 			if (isDragging && !ImGui::IsMouseDown(0)) {
 				isDragging = false;
-				if (draggedNode && dragTargetNode != draggedNode) {
-					removeNodeFromParent(draggedNode);
-					addNodeToParent(draggedNode, dragTargetParent, isInsertingBefore, dragTargetNode);
+				if (draggedNode && dragTargetNode && dragTargetNode != draggedNode) {
+					if (!isAncestor(draggedNode, dragTargetNode)) {
+						removeNodeFromParent(draggedNode);
+						addNodeToParent(draggedNode, dragTargetParent, isInsertingBefore, dragTargetNode);
+					}
 				}
 				draggedNode = nullptr;
 				dragTargetNode = nullptr;
 				dragTargetParent = nullptr;
 			}
+			ImGui::PopStyleVar(2);
 		}
 
 		// Add a method to initialize the tree with some nodes
@@ -389,6 +421,11 @@ namespace emerald {
 			child1->parent = root1;
 			child2->parent = root1;
 
+			for (int i = 0; i < 100; i++) {
+				TreeNode* child = new TreeNode(std::format("Child {}", i));
+				rootNodes.push_back(child);
+			}
+
 			child1->children.push_back(grandchild1);
 			grandchild1->parent = child1;
 
@@ -402,45 +439,6 @@ namespace emerald {
 	static ReorderableTree tree;
 	void init() {
 		tree.initializeTree();
-	}
-
-	void ItemRowsBackground(float lineHeight = -1.0f, const ImColor& color = ImColor(20, 20, 20, 64)) {
-		auto* drawList = ImGui::GetWindowDrawList();
-		const auto& style = ImGui::GetStyle();
-
-		if (lineHeight < 0) {
-			lineHeight = ImGui::GetTextLineHeight();
-		}
-		lineHeight += style.ItemSpacing.y;
-
-		float scrollOffsetH = ImGui::GetScrollX();
-		float scrollOffsetV = ImGui::GetScrollY();
-		float scrolledOutLines = floorf(scrollOffsetV / lineHeight);
-		scrollOffsetV -= lineHeight * scrolledOutLines;
-
-		ImVec2 clipRectMin(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
-		ImVec2 clipRectMax(clipRectMin.x + ImGui::GetWindowWidth(), clipRectMin.y + ImGui::GetWindowHeight());
-
-		if (ImGui::GetScrollMaxX() > 0) {
-			clipRectMax.y -= style.ScrollbarSize;
-		}
-
-		drawList->PushClipRect(clipRectMin, clipRectMax);
-
-		bool isOdd = (static_cast<int>(scrolledOutLines) % 2) == 0;
-
-		float yMin = clipRectMin.y - scrollOffsetV + ImGui::GetCursorPosY();
-		float yMax = clipRectMax.y - scrollOffsetV + lineHeight;
-		float xMin = clipRectMin.x + scrollOffsetH + ImGui::GetWindowContentRegionMin().x;
-		float xMax = clipRectMin.x + scrollOffsetH + ImGui::GetWindowContentRegionMax().x;
-
-		for (float y = yMin; y < yMax; y += lineHeight, isOdd = !isOdd) {
-			if (isOdd) {
-				drawList->AddRectFilled({ xMin, y - style.ItemSpacing.y }, { xMax, y + lineHeight }, color);
-			}
-		}
-
-		drawList->PopClipRect();
 	}
 
 	bool inita = false;
@@ -484,11 +482,12 @@ namespace emerald {
 		}
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		ImGui::Begin("Hierarchy", nullptr, ImGuiWindowFlags_NoNav);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		ImGui::Begin("Hierarchy", nullptr);
 		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
-		ItemRowsBackground();
 		tree.render();
 		ImGui::End();
+		ImGui::PopStyleVar();
 	}
 
 	void EditorWindow::update(Timestep ts) {
