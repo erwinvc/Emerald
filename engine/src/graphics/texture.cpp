@@ -131,8 +131,7 @@ namespace emerald {
 	}
 
 	void Texture::bind(uint32_t slot /*= 0*/) const {
-		Ref<const Texture> instance = this;
-		Renderer::submit([instance, slot] {
+		Renderer::submit([instance = Ref<const Texture>(this), slot] {
 			GL(glBindTextureUnit(slot, instance->m_handle)); // Use DSA function to bind texture
 		});
 	}

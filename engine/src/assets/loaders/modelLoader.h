@@ -22,7 +22,7 @@ namespace emerald {
 		std::vector<Ref<Mesh>> load();
 
 	private:
-		std::string m_file;
+		std::filesystem::path m_file;
 		std::string m_dir;
 		bool m_loadMaterials = false;
 		int m_width = 0;

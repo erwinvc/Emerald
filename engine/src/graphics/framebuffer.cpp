@@ -26,7 +26,7 @@ namespace emerald {
 	};
 
 	FrameBuffer::FrameBuffer(FramebufferDesc desc) : m_desc(desc) {
-		Renderer::submit([instance = this] {
+		Renderer::submit([instance = Ref<FrameBuffer>(this)]() mutable {
 			uint32_t width = instance->m_desc.width;
 			uint32_t height = instance->m_desc.height;
 			if (width == 0) {
@@ -168,7 +168,7 @@ namespace emerald {
 	}
 	*/
 	void FrameBuffer::bind() const {
-		Renderer::submit([instance = this] {
+		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
 			GL(glBindFramebuffer(GL_FRAMEBUFFER, instance->m_handle));
 			GL(glViewport(0, 0, instance->m_desc.width, instance->m_desc.height));
 		});
@@ -179,7 +179,7 @@ namespace emerald {
 		});
 	}
 	void FrameBuffer::clear() const {
-		Renderer::submit([instance = this] {
+		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
 			GLUtils::glClearColor(instance->m_desc.clearColor);
 			GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 		});
@@ -192,20 +192,20 @@ namespace emerald {
 	}
 
 	void FrameBuffer::clearColorOnly() const {
-		Renderer::submit([instance = this] {
+		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
 			GLUtils::glClearColor(instance->m_desc.clearColor);
 			GL(glClear(GL_COLOR_BUFFER_BIT));
 		});
 	}
 
 	void FrameBuffer::clearStencilOnly() const {
-		Renderer::submit([instance = this] {
+		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
 			GL(glClear(GL_STENCIL_BUFFER_BIT));
 		});
 	}
 
 	void FrameBuffer::setDrawAndReadBuffersToNone() const {
-		Renderer::submit([instance = this] {
+		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
 			GL(glDrawBuffer(GL_NONE));
 			GL(glReadBuffer(GL_NONE));
 		});

@@ -8,7 +8,7 @@ namespace emerald {
 	VertexBuffer::VertexBuffer(const byte* data, uint32_t size, BufferUsage usage) : m_handle(0), m_usage(usage) {
 		m_data = Buffer<byte>::copy((byte*)data, size);
 
-		Renderer::submit([instance = this] {
+		Renderer::submit([instance = Ref<VertexBuffer>(this)]() mutable {
 			GL(glCreateBuffers(1, &instance->m_handle));
 			GL(glNamedBufferData(instance->m_handle, instance->m_data.size(), instance->m_data.data(), instance->m_usage));
 		});
@@ -23,7 +23,7 @@ namespace emerald {
 	void VertexBuffer::setData(const byte* data, uint32_t size, uint32_t offset) {
 		m_data = Buffer<byte>::copy((byte*)data, size);
 
-		Renderer::submit([instance = this, offset]() mutable {
+		Renderer::submit([instance = Ref<VertexBuffer>(this), offset]() mutable {
 			GL(glNamedBufferSubData(instance->m_handle, offset, instance->m_data.size(), instance->m_data.data()));
 		});
 	}

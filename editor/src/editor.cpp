@@ -8,14 +8,13 @@
 #include "imguiProfiler/Profiler.h"
 #include "project.h"
 #include "input/keyboard.h"
-#include "editorScene.h"
 #include "graphics/framebuffer.h"
+#include "scene/sceneManager.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
 	static UniqueRef<RenderPipeline> s_renderPipeline;
 	static Ref<EditorCamera> s_editorCamera;
-	static Ref<Scene> s_activeScene;
 
 	static float s_lastTitleUpdateTime = 0.0f;
 
@@ -32,6 +31,8 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::onInitialize() {
+		SceneManager::setActiveScene(Ref<Scene>::create("Fles"));
+		SceneManager::getActiveScene()->initialize();
 		s_editorWindow = UniqueRef<EditorWindow>::create();
 		s_renderPipeline = UniqueRef<RenderPipeline>::create();
 		s_editorCamera = Ref<EditorCamera>::create(70.0f, 0.05f, 500.0f);
@@ -50,7 +51,7 @@ namespace emerald {
 		s_editorWindow->update(ts);
 		PROFILE_LOGIC_END();
 
-		glm::vec2 viewportSize = s_editorWindow->getSceneViewportSize();
+		glm::ivec2 viewportSize = s_editorWindow->getSceneViewportSize();
 		s_editorCamera->setViewportSize(viewportSize.x, viewportSize.y);
 		s_editorCamera->update(ts);
 
@@ -58,14 +59,13 @@ namespace emerald {
 			FrameBufferManager::onResize(viewportSize.x, viewportSize.y);
 		});
 
+		if (SceneManager::getActiveScene()) {
+			SceneManager::getActiveScene()->update(ts);
+		}
+
 		PROFILE_LOGIC_BEGIN("Pipeline render");
 		s_renderPipeline->render();
 		PROFILE_LOGIC_END();
-
-
-		if (s_activeScene) {
-			s_activeScene->update(ts);
-		}
 
 		Renderer::submit([ts, viewportSize] {
 			PROFILE_RENDER_BEGIN("ImGui start");
@@ -87,10 +87,6 @@ namespace emerald {
 
 	Ref<Texture> EmeraldEditorApplication::getFinalTexture() {
 		return s_renderPipeline->getFinalTexture();
-	}
-
-	Ref<Scene> EmeraldEditorApplication::getActiveScene() {
-		return s_activeScene;
 	}
 
 	Ref<EditorCamera> EmeraldEditorApplication::getEditorCamera() {

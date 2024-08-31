@@ -105,6 +105,8 @@ namespace emerald {
 			case emerald::DEPTH32F:			return GL_DEPTH_ATTACHMENT;
 			case emerald::DEPTH24STENCIL8:	return GL_DEPTH_STENCIL_ATTACHMENT;
 		}
+		ASSERT(false, "Unhandled texture format");
+		return 0;
 	}
 
 	bool TextureDesc::isColorAttachmentType() const {
@@ -119,5 +121,7 @@ namespace emerald {
 			case emerald::DEPTH32F:			
 			case emerald::DEPTH24STENCIL8:	return false;
 		}
+		ASSERT(false, "Unhandled texture format");
+		return 0;
 	}
 }

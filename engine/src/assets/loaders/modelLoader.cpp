@@ -15,9 +15,13 @@ namespace emerald {
 		aiProcess_Triangulate |
 		aiProcess_SortByPType |
 		aiProcess_GenNormals |
-		aiProcess_OptimizeMeshes |
-		aiProcess_Debone |
+		aiProcess_OptimizeGraph |
+		//aiProcess_OptimizeMeshes |
+		//aiProcess_Debone |
 		aiProcess_JoinIdenticalVertices |
+		aiProcess_ImproveCacheLocality |
+		aiProcess_RemoveRedundantMaterials |
+		aiProcess_FindInvalidData |
 		aiProcess_ValidateDataStructure;
 
 	static const VertexBufferLayout s_layout = {
@@ -29,12 +33,13 @@ namespace emerald {
 	};
 
 
-	Ref<Mesh> processMesh(aiMesh* mesh, const aiScene* scene) {
+	Ref<Mesh> processMesh(const std::string& meshName, aiMesh* mesh, const aiScene* scene, uint32_t& index) {
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
 
 		vertices.reserve(mesh->mNumVertices);
-		indices.reserve(mesh->mNumFaces * 3);
+		size_t capacity = (size_t)(mesh->mNumFaces) * 3;
+		indices.reserve(capacity);
 
 		for (uint32_t i = 0; i < mesh->mNumVertices; i++) {
 			Vertex vertex;
@@ -64,42 +69,43 @@ namespace emerald {
 		Ref<VertexArray> vao = Ref<VertexArray>::create(s_layout);
 		vao->addBuffer(vbo);
 		vao->validate();
-
-		return Ref<Mesh>::create(vao, ibo);
+		return Ref<Mesh>::create(std::format("{}_{}", meshName, index), vao, ibo);
 	}
 
-	std::vector<Ref<Mesh>> processNode(aiNode* node, const aiScene* scene) {
+	std::vector<Ref<Mesh>> processNode(const std::string& meshName, aiNode* node, const aiScene* scene, uint32_t& index) {
 		std::vector<Ref<Mesh>> meshes;
 		for (GLuint i = 0; i < node->mNumMeshes; i++) {
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			meshes.push_back(processMesh(mesh, scene));
+			meshes.push_back(processMesh(meshName, mesh, scene, index));
+			index++;
 		}
 
 		for (GLuint i = 0; i < node->mNumChildren; i++) {
-			auto childMeshes = processNode(node->mChildren[i], scene);
+			auto childMeshes = processNode(meshName, node->mChildren[i], scene, index);
 			meshes.insert(meshes.end(), childMeshes.begin(), childMeshes.end());
 		}
 		return meshes;
 	}
 
 	std::vector<Ref<Mesh>> ModelLoader::load() {
-		if (!std::filesystem::exists(m_file)) {
-			Log::error("[Model] File at {} does not exist!", m_file.c_str());
+		if (!std::filesystem::exists(m_file.string())) {
+			Log::error("[Model] File at {} does not exist!", m_file.string().c_str());
 			return {};
 		}
 
 		Timer timer;
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(m_file, ImportFlags);
+		const aiScene* scene = importer.ReadFile(m_file.string(), ImportFlags);
 
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-			Log::error("[Model] Failed to load model from {}", m_file.c_str());
+			Log::error("[Model] Failed to load model from {}", m_file.string().c_str());
 			return {};
 		}
 
-		std::vector<Ref<Mesh>> meshes = processNode(scene->mRootNode, scene);
+		uint32_t index = 0;
+		std::vector<Ref<Mesh>> meshes = processNode(m_file.stem().string(), scene->mRootNode, scene, index);
 
-		Log::info("[Model] Loaded {} in {:.2f} ms", m_file.c_str(), timer.get());
+		Log::info("[Model] Loaded {} in {:.2f} ms", m_file.string().c_str(), timer.get());
 		return meshes;
 	}
 }

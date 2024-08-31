@@ -14,7 +14,7 @@ namespace emerald {
 		void onImGuiRender();
 		void destroy();
 
-		glm::vec2 getSceneViewportSize() const;
+		glm::ivec2 getSceneViewportSize() const;
 
 	private:
 		Ref<Texture> m_icon;

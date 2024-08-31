@@ -31,7 +31,7 @@ namespace emerald {
 	}
 
 	void Metrics::endTimer(Metric timer) {
-		s_timers[(uint32_t)timer].m_frame = App->getFrameCount();
+		s_timers[(uint32_t)timer].m_frame = (uint32_t)App->getFrameCount();
 		if (timer == Metric::GPU) {
 			ASSERT(ThreadManager::isThread(ThreadType::RENDER), "endTimer(Metric::GPU) must be called on the render thread");
 

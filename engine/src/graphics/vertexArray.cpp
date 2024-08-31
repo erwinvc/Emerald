@@ -6,8 +6,7 @@
 
 namespace emerald {
 	VertexArray::VertexArray(VertexBufferLayout layout) : m_layout(layout), m_handle(0), m_validated(false) {
-		Ref<VertexArray> instance = this;
-		Renderer::submit([instance]() mutable {
+		Renderer::submit([instance = Ref<VertexArray>(this)]() mutable {
 			GL(glGenVertexArrays(1, &instance->m_handle));
 
 			const std::string name = "VertexArrayObject";
@@ -34,8 +33,7 @@ namespace emerald {
 	}
 
 	void VertexArray::validate() {
-		Ref<VertexArray> instance = this;
-		Renderer::submit([instance]() mutable {
+		Renderer::submit([instance = Ref<VertexArray>(this)]() mutable {
 			GL(glBindVertexArray(instance->m_handle));
 
 			uint32_t index = 0;
@@ -64,11 +62,9 @@ namespace emerald {
 	}
 
 	void VertexArray::bind() const {
-		Ref<const VertexArray> instance = this;
-		auto handle = m_handle;
-		Renderer::submit([instance, handle] {
+		Renderer::submit([instance = Ref<const VertexArray>(this)] {
 			ASSERT(instance->m_validated, "VertexArray not validated");
-			GL(glBindVertexArray(handle));
+			GL(glBindVertexArray(instance->handle()));
 		});
 	}
 }

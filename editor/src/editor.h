@@ -1,5 +1,7 @@
 #pragma once
-#include "editorScene.h"
+#include "scene/scene.h"
+#include "editorCamera.h"
+#include "application.h"
 
 namespace emerald {
 	class RenderPipeline;
@@ -26,7 +28,6 @@ namespace emerald {
 		void fixedUpdate(Timestep ts) override;
 
 		Ref<Texture> getFinalTexture();
-		Ref<Scene> getActiveScene();
 		Ref<EditorCamera> getEditorCamera();
 	};
 

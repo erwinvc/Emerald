@@ -22,14 +22,14 @@ namespace emerald {
 
 		void bind() const;
 
-		template<typename T>
-		T* map() {
-			T* toRet = (T*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY | GL_MAP_UNSYNCHRONIZED_BIT);
-			return toRet;
-		}
-
-		void unmap() {
-			glUnmapBuffer(GL_ARRAY_BUFFER);
-		}
+		//template<typename T>
+		//T* map() {
+		//	T* toRet = (T*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY | GL_MAP_UNSYNCHRONIZED_BIT);
+		//	return toRet;
+		//}
+		//
+		//void unmap() {
+		//	glUnmapBuffer(GL_ARRAY_BUFFER);
+		//}
 	};
 }

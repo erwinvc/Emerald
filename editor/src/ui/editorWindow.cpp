@@ -22,12 +22,15 @@
 #include "metrics/metrics.h"
 #include "debugWindow.h"
 #include "input/keyboard.h"
+#include "hierarchyTree.h"
+#include "scene/sceneManager.h"
 
 namespace emerald {
 	static bool s_mouseInViewport = false;
 	static bool s_viewportFocused = false;
 	static bool s_TitleBarHovered = false;
 	static glm::vec2 s_sceneViewportSize = glm::vec2(1.0f, 1.0f);
+	static HierarchyTree s_hierarchyTree;
 
 	EditorWindow::EditorWindow() {
 		glfwSetTitlebarHitTestCallback(App->getWindow()->handle(), [](GLFWwindow* window, int x, int y, int* hit) {
@@ -42,7 +45,7 @@ namespace emerald {
 		desc.filter = NEAREST;
 
 		m_icon = Ref<Texture>::create(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
-		Renderer::submit([instance = m_icon]() mutable { instance->invalidate(); });
+		Renderer::submit([instance = Ref<Texture>(m_icon)]() mutable { instance->invalidate(); });
 	}
 
 	EditorWindow::~EditorWindow() {
@@ -228,7 +231,7 @@ namespace emerald {
 		ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), avail, { 0, 1 }, { 1, 0 });
 
 
-		s_sceneViewportSize = glm::vec2(avail.x, avail.y);
+		s_sceneViewportSize = glm::ivec2((uint32_t)avail.x, (uint32_t)avail.y);
 		s_mouseInViewport = ImGui::IsWindowHovered();
 		s_viewportFocused = ImGui::IsWindowFocused();
 		if (s_mouseInViewport) {
@@ -238,215 +241,14 @@ namespace emerald {
 			ImGui::SetNextFrameWantCaptureKeyboard(false);
 		}
 
-
 		ImGui::End();
 		ImGui::PopStyleVar();
 	}
 
-	struct TreeNode {
-		std::string name;
-		std::vector<TreeNode*> children;
-		TreeNode* parent;
-
-		TreeNode(const std::string& n) : name(n), parent(nullptr) {}
-	};
-
-	class ReorderableTree {
-	private:
-		TreeNode* nodeToOpenNextTime = nullptr;
-		TreeNode* selectedNode = nullptr;
-		std::vector<TreeNode*> rootNodes;
-		TreeNode* draggedNode = nullptr;
-		TreeNode* dragTargetNode = nullptr;
-		TreeNode* dragTargetParent = nullptr;
-		bool isDragging = false;
-		bool isInsertingBefore = false;
-
-		void renderNode(TreeNode* node, int depth) {
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_NavLeftJumpsBackHere;
-
-			if (node->children.empty()) {
-				flags |= ImGuiTreeNodeFlags_Leaf;
-			}
-
-			//if (draggedNode == node) {
-			//	flags |= ImGuiTreeNodeFlags_Selected;
-			//}
-
-			if (selectedNode == node) {
-				flags |= ImGuiTreeNodeFlags_Selected;
-			}
-
-			flags |= ImGuiTreeNodeFlags_FramePadding;
-
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2);
-			ImGui::PushItemFlag(ImGuiItemFlags_NoNav, true);
-			ImGui::InvisibleButton(("##insert_before_" + node->name).c_str(), ImVec2(-1, 4), ImGuiButtonFlags_AllowOverlap);
-			ImGui::PopItemFlag();
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2);
-			if (ImGui::BeginDragDropTarget()) {
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("TREE_NODE")) {
-					TreeNode* droppedNode = *(TreeNode**)payload->Data;
-					dragTargetNode = node;
-					dragTargetParent = node->parent;
-					isInsertingBefore = true;
-				}
-				ImGui::EndDragDropTarget();
-			}
-
-			if (nodeToOpenNextTime == node) {
-				ImGui::SetNextItemOpen(true);
-				nodeToOpenNextTime = nullptr;
-			}
-			bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)node, flags, node->name.c_str());
-
-			if (ImGui::IsItemFocused()) {
-				selectedNode = node;
-			}
-
-			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
-				draggedNode = node;
-				isDragging = true;
-			}
-
-			if (ImGui::BeginDragDropSource()) {
-				ImGui::SetDragDropPayload("TREE_NODE", &node, sizeof(TreeNode*));
-				//ImGui::Text("Dragging %s", node->name.c_str());
-				ImGui::EndDragDropSource();
-			}
-
-			if (ImGui::BeginDragDropTarget()) {
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("TREE_NODE")) {
-					TreeNode* droppedNode = *(TreeNode**)payload->Data;
-					dragTargetNode = node;
-					dragTargetParent = node;
-					isInsertingBefore = false;
-
-					nodeToOpenNextTime = node;
-				}
-				ImGui::EndDragDropTarget();
-			}
-
-			if (isOpen) {
-				for (auto& child : node->children) {
-					renderNode(child, depth + 1);
-				}
-				ImGui::TreePop();
-			}
-		}
-
-		void removeNodeFromParent(TreeNode* node) {
-			if (node->parent) {
-				auto& siblings = node->parent->children;
-				siblings.erase(std::remove(siblings.begin(), siblings.end(), node), siblings.end());
-				node->parent = nullptr;
-			} else {
-				rootNodes.erase(std::remove(rootNodes.begin(), rootNodes.end(), node), rootNodes.end());
-			}
-		}
-
-		void addNodeToParent(TreeNode* node, TreeNode* newParent, bool insertBefore = false, TreeNode* beforeNode = nullptr) {
-			std::vector<TreeNode*>& targetList = newParent ? newParent->children : rootNodes;
-
-			if (insertBefore && beforeNode) {
-				auto it = std::find(targetList.begin(), targetList.end(), beforeNode);
-				if (it != targetList.end()) {
-					targetList.insert(it, node);
-				} else {
-					targetList.push_back(node);
-				}
-			} else {
-				targetList.push_back(node);
-			}
-
-			node->parent = newParent;
-		}
-
-		bool isAncestor(TreeNode* possibleParent, TreeNode* node) {
-			while (node != nullptr) {
-				if (node == possibleParent)
-					return true;
-				node = node->parent;
-			}
-			return false;
-		}
-
-	public:
-		void render() {
-
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-			ImGui::ItemRowsBackground(18);
-
-			for (auto& node : rootNodes) {
-				renderNode(node, 0);
-			}
-
-			// Handle dragging outside of any node (unparenting)
-			if (ImGui::BeginDragDropTarget()) {
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("TREE_NODE")) {
-					TreeNode* droppedNode = *(TreeNode**)payload->Data;
-					dragTargetNode = nullptr;
-					dragTargetParent = nullptr;
-					isInsertingBefore = false;
-				}
-				ImGui::EndDragDropTarget();
-			}
-
-			// Process drag and drop
-			if (isDragging && !ImGui::IsMouseDown(0)) {
-				isDragging = false;
-				if (draggedNode && dragTargetNode && dragTargetNode != draggedNode) {
-					if (!isAncestor(draggedNode, dragTargetNode)) {
-						removeNodeFromParent(draggedNode);
-						addNodeToParent(draggedNode, dragTargetParent, isInsertingBefore, dragTargetNode);
-					}
-				}
-				draggedNode = nullptr;
-				dragTargetNode = nullptr;
-				dragTargetParent = nullptr;
-			}
-			ImGui::PopStyleVar(2);
-		}
-
-		// Add a method to initialize the tree with some nodes
-		void initializeTree() {
-			TreeNode* root1 = new TreeNode("Root 1");
-			TreeNode* child1 = new TreeNode("Child 1");
-			TreeNode* child2 = new TreeNode("Child 2");
-			TreeNode* grandchild1 = new TreeNode("Grandchild 1");
-
-			root1->children.push_back(child1);
-			root1->children.push_back(child2);
-			child1->parent = root1;
-			child2->parent = root1;
-
-			for (int i = 0; i < 100; i++) {
-				TreeNode* child = new TreeNode(std::format("Child {}", i));
-				rootNodes.push_back(child);
-			}
-
-			child1->children.push_back(grandchild1);
-			grandchild1->parent = child1;
-
-			rootNodes.push_back(root1);
-
-			TreeNode* root2 = new TreeNode("Root 2");
-			rootNodes.push_back(root2);
-		}
-	};
-
-	static ReorderableTree tree;
-	void init() {
-		tree.initializeTree();
-	}
-
-	bool inita = false;
 	void drawWindows() {
-		if (!inita) {
-			inita = true;
-			init();
-		}
+		Ref<Scene> activeScene = SceneManager::getActiveScene();
+		bool sceneOpen = activeScene != nullptr;
+		ImGui::BeginDisabled(!sceneOpen);
 		drawViewport();
 		DebugWindow::draw();
 
@@ -485,9 +287,10 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("Hierarchy", nullptr);
 		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
-		tree.render();
+		if(sceneOpen) s_hierarchyTree.render(activeScene);
 		ImGui::End();
 		ImGui::PopStyleVar();
+		ImGui::EndDisabled();
 	}
 
 	void EditorWindow::update(Timestep ts) {
@@ -527,7 +330,7 @@ namespace emerald {
 
 	}
 
-	glm::vec2 EditorWindow::getSceneViewportSize() const {
+	glm::ivec2 EditorWindow::getSceneViewportSize() const {
 		return s_sceneViewportSize;
 	}
 

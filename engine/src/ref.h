@@ -5,6 +5,9 @@ namespace emerald {
 	template<typename T>
 	class Ref;
 
+	template<typename T>
+	class WeakRef;
+
 	class RefCounted {
 	public:
 		std::atomic<uint32_t> m_refCount = 0;
@@ -77,8 +80,8 @@ namespace emerald {
 		T& operator*() { return *m_reference; }
 		const T& operator*() const { return *m_reference; }
 
-		T* raw() { return  m_reference; }
-		const T* raw() const { return  m_reference; }
+		T* raw() { return m_reference; }
+		const T* raw() const { return m_reference; }
 
 		template<typename T2>
 		Ref<T2> as() const {
@@ -119,6 +122,8 @@ namespace emerald {
 	private:
 		template<class T2>
 		friend class Ref;
+		template<class T2>
+		friend class WeakRef;
 
 		T* m_reference;
 
@@ -210,6 +215,73 @@ namespace emerald {
 		template<typename... Args>
 		static UniqueRef<T> create(Args&&... args) {
 			return UniqueRef<T>(new T(std::forward<Args>(args)...));
+		}
+
+	private:
+		T* m_reference;
+	};
+
+	template<typename T>
+	class WeakRef {
+	public:
+		WeakRef() : m_reference(nullptr) {}
+
+		WeakRef(std::nullptr_t) : m_reference(nullptr) {}
+
+		WeakRef(const Ref<T>& ref) : m_reference(ref.m_reference) {}
+
+		WeakRef(const WeakRef& other) : m_reference(other.m_reference) {}
+
+		WeakRef(WeakRef&& other) noexcept : m_reference(other.m_reference) {
+			other.m_reference = nullptr;
+		}
+
+		WeakRef& operator=(std::nullptr_t) {
+			m_reference = nullptr;
+			return *this;
+		}
+
+		WeakRef& operator=(const Ref<T>& ref) {
+			m_reference = ref.m_reference;
+			return *this;
+		}
+
+		WeakRef& operator=(const WeakRef& other) {
+			if (this != &other) {
+				m_reference = other.m_reference;
+			}
+			return *this;
+		}
+
+		WeakRef& operator=(WeakRef&& other) noexcept {
+			if (this != &other) {
+				m_reference = other.m_reference;
+				other.m_reference = nullptr;
+			}
+			return *this;
+		}
+
+		~WeakRef() = default;
+
+		operator bool() const { return m_reference != nullptr && m_reference->m_refCount > 0; }
+
+		bool expired() const {
+			return m_reference == nullptr || m_reference->m_refCount == 0;
+		}
+
+		Ref<T> lock() const {
+			return expired() ? Ref<T>(nullptr) : Ref<T>(m_reference);
+		}
+
+		T* raw() { return  m_reference; }
+		const T* raw() const { return  m_reference; }
+
+		bool operator==(const WeakRef<T>& other) const {
+			return m_reference == other.m_reference;
+		}
+
+		bool operator!=(const WeakRef<T>& other) const {
+			return !(*this == other);
 		}
 
 	private:
