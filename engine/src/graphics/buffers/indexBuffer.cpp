@@ -9,13 +9,11 @@ namespace emerald {
 
 		Renderer::submit([instance = Ref<IndexBuffer>(this)]() mutable {
 			GL(glCreateBuffers(1, &instance->m_handle));
-			Log::info("{} {} {}", instance->m_data.size(), (uint64_t)instance->m_data.data(), (uint64_t)instance);
 			GL(glNamedBufferData(instance->m_handle, instance->m_data.size(), instance->m_data.data(), GL_STATIC_DRAW));
 		});
 	}
 
 	IndexBuffer::~IndexBuffer() {
-		Log::info("IndexBuffer::~IndexBuffer()");
 		Renderer::submitFromAnyThread([handle = m_handle]() mutable {
 			GL(glDeleteBuffers(1, &handle));
 		});

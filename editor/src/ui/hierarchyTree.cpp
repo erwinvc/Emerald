@@ -4,6 +4,7 @@
 #include "hierarchyTree.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "scene/sceneManager.h"
 #include "ui/imguiManager.h"
 
 namespace emerald {
@@ -74,28 +75,36 @@ namespace emerald {
 		}
 	}
 
-	void HierarchyTree::removeNodeFromParent(SceneGraphComponent* node) {
-		if (node->m_parent) {
-			node->m_parent->removeChild(node);
-			node->m_parent = 0;
-		}
-	}
+	void HierarchyTree::addNodeToParent(SceneGraphComponent* node, SceneGraphComponent* parent, bool insertBefore, SceneGraphComponent* beforeNode) {
+		draggedNode->setParent(nullptr);
 
-	void HierarchyTree::addNodeToParent(SceneGraphComponent* node, SceneGraphComponent* newParent, bool insertBefore, SceneGraphComponent* beforeNode) {
-		if (newParent) {
+		if (parent) {
 			if (insertBefore && beforeNode) {
-				auto it = std::find(newParent->m_children.begin(), newParent->m_children.end(), beforeNode);
-				if (it != newParent->m_children.end()) {
-					newParent->m_children.insert(it, node);
+				auto it = std::find(parent->m_children.begin(), parent->m_children.end(), beforeNode);
+				if (it != parent->m_children.end()) {
+					parent->m_children.insert(it, node);
 				} else {
-					newParent->m_children.push_back(node);
+					parent->m_children.push_back(node);
 				}
 			} else {
-				newParent->m_children.push_back(node);
+				parent->m_children.push_back(node);
 			}
+			node->m_parent = parent;
+		} else { //Strange edge-case for when we're working with root nodes
+			auto& rootNodes = SceneManager::getActiveScene()->getECS().getSceneGraph();
+			utils::eraseFromVector(rootNodes, node);
+			if (insertBefore && beforeNode) {
+				auto it = std::find(rootNodes.begin(), rootNodes.end(), beforeNode);
+				if (it != rootNodes.end()) {
+					rootNodes.insert(it, node);
+				} else {
+					rootNodes.push_back(node);
+				}
+			} else {
+				rootNodes.push_back(node);
+			}
+			node->m_parent = nullptr;
 		}
-
-		node->m_parent = newParent;
 	}
 
 	bool HierarchyTree::isAncestor(SceneGraphComponent* possibleParent, SceneGraphComponent* node) {
@@ -113,9 +122,9 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 		ImGui::ItemRowsBackground(18);
 
-		for (auto& node : scene->getECS().getComponentArray<SceneGraphComponent>()->getVector()) {
+		for (auto& node : SceneManager::getActiveScene()->getECS().getSceneGraph()) {
 			if (node->m_parent == nullptr) {
-				renderNode(scene.raw(), node.raw(), 0);
+				renderNode(scene.raw(), node, 0);
 			}
 		}
 
@@ -135,7 +144,6 @@ namespace emerald {
 			isDragging = false;
 			if (draggedNode && dragTargetNode && dragTargetNode != draggedNode) {
 				if (!isAncestor(draggedNode, dragTargetNode)) {
-					removeNodeFromParent(draggedNode);
 					addNodeToParent(draggedNode, dragTargetParent, isInsertingBefore, dragTargetNode);
 				}
 			}

@@ -3,25 +3,29 @@
 #include "componentArray.h"
 #include "util/utils.h"
 
+//RTTI based Entity Component System
 namespace emerald {
 	class EntityComponentSystem {
 	public:
 		template <typename T>
 		void registerComponent() {
-			size_t typeID = getComponentTypeID<T>();
-			ASSERT(m_componentArrays.find(typeID) == m_componentArrays.end(), "Registering component type more than once");
-			m_componentArrays[typeID] = std::make_shared<ComponentArray<T>>();
+			ASSERT_RTTI(T);
+			RTTIType type = T::getClassType();
+			isComponent<T>();
+			ASSERT(m_componentArrays.find(type) == m_componentArrays.end(), "Registering component type more than once");
+			m_componentArrays[type] = std::make_shared<ComponentArray<T>>();
 		}
 
 		uint32_t createEntity(const std::string& name);
 
 		void destroyEntity(uint32_t entity) {
+			auto& sgc = getComponent<SceneGraphComponent>(entity);
+			utils::eraseFromVector(m_sceneGraph, &sgc);
+			utils::eraseFromVector(m_entities, entity);
 
 			for (auto& pair : m_componentArrays) {
 				pair.second->removeComponent(entity);
 			}
-
-			utils::eraseFromVector(m_entities, entity);
 		}
 
 		template<typename T, typename... Args>
@@ -34,11 +38,8 @@ namespace emerald {
 
 		template <typename T>
 		void removeComponent(uint32_t entity) {
-			static_assert(!std::is_base_of<UUIDComponent, T>::value, "UUIDComponents can not be removed from entities");
-			static_assert(!std::is_base_of<NameComponent, T>::value, "NameComponents can not be removed from entities");
-			static_assert(!std::is_base_of<TransformComponent, T>::value, "TransformComponents can not be removed from entities");
-			static_assert(!std::is_base_of<SceneGraphComponent, T>::value, "SceneGraphComponents can not be removed from entities");
-
+			ASSERT_RTTI(T);
+			if (!isRemovableComponent(T::getStaticClassType())) return;
 			getComponentArray<T>()->removeComponent(entity);
 		}
 
@@ -49,9 +50,9 @@ namespace emerald {
 
 		template <typename T>
 		std::shared_ptr<ComponentArray<T>> getComponentArray() {
-			size_t typeID = getComponentTypeID<T>();
-			ASSERT(m_componentArrays.find(typeID) != m_componentArrays.end(), "Component not registered before use");
-			return std::static_pointer_cast<ComponentArray<T>>(m_componentArrays[typeID]);
+			RTTIType type = T::getClassType();
+			ASSERT(m_componentArrays.find(type) != m_componentArrays.end(), "Component not registered before use");
+			return std::static_pointer_cast<ComponentArray<T>>(m_componentArrays[type]);
 		}
 
 		template <typename T>
@@ -63,16 +64,22 @@ namespace emerald {
 			return m_entities;
 		}
 
+		std::vector<SceneGraphComponent*>& getSceneGraph() {
+			return m_sceneGraph;
+		}
+
 	private:
-		std::unordered_map<size_t, std::shared_ptr<ComponentArrayBase>> m_componentArrays;
-		size_t m_nextComponentType = 0;
+		std::unordered_map<RTTIType, std::shared_ptr<ComponentArrayBase>> m_componentArrays;
 		uint32_t m_nextEntityID = 0;
 		std::vector<uint32_t> m_entities;
-		
+		std::vector<SceneGraphComponent*> m_sceneGraph;
+
 		template <typename T>
-		size_t getComponentTypeID() noexcept {
-			static const size_t typeID = m_nextComponentType++;
-			return typeID;
+		bool isComponent() {
+			ASSERT_RTTI(T);
+			return T::isClassType(Component::getClassType());
 		}
+		RTTIType getComponentRTTIType() const;
+		bool isRemovableComponent(RTTIType type) const;
 	};
 }

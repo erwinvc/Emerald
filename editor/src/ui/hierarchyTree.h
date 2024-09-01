@@ -24,7 +24,6 @@ namespace emerald {
 		bool isDragging = false;
 
 		void renderNode(Scene* scene, SceneGraphComponent* node, int depth);
-		void removeNodeFromParent(SceneGraphComponent* node);
 		void addNodeToParent(SceneGraphComponent* node, SceneGraphComponent* newParent, bool insertBefore = false, SceneGraphComponent* beforeNode = nullptr);
 		bool isAncestor(SceneGraphComponent* possibleParent, SceneGraphComponent* node);
 	};

@@ -5,11 +5,13 @@
 
 namespace emerald {
 	class Component {
+		RTTI_BASE_CLASS_DECL(Component);
 	public:
 		Entity m_entity;
 	};
 
 	class TransformComponent : public Component {
+		RTTI_DERIVED_CLASS_DECL(TransformComponent, Component);
 	public:
 		glm::vec3 m_position = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 m_rotation = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -17,16 +19,17 @@ namespace emerald {
 	};
 
 	class SceneGraphComponent : public Component {
+		RTTI_DERIVED_CLASS_DECL(SceneGraphComponent, Component);
 	public:
 		SceneGraphComponent() : m_parent(nullptr) {}
 		SceneGraphComponent(SceneGraphComponent* parent)
 			: m_parent(parent) {
 		}
 
-		void setParent(SceneGraphComponent& parent);
-		void setChild(SceneGraphComponent& child);
+		void setParent(SceneGraphComponent* parent);
+		void addChild(SceneGraphComponent* child);
 		void setParent(Entity parent);
-		void setChild(Entity child);
+		void addChild(Entity child);
 
 		const std::vector<SceneGraphComponent*>& getChildren() const { return m_children; }
 
@@ -43,6 +46,7 @@ namespace emerald {
 	};
 
 	class UUIDComponent : public Component {
+		RTTI_DERIVED_CLASS_DECL(UUIDComponent, Component);
 	public:
 		UUID m_uuid;
 
@@ -53,6 +57,7 @@ namespace emerald {
 	};
 
 	class NameComponent : public Component {
+		RTTI_DERIVED_CLASS_DECL(NameComponent, Component);
 	public:
 		std::string m_name;
 
@@ -62,6 +67,7 @@ namespace emerald {
 	};
 
 	class MeshRendererComponent : public Component {
+		RTTI_DERIVED_CLASS_DECL(MeshRendererComponent, Component);
 	public:
 		Ref<Mesh> m_mesh;
 

@@ -3,27 +3,35 @@
 #include "scene/sceneManager.h"
 
 namespace emerald {
-	void SceneGraphComponent::setParent(SceneGraphComponent& parent) {
+	RTTI_CLASS_DEF(Component);
+	RTTI_CLASS_DEF(SceneGraphComponent);
+	RTTI_CLASS_DEF(TransformComponent);
+	RTTI_CLASS_DEF(NameComponent);
+	RTTI_CLASS_DEF(UUIDComponent);
+
+	void SceneGraphComponent::setParent(SceneGraphComponent* parent) {
 		if (m_parent) {
 			m_parent->removeChild(this);
 		}
-		parent.m_children.push_back(this);
-		m_parent = &parent;
+		if (parent) {
+		parent->m_children.push_back(this);
+		}
+		m_parent = parent;
 	}
 
 	void SceneGraphComponent::setParent(Entity parent) {
-		setParent(SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(parent));
+		setParent(&SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(parent));
 	}
 
-	void SceneGraphComponent::setChild(SceneGraphComponent& child) {
-		if (child.m_parent) {
-			child.m_parent->removeChild(&child);
+	void SceneGraphComponent::addChild(SceneGraphComponent* child) {
+		if (child->m_parent) {
+			child->m_parent->removeChild(child);
 		}
-		m_children.push_back(&child);
-		child.m_parent = this;
+		m_children.push_back(child);
+		child->m_parent = this;
 	}
 
-	void SceneGraphComponent::setChild(Entity child) {
-		setChild(SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(child));
+	void SceneGraphComponent::addChild(Entity child) {
+		addChild(&SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(child));
 	}
 }

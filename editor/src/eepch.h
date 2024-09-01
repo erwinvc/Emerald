@@ -27,6 +27,7 @@
 #include <glm/gtx/euler_angles.hpp>
 
 #include "ref.h"
+#include "rtti.h"
 
 #include "assrt.h"
 

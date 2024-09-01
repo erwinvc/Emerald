@@ -15,6 +15,8 @@ namespace emerald {
 		m_ecs.registerComponent<NameComponent>();
 		m_ecs.registerComponent<UUIDComponent>();
 
+		TransformComponent t;
+		
 		Entity sponza = Entity::create("sponza");
 
 		Entity test1 = Entity::create("test1");
@@ -32,7 +34,9 @@ namespace emerald {
 			Entity e = m_ecs.createEntity(mesh->getName());
 			SceneGraphComponent& r = m_ecs.getComponent<SceneGraphComponent>(e);
 			SceneGraphComponent& sponzaParent = m_ecs.getComponent<SceneGraphComponent>(sponza);
-			sponzaParent.setChild(r);
+			auto  a = sponzaParent.getParentClassType();
+			auto  b = SceneGraphComponent::getParentClassType();
+			sponzaParent.addChild(&r);
 		}
 	}
 	void Scene::load() {}

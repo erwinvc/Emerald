@@ -9,7 +9,7 @@ namespace emerald {
 
 	UUID::UUID() : m_UUID(s_uniformDistribution(s_gen)) {}
 
-	const std::string& UUID::toString() const {
+	const std::string UUID::toString() const {
 		std::stringstream ss;
 		ss << std::hex << std::setw(16) << std::setfill('0') << m_UUID << std::setw(16) << std::setfill('0') << m_UUID;
 		return ss.str();
