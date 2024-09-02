@@ -19,8 +19,7 @@ namespace emerald {
 		uint32_t createEntity(const std::string& name);
 
 		void destroyEntity(uint32_t entity) {
-			auto& sgc = getComponent<SceneGraphComponent>(entity);
-			utils::eraseFromVector(m_sceneGraph, &sgc);
+			//auto& sgc = getComponent<SceneGraphComponent>(entity);
 			utils::eraseFromVector(m_entities, entity);
 
 			for (auto& pair : m_componentArrays) {
@@ -29,22 +28,25 @@ namespace emerald {
 		}
 
 		template<typename T, typename... Args>
-		T& addComponent(uint32_t entity, Args&&... args) {
+		T* addComponent(uint32_t entity, Args&&... args) {
+			if (!entity) return nullptr;
 			static_assert(std::is_base_of<Component, T>::value, "T must be derived from Component");
-			T& component = getComponentArray<T>()->insert((uint32_t)entity, std::forward<Args>(args)...);
-			component.m_entity = entity;
+			T* component = getComponentArray<T>()->insert((uint32_t)entity, std::forward<Args>(args)...);
+			component->m_entity = entity;
 			return component;
 		}
 
 		template <typename T>
 		void removeComponent(uint32_t entity) {
+			if (!entity) return;
 			ASSERT_RTTI(T);
 			if (!isRemovableComponent(T::getStaticClassType())) return;
 			getComponentArray<T>()->removeComponent(entity);
 		}
 
 		template <typename T>
-		T& getComponent(uint32_t entity) {
+		T* getComponent(uint32_t entity) {
+			if (!entity) return nullptr;
 			return getComponentArray<T>()->get(entity);
 		}
 
@@ -57,6 +59,7 @@ namespace emerald {
 
 		template <typename T>
 		bool hasComponent(uint32_t entity) {
+			if (!entity) return false;
 			return getComponentArray<T>()->has(entity);
 		}
 
@@ -64,15 +67,15 @@ namespace emerald {
 			return m_entities;
 		}
 
-		std::vector<SceneGraphComponent*>& getSceneGraph() {
-			return m_sceneGraph;
+		SceneGraphComponent& getRootNode() {
+			return m_sceneRoot;
 		}
 
 	private:
 		std::unordered_map<RTTIType, std::shared_ptr<ComponentArrayBase>> m_componentArrays;
-		uint32_t m_nextEntityID = 0;
+		uint32_t m_nextEntityID = 1; //Entity 0 is reserved for null entity
 		std::vector<uint32_t> m_entities;
-		std::vector<SceneGraphComponent*> m_sceneGraph;
+		SceneGraphComponent m_sceneRoot;
 
 		template <typename T>
 		bool isComponent() {

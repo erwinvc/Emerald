@@ -10,6 +10,7 @@
 #include "input/keyboard.h"
 #include "graphics/framebuffer.h"
 #include "scene/sceneManager.h"
+#include "input/mouse.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
@@ -31,7 +32,7 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::onInitialize() {
-		SceneManager::setActiveScene(Ref<Scene>::create("Fles"));
+		SceneManager::setActiveScene(Ref<Scene>::create("Scene", "Fles"));
 		SceneManager::getActiveScene()->initialize();
 		s_editorWindow = UniqueRef<EditorWindow>::create();
 		s_renderPipeline = UniqueRef<RenderPipeline>::create();
@@ -45,6 +46,7 @@ namespace emerald {
 		s_renderPipeline.reset();
 	}
 
+	bool mouseActiveInViewport = false;
 	void EmeraldEditorApplication::update(Timestep ts) {
 		PROFILE_LOGIC_BEGIN("Editor window update");
 		updateTitlebar(getTime(), getUPS(), getFPS());
@@ -53,7 +55,17 @@ namespace emerald {
 
 		glm::ivec2 viewportSize = s_editorWindow->getSceneViewportSize();
 		s_editorCamera->setViewportSize(viewportSize.x, viewportSize.y);
-		s_editorCamera->update(ts);
+
+		//Camera magic, this can probably be improved
+		bool mouseDown = Mouse::buttonDown(MouseButton::LEFT) || Mouse::buttonDown(MouseButton::RIGHT);
+		if (s_editorWindow->isViewportFocused()) {
+			if (s_editorWindow->isMouseInViewport()) {
+				if (mouseDown) {
+					mouseActiveInViewport = true;
+				}
+			} else if(!mouseDown) mouseActiveInViewport = false;
+		} else mouseActiveInViewport = false;
+		if (mouseActiveInViewport) s_editorCamera->update(ts);
 
 		Renderer::submit([viewportSize] {
 			FrameBufferManager::onResize(viewportSize.x, viewportSize.y);

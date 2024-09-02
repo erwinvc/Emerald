@@ -1,30 +1,33 @@
 #pragma once
 #include "entities/components.h"
 #include "scene/scene.h"
+#include "input/mouse.h"
 
 namespace emerald {
-	//struct HierarchyTreeNode {
-	//	std::string name;
-	//	std::vector<HierarchyTreeNode*> children;
-	//	HierarchyTreeNode* parent;
-	//
-	//	HierarchyTreeNode(const std::string& n) : name(n), parent(nullptr) {}
-	//};
-
 	class HierarchyTree {
 	public:
 		void render(Ref<Scene> scene);
 
 	private:
-		SceneGraphComponent* selectedNode = nullptr;
-		SceneGraphComponent* draggedNode = nullptr;
-		SceneGraphComponent* dragTargetNode = nullptr;
-		SceneGraphComponent* dragTargetParent = nullptr;
-		bool isInsertingBefore = false;
-		bool isDragging = false;
+		std::vector<SceneGraphComponent*> selectedNodes;
+		SceneGraphComponent* lastSelectedNode = nullptr;
 
 		void renderNode(Scene* scene, SceneGraphComponent* node, int depth);
-		void addNodeToParent(SceneGraphComponent* node, SceneGraphComponent* newParent, bool insertBefore = false, SceneGraphComponent* beforeNode = nullptr);
+		void addNodeToParent(SceneGraphComponent* node, SceneGraphComponent* parent, bool insertBefore, SceneGraphComponent* beforeNode);
 		bool isAncestor(SceneGraphComponent* possibleParent, SceneGraphComponent* node);
+
+		//Interactions
+		void onDrag(SceneGraphComponent* node);
+		void onDrop(SceneGraphComponent* node);
+		void onLeftClick(SceneGraphComponent* node);
+		void onRightClick(SceneGraphComponent* node);
+		void handleClickSelection(SceneGraphComponent* node, MouseButton button, bool openPopup);
+
+		//Selection
+		void addSelectedNode(SceneGraphComponent* node, bool sort);
+		void removeSelectedNode(SceneGraphComponent* node, bool sort);
+		bool isNodeSelected(SceneGraphComponent* node);
+		void selectRange(SceneGraphComponent* startNode, SceneGraphComponent* endNode);
+		void sortSelectedNodes();
 	};
 }

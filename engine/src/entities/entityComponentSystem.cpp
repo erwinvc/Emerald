@@ -11,8 +11,8 @@ namespace emerald {
 		addComponent<UUIDComponent>(newID);
 		addComponent<TransformComponent>(newID);
 		addComponent<NameComponent>(newID, name);
-		SceneGraphComponent& sgc = addComponent<SceneGraphComponent>(newID);
-		m_sceneGraph.push_back(&sgc);
+		SceneGraphComponent* sgc = addComponent<SceneGraphComponent>(newID);
+		m_sceneRoot.addChild(sgc);
 		return Entity(newID);
 	}
 

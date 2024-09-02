@@ -228,17 +228,24 @@ namespace emerald {
 		ImGui::Begin("Viewport", nullptr, windowFlags);
 		ImVec2 avail = ImGui::GetContentRegionAvail();
 
-		ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), avail, { 0, 1 }, { 1, 0 });
 
+		ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), avail, { 0, 1 }, { 1, 0 });
 
 		s_sceneViewportSize = glm::ivec2((uint32_t)avail.x, (uint32_t)avail.y);
 		s_mouseInViewport = ImGui::IsWindowHovered();
+
 		s_viewportFocused = ImGui::IsWindowFocused();
+
 		if (s_mouseInViewport) {
 			ImGui::SetNextFrameWantCaptureMouse(false);
 		}
+
 		if (s_viewportFocused) {
 			ImGui::SetNextFrameWantCaptureKeyboard(false);
+		}
+
+		if (s_mouseInViewport && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+			ImGui::FocusWindow(ImGui::GetCurrentWindow());
 		}
 
 		ImGui::End();
@@ -287,7 +294,7 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("Hierarchy", nullptr);
 		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
-		if(sceneOpen) s_hierarchyTree.render(activeScene);
+		if (sceneOpen) s_hierarchyTree.render(activeScene);
 		ImGui::End();
 		ImGui::PopStyleVar();
 		ImGui::EndDisabled();
@@ -334,4 +341,11 @@ namespace emerald {
 		return s_sceneViewportSize;
 	}
 
+	bool EditorWindow::isViewportFocused() const {
+		return s_viewportFocused;
+	}
+
+	bool EditorWindow::isMouseInViewport() const {
+		return s_mouseInViewport;
+	}
 }

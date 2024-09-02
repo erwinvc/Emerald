@@ -20,7 +20,7 @@ namespace emerald {
 	}
 
 	void SceneGraphComponent::setParent(Entity parent) {
-		setParent(&SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(parent));
+		setParent(SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(parent));
 	}
 
 	void SceneGraphComponent::addChild(SceneGraphComponent* child) {
@@ -32,6 +32,6 @@ namespace emerald {
 	}
 
 	void SceneGraphComponent::addChild(Entity child) {
-		addChild(&SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(child));
+		addChild(SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(child));
 	}
 }

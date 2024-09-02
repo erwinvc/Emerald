@@ -17,9 +17,10 @@ namespace emerald {
 		friend class EntityComponentSystem;
 		virtual ~ComponentArray() override {}
 
-		T& get(uint32_t entity) {
+		T* get(uint32_t entity) {
+			if (!entity) return nullptr;
 			ASSERT(entityToIndexMap.find(entity) != entityToIndexMap.end(), "Retrieving non-existent component");
-			return *components[entityToIndexMap[entity]];
+			return components[entityToIndexMap[entity]].raw();
 		}
 
 		bool has(uint32_t entity) {
@@ -52,16 +53,18 @@ namespace emerald {
 		std::unordered_map<size_t, uint32_t> indexToEntityMap;
 
 		template<typename... Args>
-		T& insert(uint32_t entity, Args&&... args) {
+		T* insert(uint32_t entity, Args&&... args) {
+			if (!entity) return nullptr;
 			assert(entityToIndexMap.find(entity) == entityToIndexMap.end() && "Component added to the same entity more than once");
 			size_t newIndex = components.size();
 			components.emplace_back(UniqueRef<T>::create(std::forward<Args>(args)...));
 			entityToIndexMap[entity] = newIndex;
 			indexToEntityMap[newIndex] = entity;
-			return *components.back().raw();
+			return components.back().raw();
 		}
 
 		void removeComponent(uint32_t entity) override {
+			if (!entity) return;
 			ASSERT(entityToIndexMap.find(entity) != entityToIndexMap.end(), "Removing non-existent component");
 			size_t indexToRemove = entityToIndexMap[entity];
 			size_t lastIndex = components.size() - 1;

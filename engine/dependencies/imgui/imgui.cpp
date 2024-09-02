@@ -21319,7 +21319,7 @@ void ImGui::DebugNodeFont(ImFont* font)
     {
         ImDrawList* draw_list = GetWindowDrawList();
         const ImU32 glyph_col = GetColorU32(ImGuiCol_Text);
-        const float cell_size = font->FontSize * 1;
+        const float cell_size = font->FontSize * 8;
         const float cell_spacing = GetStyle().ItemSpacing.y;
         for (unsigned int base = 0; base <= IM_UNICODE_CODEPOINT_MAX; base += 256)
         {

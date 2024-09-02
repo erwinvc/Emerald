@@ -55,9 +55,9 @@ namespace emerald {
 		colors[ImGuiCol_Button] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
 		colors[ImGuiCol_ButtonHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.0f);
 		colors[ImGuiCol_ButtonActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.0f);
-		colors[ImGuiCol_Header] = ImVec4(0.29f, 0.29f, 0.29f, 0.31f);
-		colors[ImGuiCol_HeaderHovered] = ImVec4(0.29f, 0.29f, 0.29f, 0.80f);
-		colors[ImGuiCol_HeaderActive] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
+		colors[ImGuiCol_Header] = ImVec4(0.29f, 0.29f, 0.29f, 0.78f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.29f, 0.29f, 0.29f, 1.0f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.29f, 0.29f, 0.29f, 1.0f);
 		colors[ImGuiCol_Separator] = Color(0x1F1F1FFF);
 		colors[ImGuiCol_SeparatorHovered] = Color(0x3D3D3DFF);
 		colors[ImGuiCol_SeparatorActive] = Color(0x383838FF);
@@ -84,9 +84,9 @@ namespace emerald {
 		//colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
 		colors[ImGuiCol_TextLink] = colors[ImGuiCol_HeaderActive];
 		colors[ImGuiCol_TextSelectedBg] = Color(0x3D3D3DFF);
-		//colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+		colors[ImGuiCol_DragDropTarget] = ImVec4(1.0f, 1.0f, 1.0f, 0.6f);
 		colors[ImGuiCol_NavHighlight] = ImVec4(0.5f, 0.0f, 1.0f, 1.00f);
-		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 1.0f);
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
 
@@ -154,7 +154,7 @@ namespace emerald {
 		io.Fonts->AddFontFromFileTTF("res/fonts/fontawesome-webfont.ttf", 15.0f, &config, profilerAwesomeRanges); //Profiler lib
 
 		config.MergeMode = true;
-		config.GlyphOffset.y = 4;
+		//config.GlyphOffset.y = 4;
 		fonts[ImGUIFont::CONSOLAS] =  io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 16.0f, NULL);
 		io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 16.0f, &config, segmdl2Ranges);
 		
@@ -356,6 +356,16 @@ namespace ImGui{
 		}
 
 		drawList->PopClipRect();
+	}
+
+	void PushEmeraldPopupStyle() {
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
+		ImGui::PushStyleColor(ImGuiCol_Separator, emerald::Color(0xD6D6D6FF));
+		ImGui::SetNextWindowSize(ImVec2(100, 0));
+	}
+	void PopEmeraldPopupStyle() {
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
 	}
 
 }

@@ -9,7 +9,6 @@ namespace emerald {
 		}
 
 		void update(Timestep ts);
-
 	private:
 		float m_movementSpeed;
 		float m_rotationSpeed;

@@ -5,7 +5,7 @@
 
 namespace emerald {
 	static std::vector<Ref<Mesh>> meshes;
-	Scene::Scene(const std::filesystem::path& scenePath) : m_path(scenePath) {
+	Scene::Scene(const std::string name, const std::filesystem::path& scenePath) : m_name(name), m_path(scenePath) {
 
 	}
 
@@ -32,11 +32,11 @@ namespace emerald {
 		ModelLoader loader("I:\\Development\\C++\\EmeraldOldStuff\\res\\sponza\\sponza.obj");
 		for (auto& mesh : loader.load()) {
 			Entity e = m_ecs.createEntity(mesh->getName());
-			SceneGraphComponent& r = m_ecs.getComponent<SceneGraphComponent>(e);
-			SceneGraphComponent& sponzaParent = m_ecs.getComponent<SceneGraphComponent>(sponza);
-			auto  a = sponzaParent.getParentClassType();
+			SceneGraphComponent* r = m_ecs.getComponent<SceneGraphComponent>(e);
+			SceneGraphComponent* sponzaParent = m_ecs.getComponent<SceneGraphComponent>(sponza);
+			auto  a = sponzaParent->getParentClassType();
 			auto  b = SceneGraphComponent::getParentClassType();
-			sponzaParent.addChild(&r);
+			sponzaParent->addChild(r);
 		}
 	}
 	void Scene::load() {}

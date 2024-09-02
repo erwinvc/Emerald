@@ -15,6 +15,8 @@ namespace emerald {
 		void destroy();
 
 		glm::ivec2 getSceneViewportSize() const;
+		bool isViewportFocused() const;
+		bool isMouseInViewport() const;
 
 	private:
 		Ref<Texture> m_icon;
