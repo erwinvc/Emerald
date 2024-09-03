@@ -211,10 +211,11 @@ namespace ImGui{
 		ImGui::SetNextWindowClass(&window_class);
 	}
 	void DrawGradientBackgroundForWindow(GradientDirection gradientDirection) {
-		float size = 50;
+		const float size = 50;
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-		ImVec2 p_min = ImGui::GetWindowPos();
+		ImVec2 windowPos = ImGui::GetWindowPos();
+		ImVec2 p_min = ImVec2(windowPos.x, windowPos.y + ImGui::GetCurrentWindow()->TitleBarHeight);
 		ImVec2 p_max = ImVec2(p_min.x + ImGui::GetWindowWidth(), p_min.y + ImGui::GetWindowHeight());
 
 		ImU32 color_start = IM_COL32(0, 0, 0, 0);       // Transparent
