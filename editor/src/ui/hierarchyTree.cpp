@@ -13,6 +13,7 @@
 #include "util/utils.h"
 
 namespace emerald {
+
 	void HierarchyTree::renderNode(Scene* scene, SceneGraphComponent* node, int depth) {
 		ImGui::PushID(ImGui::GetID((void*)(intptr_t)node));
 		bool isRootNode = depth == 0;

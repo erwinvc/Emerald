@@ -15,7 +15,6 @@
 #include "assets/loaders/modelLoader.h"
 
 namespace emerald {
-	static Ref<Texture> s_icon;
 	static std::vector<Ref<Mesh>> meshes;
 	RenderPipeline::RenderPipeline() {
 		FramebufferDesc mainfbDesc;
@@ -116,15 +115,6 @@ namespace emerald {
 		m_material->Set("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
 		m_material->Set("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 1);
 
-		TextureDesc desc;
-		desc.hasMipmaps = false;
-		desc.anisotropyLevel = 0;
-		desc.format = RGBA;
-		desc.readWrite = false;
-		desc.filter = NEAREST;
-		s_icon = Ref<Texture>::create(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
-		Renderer::submit([] { s_icon->invalidate(); });
-
 		ModelLoader loader("I:\\Development\\C++\\EmeraldOldStuff\\res\\sponza\\sponza.obj");
 		meshes = loader.load();
 	}
@@ -176,11 +166,9 @@ namespace emerald {
 		m_material->Set("modelMatrix", modelMatrix);
 		m_material->Set("viewMatrix", Editor->getEditorCamera()->getViewMatrix());
 		m_material->Set("projectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
-		m_material->Set("tex", 0);
-		s_icon->bind(0);
 		m_material->updateForRendering();
 
-		for(int i = 0 ; i < meshes.size() -1;i++){
+		for(int i = 0 ; i < meshes.size();i++){
 			meshes[i]->bind();
 			Renderer::drawIndexed(meshes[i]->getIBO()->getCount(), PrimitiveType::TRIANGLES);
 		}
