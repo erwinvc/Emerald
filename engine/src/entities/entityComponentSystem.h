@@ -67,15 +67,10 @@ namespace emerald {
 			return m_entities;
 		}
 
-		SceneGraphComponent& getRootNode() {
-			return m_sceneRoot;
-		}
-
 	private:
 		std::unordered_map<RTTIType, std::shared_ptr<ComponentArrayBase>> m_componentArrays;
 		uint32_t m_nextEntityID = 1; //Entity 0 is reserved for null entity
 		std::vector<uint32_t> m_entities;
-		SceneGraphComponent m_sceneRoot;
 
 		template <typename T>
 		bool isComponent() {

@@ -1,6 +1,7 @@
 #include "eepch.h"
 #include "entityComponentSystem.h"
 #include "components.h"
+#include "../scene/sceneManager.h"
 
 namespace emerald {
 	uint32_t EntityComponentSystem::createEntity(const std::string& name) {
@@ -12,7 +13,7 @@ namespace emerald {
 		addComponent<TransformComponent>(newID);
 		addComponent<NameComponent>(newID, name);
 		SceneGraphComponent* sgc = addComponent<SceneGraphComponent>(newID);
-		m_sceneRoot.addChild(sgc);
+		SceneManager::getActiveScene()->getRootNode()->addChild(sgc);
 		return Entity(newID);
 	}
 

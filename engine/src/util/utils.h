@@ -10,4 +10,14 @@ namespace emerald::utils {
 	void eraseFromVector(std::vector<T>& vec, const T& value) {
 		vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
 	}
+	template<typename T>
+	uint32_t getIndexInVector(std::vector<T> v, T K) {
+		auto it = find(v.begin(), v.end(), K);
+
+		if (it != v.end()) {
+			return it - v.begin();
+		} else {
+			return -1;
+		}
+	}
 }

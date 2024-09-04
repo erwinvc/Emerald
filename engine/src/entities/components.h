@@ -39,6 +39,7 @@ namespace emerald {
 		bool m_isOpenInHierarchy = false; //This most definitely should not be stored here but it's the only way we can keep the HierarchyTree immediate mode...
 		SceneGraphComponent* m_parent = nullptr;
 		std::vector<SceneGraphComponent*> m_children;
+		uint32_t m_id = 0;
 
 		void removeChild(SceneGraphComponent* child) {
 			m_children.erase(std::remove(m_children.begin(), m_children.end(), child), m_children.end());
