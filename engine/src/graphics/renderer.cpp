@@ -47,11 +47,11 @@ namespace emerald {
 		executeCommandBuffer();
 	}
 
-	void Renderer::submit(Command command) {
+	void Renderer::submit(RenderCommand command) {
 		s_renderSyncManager.submit(command);
 	}
 
-	void Renderer::submitFromAnyThread(Command command) {
+	void Renderer::submitFromAnyThread(RenderCommand command) {
 		s_renderSyncManager.submitFromAnyThread(command);
 	}
 

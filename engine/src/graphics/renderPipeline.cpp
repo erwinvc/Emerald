@@ -13,9 +13,9 @@
 #include "../../editor/src/editor.h"
 #include "engineIcon.h"
 #include "assets/loaders/modelLoader.h"
+#include "../scene/sceneManager.h"
 
 namespace emerald {
-	static std::vector<Ref<Mesh>> meshes;
 	RenderPipeline::RenderPipeline() {
 		FramebufferDesc mainfbDesc;
 		mainfbDesc.width = App->getWidth();
@@ -114,9 +114,6 @@ namespace emerald {
 		//m_material->SetArray("color", colors, 2);
 		m_material->Set("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
 		m_material->Set("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 1);
-
-		ModelLoader loader("I:\\Development\\C++\\EmeraldOldStuff\\res\\sponza\\sponza.obj");
-		meshes = loader.load();
 	}
 
 	RenderPipeline::~RenderPipeline() {
@@ -168,9 +165,9 @@ namespace emerald {
 		m_material->Set("projectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
 		m_material->updateForRendering();
 
-		for(int i = 0 ; i < meshes.size();i++){
-			meshes[i]->bind();
-			Renderer::drawIndexed(meshes[i]->getIBO()->getCount(), PrimitiveType::TRIANGLES);
+		for (auto& meshRenderer : SceneManager::getActiveScene()->getECS().getComponentArray<MeshRendererComponent>()) {
+			meshRenderer->m_mesh->bind();
+			Renderer::drawIndexed(meshRenderer->m_mesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
 		}
 
 		//m_vao->bind();

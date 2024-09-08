@@ -7,9 +7,15 @@ namespace emerald::utils {
 	std::wstring stringToWstring(const std::string& str);
 
 	template<typename T>
-	void eraseFromVector(std::vector<T>& vec, const T& value) {
-		vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
+	bool eraseFromVector(std::vector<T>& vec, const T& item) {
+		auto it = std::find(vec.begin(), vec.end(), item);
+		if (it != vec.end()) {
+			vec.erase(it);
+			return true; 
+		}
+		return false;
 	}
+
 	template<typename T>
 	uint32_t getIndexInVector(std::vector<T> v, T K) {
 		auto it = find(v.begin(), v.end(), K);

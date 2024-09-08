@@ -26,6 +26,12 @@ namespace emerald {
 			return m_editorScene != nullptr;
 		}
 
+		static void clearScenes() {
+			m_activeScene = nullptr;
+			m_runtimeScene = nullptr;
+			m_editorScene = nullptr;
+		}
+
 	private:
 		static inline Ref<Scene> m_activeScene = nullptr; 
 		static inline Ref<Scene> m_runtimeScene = nullptr;

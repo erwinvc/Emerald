@@ -4,7 +4,6 @@
 #include "assets/loaders/modelLoader.h"
 
 namespace emerald {
-	static std::vector<Ref<Mesh>> meshes;
 	Scene::Scene(const std::string name, const std::filesystem::path& scenePath) : m_name(name), m_path(scenePath) {
 
 	}
@@ -14,6 +13,7 @@ namespace emerald {
 		m_ecs.registerComponent<TransformComponent>();
 		m_ecs.registerComponent<NameComponent>();
 		m_ecs.registerComponent<UUIDComponent>();
+		m_ecs.registerComponent<MeshRendererComponent>();
 
 		TransformComponent t;
 		
@@ -24,6 +24,11 @@ namespace emerald {
 		Entity test3 = Entity::create("test3");
 		Entity test4 = Entity::create("test4");
 		Entity test5 = Entity::create("test5");
+		Entity::create("test6");
+		Entity::create("test7");
+		Entity::create("test8");
+		Entity::create("test9");
+		Entity::create("test10");
 		//test1.getComponent<SceneGraphComponent>().setChild(test2);
 		//test2.getComponent<SceneGraphComponent>().setChild(test3);
 		//test3.getComponent<SceneGraphComponent>().setChild(test4);
@@ -34,6 +39,7 @@ namespace emerald {
 			Entity e = m_ecs.createEntity(mesh->getName());
 			SceneGraphComponent* r = m_ecs.getComponent<SceneGraphComponent>(e);
 			SceneGraphComponent* sponzaParent = m_ecs.getComponent<SceneGraphComponent>(sponza);
+			m_ecs.addComponent<MeshRendererComponent>(e, mesh);
 			auto  a = sponzaParent->getParentClassType();
 			auto  b = SceneGraphComponent::getParentClassType();
 			sponzaParent->addChild(r);

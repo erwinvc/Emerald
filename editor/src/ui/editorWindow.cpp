@@ -24,6 +24,8 @@
 #include "input/keyboard.h"
 #include "hierarchyTree.h"
 #include "scene/sceneManager.h"
+#include <util/valueTester.h>
+#include "undoRedo.h"
 
 namespace emerald {
 	static bool s_mouseInViewport = false;
@@ -148,6 +150,7 @@ namespace emerald {
 		ImGui::PushStyleColor(ImGuiCol_Button, Color(0x1F1F1FFF));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, Color(0x3D3D3DFF));
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, Color(0x383838FF));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
 		if (ImGui::Button((const char*)SEGOE_MDL2_ICON_CHROME_MINIMIZE, buttonSize)) {
 			App->QueueEvent([] {App->getWindow()->minimize(); });
 		}
@@ -164,7 +167,7 @@ namespace emerald {
 		ImGui::EndHorizontal();
 		ImGuiManager::popFont();
 
-		ImGui::PopStyleVar(2);
+		ImGui::PopStyleVar(3);
 
 		ImGui::End();
 	}
@@ -225,27 +228,31 @@ namespace emerald {
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
-		ImGui::Begin("Viewport", nullptr, windowFlags);
-		ImVec2 avail = ImGui::GetContentRegionAvail();
+		if (ImGui::Begin("Viewport", nullptr, windowFlags)) {
+			ImVec2 avail = ImGui::GetContentRegionAvail();
 
+			ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), avail, { 0, 1 }, { 1, 0 });
 
-		ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), avail, { 0, 1 }, { 1, 0 });
+			s_sceneViewportSize = glm::ivec2((uint32_t)avail.x, (uint32_t)avail.y);
+			s_mouseInViewport = ImGui::IsWindowHovered();
 
-		s_sceneViewportSize = glm::ivec2((uint32_t)avail.x, (uint32_t)avail.y);
-		s_mouseInViewport = ImGui::IsWindowHovered();
+			s_viewportFocused = ImGui::IsWindowFocused();
 
-		s_viewportFocused = ImGui::IsWindowFocused();
+			if (s_mouseInViewport) {
+				ImGui::SetNextFrameWantCaptureMouse(false);
+			}
 
-		if (s_mouseInViewport) {
-			ImGui::SetNextFrameWantCaptureMouse(false);
-		}
+			if (s_viewportFocused) {
+				ImGui::SetNextFrameWantCaptureKeyboard(false);
+			}
 
-		if (s_viewportFocused) {
-			ImGui::SetNextFrameWantCaptureKeyboard(false);
-		}
-
-		if (s_mouseInViewport && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-			ImGui::FocusWindow(ImGui::GetCurrentWindow());
+			if (s_mouseInViewport && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+				ImGui::FocusWindow(ImGui::GetCurrentWindow());
+			}
+		} else {
+			s_sceneViewportSize = glm::ivec2(1, 1);
+			s_mouseInViewport = false;
+			s_viewportFocused = false;
 		}
 
 		ImGui::End();
@@ -260,18 +267,21 @@ namespace emerald {
 		DebugWindow::draw();
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoNav);
-		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
+		if (ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoNav)) {
+			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
+		}
 		ImGui::End();
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoNav);
-		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
+		if (ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoNav)) {
+			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
+		}
 		ImGui::End();
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		ImGui::Begin("Log", nullptr, ImGuiWindowFlags_NoNav);
-		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
+		if (ImGui::Begin("Log", nullptr, ImGuiWindowFlags_NoNav)) {
+			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
+		}
 		ImGui::End();
 
 		if (EditorWindows.profiler) {
@@ -291,16 +301,39 @@ namespace emerald {
 		}
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		ImGui::Begin("Hierarchy", nullptr);
-		ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
-		if (sceneOpen) s_hierarchyTree.render(activeScene);
+		//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
+
+		if (ImGui::Begin("Hierarchy", nullptr)) {
+
+			static char searchString[128] = { 0 };
+			ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionMax().x - 54);
+			ImGui::InputTextWithHint(ICON_FA_FILTER, ICON_FA_SEARCH " Search...", searchString, 256, ImGuiInputTextFlags_EscapeClearsAll);
+			ImGui::SameLine();
+			if (ImGui::Button(ICON_FA_TIMES)) {
+				memset(searchString, 0, sizeof(searchString));
+			}
+			if (ImGui::EmeraldButton("Add Entity", ImVec2(-FLT_MIN, 0))) {
+				auto action = UndoRedo::createAction<Entity>("Add Entity");
+				uint32_t freeIndex = SceneManager::getActiveScene()->getECS().getFreeEntityIndex();
+				action->addDoAction([freeIndex](Entity& entity) {entity = SceneManager::getActiveScene()->getECS().createEntity(freeIndex, "Entity"); });
+				action->addUndoAction([](Entity& entity) {SceneManager::getActiveScene()->getECS().destroyEntity(entity); });
+				UndoRedo::commitAction(action);
+			}
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			ImGui::BorderSeparator(4);
+			if (sceneOpen) s_hierarchyTree.render(activeScene, searchString);
+			ImGui::PopStyleVar();
+		}
 		ImGui::End();
-		ImGui::PopStyleVar();
 		ImGui::EndDisabled();
 	}
 
 	void EditorWindow::update(Timestep ts) {
+		Ref<Scene> activeScene = SceneManager::getActiveScene();
+		bool sceneOpen = activeScene != nullptr;
+
+		if (sceneOpen) s_hierarchyTree.handleDelete();
+
 		//if (Keyboard::keyDown(Key::N)) {
 		//	offset++;
 		//}

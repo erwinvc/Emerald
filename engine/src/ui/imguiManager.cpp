@@ -32,18 +32,18 @@ namespace emerald {
 		Color transparent = Color(0x00000000);
 
 		colors[ImGuiCol_Text] = Color(0xD6D6D6FF);
-		colors[ImGuiCol_TextDisabled] = Color(0xafafafFF);
+		colors[ImGuiCol_TextDisabled] = Color(0x808080FF);
 		colors[ImGuiCol_WindowBg] = Color(0x1F1F1FFF);
 		colors[ImGuiCol_ChildBg] = Color(0x1B1B1BFF);
 		colors[ImGuiCol_PopupBg] = Color(0x303030FF);
 		colors[ImGuiCol_Border] = Color(0x3D3D3DFF);
-		colors[ImGuiCol_BorderShadow] = Color(0x00000080); //Todo?
+		colors[ImGuiCol_BorderShadow] = Color(0xFFFFFF0A);
 		colors[ImGuiCol_FrameBg] = Color(0x0C0C0C8A);
-		colors[ImGuiCol_FrameBgHovered] = Color(0x3D3D3DFF);
-		colors[ImGuiCol_FrameBgActive] = Color(0x4A4A4AFF);
+		colors[ImGuiCol_FrameBgHovered] = Color(0x0C0C0CFF);
+		colors[ImGuiCol_FrameBgActive] = Color(0x080808FF);
 		colors[ImGuiCol_TitleBg] = Color(0x282828FF);
 		colors[ImGuiCol_TitleBgActive] = Color(0x282828FF);
-		//colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.0f, 0.0f, 1.0f, 1.0f);
 		colors[ImGuiCol_MenuBarBg] = Color(0x282828FF);
 		colors[ImGuiCol_ScrollbarBg] = transparent;
 		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
@@ -85,7 +85,7 @@ namespace emerald {
 		colors[ImGuiCol_TextLink] = colors[ImGuiCol_HeaderActive];
 		colors[ImGuiCol_TextSelectedBg] = Color(0x3D3D3DFF);
 		colors[ImGuiCol_DragDropTarget] = ImVec4(1.0f, 1.0f, 1.0f, 0.6f);
-		colors[ImGuiCol_NavHighlight] = ImVec4(0.5f, 0.0f, 1.0f, 1.00f);
+		colors[ImGuiCol_NavHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
@@ -112,6 +112,8 @@ namespace emerald {
 		style->TabRounding = 3;
 		style->DockingSeparatorSize = 3;
 		style->TabBarBorderSize = 1;
+		style->FrameBorderSize = 1;
+		style->ScrollbarRounding = 2;
 	}
 
 	void ImGuiManager::initialize(Ref<Window> window) {
@@ -145,19 +147,19 @@ namespace emerald {
 		ImFontConfig config;
 		config.MergeMode = true;
 		config.GlyphMinAdvanceX = 15.0f;
-	
+
 		const ImWchar segmdl2Ranges[] = { 0xE700, 0xF624, 0 };
 		const ImWchar awesomeRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 		const ImWchar profilerAwesomeRanges[] = { P_ICON_MIN_FA, P_ICON_MAX_FA, 0 };
 
 		fonts[ImGUIFont::INTER] = io.FontDefault = io.Fonts->AddFontFromFileTTF("res/fonts/Inter.ttc", 18.0f, NULL);
-		io.Fonts->AddFontFromFileTTF("res/fonts/fontawesome-webfont.ttf", 15.0f, &config, profilerAwesomeRanges); //Profiler lib
+		io.Fonts->AddFontFromFileTTF("res/fonts/fontawesome-webfont.ttf", 18.0f, &config, profilerAwesomeRanges); //Profiler lib
 
 		config.MergeMode = true;
 		//config.GlyphOffset.y = 4;
-		fonts[ImGUIFont::CONSOLAS] =  io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 16.0f, NULL);
+		fonts[ImGUIFont::CONSOLAS] = io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 16.0f, NULL);
 		io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 16.0f, &config, segmdl2Ranges);
-		
+
 		config.MergeMode = false;
 		fonts[ImGUIFont::SEGOE] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 10.0f, NULL, segmdl2Ranges);
 		fonts[ImGUIFont::AWESOME_R] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-regular-400.ttf", 16.0f, &config, awesomeRanges);
@@ -203,15 +205,14 @@ namespace emerald {
 	}
 
 }
-namespace ImGui{
+namespace ImGui {
 	//Custom widgets
 	void ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags flags) {
 		ImGuiWindowClass window_class;
 		window_class.DockNodeFlagsOverrideSet = flags;
 		ImGui::SetNextWindowClass(&window_class);
 	}
-	void DrawGradientBackgroundForWindow(GradientDirection gradientDirection) {
-		const float size = 50;
+	void DrawGradientBackgroundForWindow(GradientDirection gradientDirection, ImU32 color, float size) {
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 		ImVec2 windowPos = ImGui::GetWindowPos();
@@ -219,7 +220,7 @@ namespace ImGui{
 		ImVec2 p_max = ImVec2(p_min.x + ImGui::GetWindowWidth(), p_min.y + ImGui::GetWindowHeight());
 
 		ImU32 color_start = IM_COL32(0, 0, 0, 0);       // Transparent
-		ImU32 color_end = IM_COL32(0, 0, 0, 155);       // Semi-transparent black
+		ImU32 color_end = color;       // Semi-transparent black
 
 		switch (gradientDirection) {
 			case RIGHT:
@@ -369,4 +370,21 @@ namespace ImGui{
 		ImGui::PopStyleVar();
 	}
 
+	void BorderSeparator(uint32_t extraYSpacing) {
+		ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_Border));
+		ImGui::Separator();
+		if (extraYSpacing != 0) {
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			ImGui::Dummy(ImVec2(0, (float)extraYSpacing));
+			ImGui::PopStyleVar();
+		}
+		ImGui::PopStyleColor();
+	}
+
+	bool EmeraldButton(const char* label, const ImVec2& size) {
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5);
+		bool toRet = ImGui::Button(label, size);
+		ImGui::PopStyleVar();
+		return toRet;
+	}
 }

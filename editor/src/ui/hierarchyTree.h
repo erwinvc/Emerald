@@ -6,15 +6,16 @@ namespace emerald {
 	public:
 		HierarchyTree();
 
-		void render(Ref<Scene> scene);
-
+		void render(Ref<Scene> scene, const char* searchString);
+		void handleDelete();
 	private:
+		bool m_isFocused = false;
 		std::vector<SceneGraphComponent*> m_nodes;
 		SceneGraphComponent* m_lastSelectedNode = nullptr;
 		ImGuiSelectionBasicStorage m_imGuiSelection;
 
 		void collectNodes(SceneGraphComponent* node);
-		void renderNode(Scene* scene, SceneGraphComponent* node, int depth = 0);
+		void renderNode(Scene* scene, SceneGraphComponent* node, const char* searchString, int depth = 0);
 		void drawInsertBeforeDropTarget();
 
 		ImGuiTreeNodeFlags prepareTreeNodeFlags(SceneGraphComponent* node, bool isRootNode);

@@ -27,7 +27,7 @@ namespace emerald {
 			return entityToIndexMap.find(entity) != entityToIndexMap.end();
 		}
 
-		std::vector<UniqueRef<T>>& getVector() {
+		std::vector<Ref<T>>& getVector() {
 			return components;
 		}
 
@@ -48,7 +48,7 @@ namespace emerald {
 		}
 
 	private:
-		std::vector<UniqueRef<T>> components; 
+		std::vector<Ref<T>> components;
 		std::unordered_map<uint32_t, size_t> entityToIndexMap;
 		std::unordered_map<size_t, uint32_t> indexToEntityMap;
 
@@ -57,7 +57,7 @@ namespace emerald {
 			if (!entity) return nullptr;
 			assert(entityToIndexMap.find(entity) == entityToIndexMap.end() && "Component added to the same entity more than once");
 			size_t newIndex = components.size();
-			components.emplace_back(UniqueRef<T>::create(std::forward<Args>(args)...));
+			components.emplace_back(Ref<T>::create(std::forward<Args>(args)...));
 			entityToIndexMap[entity] = newIndex;
 			indexToEntityMap[newIndex] = entity;
 			return components.back().raw();
@@ -65,6 +65,7 @@ namespace emerald {
 
 		void removeComponent(uint32_t entity) override {
 			if (!entity) return;
+			if (!entityToIndexMap.contains(entity)) return;
 			ASSERT(entityToIndexMap.find(entity) != entityToIndexMap.end(), "Removing non-existent component");
 			size_t indexToRemove = entityToIndexMap[entity];
 			size_t lastIndex = components.size() - 1;

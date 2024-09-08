@@ -11,6 +11,7 @@
 #include "graphics/framebuffer.h"
 #include "scene/sceneManager.h"
 #include "input/mouse.h"
+#include "undoRedo.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
@@ -42,6 +43,7 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::onShutdown() {
+		SceneManager::clearScenes();
 		s_editorWindow.reset();
 		s_renderPipeline.reset();
 	}
@@ -53,6 +55,15 @@ namespace emerald {
 		s_editorWindow->update(ts);
 		PROFILE_LOGIC_END();
 
+		//Undo redo
+		if (Keyboard::keyMod(KeyMod::CONTROL)) {
+			if (Keyboard::keyJustDown(Key::Z)) {
+				if (Keyboard::keyMod(KeyMod::SHIFT)) {
+					UndoRedo::redo();
+				} else UndoRedo::undo();
+			}
+		}
+
 		glm::ivec2 viewportSize = s_editorWindow->getSceneViewportSize();
 		s_editorCamera->setViewportSize(viewportSize.x, viewportSize.y);
 
@@ -63,7 +74,7 @@ namespace emerald {
 				if (mouseDown) {
 					mouseActiveInViewport = true;
 				}
-			} else if(!mouseDown) mouseActiveInViewport = false;
+			} else if (!mouseDown) mouseActiveInViewport = false;
 		} else mouseActiveInViewport = false;
 		if (mouseActiveInViewport) s_editorCamera->update(ts);
 

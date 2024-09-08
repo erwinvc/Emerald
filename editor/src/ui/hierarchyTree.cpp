@@ -11,10 +11,11 @@
 #include "input/keyboard.h"
 #include "input/mouse.h"
 #include "util/utils.h"
+#include "undoRedo.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {
-		m_imGuiSelection.PreserveOrder = true;
+		m_imGuiSelection.PreserveOrder = false;
 		m_imGuiSelection.UserData = (void*)&m_nodes;
 		m_imGuiSelection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, int idx) {
 			auto& nodes = *(std::vector<SceneGraphComponent*>*)self->UserData;
@@ -22,12 +23,13 @@ namespace emerald {
 		};
 	}
 
-	void HierarchyTree::render(Ref<Scene> scene) {
+	void HierarchyTree::render(Ref<Scene> scene, const char* searchString) {
 		// Apply ImGui style settings
 		ImGui::PushStyleColor(ImGuiCol_NavHighlight, Color(0, 0, 0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-		ImGui::ItemRowsBackground(18);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
+		ImGui::ItemRowsBackground(18, IM_COL32(28, 28, 28, 255));
 
 		// Collect nodes
 		m_nodes.clear();
@@ -36,26 +38,43 @@ namespace emerald {
 		// Begin multi-selection and render nodes
 		auto* multiSelectIO = ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_None, m_imGuiSelection.Size, m_nodes.size());
 		m_imGuiSelection.ApplyRequests(multiSelectIO);
-		renderNode(scene.raw(), SceneManager::getActiveScene()->getRootNode());
+		renderNode(scene.raw(), SceneManager::getActiveScene()->getRootNode(), searchString);
 		onDrop(SceneManager::getActiveScene()->getRootNode(), true, SceneManager::getActiveScene()->getRootNode(), true);
 		multiSelectIO = ImGui::EndMultiSelect();
 		m_imGuiSelection.ApplyRequests(multiSelectIO);
 
 		// Restore ImGui style settings
-		ImGui::PopStyleVar(2);
+		ImGui::PopStyleVar(3);
 		ImGui::PopStyleColor();
+
+		m_isFocused = ImGui::IsWindowFocused();
 	}
 
-	void HierarchyTree::collectNodes(SceneGraphComponent* node) {
-		m_nodes.push_back(node);
-		node->m_id = ImGui::GetID((void*)(intptr_t)node);
-
-		for (auto& child : node->m_children) {
-			collectNodes(child);
+	void HierarchyTree::handleDelete() {
+		if (m_isFocused && Keyboard::keyJustDown(Key::DEL)) {
+			auto selectedNodes = getSelectedNodes();
+			for (auto& node : selectedNodes) {
+				SceneManager::getActiveScene()->getECS().destroyEntity(node->m_entity);
+			}
 		}
 	}
 
-	void HierarchyTree::renderNode(Scene* scene, SceneGraphComponent* node, int depth) {
+	void HierarchyTree::collectNodes(SceneGraphComponent* node) {
+		uint32_t index = 0;
+
+		std::function<void(SceneGraphComponent*)> _collectNodes = [&](SceneGraphComponent* node) {
+			m_nodes.push_back(node);
+			node->m_treeIndex = index++;
+			node->m_id = ImGui::GetID((void*)(intptr_t)node);
+			for (auto& child : node->m_children) {
+				_collectNodes(child);
+			}
+		};
+
+		_collectNodes(node);
+	}
+
+	void HierarchyTree::renderNode(Scene* scene, SceneGraphComponent* node, const char* searchString, int depth) {
 		bool isRootNode = depth == 0;
 		NameComponent* nameComponent = scene->getECS().getComponent<NameComponent>(node->m_entity);
 		const std::string& name = (isRootNode ? scene->getName() : nameComponent->m_name);
@@ -94,7 +113,7 @@ namespace emerald {
 
 		if (node->m_isOpenInHierarchy) {
 			for (auto& child : node->m_children) {
-				renderNode(scene, child, depth + 1);
+				renderNode(scene, child, searchString, depth + 1);
 			}
 			ImGui::TreePop();
 		}
@@ -145,6 +164,10 @@ namespace emerald {
 			}
 		}
 
+		std::sort(selectedNodes.begin(), selectedNodes.end(), [](SceneGraphComponent* a, SceneGraphComponent* b) {
+			return a->m_treeIndex < b->m_treeIndex;
+		});
+
 		return selectedNodes;
 	}
 
@@ -170,13 +193,45 @@ namespace emerald {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("NodeDragDrop")) {
 				ImVector<SceneGraphComponent*> selectedNodes = getSelectedNodes();
 
+				auto action = UndoRedo::createAction<void>("Move nodes");
+
+				// Capture the original state before making changes
 				for (auto& droppedNode : selectedNodes) {
 					if (droppedNode && node && node != droppedNode) {
 						if (!isAncestor(droppedNode, node)) {
 							addNodeToParent(droppedNode, node, insertBefore, beforeNode);
+							// Capture the original parent and position of the node
+							SceneGraphComponent* originalParent = droppedNode->m_parent;
+							auto originalPosition = utils::getIndexInVector(originalParent->m_children, droppedNode);
+
+							action->addUndoAction([droppedNode, originalParent, originalPosition]() {
+								droppedNode->setParent(nullptr);
+								if (originalParent) {
+									originalParent->m_children.push_back(droppedNode);
+									droppedNode->m_parent = originalParent;
+									originalParent->sortChildrenBasedOnIndex();
+								}
+							});
+							//addNodeToParent(droppedNode, node, insertBefore, beforeNode);
+
+							uint32_t droppedNodeEntity = droppedNode->m_entity;
+							uint32_t nodeEntity = node->m_entity;
+							uint32_t beforeNodeEntity = beforeNode ? beforeNode->m_entity : Entity();
+							action->addDoAction([this, droppedNodeEntity, nodeEntity, insertBefore, beforeNodeEntity]() {
+								SceneGraphComponent* droppedNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
+								SceneGraphComponent* node1 = nodeEntity == 0 ? SceneManager::getActiveScene()->getRootNode() : SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(nodeEntity);
+								SceneGraphComponent* beforeNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(beforeNodeEntity);
+								addNodeToParent(droppedNode1, node1, insertBefore, beforeNode1);
+							});
+
+							//addNodeToParent(droppedNode, node, insertBefore, beforeNode);
+							//Log::info("b {} {} {}", (uint64_t)droppedNode, (uint64_t)node, (uint64_t)beforeNode);
 						}
 					}
 				}
+
+				// Finalize and commit the action to the undo/redo stack
+				UndoRedo::commitAction(action);
 
 				if (open) node->m_isOpenInHierarchy = true;
 			}

@@ -3,7 +3,13 @@
 #include "imguiProfiler/Profiler.h"
 
 namespace emerald {
-	std::vector<Command> tempBufferr;
+	static bool s_shutdown = false;
+	static std::vector<RenderCommand> tempBufferr;
+
+	RenderSyncManager::~RenderSyncManager() {
+		s_shutdown = true;
+	}
+
 	void RenderSyncManager::SetTempBuffer() {
 		tempBuffer = true;
 		tempBufferr.clear();
@@ -11,7 +17,7 @@ namespace emerald {
 
 	void RenderSyncManager::acquireRenderBuffer() {
 		std::unique_lock<std::mutex> lock(bufferMutex);
-		
+
 		renderCv.wait(lock, [this] { return bufferReady; }); // Wait until there is a buffer ready for rendering
 
 		std::swap(frontBuffer, pendingBuffer); // Swap the front buffer with the pending buffer
@@ -22,13 +28,15 @@ namespace emerald {
 		logicCv.notify_one();
 	}
 
-	void RenderSyncManager::submit(Command command) {
+	void RenderSyncManager::submit(RenderCommand command) {
+		if (s_shutdown) return;
 		ASSERT(!ThreadManager::isThread(ThreadType::RENDER), "The render thread is not supposed to queue render commands");
 		if (tempBuffer)tempBufferr.emplace_back(command);
 		else backBuffer->emplace_back(command);
 	}
 
-	void RenderSyncManager::submitFromAnyThread(Command command) {
+	void RenderSyncManager::submitFromAnyThread(RenderCommand command) {
+		if (s_shutdown) return;
 		if (tempBuffer)tempBufferr.emplace_back(command);
 		else backBuffer->emplace_back(command);
 	}
@@ -42,7 +50,7 @@ namespace emerald {
 			return;
 		}
 		for (const auto& cmd : *frontBuffer) {
-			cmd();
+			if (cmd) cmd();
 		}
 
 		frontBuffer->clear();
@@ -56,7 +64,7 @@ namespace emerald {
 	void RenderSyncManager::submitBufferForRendering() {
 		pendingBuffer = backBuffer; // Swap the back buffer with the pending buffer
 		backBuffer = (backBuffer == &bufferA) ? ((frontBuffer == &bufferB) ? &bufferC : &bufferB) : &bufferA;
-		
+
 		bufferReady = true; // Mark buffer as ready for rendering and notify the render thread
 		bufferAvailable = false;
 		bufferMutex.unlock();

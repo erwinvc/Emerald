@@ -4,17 +4,24 @@
 #include "../scene/sceneManager.h"
 
 namespace emerald {
-	uint32_t EntityComponentSystem::createEntity(const std::string& name) {
+	uint32_t EntityComponentSystem::getFreeEntityIndex() {
 		uint32_t newID = m_nextEntityID++;
+		return newID;
+	}
 
-		m_entities.push_back(newID);
+	uint32_t EntityComponentSystem::createEntity(uint32_t index, const std::string& name) {
+		m_entities.push_back(index);
 
-		addComponent<UUIDComponent>(newID);
-		addComponent<TransformComponent>(newID);
-		addComponent<NameComponent>(newID, name);
-		SceneGraphComponent* sgc = addComponent<SceneGraphComponent>(newID);
+		addComponent<UUIDComponent>(index);
+		addComponent<TransformComponent>(index);
+		addComponent<NameComponent>(index, name);
+		SceneGraphComponent* sgc = addComponent<SceneGraphComponent>(index);
 		SceneManager::getActiveScene()->getRootNode()->addChild(sgc);
-		return Entity(newID);
+		return Entity(index);
+	}
+
+	uint32_t EntityComponentSystem::createEntity(const std::string& name) {
+		return createEntity(getFreeEntityIndex(), name);
 	}
 
 	RTTIType EntityComponentSystem::getComponentRTTIType() const {

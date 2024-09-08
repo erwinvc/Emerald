@@ -16,10 +16,19 @@ namespace emerald {
 			m_componentArrays[type] = std::make_shared<ComponentArray<T>>();
 		}
 
+		uint32_t getFreeEntityIndex();
+		uint32_t createEntity(uint32_t index, const std::string& name);
 		uint32_t createEntity(const std::string& name);
 
 		void destroyEntity(uint32_t entity) {
-			//auto& sgc = getComponent<SceneGraphComponent>(entity);
+			//Recursively destroy children
+			auto* sgc = getComponent<SceneGraphComponent>(entity);
+			if (sgc) {
+				auto children = sgc->getChildren();
+				for (auto* child : children) {
+					destroyEntity(child->m_entity);
+				}
+			}
 			utils::eraseFromVector(m_entities, entity);
 
 			for (auto& pair : m_componentArrays) {
@@ -31,7 +40,7 @@ namespace emerald {
 		T* addComponent(uint32_t entity, Args&&... args) {
 			if (!entity) return nullptr;
 			static_assert(std::is_base_of<Component, T>::value, "T must be derived from Component");
-			T* component = getComponentArray<T>()->insert((uint32_t)entity, std::forward<Args>(args)...);
+			T* component = getComponentArray<T>().insert((uint32_t)entity, std::forward<Args>(args)...);
 			component->m_entity = entity;
 			return component;
 		}
@@ -47,14 +56,14 @@ namespace emerald {
 		template <typename T>
 		T* getComponent(uint32_t entity) {
 			if (!entity) return nullptr;
-			return getComponentArray<T>()->get(entity);
+			return getComponentArray<T>().get(entity);
 		}
 
 		template <typename T>
-		std::shared_ptr<ComponentArray<T>> getComponentArray() {
+		ComponentArray<T>& getComponentArray() {
 			RTTIType type = T::getClassType();
 			ASSERT(m_componentArrays.find(type) != m_componentArrays.end(), "Component not registered before use");
-			return std::static_pointer_cast<ComponentArray<T>>(m_componentArrays[type]);
+			return (ComponentArray<T>&)*m_componentArrays[type].get();
 		}
 
 		template <typename T>

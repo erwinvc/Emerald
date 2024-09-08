@@ -27,8 +27,8 @@ namespace emerald {
 
 		static void executeCommandBuffer();
 
-		static void submit(Command command);
-		static void submitFromAnyThread(Command command);
+		static void submit(RenderCommand command);
+		static void submitFromAnyThread(RenderCommand command);
 		static void drawIndexed(uint32_t count, PrimitiveType type);
 	};
 }

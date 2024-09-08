@@ -34,9 +34,11 @@ namespace ImGui {
 		BOTTOM
 	};
 	void ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags flags);
-	void DrawGradientBackgroundForWindow(GradientDirection gradientDirection);
+	void DrawGradientBackgroundForWindow(GradientDirection gradientDirection, ImU32 color = IM_COL32(0, 0, 0, 155), float size = 50);
 	bool ColoredButton(const char* label, const ImVec2& size_arg, ImU32 text_color, ImU32 bg_color_1, ImU32 bg_color_2);
 	void ItemRowsBackground(float lineHeight = -1.0f, const ImColor& color = ImColor(20, 20, 20, 64));
 	void PushEmeraldPopupStyle();
 	void PopEmeraldPopupStyle();
+	void BorderSeparator(uint32_t extraYSpacing = 1);
+	bool EmeraldButton(const char* label, const ImVec2& size = ImVec2(0, 0));
 }

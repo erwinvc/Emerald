@@ -83,9 +83,17 @@ namespace emerald {
 		T* raw() { return m_reference; }
 		const T* raw() const { return m_reference; }
 
+		//template<typename T2>
+		//Ref<T2> as() const {
+		//	return Ref<T2>(*this);
+		//}
+
 		template<typename T2>
 		Ref<T2> as() const {
-			return Ref<T2>(*this);
+			T2* casted = dynamic_cast<T2*>(m_reference);
+			if (casted) {
+				return Ref < T2 >(casted);
+			}
 		}
 
 		template<typename... Args>

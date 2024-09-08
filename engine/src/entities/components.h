@@ -2,14 +2,9 @@
 #include "entities/entity.h"
 #include "util/uuid.h"
 #include "assets/mesh.h"
+#include "component.h"
 
 namespace emerald {
-	class Component {
-		RTTI_BASE_CLASS_DECL(Component);
-	public:
-		Entity m_entity;
-	};
-
 	class TransformComponent : public Component {
 		RTTI_DERIVED_CLASS_DECL(TransformComponent, Component);
 	public:
@@ -21,15 +16,17 @@ namespace emerald {
 	class SceneGraphComponent : public Component {
 		RTTI_DERIVED_CLASS_DECL(SceneGraphComponent, Component);
 	public:
-		SceneGraphComponent() : m_parent(nullptr) {}
+		SceneGraphComponent() : Component(), m_parent(nullptr) {}
 		SceneGraphComponent(SceneGraphComponent* parent)
 			: m_parent(parent) {
 		}
+		~SceneGraphComponent();
 
 		void setParent(SceneGraphComponent* parent);
 		void addChild(SceneGraphComponent* child);
 		void setParent(Entity parent);
 		void addChild(Entity child);
+		void sortChildrenBasedOnIndex();
 
 		const std::vector<SceneGraphComponent*>& getChildren() const { return m_children; }
 
@@ -39,11 +36,10 @@ namespace emerald {
 		bool m_isOpenInHierarchy = false; //This most definitely should not be stored here but it's the only way we can keep the HierarchyTree immediate mode...
 		SceneGraphComponent* m_parent = nullptr;
 		std::vector<SceneGraphComponent*> m_children;
-		uint32_t m_id = 0;
-
-		void removeChild(SceneGraphComponent* child) {
-			m_children.erase(std::remove(m_children.begin(), m_children.end(), child), m_children.end());
-		}
+		uint32_t m_id = 0; //For ImGui
+		uint32_t m_treeIndex = 0; //Index in the entire tree
+		uint32_t m_index = 0; //Index in the parent's children vector
+		void removeChild(SceneGraphComponent* child);
 	};
 
 	class UUIDComponent : public Component {
@@ -53,7 +49,7 @@ namespace emerald {
 
 		UUIDComponent() = default;
 		UUIDComponent(UUIDComponent* uuid)
-			: m_uuid(uuid->m_uuid) {
+			: Component(), m_uuid(uuid->m_uuid) {
 		}
 	};
 
@@ -63,7 +59,7 @@ namespace emerald {
 		std::string m_name;
 
 		NameComponent(const std::string& name)
-			: m_name(name) {
+			: Component(), m_name(name) {
 		}
 	};
 
