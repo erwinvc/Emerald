@@ -6,7 +6,7 @@ template <typename T, typename = void>
 struct has_getClassType : std::false_type {};
 
 template <typename T>
-struct has_getClassType<T, std::void_t<decltype(T::getClassType())>> : std::true_type {};
+struct has_getClassType<T, std::void_t<decltype(T::getStaticClassType())>> : std::true_type {};
 
 
 #define ASSERT(x, ...) \

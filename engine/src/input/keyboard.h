@@ -140,6 +140,7 @@ namespace emerald {
 		static bool keyUp(Key key);
 		static bool keyJustDown(Key key);
 		static bool keyJustUp(Key key);
+		static bool keyRepeat(Key key);
 
 		static bool keyMod(KeyMod mod);
 

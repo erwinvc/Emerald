@@ -53,16 +53,54 @@ namespace emerald {
 	void HierarchyTree::handleDelete() {
 		if (m_isFocused && Keyboard::keyJustDown(Key::DEL)) {
 			auto selectedNodes = getSelectedNodes();
-			for (auto& node : selectedNodes) {
-				SceneManager::getActiveScene()->getECS().destroyEntity(node->m_entity);
-			}
+			auto action = UndoRedo::createAction<void>("Delete entities");
+
+			// Capture the state of the entities before deleting them
+			//for (auto& node : selectedNodes) {
+			//	if (!node) continue;
+			//
+			//	// Get the entity and its components
+			//	uint32_t entityID = node->m_entity;
+			//	SceneGraphComponent* parent = node->m_parent;
+			//	auto originalPosition = utils::getIndexInVector(parent->m_children, node);
+			//	std::vector<Ref<Component>> components = SceneManager::getActiveScene()->getECS().getAllComponentsForEntity(entityID);
+			//
+			//	// Undo: Restore the entity
+			//	action->addUndoAction([entityID, parentEntity = parent->m_entity, originalPosition, components]() {
+			//		Ref<Scene> scene = SceneManager::getActiveScene();
+			//		Entity restoredEntity = scene->getECS().createEntityFromID(entityID);  // Restore entity with original ID
+			//		SceneGraphComponent* parentNode = parentEntity == 0 ? scene->getRootNode() : scene->getECS().getComponent<SceneGraphComponent>(parentEntity);
+			//		SceneGraphComponent* restoredNode = scene->getECS().getComponent<SceneGraphComponent>(restoredEntity);
+			//
+			//		// Restore entity's position in the hierarchy
+			//		restoredNode->setParent(nullptr);
+			//		parentNode->m_children.insert(parentNode->m_children.begin() + originalPosition, restoredNode);
+			//		restoredNode->m_parent = parentNode;
+			//
+			//		// Restore components
+			//		for (auto& component : components) {
+			//			scene->getECS().addComponent(restoredEntity, component);
+			//		}
+			//	});
+			//
+			//	// Redo: Destroy the entity
+			//	action->addDoAction([entityID]() {
+			//		SceneManager::getActiveScene()->getECS().destroyEntity(entityID);
+			//	});
+			//
+			//	// Perform the initial delete
+			//	SceneManager::getActiveScene()->getECS().destroyEntity(entityID);
+			//}
+
+			// Commit the action to the undo/redo stack
+			UndoRedo::commitAction(action);
 		}
 	}
 
 	void HierarchyTree::collectNodes(SceneGraphComponent* node) {
 		uint32_t index = 0;
 
-		std::function<void(SceneGraphComponent*)> _collectNodes = [&](SceneGraphComponent* node) {
+		static std::function<void(SceneGraphComponent*)> _collectNodes = [&](SceneGraphComponent* node) {
 			m_nodes.push_back(node);
 			node->m_treeIndex = index++;
 			node->m_id = ImGui::GetID((void*)(intptr_t)node);
@@ -75,6 +113,7 @@ namespace emerald {
 	}
 
 	void HierarchyTree::renderNode(Scene* scene, SceneGraphComponent* node, const char* searchString, int depth) {
+		if (!node) return;
 		bool isRootNode = depth == 0;
 		NameComponent* nameComponent = scene->getECS().getComponent<NameComponent>(node->m_entity);
 

@@ -28,6 +28,8 @@ namespace emerald {
 				s_keyStates[key] = InputState::DOWN;
 			} else if (s_keyStates[key] == InputState::JUSTUP) {
 				s_keyStates[key] = InputState::UP;
+			} else if (s_keyStates[key] == InputState::REPEAT) {
+				s_keyStates[key] = InputState::DOWN;
 			}
 		}
 
@@ -37,13 +39,15 @@ namespace emerald {
 			s_eventQueue.pop();
 
 			if (event.action == GLFW_PRESS) {
-				if (s_keyStates[event.key] != InputState::DOWN) {
+				if (s_keyStates[event.key] != InputState::DOWN && s_keyStates[event.key] != InputState::REPEAT) {
 					s_keyStates[event.key] = InputState::JUSTDOWN;
 				}
 			} else if (event.action == GLFW_RELEASE) {
-				if (s_keyStates[event.key] == InputState::DOWN || s_keyStates[event.key] == InputState::JUSTDOWN) {
+				if (s_keyStates[event.key] == InputState::DOWN || s_keyStates[event.key] == InputState::JUSTDOWN || s_keyStates[event.key] == InputState::REPEAT) {
 					s_keyStates[event.key] = InputState::JUSTUP;
 				}
+			} else if (event.action == GLFW_REPEAT) {
+				s_keyStates[event.key] = InputState::REPEAT;
 			}
 
 			// Update modifier key states
@@ -55,7 +59,7 @@ namespace emerald {
 	}
 
 	bool Keyboard::keyDown(Key key) {
-		return s_keyStates[(uint32_t)key] == InputState::DOWN || s_keyStates[(uint32_t)key] == InputState::JUSTDOWN;
+		return s_keyStates[(uint32_t)key] == InputState::DOWN || s_keyStates[(uint32_t)key] == InputState::JUSTDOWN || s_keyStates[(uint32_t)key] == InputState::REPEAT;
 	}
 
 	bool Keyboard::keyUp(Key key) {
@@ -68,6 +72,10 @@ namespace emerald {
 
 	bool Keyboard::keyJustUp(Key key) {
 		return s_keyStates[(uint32_t)key] == InputState::JUSTUP;
+	}
+
+	bool Keyboard::keyRepeat(Key key) {
+		return s_keyStates[(uint32_t)key] == InputState::REPEAT;
 	}
 
 	bool Keyboard::keyMod(KeyMod mod) {

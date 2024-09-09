@@ -9,29 +9,29 @@ namespace emerald {
 		return newID;
 	}
 
-	uint32_t EntityComponentSystem::createEntity(uint32_t index, const std::string& name, bool isRootEntity) {
-		m_entities.push_back(index);
+	uint32_t EntityComponentSystem::createEntityFromID(uint32_t ID, const std::string& name, bool isRootEntity) {
+		m_entities.push_back(ID);
 
-		addComponent<UUIDComponent>(index);
-		addComponent<TransformComponent>(index);
-		addComponent<NameComponent>(index, name);
-		SceneGraphComponent* sgc = addComponent<SceneGraphComponent>(index);
-		if (!isRootEntity) SceneManager::getActiveScene()->getRootNode()->addChild(sgc);
-		return Entity(index);
+		addComponent<UUIDComponent>(ID);
+		addComponent<TransformComponent>(ID);
+		addComponent<NameComponent>(ID, name);
+		WeakRef<SceneGraphComponent> sgc = addComponent<SceneGraphComponent>(ID);
+		if (!isRootEntity) SceneManager::getActiveScene()->getRootNode()->addChild(sgc.lock().raw());
+		return Entity(ID);
 	}
 
 	uint32_t EntityComponentSystem::createEntity(const std::string& name, bool isRootEntity) {
-		return createEntity(getFreeEntityIndex(), name, isRootEntity);
+		return createEntityFromID(getFreeEntityIndex(), name, isRootEntity);
 	}
 
 	RTTIType EntityComponentSystem::getComponentRTTIType() const {
-		return Component::getClassType();
+		return Component::getStaticClassType();
 	};
 
 	bool EntityComponentSystem::isRemovableComponent(RTTIType type) const {
-		return !(type == UUIDComponent::getClassType() ||
-			type == NameComponent::getClassType() ||
-			type == TransformComponent::getClassType() ||
-			type == SceneGraphComponent::getClassType());
+		return !(type == UUIDComponent::getStaticClassType() ||
+			type == NameComponent::getStaticClassType() ||
+			type == TransformComponent::getStaticClassType() ||
+			type == SceneGraphComponent::getStaticClassType());
 	}
 }

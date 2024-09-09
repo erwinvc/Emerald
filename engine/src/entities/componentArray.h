@@ -53,14 +53,14 @@ namespace emerald {
 		std::unordered_map<size_t, uint32_t> indexToEntityMap;
 
 		template<typename... Args>
-		T* insert(uint32_t entity, Args&&... args) {
+		WeakRef<T> insert(uint32_t entity, Args&&... args) {
 			if (!entity) return nullptr;
 			assert(entityToIndexMap.find(entity) == entityToIndexMap.end() && "Component added to the same entity more than once");
 			size_t newIndex = components.size();
 			components.emplace_back(Ref<T>::create(std::forward<Args>(args)...));
 			entityToIndexMap[entity] = newIndex;
 			indexToEntityMap[newIndex] = entity;
-			return components.back().raw();
+			return components.back();
 		}
 
 		void removeComponent(uint32_t entity) override {

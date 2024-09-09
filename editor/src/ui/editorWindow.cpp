@@ -315,7 +315,7 @@ namespace emerald {
 			if (ImGui::EmeraldButton("Add Entity", ImVec2(-FLT_MIN, 0))) {
 				auto action = UndoRedo::createAction<Entity>("Add Entity");
 				uint32_t freeIndex = SceneManager::getActiveScene()->getECS().getFreeEntityIndex();
-				action->addDoAction([freeIndex](Entity& entity) {entity = SceneManager::getActiveScene()->getECS().createEntity(freeIndex, "Entity"); });
+				action->addDoAction([freeIndex](Entity& entity) {entity = SceneManager::getActiveScene()->getECS().createEntityFromID(freeIndex, "Entity"); });
 				action->addUndoAction([](Entity& entity) {SceneManager::getActiveScene()->getECS().destroyEntity(entity); });
 				UndoRedo::commitAction(action);
 			}

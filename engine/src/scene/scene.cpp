@@ -30,10 +30,6 @@ namespace emerald {
 		Entity::create("test8");
 		Entity::create("test9");
 		Entity::create("test10");
-		//test1.getComponent<SceneGraphComponent>().setChild(test2);
-		//test2.getComponent<SceneGraphComponent>().setChild(test3);
-		//test3.getComponent<SceneGraphComponent>().setChild(test4);
-		//test3.getComponent<SceneGraphComponent>().setChild(test5);
 
 		ModelLoader loader("I:\\Development\\C++\\EmeraldOldStuff\\res\\sponza\\sponza.obj");
 		for (auto& mesh : loader.load()) {
@@ -41,8 +37,6 @@ namespace emerald {
 			SceneGraphComponent* r = m_ecs.getComponent<SceneGraphComponent>(e);
 			SceneGraphComponent* sponzaParent = m_ecs.getComponent<SceneGraphComponent>(sponza);
 			m_ecs.addComponent<MeshRendererComponent>(e, mesh);
-			auto  a = sponzaParent->getParentClassType();
-			auto  b = SceneGraphComponent::getParentClassType();
 			sponzaParent->addChild(r);
 		}
 	}

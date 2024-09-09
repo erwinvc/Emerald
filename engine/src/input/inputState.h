@@ -4,5 +4,6 @@ enum class InputState {
 	UP,
 	DOWN,
 	JUSTUP, 
-	JUSTDOWN
+	JUSTDOWN,
+	REPEAT
 };
