@@ -17,8 +17,8 @@ namespace emerald {
 		}
 
 		uint32_t getFreeEntityIndex();
-		uint32_t createEntity(uint32_t index, const std::string& name);
-		uint32_t createEntity(const std::string& name);
+		uint32_t createEntity(uint32_t index, const std::string& name, bool isRootEntity = false);
+		uint32_t createEntity(const std::string& name, bool isRootEntity = false);
 
 		void destroyEntity(uint32_t entity) {
 			//Recursively destroy children

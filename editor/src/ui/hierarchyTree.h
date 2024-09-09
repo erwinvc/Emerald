@@ -21,8 +21,8 @@ namespace emerald {
 		ImGuiTreeNodeFlags prepareTreeNodeFlags(SceneGraphComponent* node, bool isRootNode);
 		ImVector<SceneGraphComponent*> getSelectedNodes();
 
-		void addNodeToParent(SceneGraphComponent* node, SceneGraphComponent* parent, bool insertBefore, SceneGraphComponent* beforeNode);
-		bool isAncestor(SceneGraphComponent* possibleParent, SceneGraphComponent* node);
+		static void addNodeToParent(SceneGraphComponent* node, SceneGraphComponent* parent, bool insertBefore, SceneGraphComponent* beforeNode);
+		static bool isAncestor(SceneGraphComponent* possibleParent, SceneGraphComponent* node);
 
 		void onDrag(SceneGraphComponent* node);
 		void onDrop(SceneGraphComponent* node, bool insertBefore, SceneGraphComponent* beforeNode, bool open);

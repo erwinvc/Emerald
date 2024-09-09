@@ -34,8 +34,8 @@ namespace emerald {
 		}
 
 		void undo() override {
-			for (auto& action : m_undoActions) {
-				action(m_userData);
+			for (auto it = m_undoActions.rbegin(); it != m_undoActions.rend(); ++it) {
+				(*it)(m_userData);  // Execute each undo action in reverse order
 			}
 		}
 
@@ -73,8 +73,8 @@ namespace emerald {
 		}
 
 		void undo() override {
-			for (auto& action : m_undoActions) {
-				action();
+			for (auto it = m_undoActions.rbegin(); it != m_undoActions.rend(); ++it) {
+				(*it)();  // Execute each undo action in reverse order
 			}
 		}
 

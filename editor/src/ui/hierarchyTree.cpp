@@ -77,7 +77,7 @@ namespace emerald {
 	void HierarchyTree::renderNode(Scene* scene, SceneGraphComponent* node, const char* searchString, int depth) {
 		bool isRootNode = depth == 0;
 		NameComponent* nameComponent = scene->getECS().getComponent<NameComponent>(node->m_entity);
-		const std::string& name = (isRootNode ? scene->getName() : nameComponent->m_name);
+
 		if (!isRootNode && ImGui::IsDragDropActive()) {
 			drawInsertBeforeDropTarget();
 			onDrop(node->m_parent, true, node, false);
@@ -95,7 +95,7 @@ namespace emerald {
 			ImGui::SetNextItemSelectionUserData(utils::getIndexInVector(m_nodes, node));
 		}
 
-		node->m_isOpenInHierarchy = ImGui::TreeNodeEx((void*)(intptr_t)node->m_id, flags, name.c_str());
+		node->m_isOpenInHierarchy = ImGui::TreeNodeEx((void*)(intptr_t)node->m_id, flags, nameComponent->m_name.c_str());
 
 		if (ImGui::IsItemFocused()) {
 			m_lastSelectedNode = node;
@@ -195,42 +195,47 @@ namespace emerald {
 
 				auto action = UndoRedo::createAction<void>("Move nodes");
 
-				// Capture the original state before making changes
 				for (auto& droppedNode : selectedNodes) {
 					if (droppedNode && node && node != droppedNode) {
 						if (!isAncestor(droppedNode, node)) {
-							addNodeToParent(droppedNode, node, insertBefore, beforeNode);
-							// Capture the original parent and position of the node
 							SceneGraphComponent* originalParent = droppedNode->m_parent;
 							auto originalPosition = utils::getIndexInVector(originalParent->m_children, droppedNode);
 
-							action->addUndoAction([droppedNode, originalParent, originalPosition]() {
-								droppedNode->setParent(nullptr);
-								if (originalParent) {
-									originalParent->m_children.push_back(droppedNode);
-									droppedNode->m_parent = originalParent;
-									originalParent->sortChildrenBasedOnIndex();
-								}
-							});
-							//addNodeToParent(droppedNode, node, insertBefore, beforeNode);
+							SceneGraphComponent* originalPrevSibling = originalPosition > 0 ? originalParent->m_children[originalPosition - 1] : nullptr;
+							SceneGraphComponent* originalNextSibling = (originalPosition < originalParent->m_children.size() - 1) ? originalParent->m_children[originalPosition + 1] : nullptr;
 
-							uint32_t droppedNodeEntity = droppedNode->m_entity;
-							uint32_t nodeEntity = node->m_entity;
+							addNodeToParent(droppedNode, node, insertBefore, beforeNode);
+
 							uint32_t beforeNodeEntity = beforeNode ? beforeNode->m_entity : Entity();
-							action->addDoAction([this, droppedNodeEntity, nodeEntity, insertBefore, beforeNodeEntity]() {
+
+							action->addUndoAction([droppedNodeEntity = droppedNode->m_entity, originalParentEntity = originalParent->m_entity, originalPrevSibling, originalNextSibling]() {
 								SceneGraphComponent* droppedNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
-								SceneGraphComponent* node1 = nodeEntity == 0 ? SceneManager::getActiveScene()->getRootNode() : SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(nodeEntity);
-								SceneGraphComponent* beforeNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(beforeNodeEntity);
+								SceneGraphComponent* originalParent1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(originalParentEntity);
+
+								droppedNode1->setParent(nullptr);
+
+								if (originalPrevSibling) {
+									auto it = std::find(originalParent1->m_children.begin(), originalParent1->m_children.end(), originalPrevSibling);
+									originalParent1->m_children.insert(it + 1, droppedNode1); //insert after the previous sibling
+								} else if (originalNextSibling) {
+									auto it = std::find(originalParent1->m_children.begin(), originalParent1->m_children.end(), originalNextSibling);
+									originalParent1->m_children.insert(it, droppedNode1); //insert before the next sibling
+								} else {
+									originalParent1->m_children.push_back(droppedNode1); //insert at the end if no siblings
+								}
+								droppedNode1->m_parent = originalParent1;
+							});
+
+							action->addDoAction([droppedNodeEntity = droppedNode->m_entity, nodeEntity = node->m_entity, insertBefore, beforeNodeEntity]() {
+								SceneGraphComponent* droppedNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
+								SceneGraphComponent* node1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(nodeEntity);
+								SceneGraphComponent* beforeNode1 = beforeNodeEntity != 0 ? SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
 								addNodeToParent(droppedNode1, node1, insertBefore, beforeNode1);
 							});
-
-							//addNodeToParent(droppedNode, node, insertBefore, beforeNode);
-							//Log::info("b {} {} {}", (uint64_t)droppedNode, (uint64_t)node, (uint64_t)beforeNode);
 						}
 					}
 				}
 
-				// Finalize and commit the action to the undo/redo stack
 				UndoRedo::commitAction(action);
 
 				if (open) node->m_isOpenInHierarchy = true;

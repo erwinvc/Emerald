@@ -9,19 +9,19 @@ namespace emerald {
 		return newID;
 	}
 
-	uint32_t EntityComponentSystem::createEntity(uint32_t index, const std::string& name) {
+	uint32_t EntityComponentSystem::createEntity(uint32_t index, const std::string& name, bool isRootEntity) {
 		m_entities.push_back(index);
 
 		addComponent<UUIDComponent>(index);
 		addComponent<TransformComponent>(index);
 		addComponent<NameComponent>(index, name);
 		SceneGraphComponent* sgc = addComponent<SceneGraphComponent>(index);
-		SceneManager::getActiveScene()->getRootNode()->addChild(sgc);
+		if (!isRootEntity) SceneManager::getActiveScene()->getRootNode()->addChild(sgc);
 		return Entity(index);
 	}
 
-	uint32_t EntityComponentSystem::createEntity(const std::string& name) {
-		return createEntity(getFreeEntityIndex(), name);
+	uint32_t EntityComponentSystem::createEntity(const std::string& name, bool isRootEntity) {
+		return createEntity(getFreeEntityIndex(), name, isRootEntity);
 	}
 
 	RTTIType EntityComponentSystem::getComponentRTTIType() const {
