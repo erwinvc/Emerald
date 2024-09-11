@@ -41,4 +41,5 @@ namespace ImGui {
 	void PopEmeraldPopupStyle();
 	void BorderSeparator(uint32_t extraYSpacing = 1);
 	bool EmeraldButton(const char* label, const ImVec2& size = ImVec2(0, 0));
+	bool ToggleButton(const char* label, bool* v, const ImVec2& size = ImVec2(0, 0));
 }

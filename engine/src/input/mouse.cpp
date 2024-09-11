@@ -1,5 +1,6 @@
 #include "eepch.h"
 #include "mouse.h"
+#include <queue>
 
 namespace emerald {
 	enum class MouseEventType {

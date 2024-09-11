@@ -172,14 +172,14 @@ namespace emerald {
 		ImGui::End();
 	}
 
-	void drawEditor(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
+	void EditorWindow::drawEditor(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
 			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav |
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar;
 
 		const bool maximized = App->getWindow()->isMaximized();
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, maximized ? ImVec2(4.0f, 0.0f) : ImVec2(0, 0.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, maximized ? ImVec2(4.0f, 4.0f) : ImVec2(0.0f, 0.0f));
 		ImGui::SetNextWindowPos(pos);
 		ImGui::SetNextWindowSize(size);
 		ImGui::SetNextWindowViewport(viewportID);
@@ -203,15 +203,15 @@ namespace emerald {
 			ImGuiID dockspace_main_id = dockspace_id;
 
 			ImGuiID right = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 0.25f, nullptr, &dockspace_main_id);
-			ImGuiID left = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Left, 0.25f, nullptr, &dockspace_main_id);
 			ImGuiID down = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_main_id);
+			ImGuiID left = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Left, 0.25f, nullptr, &dockspace_main_id);
 
 			ImGui::DockBuilderDockWindow("Inspector", right);
 			ImGui::DockBuilderDockWindow("Debug", right);
 			ImGui::DockBuilderDockWindow("Dear ImGui Demo", right);
-			ImGui::DockBuilderDockWindow("Hierarchy", left);
-			ImGui::DockBuilderDockWindow("Assets", down);
 			ImGui::DockBuilderDockWindow("Log", down);
+			ImGui::DockBuilderDockWindow("Assets", down);
+			ImGui::DockBuilderDockWindow("Hierarchy", left);
 			ImGui::DockBuilderDockWindow("Viewport", dockspace_main_id);
 			ImGui::DockBuilderFinish(dockspace_id);
 		}
@@ -222,7 +222,7 @@ namespace emerald {
 	}
 
 	//Windows
-	void drawViewport() {
+	void EditorWindow::drawViewport() {
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoNav;
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
@@ -259,7 +259,7 @@ namespace emerald {
 		ImGui::PopStyleVar();
 	}
 
-	void drawWindows() {
+	void EditorWindow::drawWindows() {
 		Ref<Scene> activeScene = SceneManager::getActiveScene();
 		bool sceneOpen = activeScene != nullptr;
 		ImGui::BeginDisabled(!sceneOpen);
@@ -272,14 +272,10 @@ namespace emerald {
 		}
 		ImGui::End();
 
-		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		if (ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoNav)) {
-			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
-		}
-		ImGui::End();
+		m_logPanel.draw();
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		if (ImGui::Begin("Log", nullptr, ImGuiWindowFlags_NoNav)) {
+		if (ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoNav)) {
 			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
 		}
 		ImGui::End();

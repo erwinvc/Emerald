@@ -36,7 +36,7 @@ namespace emerald {
 		collectNodes(SceneManager::getActiveScene()->getRootNode());
 
 		// Begin multi-selection and render nodes
-		auto* multiSelectIO = ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_None, m_imGuiSelection.Size, m_nodes.size());
+		auto* multiSelectIO = ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_None, (int)m_imGuiSelection.Size, (int)m_nodes.size());
 		m_imGuiSelection.ApplyRequests(multiSelectIO);
 		renderNode(scene.raw(), SceneManager::getActiveScene()->getRootNode(), searchString);
 		onDrop(SceneManager::getActiveScene()->getRootNode(), true, SceneManager::getActiveScene()->getRootNode(), true);

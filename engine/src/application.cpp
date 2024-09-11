@@ -20,6 +20,8 @@
 #include "util/random.h"
 #include <iostream>
 #include "util/uuidGenerator.h"
+#include "util/time.h"
+#include "util/threading/threadManager.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;

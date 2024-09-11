@@ -2,6 +2,7 @@
 #include "uuidGenerator.h"
 #include "random.h"
 #include "time.h"
+#include <mutex>
 
 namespace emerald {
 	static std::atomic_uint64_t s_counter;
@@ -14,7 +15,7 @@ namespace emerald {
 		static std::once_flag flag;
 		std::call_once(flag, []() {
 			do {
-				s_seed = time::getSystemTime();
+				s_seed = (uint32_t)Time::getTicks();
 				s_random.reset(s_seed);
 			} while (!s_seed);
 			s_clockSeq = (uint16_t)s_random.getIntInRange(0, 0x3FFF);

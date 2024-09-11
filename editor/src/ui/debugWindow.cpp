@@ -67,7 +67,7 @@ namespace emerald {
 
 		float newSample = Metrics::getElapsedTime(metric);
 
-		data.m_scrollingBuffer.AddPoint(frame, newSample);
+		data.m_scrollingBuffer.AddPoint((float)frame, newSample);
 
 		data.m_samples[data.m_index] = newSample;
 		data.m_index = (data.m_index + 1) % maxRenderSamples;
@@ -122,7 +122,7 @@ namespace emerald {
 			if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 300), ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMenus)) {
 				ImPlot::SetupAxes(nullptr, "ms", flags);
 				//ImPlot::SetupLegend(ImPlotLocation_NorthWest, ImPlotLegendFlags_Horizontal);
-				ImPlot::SetupAxisLimits(ImAxis_X1, App->getFrameCount() - (float)maxRenderSamples, App->getFrameCount(), ImGuiCond_Always);
+				ImPlot::SetupAxisLimits(ImAxis_X1, App->getFrameCount() - (float)maxRenderSamples, (float)App->getFrameCount(), ImGuiCond_Always);
 				ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
 				ImPlot::SetupAxisLimits(ImAxis_Y1, 0.001f, 50, ImGuiCond_Always);
 				ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);

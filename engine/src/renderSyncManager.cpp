@@ -1,6 +1,7 @@
 #include "eepch.h"
 #include "renderSyncManager.h"
 #include "imguiProfiler/Profiler.h"
+#include "util/threading/threadManager.h"
 
 namespace emerald {
 	static bool s_shutdown = false;

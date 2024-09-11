@@ -1,14 +1,17 @@
 #pragma once
-#include "datastructures/asyncQueue.h"
-#include <consoleapi2.h>
 #include <format>
 #include <mutex>
-#include <queue>
-#include <fstream>
-#include "threading/threadManager.h"
 
 namespace emerald {
-	class Thread;
+#define FOREGROUND_BLUE      0x0001 
+#define FOREGROUND_GREEN     0x0002 
+#define FOREGROUND_RED       0x0004 
+#define FOREGROUND_INTENSITY 0x0008 
+#define BACKGROUND_BLUE      0x0010 
+#define BACKGROUND_GREEN     0x0020 
+#define BACKGROUND_RED       0x0040 
+#define BACKGROUND_INTENSITY 0x0080 
+#undef ERROR
 
 	enum class ConsoleColor {
 		BLACK = 0,
@@ -32,9 +35,16 @@ namespace emerald {
 
 	enum class LogLevel {
 		FATAL = 0,
-		FAIL,
+		ERROR,
 		WARN,
 		INFO
+	};
+
+	struct LogMessage {
+		std::string m_message = "";
+		std::string m_stackTrace = "";
+		std::string m_timestamp = "";
+		LogLevel m_level = LogLevel::INFO;
 	};
 
 	/*Non-blocking logger*/
@@ -43,59 +53,52 @@ namespace emerald {
 		struct QueuedMessage {
 			ConsoleColor m_color;
 			std::string m_message;
-			std::string m_type;
+			std::string m_stackTrace;
+			LogLevel m_level;
 			std::chrono::system_clock::time_point m_time;
-			QueuedMessage(ConsoleColor color, std::string message, std::string type, std::chrono::system_clock::time_point time) : m_color(color), m_message(message), m_type(type), m_time(time) {}
-			QueuedMessage() : m_color(ConsoleColor::WHITE), m_time(std::chrono::system_clock::now()) {}
+
+			QueuedMessage(ConsoleColor color, std::string message, std::string stackTrace, LogLevel level, std::chrono::system_clock::time_point time) 
+				: m_color(color), m_message(message), m_stackTrace(stackTrace), m_level(level), m_time(time) {}
+			QueuedMessage() 
+				: m_color(ConsoleColor::WHITE), m_time(std::chrono::system_clock::now()), m_level(LogLevel::INFO) {}
 		};
 
 		static void initialize(const char* title);
-		static void logMessage(LogLevel level, const std::string& type, const std::string& message);
+		static void logMessage(LogLevel level, const std::string& message);
 		static void forceEmptyQueue();
-		static void cleanup();
+		static void shutdown();
+
+		// TODO: This really needs a rewrite. Thread safety should not be handled by the caller.
+		static std::vector<LogMessage>& getMessages();
+		static void clearMessages();
+		static std::mutex& getMessageMutex();
 
 		template<typename... Args>
 		static void info(std::format_string<Args...> format, Args&&... args) {
-			logMessage(LogLevel::INFO, "[Info]", std::format(format, std::forward<Args>(args)...));
+			logMessage(LogLevel::INFO, std::format(format, std::forward<Args>(args)...));
 		}
 
 		template<typename... Args>
 		static void warn(std::format_string<Args...> format, Args&&... args) {
-			logMessage(LogLevel::WARN, "[Warn]", std::format(format, std::forward<Args>(args)...));
+			logMessage(LogLevel::WARN, std::format(format, std::forward<Args>(args)...));
 		}
 
 		template<typename... Args>
 		static void error(std::format_string<Args...> format, Args&&... args) {
-			logMessage(LogLevel::FAIL, "[Fail]", std::format(format, std::forward<Args>(args)...));
+			logMessage(LogLevel::ERROR, std::format(format, std::forward<Args>(args)...));
 		}
 
 		template<typename... Args>
 		static void fatal(std::format_string<Args...> format, Args&&... args) {
-			logMessage(LogLevel::FATAL, "[Fatal]", std::format(format, std::forward<Args>(args)...));
+			logMessage(LogLevel::FATAL, std::format(format, std::forward<Args>(args)...));
 			Log::forceEmptyQueue();
 			__debugbreak();
 		}
 
 	private:
-		static bool s_initialized;
-		static bool s_shutdown;
-		static LogLevel s_currentLogLevel;
-
-		static std::string s_logPath;
-		static std::ofstream m_logFile;
-
-		static HANDLE s_outputHandle;
-		static Thread* s_outputThread;
-		static CONSOLE_SCREEN_BUFFER_INFO s_screenBuffer;
-
-		static AsyncQueue<Log::QueuedMessage> m_queue;
-
 		static void setTextColor(ConsoleColor color);
 		static std::string getTimeAsString(std::chrono::system_clock::time_point currentTime);
 		static void handleQueue();
 		static void processMessage(const QueuedMessage& message);
-		static void setLogLevel(LogLevel level) {
-			s_currentLogLevel = level;
-		}
 	};
 }

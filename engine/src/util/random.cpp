@@ -2,6 +2,7 @@
 #include "random.h"
 #include "time.h"
 #include <random>
+#include <thread>
 
 namespace emerald {
 	Random& StaticRandom::getThreadLocalRandom() {

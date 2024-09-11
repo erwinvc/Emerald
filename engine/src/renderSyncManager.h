@@ -1,4 +1,5 @@
 #pragma once
+#include <mutex>
 
 namespace emerald {
 	using RenderCommand = std::function<void()>;

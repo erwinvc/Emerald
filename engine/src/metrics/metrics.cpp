@@ -1,13 +1,13 @@
 #include "eepch.h"
 #include "metrics.h"
-#include "util/timer.h"
 #include "glError.h"
 #include "application.h"
 #include "util/threading/threadManager.h"
+#include "util/time.h"
 
 namespace emerald {
 	struct TimerData {
-		HighResolutionClock::time_point m_startTime;
+		float m_startTime;
 		uint32_t m_frame = 0; //The frame index this measurement was taken
 		float m_elapsedTime = 0.0;
 	};
@@ -26,7 +26,7 @@ namespace emerald {
 
 			GL(glBeginQuery(GL_TIME_ELAPSED, s_queryID));
 		} else {
-			s_timers[(uint32_t)timer].m_startTime = std::chrono::high_resolution_clock::now();
+			s_timers[(uint32_t)timer].m_startTime = Time::getTickTimeMs();
 		}
 	}
 
@@ -40,8 +40,8 @@ namespace emerald {
 			GL(glGetQueryObjectui64v(s_queryID, GL_QUERY_RESULT, &gpuTimeElapsed));
 			s_timers[(uint32_t)timer].m_elapsedTime = gpuTimeElapsed / 1000000.0f;
 		} else {
-			auto endTime = std::chrono::high_resolution_clock::now();
-			s_timers[(uint32_t)timer].m_elapsedTime = ChronoMilli(endTime - s_timers[(uint32_t)timer].m_startTime).count();
+			auto endTime = Time::getTickTimeMs();
+			s_timers[(uint32_t)timer].m_elapsedTime = endTime - s_timers[(uint32_t)timer].m_startTime;
 		}
 	}
 

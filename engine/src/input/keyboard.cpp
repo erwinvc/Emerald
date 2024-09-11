@@ -1,6 +1,7 @@
 #include "eepch.h"
 #include "keyboard.h"
 #include "inputState.h"
+#include <queue>
 
 namespace emerald {
 	struct KeyEvent {

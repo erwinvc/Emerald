@@ -21,7 +21,7 @@ namespace emerald::utils {
 		auto it = find(v.begin(), v.end(), K);
 
 		if (it != v.end()) {
-			return it - v.begin();
+			return (uint32_t)(it - v.begin());
 		} else {
 			return -1;
 		}

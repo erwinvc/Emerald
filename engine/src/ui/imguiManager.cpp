@@ -52,9 +52,9 @@ namespace emerald {
 		colors[ImGuiCol_CheckMark] = Color(0xD6D6D6FF);
 		colors[ImGuiCol_SliderGrab] = ImVec4(0.29f, 0.29f, 0.29f, 1.0f);
 		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.41f, 0.41f, 0.41f, 1.0f);
-		colors[ImGuiCol_Button] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
-		colors[ImGuiCol_ButtonHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.0f);
-		colors[ImGuiCol_ButtonActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.0f);
+		colors[ImGuiCol_Button] = ImVec4(0.3f, 0.3f, 0.3f, 1.00f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
 		colors[ImGuiCol_Header] = ImVec4(0.29f, 0.29f, 0.29f, 0.78f);
 		colors[ImGuiCol_HeaderHovered] = ImVec4(0.29f, 0.29f, 0.29f, 1.0f);
 		colors[ImGuiCol_HeaderActive] = ImVec4(0.29f, 0.29f, 0.29f, 1.0f);
@@ -114,6 +114,9 @@ namespace emerald {
 		style->TabBarBorderSize = 1;
 		style->FrameBorderSize = 1;
 		style->ScrollbarRounding = 2;
+		style->HoverDelayNormal = 0.5f;
+		style->HoverDelayShort = 0.5f;
+		style->HoverStationaryDelay = 0.5f;
 	}
 
 	void ImGuiManager::initialize(Ref<Window> window) {
@@ -386,5 +389,27 @@ namespace ImGui {
 		bool toRet = ImGui::Button(label, size);
 		ImGui::PopStyleVar();
 		return toRet;
+	}
+
+	bool ToggleButton(const char* label, bool* v, const ImVec2& size_arg) {
+		ImVec4 inactiveColor = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+		ImVec4 activeColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+		ImVec4 buttonColor = *v ? activeColor : inactiveColor;
+		ImVec4 buttonClickColor = *v ? inactiveColor : activeColor;
+		ImVec4 buttonHoverColor = *v ? buttonColor : ImVec4(buttonColor.x + 0.025f, buttonColor.y + 0.025f, buttonColor.z + 0.025f, 1.0f);
+
+		ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, buttonHoverColor);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, buttonClickColor);
+
+		bool pressed = ImGui::Button(label, size_arg);
+
+		ImGui::PopStyleColor(3);
+
+		if (pressed) {
+			*v = !(*v);
+		}
+
+		return pressed;
 	}
 }

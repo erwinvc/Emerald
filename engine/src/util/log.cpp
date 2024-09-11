@@ -7,24 +7,26 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
+#include "debug.h"
 
 namespace emerald {
-	bool Log::s_initialized = false;
-	bool Log::s_shutdown = false;
-	LogLevel Log::s_currentLogLevel = LogLevel::INFO;
-	std::string Log::s_logPath = "log.log";
-	std::ofstream Log::m_logFile;
+	static std::mutex s_messageMutex;
+	static HANDLE s_outputHandle = INVALID_HANDLE_VALUE;
+	static std::string s_logPath = "log.log";
+	static std::ofstream s_logFile;
+	static Thread* s_outputThread;
+	static CONSOLE_SCREEN_BUFFER_INFO s_screenBuffer;
+	static AsyncQueue<Log::QueuedMessage> s_messageQueue;
+	static std::vector<LogMessage> s_messages;
 
-	HANDLE Log::s_outputHandle = INVALID_HANDLE_VALUE;
-	Thread* Log::s_outputThread;
-	CONSOLE_SCREEN_BUFFER_INFO Log::s_screenBuffer;
+	static bool s_initialized;
+	static bool s_shutdown;
 
-	AsyncQueue<Log::QueuedMessage> Log::m_queue;
 	/*Retrieve QueuedMessages from the queue (async)*/
 	void Log::handleQueue() {
 		while (!s_shutdown) {
 			static QueuedMessage message;
-			if (m_queue.waitForGet(message)) {
+			if (s_messageQueue.waitForGet(message)) {
 				processMessage(message);
 			}
 		}
@@ -33,7 +35,7 @@ namespace emerald {
 	/*Initialize the non-blocking logger*/
 	void Log::initialize(const char* title) {
 		if (s_initialized) return;
-		m_logFile.open(s_logPath, std::ios_base::app);
+		s_logFile.open(s_logPath, std::ios_base::app);
 
 		AllocConsole();
 		SetConsoleTitleA(title);
@@ -77,48 +79,68 @@ namespace emerald {
 
 	/*Process a QueuedMessage (async)*/
 	void Log::processMessage(const QueuedMessage& message) {
+		static const char* LogLevelStrings[] = { "FATAL", "ERROR", "WARN", "INFO" };
+
 		std::string formattedTime = getTimeAsString(message.m_time);
 
 		std::ostringstream ss;
-		ss << getTimeAsString(message.m_time) << message.m_type << " " << message.m_message << "\n";
+		ss << getTimeAsString(message.m_time) << LogLevelStrings[(uint32_t)message.m_level] << " " << message.m_message << "\n";
 
 		setTextColor(message.m_color);
 		printf("%s", ss.str().c_str());
 
-		if (m_logFile) m_logFile << ss.str();
+		if (s_logFile) s_logFile << ss.str();
+
+		{
+			std::lock_guard<std::mutex> lock(s_messageMutex);  // Lock the mutex to protect the vector
+			s_messages.emplace_back(LogMessage{ message.m_message, message.m_stackTrace, formattedTime, message.m_level });
+		}
 
 		setTextColor(ConsoleColor::WHITE);
 	}
 
-	void Log::logMessage(LogLevel level, const std::string& type, const std::string& message) {
+	void Log::logMessage(LogLevel level, const std::string& message) {
 		if (s_shutdown) return;
-		if (level > s_currentLogLevel) return;
+
 		ConsoleColor color = ConsoleColor::WHITE; // Default color
 		switch (level) {
-			case LogLevel::FAIL: color = ConsoleColor::RED; break;
+			case LogLevel::ERROR: color = ConsoleColor::RED; break;
 			case LogLevel::WARN: color = ConsoleColor::YELLOW; break;
 			case LogLevel::INFO: color = ConsoleColor::WHITE; break;
 		}
-		m_queue.add(std::move(QueuedMessage(color, message, type, std::chrono::system_clock::now())));
+		s_messageQueue.add(std::move(QueuedMessage(color, message, Debug::captureStackTrace(3, 64, false), level, std::chrono::system_clock::now())));
 	}
 
 	void Log::forceEmptyQueue() {
 		s_shutdown = true;
 
-		m_queue.shutdown();
+		s_messageQueue.shutdown();
 		s_outputThread->shutdown();
 
 		QueuedMessage message;
-		while (m_queue.tryToGet(message)) {
+		while (s_messageQueue.tryToGet(message)) {
 			processMessage(message);
 		}
 	}
 
-	void Log::cleanup() {
+	void Log::shutdown() {
 		Log::info("[Console] deallocating...");
-		if (m_logFile.is_open()) m_logFile.close();
+		if (s_logFile.is_open()) s_logFile.close();
 		if (!s_initialized) return;
 		forceEmptyQueue();
 		PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
+	}
+
+	std::vector<LogMessage>& Log::getMessages() {
+		return s_messages;
+	}
+
+	void Log::clearMessages() {
+		std::lock_guard<std::mutex> lock(s_messageMutex);
+		s_messages.clear();
+	}
+
+	std::mutex& Log::getMessageMutex() {
+		return s_messageMutex;
 	}
 }

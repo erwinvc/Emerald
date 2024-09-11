@@ -11771,17 +11771,21 @@ void ImGui::SetTooltipV(const char* fmt, va_list args)
 // Defaults to == ImGuiHoveredFlags_Stationary | ImGuiHoveredFlags_DelayShort when using the mouse.
 void ImGui::SetItemTooltip(const char* fmt, ...)
 {
+	PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
     va_list args;
     va_start(args, fmt);
     if (IsItemHovered(ImGuiHoveredFlags_ForTooltip))
         SetTooltipV(fmt, args);
     va_end(args);
+	PopStyleVar();
 }
 
 void ImGui::SetItemTooltipV(const char* fmt, va_list args)
 {
+	PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
     if (IsItemHovered(ImGuiHoveredFlags_ForTooltip))
         SetTooltipV(fmt, args);
+	PopStyleVar();
 }
 
 

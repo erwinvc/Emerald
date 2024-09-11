@@ -1,14 +1,17 @@
 #pragma once
 #include "emerald.h"
+#include "logPanel.h"
 
 namespace emerald {
 	class EditorWindow {
 	public:
-		EditorWindow();;
+		EditorWindow();
 		~EditorWindow();
 
 		void drawTitlebar(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight);
-
+		void drawEditor(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight);
+		void drawViewport();
+		void drawWindows();
 		void update(Timestep ts);
 		void fixedUpdate(Timestep ts);
 		void onImGuiRender();
@@ -20,5 +23,6 @@ namespace emerald {
 
 	private:
 		Ref<Texture> m_icon;
+		LogPanel m_logPanel;
 	};
 }
