@@ -2,6 +2,7 @@
 #include "components.h"
 #include "scene/sceneManager.h"
 #include "../util/utils.h"
+#include "../util/uuidGenerator.h"
 
 namespace emerald {
 	RTTI_CLASS_DEF(Component);
@@ -11,11 +12,14 @@ namespace emerald {
 	RTTI_CLASS_DEF(UUIDComponent);
 	RTTI_CLASS_DEF(MeshRendererComponent);
 
+	UUIDComponent::UUIDComponent() {
+		m_uuid = UUIDGenerator::createFast();
+	}
+
 	SceneGraphComponent::~SceneGraphComponent() {
 		if (m_parent) m_parent->removeChild(this);
 		for (auto child : m_children) {
 			child->m_parent = nullptr;
-			//SceneManager::getActiveScene()->getECS().destroyEntity(child->m_entity);
 		}
 		m_children.clear();
 	}

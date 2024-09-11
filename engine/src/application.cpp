@@ -17,6 +17,9 @@
 #include "util/timer.h"
 #include "util/timestep.h"
 #include "glfw.h"
+#include "util/random.h"
+#include <iostream>
+#include "util/uuidGenerator.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;

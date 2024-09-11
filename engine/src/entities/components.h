@@ -47,7 +47,7 @@ namespace emerald {
 	public:
 		UUID m_uuid;
 
-		UUIDComponent() = default;
+		UUIDComponent();
 		UUIDComponent(UUIDComponent* uuid)
 			: Component(), m_uuid(uuid->m_uuid) {
 		}

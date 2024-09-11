@@ -4,7 +4,11 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 
 #define WIN32_LEAN_AND_MEAN 
-#include <Windows.h>
+# pragma warning(push)
+# pragma warning(disable: 4668)
+# include <WinSock2.h>
+# include <windows.h>
+# pragma warning(pop)
 
 #include <memory>
 #include <vector>
