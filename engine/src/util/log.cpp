@@ -18,6 +18,7 @@ namespace emerald {
 	static CONSOLE_SCREEN_BUFFER_INFO s_screenBuffer;
 	static AsyncQueue<Log::QueuedMessage> s_messageQueue;
 	static std::vector<LogMessage> s_messages;
+	static ConsoleColor s_currentConsoleColor = ConsoleColor::WHITE;
 
 	static bool s_initialized;
 	static bool s_shutdown;
@@ -43,38 +44,44 @@ namespace emerald {
 		s_outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 		GetConsoleScreenBufferInfo(s_outputHandle, &s_screenBuffer);
 
-		const int width = 120;
-		const int height = 30;
-
-		s_initialized = true;
-
-		Log::info("[Console] allocated");
+		// Disable QuickEdit Mode
+		HANDLE inputHandle = GetStdHandle(STD_INPUT_HANDLE);
+		DWORD mode = 0;
+		if (!GetConsoleMode(inputHandle, &mode)) {
+			Log::error("[Console] failed to get console mode");
+		}
+		mode &= ~ENABLE_QUICK_EDIT_MODE;
+		mode |= ENABLE_EXTENDED_FLAGS;
+		if (!SetConsoleMode(inputHandle, mode)) {
+			Log::error("[Console] failed to set console mode");
+		}
 
 		s_outputThread = ThreadManager::createAndRegisterThread(ThreadType::CONSOLE_OUTPUT, "Console output", handleQueue);
 
 		std::ofstream ofs;
 		ofs.open(s_logPath, std::ofstream::out | std::ofstream::trunc);
 		ofs.close();
+
+		s_initialized = true;
+
+		Log::info("[Console] allocated");
 	}
 
 	/*Set the text color of the next print to console*/
 	void Log::setTextColor(ConsoleColor color) {
+		if (s_currentConsoleColor == color) return;
 		WORD attributes = s_screenBuffer.wAttributes & ~FOREGROUND_RED & ~FOREGROUND_GREEN & ~FOREGROUND_BLUE & ~FOREGROUND_INTENSITY;
 		attributes |= (int)color;
 		SetConsoleTextAttribute(s_outputHandle, attributes);
+		s_currentConsoleColor = color;
 	}
 
 	/*Get the time as a printable string*/
 	std::string Log::getTimeAsString(std::chrono::system_clock::time_point currentTime) {
 		auto currentTimeT = std::chrono::system_clock::to_time_t(currentTime);
-
-		std::tm timeStruct{};
-		localtime_s(&timeStruct, &currentTimeT); // Safely convert time_t to tm struct
-
-		std::ostringstream ss;
-		ss << std::put_time(&timeStruct, "[%H:%M:%S]"); // Use std::put_time for thread-safe time formatting
-
-		return ss.str(); // Return the formatted time string
+		char buffer[16];
+		std::strftime(buffer, sizeof(buffer), "[%H:%M:%S]", std::localtime(&currentTimeT));
+		return buffer;
 	}
 
 	/*Process a QueuedMessage (async)*/
@@ -83,24 +90,21 @@ namespace emerald {
 
 		std::string formattedTime = getTimeAsString(message.m_time);
 
-		std::ostringstream ss;
-		ss << getTimeAsString(message.m_time) << LogLevelStrings[(uint32_t)message.m_level] << " " << message.m_message << "\n";
+		std::string output = std::format("{} [{}] {}\n", formattedTime, LogLevelStrings[(uint32_t)message.m_level], message.m_message);
 
 		setTextColor(message.m_color);
-		printf("%s", ss.str().c_str());
+		printf("%s", output.c_str());
 
-		if (s_logFile) s_logFile << ss.str();
+		if (s_logFile) s_logFile << output;
 
 		{
-			std::lock_guard<std::mutex> lock(s_messageMutex);  // Lock the mutex to protect the vector
+			std::lock_guard<std::mutex> lock(s_messageMutex);
 			s_messages.emplace_back(LogMessage{ message.m_message, message.m_stackTrace, formattedTime, message.m_level });
 		}
-
-		setTextColor(ConsoleColor::WHITE);
 	}
 
 	void Log::logMessage(LogLevel level, const std::string& message) {
-		if (s_shutdown) return;
+		if (s_shutdown || s_messageQueue.isShutdown()) return;
 
 		ConsoleColor color = ConsoleColor::WHITE; // Default color
 		switch (level) {

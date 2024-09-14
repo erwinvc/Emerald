@@ -19,10 +19,10 @@ namespace emerald {
 		AsyncQueue& operator=(const AsyncQueue&) = delete;
 
 		void add(T obj) {
+			std::lock_guard<std::mutex> l(m_lock);
 			if (m_releaseThreads) {
 				throw std::runtime_error("Attempted to add to a released queue");
 			}
-			std::lock_guard<std::mutex> l(m_lock);
 			m_queue.emplace(std::move(obj));
 			m_conditionVariable.notify_one();
 		}

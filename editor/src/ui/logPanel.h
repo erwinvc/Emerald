@@ -22,5 +22,6 @@ namespace emerald {
 		void drawButtons();
 		void drawSplitter(float totalHeight, float logPanelHeight);
 		void drawDetailsPanel(float panelHeight);
+		void forceRefresh();
 	};
 }

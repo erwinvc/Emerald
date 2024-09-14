@@ -57,10 +57,12 @@ namespace emerald {
 			LogLevel m_level;
 			std::chrono::system_clock::time_point m_time;
 
-			QueuedMessage(ConsoleColor color, std::string message, std::string stackTrace, LogLevel level, std::chrono::system_clock::time_point time) 
-				: m_color(color), m_message(message), m_stackTrace(stackTrace), m_level(level), m_time(time) {}
-			QueuedMessage() 
-				: m_color(ConsoleColor::WHITE), m_time(std::chrono::system_clock::now()), m_level(LogLevel::INFO) {}
+			QueuedMessage(ConsoleColor color, const std::string& message, const std::string& stackTrace, LogLevel level, std::chrono::system_clock::time_point time)
+				: m_color(color), m_message(message), m_stackTrace(stackTrace), m_level(level), m_time(time) {
+			}
+			QueuedMessage()
+				: m_color(ConsoleColor::WHITE), m_time(std::chrono::system_clock::now()), m_level(LogLevel::INFO) {
+			}
 		};
 
 		static void initialize(const char* title);

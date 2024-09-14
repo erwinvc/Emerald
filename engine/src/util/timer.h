@@ -4,6 +4,8 @@ namespace emerald {
 	class Timer {
 	public:
 		Timer() : m_start(getTime()) {}
+		Timer(float start) : m_start(start) {}
+
 		virtual ~Timer() = default;
 
 		float get() const {
@@ -27,6 +29,9 @@ namespace emerald {
 	};
 
 	class HighPrecisionTimer : public Timer {
+	public:
+		HighPrecisionTimer() : Timer(getTime()) {}
+
 	protected:
 		float getTime() const override;
 	};

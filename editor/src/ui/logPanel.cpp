@@ -33,7 +33,7 @@ namespace emerald {
 		if (ImGui::Button("Clear")) Log::clearMessages();
 		ImGui::SetItemTooltip("Clear all log messages");
 
-		if (ImGui::ToggleButton("Collapse", &m_collapseLogs)) m_lastLogCount = 0;
+		if (ImGui::ToggleButton("Collapse", &m_collapseLogs)) forceRefresh();
 		ImGui::SetItemTooltip("Collapse duplicate log entries");
 
 		ImGui::ToggleButton("Autoscroll", &m_autoscroll);
@@ -47,7 +47,7 @@ namespace emerald {
 			memset(m_searchString, 0, sizeof(m_searchString));
 			searchChanged = true;
 		}
-		if (searchChanged) m_lastLogCount = 0;
+		if (searchChanged) forceRefresh();
 
 		ImGui::SetNextItemWidth(100.0f);
 		if (ImGui::BeginCombo("##LogLevel", s_logLevelStrings[m_selectedLogLevel], ImGuiComboFlags_PopupAlignLeft)) {
@@ -56,6 +56,7 @@ namespace emerald {
 				bool isSelected = (m_selectedLogLevel == i);
 				if (ImGui::Selectable(s_logLevelStrings[i], isSelected)) {
 					m_selectedLogLevel = i;
+					forceRefresh();
 				}
 				if (isSelected) {
 					ImGui::SetItemDefaultFocus();
@@ -224,5 +225,9 @@ namespace emerald {
 
 		ImGui::End();
 		ImGui::PopStyleVar(2);
+	}
+
+	void LogPanel::forceRefresh() {
+		m_lastLogCount = 0;
 	}
 }
