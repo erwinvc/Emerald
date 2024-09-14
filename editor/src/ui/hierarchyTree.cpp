@@ -23,7 +23,7 @@ namespace emerald {
 		};
 	}
 
-	void HierarchyTree::render(Ref<Scene> scene, const char* searchString) {
+	void HierarchyTree::render(const Ref<Scene>& scene, const char* searchString) {
 		// Apply ImGui style settings
 		ImGui::PushStyleColor(ImGuiCol_NavHighlight, Color(0, 0, 0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
@@ -245,7 +245,7 @@ namespace emerald {
 
 							addNodeToParent(droppedNode, node, insertBefore, beforeNode);
 
-							uint32_t beforeNodeEntity = beforeNode ? beforeNode->m_entity : Entity();
+							UUID beforeNodeEntity = beforeNode ? beforeNode->m_entity : Entity();
 
 							action->addUndoAction([droppedNodeEntity = droppedNode->m_entity, originalParentEntity = originalParent->m_entity, originalPrevSibling, originalNextSibling]() {
 								SceneGraphComponent* droppedNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(droppedNodeEntity);

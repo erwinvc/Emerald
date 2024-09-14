@@ -4,7 +4,7 @@ namespace emerald {
 	enum TextureFormat : int {
 		NONE,
 		RGB,
-		RGBA,
+		RGBA8F,
 		RGBA16F,
 		RGBA32F,
 
@@ -35,11 +35,20 @@ namespace emerald {
 		TEXTURE_3D
 	};
 
+	enum class MSAA {
+		NONE = 0,
+		X2 = 2,
+		X4 = 4,
+		X8 = 8,
+		X16 = 16
+	};
+
 	class TextureDesc final {
 	public:
-		TextureFormat format = RGBA;
+		TextureFormat format = RGBA8F;
 		TextureFilter filter = LINEAR;
 		TextureWrap wrap = REPEAT;
+		MSAA samples = MSAA::NONE;
 		uint32_t anisotropyLevel = 0;
 		bool hasMipmaps = false;
 		bool readWrite = false;
@@ -51,6 +60,8 @@ namespace emerald {
 		uint32_t getWrap() const { return wrap; }
 		uint32_t getFilter(int type, bool mipmap) const;
 
+		uint32_t getSamples() const;
+		uint32_t getTarget() const;
 		uint32_t getChannelCount() const;
 		uint32_t getImageFormat() const;
 		uint32_t getInternalFormat() const;

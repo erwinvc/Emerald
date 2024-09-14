@@ -22,7 +22,7 @@ namespace emerald {
 		static void submitBufferForRendering();
 		static void flushCommandBufferOnThisThread();
 
-		static void beginRenderPass(Ref<RenderPass> renderPass);
+		static void beginRenderPass(const Ref<RenderPass>& renderPass);
 		static void endRenderPass();
 
 		static void executeCommandBuffer();

@@ -42,7 +42,7 @@ namespace emerald {
 		TextureDesc desc;
 		desc.hasMipmaps = false;
 		desc.anisotropyLevel = 0;
-		desc.format = RGBA;
+		desc.format = RGBA8F;
 		desc.readWrite = false;
 		desc.filter = NEAREST;
 
@@ -260,7 +260,7 @@ namespace emerald {
 	}
 
 	void EditorWindow::drawWindows() {
-		Ref<Scene> activeScene = SceneManager::getActiveScene();
+		const Ref<Scene>& activeScene = SceneManager::getActiveScene();
 		bool sceneOpen = activeScene != nullptr;
 		ImGui::BeginDisabled(!sceneOpen);
 		drawViewport();
@@ -310,8 +310,8 @@ namespace emerald {
 			}
 			if (ImGui::EmeraldButton("Add Entity", ImVec2(-FLT_MIN, 0))) {
 				auto action = UndoRedo::createAction<Entity>("Add Entity");
-				uint32_t freeIndex = SceneManager::getActiveScene()->getECS().getFreeEntityIndex();
-				action->addDoAction([freeIndex](Entity& entity) {entity = SceneManager::getActiveScene()->getECS().createEntityFromID(freeIndex, "Entity"); });
+				UUID entityID = SceneManager::getActiveScene()->getECS().getNewEntityID();
+				action->addDoAction([entityID](Entity& entity) {entity = SceneManager::getActiveScene()->getECS().createEntityFromID(entityID, "Entity"); });
 				action->addUndoAction([](Entity& entity) {SceneManager::getActiveScene()->getECS().destroyEntity(entity); });
 				UndoRedo::commitAction(action);
 			}
@@ -325,7 +325,7 @@ namespace emerald {
 	}
 
 	void EditorWindow::update(Timestep ts) {
-		Ref<Scene> activeScene = SceneManager::getActiveScene();
+		const Ref<Scene>& activeScene = SceneManager::getActiveScene();
 		bool sceneOpen = activeScene != nullptr;
 
 		if (sceneOpen) s_hierarchyTree.handleDelete();

@@ -16,16 +16,16 @@ namespace emerald {
 			m_componentArrays[type] = std::make_shared<ComponentArray<T>>();
 		}
 
-		uint32_t getFreeEntityIndex();
-		uint32_t createEntityFromID(uint32_t ID, const std::string& name, bool isRootEntity = false);
-		uint32_t createEntity(const std::string& name, bool isRootEntity = false);
+		UUID getNewEntityID();
+		UUID createEntityFromID(UUID ID, const std::string& name, bool isRootEntity = false);
+		UUID createEntity(const std::string& name, bool isRootEntity = false);
 
-		void destroyEntity(uint32_t entity) {
+		void destroyEntity(UUID entity) {
 			//Recursively destroy children
 			auto* sgc = getComponent<SceneGraphComponent>(entity);
 			if (sgc) {
-				auto children = sgc->getChildren();
-				for (auto* child : children) {
+				auto& children = sgc->getChildren();
+				for (SceneGraphComponent* child : children) {
 					destroyEntity(child->m_entity);
 				}
 			}
@@ -37,10 +37,10 @@ namespace emerald {
 		}
 
 		template<typename T, typename... Args>
-		WeakRef<T> addComponent(uint32_t entity, Args&&... args) {
+		WeakRef<T> addComponent(UUID entity, Args&&... args) {
 			if (!entity) return nullptr;
 			static_assert(std::is_base_of<Component, T>::value, "T must be derived from Component");
-			WeakRef<T> component = getComponentArray<T>().insert((uint32_t)entity, std::forward<Args>(args)...);
+			const WeakRef<T>& component = getComponentArray<T>().insert(entity, std::forward<Args>(args)...);
 			component.lock()->m_entity = entity;
 			return component;
 		}
@@ -50,7 +50,7 @@ namespace emerald {
 		//}
 
 		template <typename T>
-		void removeComponent(uint32_t entity) {
+		void removeComponent(UUID entity) {
 			if (!entity) return;
 			ASSERT_RTTI(T);
 			if (!isRemovableComponent(T::getStaticClassType())) return;
@@ -58,7 +58,7 @@ namespace emerald {
 		}
 
 		template <typename T>
-		T* getComponent(uint32_t entity) {
+		T* getComponent(UUID entity) {
 			if (!entity) return nullptr;
 			return getComponentArray<T>().get(entity);
 		}
@@ -72,23 +72,23 @@ namespace emerald {
 
 		ComponentArray<Component>& getComponentArray(RTTIType type) {
 			ASSERT(m_componentArrays.find(type) != m_componentArrays.end(), "Component not registered before use");
-			return (ComponentArray<Component>&) * m_componentArrays[type].get();
+			return (ComponentArray<Component>&)* m_componentArrays[type].get();
 		}
 
 		template <typename T>
-		bool hasComponent(uint32_t entity) {
+		bool hasComponent(UUID entity) {
 			if (!entity) return false;
 			return getComponentArray<T>()->has(entity);
 		}
 
-		std::vector<uint32_t>& getEntities() {
+		std::vector<UUID>& getEntities() {
 			return m_entities;
 		}
 
 	private:
 		std::unordered_map<RTTIType, std::shared_ptr<ComponentArrayBase>> m_componentArrays;
-		uint32_t m_nextEntityID = 1; //Entity 0 is reserved for null entity
-		std::vector<uint32_t> m_entities;
+		UUID m_nextEntityID; //Entity 0 is reserved for null entity
+		std::vector<UUID> m_entities;
 
 		template <typename T>
 		bool isComponent() {

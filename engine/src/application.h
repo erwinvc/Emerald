@@ -38,7 +38,7 @@ namespace emerald {
 		uint32_t getWidth() const;
 		uint32_t getHeight() const;
 		float getTime() const;
-		Ref<Window>& getWindow() { return m_mainWindow; }
+		const Ref<Window>& getWindow() { return m_mainWindow; }
 
 		template<typename F>
 		void QueueEvent(F&& function) {

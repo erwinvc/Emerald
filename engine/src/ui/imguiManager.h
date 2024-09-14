@@ -16,7 +16,7 @@ namespace emerald {
 		static void pushFont(ImGUIFont font);
 		static void popFont();
 
-		static void initialize(Ref<Window> window);
+		static void initialize(const Ref<Window>& window);
 		static void begin();
 		static void end();
 		static void shutdown();

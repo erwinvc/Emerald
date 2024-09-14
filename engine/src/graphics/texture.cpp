@@ -10,8 +10,8 @@
 #include "glError.h"
 
 namespace emerald {
-	Texture::Texture(TextureDesc desc, std::string path) {
-		m_desc = desc;
+	Texture::Texture(TextureDesc desc, std::string path)
+		: m_desc(desc) {
 		if (!FileSystem::doesFileExist(path)) {
 			//Log::info(path.c_str(), "");
 			Log::error("[Texture] texture file at {} does not exist!", path);
@@ -91,43 +91,42 @@ namespace emerald {
 	void Texture::invalidate() {
 		if (m_handle) cleanup();
 
-		GL(glCreateTextures(GL_TEXTURE_2D, 1, &m_handle));
+		GLenum target = m_desc.getTarget();
 
-		m_mipmapCount = m_desc.hasMipmaps ? utils::calculateMipCount(m_width, m_height) : 1;
+		GL(glCreateTextures(target, 1, &m_handle));
 
-		if (m_desc.isImmutable) {
-			// Use immutable texture storage
-			GL(glTextureStorage2D(m_handle, m_mipmapCount, m_desc.getInternalFormat(), m_width, m_height));
+		if (m_desc.samples != MSAA::NONE) {
+			// Multisampled texture
+			GL(glTextureStorage2DMultisample(m_handle, m_desc.getSamples(), m_desc.getInternalFormat(), m_width, m_height, GL_TRUE));
 		} else {
-			// Use mutable texture storage
-			GL(glBindTexture(GL_TEXTURE_2D, m_handle));
-			GL(glTexImage2D(GL_TEXTURE_2D, 0, m_desc.getInternalFormat(), m_width, m_height, 0, m_desc.getImageFormat(), m_desc.getDataType(), nullptr));
-			if (m_desc.hasMipmaps) GL(glGenerateMipmap(GL_TEXTURE_2D));
+			// Regular texture
+			m_mipmapCount = m_desc.hasMipmaps ? utils::calculateMipCount(m_width, m_height) : 1;
+
+			if (m_desc.isImmutable) {
+				// Use immutable texture storage
+				GL(glTextureStorage2D(m_handle, m_mipmapCount, m_desc.getInternalFormat(), m_width, m_height));
+			} else {
+				// Use mutable texture storage
+				GL(glBindTexture(target, m_handle));
+				GL(glTexImage2D(target, 0, m_desc.getInternalFormat(), m_width, m_height, 0, m_desc.getImageFormat(), m_desc.getDataType(), nullptr));
+				if (m_desc.hasMipmaps) GL(glGenerateMipmap(target));
+			}
+
+			if (m_buffer) {
+				auto imageFormat = m_desc.getImageFormat();
+				auto dataType = m_desc.getDataType();
+				GL(glTextureSubImage2D(m_handle, 0, 0, 0, m_width, m_height, imageFormat, dataType, m_buffer.data()));
+				if (m_desc.hasMipmaps) GL(glGenerateTextureMipmap(m_handle));
+			}
+
+			if (!m_desc.readWrite) m_buffer.clear();
+
+			GL(glTextureParameteri(m_handle, GL_TEXTURE_WRAP_R, m_desc.getWrap()));
+			GL(glTextureParameteri(m_handle, GL_TEXTURE_WRAP_S, m_desc.getWrap()));
+			GL(glTextureParameteri(m_handle, GL_TEXTURE_WRAP_T, m_desc.getWrap()));
+			GL(glTextureParameteri(m_handle, GL_TEXTURE_MIN_FILTER, m_desc.getFilter(GL_TEXTURE_MIN_FILTER, m_desc.hasMipmaps)));
+			GL(glTextureParameteri(m_handle, GL_TEXTURE_MAG_FILTER, m_desc.getFilter(GL_TEXTURE_MAG_FILTER, m_desc.hasMipmaps)));
 		}
-
-		if (m_buffer) {
-			auto imageFormat = m_desc.getImageFormat();
-			auto dataType = m_desc.getDataType();
-			GL(glTextureSubImage2D(m_handle, 0, 0, 0, m_width, m_height, imageFormat, dataType, m_buffer.data()));
-			if (m_desc.hasMipmaps) GL(glGenerateTextureMipmap(m_handle));
-		}
-
-		if (!m_desc.readWrite) m_buffer.clear();
-
-		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, m_desc.getWrap()));
-		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_desc.getWrap()));
-		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_desc.getWrap()));
-		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_desc.getFilter(GL_TEXTURE_MIN_FILTER, m_desc.hasMipmaps)));
-		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_desc.getFilter(GL_TEXTURE_MAG_FILTER, m_desc.hasMipmaps)));
-
-		//if (m_desc.m_hasMipmaps) {
-		//	if (GL_EXT_texture_filter_anisotropic) {
-		//		float value = 0;
-		//		GL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value));
-		//		float amount = glm::min(4.0f, value);
-		//		GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount));
-		//	} else Log::warn("[Texture] GL_EXT_texture_filter_anisotropic not supported");
-		//}
 	}
 
 	void Texture::bind(uint32_t slot /*= 0*/) const {
@@ -148,13 +147,16 @@ namespace emerald {
 		m_width = width;
 		m_height = height;
 
-		if (!m_desc.isImmutable) {
-			GL(glBindTexture(GL_TEXTURE_2D, m_handle));
-			GL(glTexImage2D(GL_TEXTURE_2D, 0, m_desc.getInternalFormat(), m_width, m_height, 0,
-				m_desc.getImageFormat(), m_desc.getDataType(), nullptr));
-			if (m_desc.hasMipmaps) GL(glGenerateMipmap(GL_TEXTURE_2D));
-		} else {
+		if (m_desc.samples != MSAA::NONE) {
 			invalidate();
+		} else {
+			if (!m_desc.isImmutable) {
+				GL(glBindTexture(GL_TEXTURE_2D, m_handle));
+				GL(glTexImage2D(GL_TEXTURE_2D, 0, m_desc.getInternalFormat(), m_width, m_height, 0, m_desc.getImageFormat(), m_desc.getDataType(), nullptr));
+				if (m_desc.hasMipmaps) GL(glGenerateMipmap(GL_TEXTURE_2D));
+			} else {
+				invalidate();
+			}
 		}
 	}
 

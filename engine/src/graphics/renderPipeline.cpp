@@ -18,11 +18,21 @@
 namespace emerald {
 	RenderPipeline::RenderPipeline() {
 		FramebufferDesc mainfbDesc;
-		mainfbDesc.width = App->getWidth();
-		mainfbDesc.height = App->getHeight();
-		mainfbDesc.attachments = { {"Main", TextureFormat::RGBA}, {"Depth", TextureFormat::DEPTH24STENCIL8}};
+		mainfbDesc.width = App->getWidth() / 8;
+		mainfbDesc.height = App->getHeight() / 8;
+		mainfbDesc.samples = MSAA::X4;
+		mainfbDesc.attachments = { {"Main", TextureFormat::RGBA8F}, {"Depth", TextureFormat::DEPTH24STENCIL8} };
 		mainfbDesc.clearColor = { 0.5f, 0.7f, 1.0f, 1.0f };
 		mainfbDesc.name = "MainFB";
+
+		FramebufferDesc resolveFbDesc;
+		resolveFbDesc.width = App->getWidth() / 8;
+		resolveFbDesc.height = App->getHeight() / 8;
+		resolveFbDesc.attachments = { {"Resolved", TextureFormat::RGBA8F} };
+		resolveFbDesc.clearColor = { 0.5f, 0.7f, 1.0f, 1.0f };
+		resolveFbDesc.name = "ResolveFB";
+
+		m_resolveFramebuffer = FrameBuffer::create(resolveFbDesc);
 
 		RenderPassDesc mainPassDesc;
 		mainPassDesc.frameBuffer = FrameBuffer::create(mainfbDesc);
@@ -141,6 +151,21 @@ namespace emerald {
 
 	int index = 0;
 	void RenderPipeline::render() {
+		if (Keyboard::keyJustDown(Key::KEY_1)) {
+			m_mainPass->descriptor().frameBuffer->setMSAA(MSAA::NONE);
+		}
+		if (Keyboard::keyJustDown(Key::KEY_2)) {
+			m_mainPass->descriptor().frameBuffer->setMSAA(MSAA::X2);
+		}
+		if (Keyboard::keyJustDown(Key::KEY_3)) {
+			m_mainPass->descriptor().frameBuffer->setMSAA(MSAA::X4);
+		}
+		if (Keyboard::keyJustDown(Key::KEY_4)) {
+			m_mainPass->descriptor().frameBuffer->setMSAA(MSAA::X8);
+		}
+		if (Keyboard::keyJustDown(Key::KEY_5)) {
+			m_mainPass->descriptor().frameBuffer->setMSAA(MSAA::X16);
+		}
 		if (Keyboard::keyJustDown(Key::R)) {
 			index++;
 			if (index > 1) index = 0;
@@ -149,8 +174,8 @@ namespace emerald {
 
 		Renderer::submit([] {PROFILE_RENDER_BEGIN("Pipeline"); });
 		Renderer::beginRenderPass(m_mainPass);
-		
-		Renderer::submit([] { 
+
+		Renderer::submit([] {
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
 			glFrontFace(GL_CCW);
@@ -170,18 +195,16 @@ namespace emerald {
 			Renderer::drawIndexed(meshRenderer->m_mesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
 		}
 
-		//m_vao->bind();
-		//m_ibo->bind();
-
-	//	Renderer::drawIndexed(36, PrimitiveType::TRIANGLES, true);
 		Renderer::endRenderPass();
+
+		m_mainPass->descriptor().frameBuffer->blitColorOnly(m_resolveFramebuffer);
 
 		FrameBufferManager::bindDefaultFBO();
 		Renderer::submit([] {PROFILE_RENDER_END(); });
 	}
 
-	Ref<Texture> RenderPipeline::getFinalTexture() {
-		return m_mainPass->descriptor().frameBuffer->getTextures()[0];
+	const Ref<Texture>& RenderPipeline::getFinalTexture() {
+		return m_resolveFramebuffer->getTextures()[0];
 	}
 
 }

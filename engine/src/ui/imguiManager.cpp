@@ -119,7 +119,7 @@ namespace emerald {
 		style->HoverStationaryDelay = 0.5f;
 	}
 
-	void ImGuiManager::initialize(Ref<Window> window) {
+	void ImGuiManager::initialize(const Ref<Window>& window) {
 		IMGUI_CHECKVERSION();
 		context = ImGui::CreateContext();
 		ImPlot::CreateContext();

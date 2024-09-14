@@ -5,7 +5,7 @@
 namespace emerald {
 	class Material : public RefCounted {
 	public:
-		Material(std::string name, Ref<Shader> shader);
+		Material(std::string name, const Ref<Shader>& shader);
 
 		void initializeBuffer();
 		void updateForRendering();

@@ -9,12 +9,7 @@ namespace emerald {
 	RTTI_CLASS_DEF(SceneGraphComponent);
 	RTTI_CLASS_DEF(TransformComponent);
 	RTTI_CLASS_DEF(NameComponent);
-	RTTI_CLASS_DEF(UUIDComponent);
 	RTTI_CLASS_DEF(MeshRendererComponent);
-
-	UUIDComponent::UUIDComponent() {
-		m_uuid = UUIDGenerator::createFast();
-	}
 
 	SceneGraphComponent::~SceneGraphComponent() {
 		if (m_parent) m_parent->removeChild(this);

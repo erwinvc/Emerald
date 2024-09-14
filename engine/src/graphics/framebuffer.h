@@ -25,10 +25,10 @@ namespace emerald {
 		uint32_t height = 0;
 		Color clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
 		std::vector<FramebufferAttachmentDesc> attachments;
-		uint32_t samples = 1;
+		MSAA samples = MSAA::NONE;
 	};
 
-	class FrameBuffer : public RefCounted{
+	class FrameBuffer : public RefCounted {
 	private:
 		Ref<Texture> m_depthTexture;
 		std::vector<Ref<Texture>> m_textures;
@@ -39,9 +39,8 @@ namespace emerald {
 		FrameBuffer(FramebufferDesc desc);
 
 		bool checkStatus();
-
-		Ref<Texture> addBuffer(const std::string& name, TextureFormat format);
-
+		void invalidateTextures();
+		void attachTextures();
 		float fboScaleToFloat(FBOScale scale) const;
 
 		FramebufferDesc m_desc;
@@ -51,7 +50,7 @@ namespace emerald {
 
 		const FramebufferDesc& descriptor() const { return m_desc; }
 
-		static Ref<FrameBuffer> create(FramebufferDesc desc);
+		static const Ref<FrameBuffer>& create(FramebufferDesc desc);
 
 		void bind() const;
 		void unbind() const;
@@ -61,10 +60,10 @@ namespace emerald {
 		void clearStencilOnly() const;
 		void setDrawAndReadBuffersToNone() const;
 		void setScale(FBOScale scale);
-
-		//void blit(Ref<const FrameBuffer> targetFBO) const;
-		//void blitColorOnly(Ref<const FrameBuffer> targetFBO) const;
-		//void blitDepthOnly(Ref<const FrameBuffer> targetFBO) const;
+		void setMSAA(MSAA msaa);
+		void blit(const Ref<FrameBuffer>& targetFBO) const;
+		void blitColorOnly(const Ref<FrameBuffer>& targetFBO) const;
+		void blitDepthOnly(const Ref<FrameBuffer>& targetFBO) const;
 
 		void resize(uint32_t width, uint32_t height, bool forceRecreate);
 
@@ -77,12 +76,12 @@ namespace emerald {
 
 		std::vector<Ref<Texture>>& getTextures() { return m_textures; }
 		std::vector<std::string>& getTextureNames() { return m_textureNames; }
-		Ref<Texture> getDepthTexture() { return m_textures[0]; }
+		const Ref<Texture>& getDepthTexture() { return m_textures[0]; }
 	};
 
 	namespace FrameBufferManager {
 		inline std::vector<Ref<FrameBuffer>> m_frameBuffers;
-		void add(Ref<FrameBuffer> fbo);
+		void add(const Ref<FrameBuffer>& fbo);
 		void bindDefaultFBO();
 		void onResize(uint32_t width, uint32_t height);
 		void shutdown();

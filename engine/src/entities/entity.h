@@ -1,16 +1,20 @@
 #pragma once
+#include "util/uuid.h"
 
 namespace emerald {
 	class SceneManager;
 
 	class Entity {
 	public:
-		Entity() : m_id(0) {}
-		Entity(uint32_t id) : m_id(id) {}
+		Entity() : m_id() {}
+		Entity(UUID id) : m_id(id) {}
 
-		operator uint32_t() const { return m_id; }
+		operator UUID() const { return m_id; }
 
 		static Entity create(const std::string& name);
+
+		operator bool() { return m_id.isValid(); }
+		operator bool() const { return m_id.isValid(); }
 
 		//template <typename T>
 		//void addComponent(const T& component) {
@@ -33,6 +37,6 @@ namespace emerald {
 		//}
 
 	private:
-		uint32_t m_id;
+		UUID m_id;
 	};
 }

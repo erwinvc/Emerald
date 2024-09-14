@@ -4,15 +4,15 @@
 namespace emerald {
 	class SceneManager {
 	public:
-		static void setActiveScene(Ref<Scene> scene) {
+		static void setActiveScene(const Ref<Scene>& scene) {
 			m_activeScene = scene;
 		}
 
-		static Ref<Scene> getActiveScene() {
+		static const Ref<Scene>& getActiveScene() {
 			return m_activeScene;
 		}
 
-		static void setRuntimeScene(Ref<Scene> scene) {
+		static void setRuntimeScene(const Ref<Scene>& scene) {
 			m_runtimeScene = scene;
 		}
 

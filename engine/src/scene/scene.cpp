@@ -12,7 +12,6 @@ namespace emerald {
 		m_ecs.registerComponent<SceneGraphComponent>();
 		m_ecs.registerComponent<TransformComponent>();
 		m_ecs.registerComponent<NameComponent>();
-		m_ecs.registerComponent<UUIDComponent>();
 		m_ecs.registerComponent<MeshRendererComponent>();
 
 		Entity root = m_ecs.createEntity(m_name, true);

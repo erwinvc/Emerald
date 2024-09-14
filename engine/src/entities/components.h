@@ -42,17 +42,6 @@ namespace emerald {
 		void removeChild(SceneGraphComponent* child);
 	};
 
-	class UUIDComponent : public Component {
-		RTTI_DERIVED_CLASS_DECL(UUIDComponent, Component);
-	public:
-		UUID m_uuid;
-
-		UUIDComponent();
-		UUIDComponent(UUIDComponent* uuid)
-			: Component(), m_uuid(uuid->m_uuid) {
-		}
-	};
-
 	class NameComponent : public Component {
 		RTTI_DERIVED_CLASS_DECL(NameComponent, Component);
 	public:
@@ -69,7 +58,7 @@ namespace emerald {
 		Ref<Mesh> m_mesh;
 
 		MeshRendererComponent() = default;
-		MeshRendererComponent(Ref<Mesh> mesh)
+		MeshRendererComponent(const Ref<Mesh>& mesh)
 			: m_mesh(mesh) {
 		}
 	};

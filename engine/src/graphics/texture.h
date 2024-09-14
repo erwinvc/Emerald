@@ -28,6 +28,8 @@ namespace emerald {
 		Texture(TextureDesc desc, uint32_t width, uint32_t height);
 		~Texture();
 
+		const TextureDesc& descriptor() const { return m_desc; }
+
 		void invalidate();
 
 		uint32_t handle() const { return m_handle; }

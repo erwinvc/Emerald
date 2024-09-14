@@ -109,11 +109,11 @@ namespace emerald {
 		s_editorWindow->fixedUpdate(ts);
 	}
 
-	Ref<Texture> EmeraldEditorApplication::getFinalTexture() {
+	const Ref<Texture>& EmeraldEditorApplication::getFinalTexture() {
 		return s_renderPipeline->getFinalTexture();
 	}
 
-	Ref<EditorCamera> EmeraldEditorApplication::getEditorCamera() {
+	const Ref<EditorCamera>& EmeraldEditorApplication::getEditorCamera() {
 		return s_editorCamera;
 	}
 

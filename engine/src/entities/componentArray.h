@@ -1,5 +1,6 @@
 #pragma once
 #include "ref.h"
+#include "util/uuid.h"
 
 namespace emerald {
 	class ComponentArrayBase {
@@ -8,7 +9,7 @@ namespace emerald {
 		virtual ~ComponentArrayBase() = default;
 
 	private:
-		virtual void removeComponent(uint32_t entity) = 0;
+		virtual void removeComponent(UUID entity) = 0;
 	};
 
 	template <typename T>
@@ -17,13 +18,13 @@ namespace emerald {
 		friend class EntityComponentSystem;
 		virtual ~ComponentArray() override {}
 
-		T* get(uint32_t entity) {
+		T* get(UUID entity) {
 			if (!entity) return nullptr;
 			ASSERT(entityToIndexMap.find(entity) != entityToIndexMap.end(), "Retrieving non-existent component");
 			return components[entityToIndexMap[entity]].raw();
 		}
 
-		bool has(uint32_t entity) {
+		bool has(UUID entity) {
 			return entityToIndexMap.find(entity) != entityToIndexMap.end();
 		}
 
@@ -49,11 +50,11 @@ namespace emerald {
 
 	private:
 		std::vector<Ref<T>> components;
-		std::unordered_map<uint32_t, size_t> entityToIndexMap;
-		std::unordered_map<size_t, uint32_t> indexToEntityMap;
+		std::unordered_map<UUID, size_t> entityToIndexMap;
+		std::unordered_map<size_t, UUID> indexToEntityMap;
 
 		template<typename... Args>
-		WeakRef<T> insert(uint32_t entity, Args&&... args) {
+		WeakRef<T> insert(UUID entity, Args&&... args) {
 			if (!entity) return nullptr;
 			assert(entityToIndexMap.find(entity) == entityToIndexMap.end() && "Component added to the same entity more than once");
 			size_t newIndex = components.size();
@@ -63,7 +64,7 @@ namespace emerald {
 			return components.back();
 		}
 
-		void removeComponent(uint32_t entity) override {
+		void removeComponent(UUID entity) override {
 			if (!entity) return;
 			if (!entityToIndexMap.contains(entity)) return;
 			ASSERT(entityToIndexMap.find(entity) != entityToIndexMap.end(), "Removing non-existent component");
@@ -71,7 +72,7 @@ namespace emerald {
 			size_t lastIndex = components.size() - 1;
 
 			components[indexToRemove] = std::move(components[lastIndex]);
-			uint32_t lastEntity = indexToEntityMap[lastIndex];
+			UUID lastEntity = indexToEntityMap[lastIndex];
 
 			entityToIndexMap[lastEntity] = indexToRemove;
 			indexToEntityMap[indexToRemove] = lastEntity;

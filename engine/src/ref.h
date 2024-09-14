@@ -75,13 +75,13 @@ namespace emerald {
 		operator bool() const { return m_reference != nullptr; }
 
 		T* operator->() { return m_reference; }
-		const T* operator->() const { return m_reference; }
+		T* operator->() const { return m_reference; }
 
 		T& operator*() { return *m_reference; }
-		const T& operator*() const { return *m_reference; }
+		T& operator*() const { return *m_reference; }
 
 		T* raw() { return m_reference; }
-		const T* raw() const { return m_reference; }
+		T* raw() const { return m_reference; }
 
 		//template<typename T2>
 		//Ref<T2> as() const {
@@ -92,7 +92,9 @@ namespace emerald {
 		Ref<T2> as() const {
 			T2* casted = dynamic_cast<T2*>(m_reference);
 			if (casted) {
-				return Ref < T2 >(casted);
+				return Ref<T2>(casted);
+			} else {
+				return Ref<T2>(nullptr);
 			}
 		}
 
@@ -191,13 +193,13 @@ namespace emerald {
 		operator bool() const { return m_reference != nullptr; }
 
 		T* operator->() { return m_reference; }
-		const T* operator->() const { return m_reference; }
+		T* operator->() const { return m_reference; }
 
 		T& operator*() { return *m_reference; }
-		const T& operator*() const { return *m_reference; }
+		T& operator*() const { return *m_reference; }
 
 		T* raw() { return m_reference; }
-		const T* raw() const { return m_reference; }
+		T* raw() const { return m_reference; }
 
 		void reset(T* pointer = nullptr) {
 			if (m_reference) {

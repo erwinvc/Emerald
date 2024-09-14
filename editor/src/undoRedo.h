@@ -98,7 +98,7 @@ namespace emerald {
 		}
 
 		template<typename T>
-		static void commitAction(Ref<UndoAction<T>>& action) {
+		static void commitAction(const Ref<UndoAction<T>>& action) {
 			action->execute();
 			undoStack.push(action.template as<UndoActionBase>());
 			while (!redoStack.empty()) redoStack.pop();

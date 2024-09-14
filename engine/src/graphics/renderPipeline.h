@@ -12,6 +12,7 @@ namespace emerald {
 	class RenderPipeline {
 	private:
 		std::vector<RenderPass> m_renderpasses;
+		Ref<FrameBuffer> m_resolveFramebuffer;
 		Ref<RenderPass> m_mainPass;
 		Ref<VertexBuffer> m_vbo;
 		Ref<VertexArray> m_vao;
@@ -26,6 +27,6 @@ namespace emerald {
 		~RenderPipeline();
 
 		void render();
-		Ref<Texture> getFinalTexture();
+		const Ref<Texture>& getFinalTexture();
 	};
 }

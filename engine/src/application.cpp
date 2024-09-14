@@ -1,27 +1,19 @@
 #include "eepch.h"
 #include "application.h"
+#include "glfw.h"
 #include "graphics/engineIcon.h"
-#include "graphics/framebuffer.h"
 #include "graphics/renderer.h"
 #include "graphics/window.h"
-#include "imgui.h"
+#include "ui/imguiManager.h"
 #include "imguiProfiler/Profiler.h"
 #include "input/keyboard.h"
 #include "input/mouse.h"
 #include "metrics/metrics.h"
 #include "renderSyncManager.h"
-#include "stdIncl.h"
-#include "tests/test.h"
-#include "ui/imguiManager.h"
-#include "util/GLUtils.h"
-#include "util/timer.h"
-#include "util/timestep.h"
-#include "glfw.h"
-#include "util/random.h"
-#include <iostream>
-#include "util/uuidGenerator.h"
-#include "util/time.h"
+#include "glError.h"
 #include "util/threading/threadManager.h"
+#include "graphics/framebuffer.h"
+#include "util/reflection.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -175,16 +167,6 @@ namespace emerald {
 			update(Timestep(deltaTime, m_totalFrameTime, m_frameCount));
 			PROFILE_LOGIC_END();
 
-			//PROFILE_LOGIC_BEGIN("Index");
-			//Sleep(20);
-			//PROFILE_LOGIC_END();
-			//
-			//Renderer::submit([] {
-			//	PROFILE_RENDER_BEGIN("Index");
-			//	Sleep(20);
-			//	PROFILE_RENDER_END();
-			//});
-
 			m_lastFrameTime = currentTime;
 
 			if (currentTime - m_upsfpsCounter >= 1.0f) {
@@ -209,7 +191,7 @@ namespace emerald {
 
 	void Application::handleResize() {
 		if (g_resizeData.m_shouldResize) {
-			FrameBufferManager::onResize(g_resizeData.m_width, g_resizeData.m_height);
+			//FrameBufferManager::onResize(g_resizeData.m_width, g_resizeData.m_height); //We use the editor panel in the editor
 			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 			GL(glViewport(0, 0, g_resizeData.m_width, g_resizeData.m_height));
 			g_resizeData.m_shouldResize = false;

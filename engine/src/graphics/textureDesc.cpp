@@ -36,13 +36,20 @@ namespace emerald {
 		}
 		return GL_LINEAR;
 	}
+	uint32_t TextureDesc::getSamples() const {
+		return (uint32_t)samples;
+	}
+
+	uint32_t TextureDesc::getTarget() const {
+		return samples != MSAA::NONE ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+	}
 
 	uint32_t TextureDesc::getChannelCount() const {
 		switch (format) {
 			case TextureFormat::RGB:
 			case TextureFormat::SRGB:    return 3;
 			case TextureFormat::SRGBA:
-			case TextureFormat::RGBA:    return 4;
+			case TextureFormat::RGBA8F:    return 4;
 			case TextureFormat::RGBA16F: return 2 * 4;
 			case TextureFormat::RGBA32F: return 4 * 4;
 		}
@@ -55,7 +62,7 @@ namespace emerald {
 			case TextureFormat::RGB:				return GL_RGB;
 			case TextureFormat::SRGB:				return GL_RGB;
 			case TextureFormat::SRGBA:				return GL_RGBA;
-			case TextureFormat::RGBA:
+			case TextureFormat::RGBA8F:
 			case TextureFormat::RGBA16F:
 			case TextureFormat::RGBA32F:			return GL_RGBA;
 			case TextureFormat::DEPTH24STENCIL8:	return GL_DEPTH_STENCIL;
@@ -70,7 +77,7 @@ namespace emerald {
 			case TextureFormat::RGB:             return GL_RGB8;
 			case TextureFormat::SRGB:            return GL_SRGB8;
 			case TextureFormat::SRGBA:           return GL_SRGB8_ALPHA8;
-			case TextureFormat::RGBA:            return GL_RGBA8;
+			case TextureFormat::RGBA8F:            return GL_RGBA8;
 			case TextureFormat::RGBA16F:         return GL_RGBA16F;
 			case TextureFormat::RGBA32F:         return GL_RGBA32F;
 			case TextureFormat::DEPTH24STENCIL8: return GL_DEPTH24_STENCIL8;
@@ -84,7 +91,7 @@ namespace emerald {
 		switch (format) {
 			case TextureFormat::RGB:
 			case TextureFormat::SRGB:
-			case TextureFormat::RGBA:					return GL_UNSIGNED_BYTE;
+			case TextureFormat::RGBA8F:					return GL_UNSIGNED_BYTE;
 			case TextureFormat::RGBA16F:
 			case TextureFormat::RGBA32F:				return GL_FLOAT;
 			case TextureFormat::DEPTH24STENCIL8:		return GL_UNSIGNED_INT_24_8;
@@ -97,7 +104,7 @@ namespace emerald {
 		switch (format) {
 			case emerald::NONE:
 			case emerald::RGB:
-			case emerald::RGBA:
+			case emerald::RGBA8F:
 			case emerald::RGBA16F:
 			case emerald::RGBA32F:
 			case emerald::SRGB:
@@ -113,12 +120,12 @@ namespace emerald {
 		switch (format) {
 			case emerald::NONE:
 			case emerald::RGB:
-			case emerald::RGBA:
+			case emerald::RGBA8F:
 			case emerald::RGBA16F:
 			case emerald::RGBA32F:
 			case emerald::SRGB:
 			case emerald::SRGBA:			return true;
-			case emerald::DEPTH32F:			
+			case emerald::DEPTH32F:
 			case emerald::DEPTH24STENCIL8:	return false;
 		}
 		ASSERT(false, "Unhandled texture format");

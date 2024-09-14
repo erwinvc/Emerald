@@ -6,7 +6,7 @@ namespace emerald {
 	public:
 		HierarchyTree();
 
-		void render(Ref<Scene> scene, const char* searchString);
+		void render(const Ref<Scene>& scene, const char* searchString);
 		void handleDelete();
 	private:
 		bool m_isFocused = false;

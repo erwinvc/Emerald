@@ -27,8 +27,8 @@ namespace emerald {
 		void update(Timestep ts) override;
 		void fixedUpdate(Timestep ts) override;
 
-		Ref<Texture> getFinalTexture();
-		Ref<EditorCamera> getEditorCamera();
+		const Ref<Texture>& getFinalTexture();
+		const Ref<EditorCamera>& getEditorCamera();
 	};
 
 	inline EmeraldEditorApplication* Editor;

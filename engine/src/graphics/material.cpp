@@ -3,7 +3,7 @@
 #include "shaders/shader.h"
 
 namespace emerald {
-	Material::Material(std::string name, Ref<Shader> shader)
+	Material::Material(std::string name, const Ref<Shader>& shader)
 		: m_name(name), m_shader(shader) {
 
 		initializeBuffer();

@@ -3,25 +3,33 @@
 #include <random>
 
 namespace emerald {
-	static std::atomic_ulong m_counter;
-	static std::random_device s_randomDevice;
-	static std::mt19937_64 s_gen(s_randomDevice());
-	static std::uniform_int_distribution<uint64_t> s_uniformDistribution;
+	std::string UUID::toString() const {
+		std::ostringstream oss;
+		oss << std::hex << std::setfill('0');
+		for (int i = 0; i < 16; ++i) {
+			oss << std::setw(2) << static_cast<int>(m_data8[i]);
+			if (i == 3 || i == 5 || i == 7 || i == 9) {
+				oss << '-';
+			}
+		}
+		return oss.str();
+	}
 
-	//UUID::UUID() : m_UUID(s_uniformDistribution(s_gen)) {}
-	//
-	//UUID createFast() {
-	//	UUID guid;
-	//	guid.m_data64[0] = m_counter++;
-	//	guid.m_data32[2] = static_cast<uint32_t>(m_rng.GetInt());
-	//	guid.m_data32[3] = m_seed;
-	//	return guid;
-	//	return UUID(s_uniformDistribution(s_gen));
-	//}
+	bool UUID::fromString(const std::string& str) {
+		clear();
+		if (str.size() != 36) return false;
 
-	//const std::string UUID::toString() const {
-	//	std::stringstream ss;
-	//	ss << std::hex << std::setw(16) << std::setfill('0') << m_UUID << std::setw(16) << std::setfill('0') << m_UUID;
-	//	return ss.str();
-	//}
+		std::string cleanStr;
+		for (char c : str) {
+			if (c != '-') cleanStr += c;
+		}
+
+		if (cleanStr.size() != 32) return false;
+
+		for (int i = 0; i < 16; ++i) {
+			std::string byteStr = cleanStr.substr(i * 2, 2);
+			m_data8[i] = static_cast<uint8_t>(std::stoul(byteStr, nullptr, 16));
+		}
+		return true;
+	}
 }

@@ -26,7 +26,7 @@ namespace emerald {
 		s_renderSyncManager.submitBufferForRendering();
 	}
 
-	void Renderer::beginRenderPass(Ref<RenderPass> renderPass) {
+	void Renderer::beginRenderPass(const Ref<RenderPass>& renderPass) {
 		s_activeRenderPass = renderPass;
 		s_activeRenderPass->bind();
 		s_activeRenderPass->clear();

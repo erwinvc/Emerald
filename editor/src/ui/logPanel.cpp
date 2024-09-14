@@ -9,9 +9,10 @@
 #include "util/stringUtils.h"
 
 namespace emerald {
-	constexpr float LOG_PANEL_HEIGHT_RATIO_DEFAULT = 0.7f;
-	constexpr float LOG_PANEL_MIN_DETAIL_HEIGHT = 100.0f;
 	static const char* s_logLevelStrings[4] = { "Fatal", "Error", "Warning", "Info" };
+	static constexpr uint32_t LOG_PANEL_MESSAGE_MAX_LENGTH = 512;
+	static constexpr float LOG_PANEL_HEIGHT_RATIO_DEFAULT = 0.7f;
+	static constexpr float LOG_PANEL_MIN_DETAIL_HEIGHT = 100.0f;
 
 	LogPanel::LogPanel()
 		: m_selectedLogLevel((uint32_t)LogLevel::INFO),
@@ -19,7 +20,7 @@ namespace emerald {
 		m_lastLogCount(0),
 		m_selectedMessageIndex(-1),
 		m_autoscroll(true),
-		m_collapseLogs(false) {
+		m_collapseLogs(true) {
 		memset(m_searchString, 0, sizeof(m_searchString));
 	}
 
@@ -32,7 +33,7 @@ namespace emerald {
 		if (ImGui::Button("Clear")) Log::clearMessages();
 		ImGui::SetItemTooltip("Clear all log messages");
 
-		ImGui::ToggleButton("Collapse", &m_collapseLogs);
+		if (ImGui::ToggleButton("Collapse", &m_collapseLogs)) m_lastLogCount = 0;
 		ImGui::SetItemTooltip("Collapse duplicate log entries");
 
 		ImGui::ToggleButton("Autoscroll", &m_autoscroll);
@@ -118,7 +119,6 @@ namespace emerald {
 				logPanelHeight = totalHeight - LOG_PANEL_MIN_DETAIL_HEIGHT;
 			}
 
-
 			ImGui::BeginChild("LogPanelMessages", ImVec2(0, logPanelHeight), true);
 			if (m_autoscroll) isAtBottom = ImGui::GetScrollY() >= ImGui::GetScrollMaxY();
 
@@ -166,10 +166,10 @@ namespace emerald {
 						ImGui::TextColored(color, "[%s] ", s_logLevelStrings[(uint32_t)entry->m_level]);
 
 						ImGui::SameLine();
-						char buf[256];
+						char buf[LOG_PANEL_MESSAGE_MAX_LENGTH];
 						sprintf_s(buf, "%s %s##%d", entry->m_timestamp.c_str(), entry->m_message.c_str(), i);
 
-						if (ImGui::Selectable(buf, i == m_selectedMessageIndex)) {
+						if (ImGui::Selectable(buf, i == m_selectedMessageIndex, ImGuiSelectableFlags_None, ImVec2(0, 18))) {
 							m_selectedMessageIndex = i;
 							m_selectedMessage = *entry;
 						}
@@ -202,8 +202,10 @@ namespace emerald {
 
 							ImGui::PopStyleVar(2);
 						}
+
 					}
 				}
+				ImGui::Dummy(ImVec2(0, 2));
 			}
 			clipper.End();
 

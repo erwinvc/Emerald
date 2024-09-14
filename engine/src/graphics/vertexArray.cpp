@@ -23,7 +23,7 @@ namespace emerald {
 		});
 	}
 
-	void VertexArray::addBuffer(Ref<VertexBuffer> buffer) {
+	void VertexArray::addBuffer(const Ref<VertexBuffer>& buffer) {
 		for (const auto& existingBuffer : m_buffers) {
 			if (buffer->handle() != existingBuffer->handle()) Log::error("VAO already contains buffer");
 		}
