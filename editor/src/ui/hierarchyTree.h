@@ -1,5 +1,8 @@
 #pragma once
 #include "entities/components.h"
+#include "scene/scene.h"
+#include "ui/imguiManager.h"
+#include "entities/entity.h"
 
 namespace emerald {
 	class HierarchyTree {
@@ -8,8 +11,11 @@ namespace emerald {
 
 		void render(const Ref<Scene>& scene, const char* searchString);
 		void handleDelete();
+		std::vector<Entity>& getSelectedEntities();
+
 	private:
 		bool m_isFocused = false;
+		std::vector<Entity> m_selectedEntities;
 		std::vector<SceneGraphComponent*> m_nodes;
 		SceneGraphComponent* m_lastSelectedNode = nullptr;
 		ImGuiSelectionBasicStorage m_imGuiSelection;

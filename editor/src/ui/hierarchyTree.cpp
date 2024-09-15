@@ -33,13 +33,13 @@ namespace emerald {
 
 		// Collect nodes
 		m_nodes.clear();
-		collectNodes(SceneManager::getActiveScene()->getRootNode());
+		collectNodes(scene->getRootNode());
 
 		// Begin multi-selection and render nodes
 		auto* multiSelectIO = ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_None, (int)m_imGuiSelection.Size, (int)m_nodes.size());
 		m_imGuiSelection.ApplyRequests(multiSelectIO);
-		renderNode(scene.raw(), SceneManager::getActiveScene()->getRootNode(), searchString);
-		onDrop(SceneManager::getActiveScene()->getRootNode(), true, SceneManager::getActiveScene()->getRootNode(), true);
+		renderNode(scene.raw(), scene->getRootNode(), searchString);
+		onDrop(scene->getRootNode(), true, scene->getRootNode(), true);
 		multiSelectIO = ImGui::EndMultiSelect();
 		m_imGuiSelection.ApplyRequests(multiSelectIO);
 
@@ -228,6 +228,7 @@ namespace emerald {
 	}
 
 	void HierarchyTree::onDrop(SceneGraphComponent* node, bool insertBefore, SceneGraphComponent* beforeNode, bool open) {
+		if (!node) return;
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("NodeDragDrop")) {
 				ImVector<SceneGraphComponent*> selectedNodes = getSelectedNodes();
@@ -235,7 +236,7 @@ namespace emerald {
 				auto action = UndoRedo::createAction<void>("Move nodes");
 
 				for (auto& droppedNode : selectedNodes) {
-					if (droppedNode && node && node != droppedNode) {
+					if (droppedNode && node != droppedNode) {
 						if (!isAncestor(droppedNode, node)) {
 							SceneGraphComponent* originalParent = droppedNode->m_parent;
 							auto originalPosition = utils::getIndexInVector(originalParent->m_children, droppedNode);
@@ -277,7 +278,7 @@ namespace emerald {
 
 				UndoRedo::commitAction(action);
 
-				if (open) node->m_isOpenInHierarchy = true;
+				if (open && node) node->m_isOpenInHierarchy = true;
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -327,5 +328,14 @@ namespace emerald {
 			node = node->m_parent;
 		}
 		return false;
+	}
+
+	std::vector<Entity>& HierarchyTree::getSelectedEntities() {
+		m_selectedEntities.clear();
+
+		for (auto& node : getSelectedNodes()) {
+			m_selectedEntities.push_back(node->m_entity);
+		}
+		return m_selectedEntities;
 	}
 }

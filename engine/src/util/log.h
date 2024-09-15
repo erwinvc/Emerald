@@ -1,6 +1,7 @@
 #pragma once
 #include <format>
 #include <mutex>
+#include <vector>
 
 namespace emerald {
 #define FOREGROUND_BLUE      0x0001 

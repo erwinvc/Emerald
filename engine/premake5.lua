@@ -3,7 +3,7 @@ project "Engine"
     language "C++"
     cppdialect "C++20"
     targetdir "binaries/%{cfg.buildcfg}"
-    staticruntime "off"
+    staticruntime "Off"
 	targetname "EmeraldEngine"
 	externalwarnings "Default"
 	externalanglebrackets "On"
@@ -76,23 +76,25 @@ project "Engine"
         optimize "On"
 		symbols "Off"
 		libdirs { "dependencies/assimp/bin/Release" }
-		links
-		{
-			"assimp-vc141-mt.lib",
-			"zlibstatic"
+		libdirs {
+			"dependencies/assimp/lib/Release",
+			"dependencies/zlib/lib/Release",
 		}
-		postbuildcommands { '{COPY} "dependencies/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"' }
+		links {
+			"assimp-vc143-mt.lib",
+			"zlibstatic.lib",
+		}
     
     filter "configurations:Dist"
 		defines { "EE_DIST" }
 		runtime "Release"
 		optimize "On"
 		symbols "Off"
-		libdirs { "dependencies/assimp/bin/Release" }
-		links
-		{
-			"assimp-vc141-mt.lib",
-			"zlibstatic"
+		libdirs {
+			"dependencies/assimp/lib/Release",
+			"dependencies/zlib/lib/Release",
 		}
-		postbuildcommands { '{COPY} "dependencies/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"' }
-		
+		links {
+			"assimp-vc143-mt.lib",
+			"zlibstatic.lib",
+		}

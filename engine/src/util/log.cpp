@@ -18,7 +18,7 @@ namespace emerald {
 	static CONSOLE_SCREEN_BUFFER_INFO s_screenBuffer;
 	static AsyncQueue<Log::QueuedMessage> s_messageQueue;
 	static std::vector<LogMessage> s_messages;
-	static ConsoleColor s_currentConsoleColor = ConsoleColor::WHITE;
+	static ConsoleColor s_currentConsoleColor = ConsoleColor::RED;
 
 	static bool s_initialized;
 	static bool s_shutdown;
@@ -43,6 +43,8 @@ namespace emerald {
 
 		s_outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 		GetConsoleScreenBufferInfo(s_outputHandle, &s_screenBuffer);
+
+		setTextColor(ConsoleColor::WHITE);
 
 		// Disable QuickEdit Mode
 		HANDLE inputHandle = GetStdHandle(STD_INPUT_HANDLE);

@@ -1,7 +1,6 @@
 #include "eepch.h"
 #include "logPanel.h"
 #include "ui/imguiManager.h"
-#include "imgui_internal.h"
 #include "ui/iconsFontAwesome.h"
 #include "util/valueTester.h"
 #include <mutex>

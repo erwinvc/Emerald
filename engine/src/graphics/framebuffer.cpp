@@ -47,7 +47,7 @@ namespace emerald {
 		});
 	}
 
-	const Ref<FrameBuffer>& FrameBuffer::create(FramebufferDesc desc) {
+	Ref<FrameBuffer> FrameBuffer::create(FramebufferDesc desc) {
 		Ref<FrameBuffer> fbo{ new FrameBuffer(desc) };
 		FrameBufferManager::add(fbo);
 		return fbo;

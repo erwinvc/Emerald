@@ -1,6 +1,8 @@
 #pragma once
 #include "emerald.h"
 #include "logPanel.h"
+#include "inspectorPanel.h"
+#include "hierarchyPanel.h"
 
 namespace emerald {
 	class EditorWindow {
@@ -23,6 +25,8 @@ namespace emerald {
 
 	private:
 		Ref<Texture> m_icon;
+		HierarchyPanel m_hierarchyPanel;
+		InspectorPanel m_inspectorPanel;
 		LogPanel m_logPanel;
 	};
 }

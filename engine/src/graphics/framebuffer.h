@@ -50,7 +50,7 @@ namespace emerald {
 
 		const FramebufferDesc& descriptor() const { return m_desc; }
 
-		static const Ref<FrameBuffer>& create(FramebufferDesc desc);
+		static Ref<FrameBuffer> create(FramebufferDesc desc);
 
 		void bind() const;
 		void unbind() const;

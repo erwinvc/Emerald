@@ -32,7 +32,6 @@ namespace emerald {
 	static bool s_viewportFocused = false;
 	static bool s_TitleBarHovered = false;
 	static glm::vec2 s_sceneViewportSize = glm::vec2(1.0f, 1.0f);
-	static HierarchyTree s_hierarchyTree;
 
 	EditorWindow::EditorWindow() {
 		glfwSetTitlebarHitTestCallback(App->getWindow()->handle(), [](GLFWwindow* window, int x, int y, int* hit) {
@@ -266,12 +265,7 @@ namespace emerald {
 		drawViewport();
 		DebugWindow::draw();
 
-		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		if (ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoNav)) {
-			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
-		}
-		ImGui::End();
-
+		m_inspectorPanel.draw(&m_hierarchyPanel);
 		m_logPanel.draw();
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
@@ -299,36 +293,13 @@ namespace emerald {
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
 
-		if (ImGui::Begin("Hierarchy", nullptr)) {
-
-			static char searchString[128] = { 0 };
-			ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionMax().x - 54);
-			ImGui::InputTextWithHint(ICON_FA_FILTER, ICON_FA_SEARCH " Search...", searchString, 256, ImGuiInputTextFlags_EscapeClearsAll);
-			ImGui::SameLine();
-			if (ImGui::Button(ICON_FA_TIMES)) {
-				memset(searchString, 0, sizeof(searchString));
-			}
-			if (ImGui::EmeraldButton("Add Entity", ImVec2(-FLT_MIN, 0))) {
-				auto action = UndoRedo::createAction<Entity>("Add Entity");
-				UUID entityID = SceneManager::getActiveScene()->getECS().getNewEntityID();
-				action->addDoAction([entityID](Entity& entity) {entity = SceneManager::getActiveScene()->getECS().createEntityFromID(entityID, "Entity"); });
-				action->addUndoAction([](Entity& entity) {SceneManager::getActiveScene()->getECS().destroyEntity(entity); });
-				UndoRedo::commitAction(action);
-			}
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-			ImGui::BorderSeparator(4);
-			if (sceneOpen) s_hierarchyTree.render(activeScene, searchString);
-			ImGui::PopStyleVar();
-		}
-		ImGui::End();
+		m_hierarchyPanel.draw();
 		ImGui::EndDisabled();
 	}
 
 	void EditorWindow::update(Timestep ts) {
-		const Ref<Scene>& activeScene = SceneManager::getActiveScene();
-		bool sceneOpen = activeScene != nullptr;
+		m_hierarchyPanel.update(ts);
 
-		if (sceneOpen) s_hierarchyTree.handleDelete();
 
 		//if (Keyboard::keyDown(Key::N)) {
 		//	offset++;

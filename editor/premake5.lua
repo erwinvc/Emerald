@@ -3,7 +3,7 @@ project "Editor"
 	language "C++"
 	cppdialect "C++20"
 	targetdir "binaries/%{cfg.buildcfg}"
-	staticruntime "off"
+	staticruntime "Off"
 	targetname "EmeraldEditor"
 	externalwarnings "Default"
 	externalanglebrackets "On"
@@ -28,6 +28,7 @@ project "Editor"
 	
 	externalincludedirs
 	{
+		"../engine/dependencies/assimp/include",
 		"../engine/dependencies/GLFW/include",
 	 	"../engine/dependencies/GLAD/include",
 	 	"../engine/dependencies/imgui",
@@ -62,7 +63,6 @@ project "Editor"
         optimize "On"
 		symbols "Off"
 		kind ("ConsoleApp")
-		postbuildcommands { '{COPY} "../engine/dependencies/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"' }
 		
     filter "configurations:Dist"
         defines { "EE_DIST" }
@@ -70,4 +70,3 @@ project "Editor"
         optimize "On"
         symbols "Off"
 		kind ("WindowedApp")
-		postbuildcommands { '{COPY} "../engine/dependencies/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"' }

@@ -56,7 +56,7 @@ namespace emerald {
 	}
 
 	float Time::getTimeMs() {
-		return timeGetTime();
+		return (float)timeGetTime();
 
 	}
 	float Time::getTimeS() {

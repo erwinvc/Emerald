@@ -2152,6 +2152,7 @@ GLFWbool _glfwRawMouseMotionSupportedWin32(void)
     return GLFW_TRUE;
 }
 
+void _glfwPollMessageLoopWin32(void);
 void _glfwPollEventsWin32(void)
 {
 	HWND handle;

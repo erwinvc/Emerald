@@ -16,6 +16,10 @@ namespace emerald {
 			m_runtimeScene = scene;
 		}
 
+		static bool isSceneOpen() {
+			return m_activeScene != nullptr;
+		}
+
 		static void play() {
 		}
 
