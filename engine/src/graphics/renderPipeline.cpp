@@ -7,13 +7,14 @@
 #include "graphics/shaders/shader.h"
 #include "buffers/indexBuffer.h"
 #include "vertexArray.h"
-#include "glError.h"
 #include "imguiProfiler/Profiler.h"
 #include "input/keyboard.h"
 #include "../../editor/src/editor.h"
 #include "engineIcon.h"
 #include "assets/loaders/modelLoader.h"
 #include "../scene/sceneManager.h"
+#include "ecs/components/transformComponent.h"
+#include "ecs/components/meshRendererComponent.h"
 
 namespace emerald {
 	RenderPipeline::RenderPipeline() {

@@ -1,8 +1,7 @@
 #include "eepch.h"
 #include "graphics/textureDesc.h"
 #include "color.h"
-#include "glError.h"
-#include "../graphics/shaders/shader.h"
+#include "graphics/shaders/shader.h"
 
 namespace emerald {
 	namespace GLUtils {

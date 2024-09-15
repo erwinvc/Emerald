@@ -1,5 +1,5 @@
 #pragma once
-#include "../graphics/shaders/shader.h"
+#include "graphics/shaders/shader.h"
 
 namespace emerald {
 	class Color;

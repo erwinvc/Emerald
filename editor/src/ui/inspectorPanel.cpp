@@ -3,7 +3,6 @@
 #include "ui/imguiManager.h"
 #include "hierarchyPanel.h"
 #include <unordered_set>
-#include "componentInspector.h"
 #include "inspectorRegistry.h"
 
 namespace emerald {
@@ -43,7 +42,6 @@ namespace emerald {
 			}
 
 			for (RTTIType componentType : commonComponents) {
-				// Get components of this type from all entities
 				std::vector<Component*> components;
 				for (UUID entity : selectedEntities) {
 					Component* component = scene->getECS().getComponentArray(componentType).getRaw(entity);
@@ -52,7 +50,6 @@ namespace emerald {
 					}
 				}
 
-				// Render inspector for this component type
 				renderComponentInspector(componentType, components);
 			}
 		}

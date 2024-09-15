@@ -1,5 +1,5 @@
 #pragma once
-#include "../input/keyboard.h"
+#include "input/keyboard.h"
 
 namespace emerald {
 	//Simple class to finetune values with keyboard input

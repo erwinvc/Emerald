@@ -4,8 +4,7 @@
 #include "shadInclude.h"
 #include "util/glUtils.h"
 #include "util/fileSystem.h"
-#include "../renderer.h"
-#include "glError.h"
+#include "graphics/renderer.h"
 
 namespace emerald {
 	Shader::Shader(const std::string& name, const std::string& filePath, bool hasGeometry, bool hasTessellation) : m_shaderProgram(nullptr), m_hasGeometry(hasGeometry), m_hasTessellation(hasTessellation), m_name(name), m_shaderPath(filePath) {

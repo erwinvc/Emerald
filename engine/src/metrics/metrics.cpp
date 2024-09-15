@@ -1,6 +1,5 @@
 #include "eepch.h"
 #include "metrics.h"
-#include "glError.h"
 #include "application.h"
 #include "util/threading/threadManager.h"
 #include "util/time.h"

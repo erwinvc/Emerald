@@ -1,6 +1,6 @@
 #include "eepch.h"
 #include "application.h"
-#include "glfw.h"
+#include "graphics/glfw.h"
 #include "graphics/engineIcon.h"
 #include "graphics/renderer.h"
 #include "graphics/window.h"
@@ -10,7 +10,6 @@
 #include "input/mouse.h"
 #include "metrics/metrics.h"
 #include "renderSyncManager.h"
-#include "glError.h"
 #include "util/threading/threadManager.h"
 #include "graphics/framebuffer.h"
 #include "util/reflection.h"
@@ -56,8 +55,8 @@ namespace emerald {
 		ImGuiManager::initialize(m_mainWindow);
 
 
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		GL(glEnable(GL_DEBUG_OUTPUT));
+		GL(glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
 		GLError::setGLDebugMessageCallback();
 
 		onInitialize();

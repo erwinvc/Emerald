@@ -1,6 +1,6 @@
 #pragma once
 #include "shaders/shader.h"
-#include "../util/buffer.h"
+#include "util/buffer.h"
 
 namespace emerald {
 	class Material : public RefCounted {

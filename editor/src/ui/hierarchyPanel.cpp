@@ -1,7 +1,7 @@
 #include "eepch.h"
 #include "hierarchyPanel.h"
 #include "ui/imguiManager.h"
-#include "entities/entity.h"
+#include "ecs/entity.h"
 #include "scene/sceneManager.h"
 #include "ui/iconsFontAwesome.h"
 #include "undoRedo.h"

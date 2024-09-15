@@ -1,7 +1,9 @@
 #include "eepch.h"
 #include "scene.h"
-#include "entities/components.h"
 #include "assets/loaders/modelLoader.h"
+#include "ecs/components/transformComponent.h"
+#include "ecs/components/nameComponent.h"
+#include "ecs/components/meshRendererComponent.h"
 
 namespace emerald {
 	Scene::Scene(const std::string name, const std::filesystem::path& scenePath) : m_name(name), m_path(scenePath) {
@@ -16,21 +18,13 @@ namespace emerald {
 
 		Entity root = m_ecs.createEntity(m_name, true);
 		m_sceneRoot = m_ecs.getComponent<SceneGraphComponent>(root);
-		
+
 		Entity sponza = Entity::create("sponza");
 
-		Entity test1 = Entity::create("test1");
-		Entity test2 = Entity::create("test2");
-		Entity test3 = Entity::create("test3");
-		Entity test4 = Entity::create("test4");
-		Entity test5 = Entity::create("test5");
-		Entity::create("test6");
-		Entity::create("test7");
-		Entity::create("test8");
-		Entity::create("test9");
-		Entity::create("test10");
-
 		SceneGraphComponent* sponzaParent = m_ecs.getComponent<SceneGraphComponent>(sponza);
+		TransformComponent* sponzaTransform = m_ecs.getComponent<TransformComponent>(sponza);
+		sponzaTransform->setScale(glm::vec3(0.1f));
+
 		ModelLoader loader("I:\\Development\\C++\\EmeraldOldStuff\\res\\sponza\\sponza.obj");
 		for (auto& mesh : loader.load()) {
 			Entity e = m_ecs.createEntity(mesh->getName());
@@ -45,15 +39,13 @@ namespace emerald {
 	void Scene::getActiveCamera() {}
 
 	void Scene::updateTransformsRecursively(SceneGraphComponent* node, const glm::mat4& parentTransform) {
-		TransformComponent* trans = m_ecs.getComponent<TransformComponent>(node->m_entity);
-
-		if (trans) {
-			trans->updateGlobalTransform(parentTransform);
-		}
+		TransformComponent* transform = m_ecs.getComponent<TransformComponent>(node->m_entity);
+		if (!transform) return;
+		transform->updateGlobalTransform(parentTransform);
 
 		const std::vector<SceneGraphComponent*>& children = node->getChildren();
 		for (SceneGraphComponent* child : children) {
-			updateTransformsRecursively(child, trans->getGlobalTransform());
+			updateTransformsRecursively(child, transform->getGlobalTransform());
 		}
 	}
 

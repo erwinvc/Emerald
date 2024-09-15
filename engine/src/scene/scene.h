@@ -1,8 +1,9 @@
 #pragma once
-#include "../util/timestep.h"
+#include "util/timestep.h"
 #include "graphics/camera.h"
 #include <filesystem>
-#include "entities/entityComponentSystem.h"
+#include "ecs/entityComponentSystem.h"
+#include "ecs/components/sceneGraphComponent.h"
 
 namespace emerald {
 	class Scene : public RefCounted {

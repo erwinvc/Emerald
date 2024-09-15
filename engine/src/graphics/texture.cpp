@@ -7,7 +7,6 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 #include "renderer.h"
-#include "glError.h"
 
 namespace emerald {
 	Texture::Texture(TextureDesc desc, std::string path)

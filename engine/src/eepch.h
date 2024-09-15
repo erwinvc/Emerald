@@ -33,10 +33,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/integer.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "ref.h"
 #include "rtti.h"
 
+#include "graphics/glError.h"
 #include "assrt.h"
 
 #include "util/log.h"

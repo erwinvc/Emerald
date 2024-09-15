@@ -7,7 +7,7 @@
 #include "graphics/buffers/vertexBuffer.h"
 #include "graphics/vertexArray.h"
 #include "graphics/buffers/indexBuffer.h"
-#include "../mesh.h"
+#include "assets/mesh.h"
 
 namespace emerald {
 	static const uint32_t ImportFlags =

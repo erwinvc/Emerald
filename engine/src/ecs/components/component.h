@@ -1,7 +1,7 @@
 #pragma once
 #include "rtti.h"
 #include "ref.h"
-#include "entity.h"
+#include "ecs/entity.h"
 
 namespace emerald {
 	class Component : public RefCounted {

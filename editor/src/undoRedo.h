@@ -2,7 +2,7 @@
 #include <stack>
 #include <functional>
 #include "ref.h"
-#include "entities/entity.h"
+#include "ecs/entity.h"
 #include "scene/sceneManager.h"
 
 namespace emerald {

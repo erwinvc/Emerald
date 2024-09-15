@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 #include "rtti.h"
-#include "componentInspector.h"
+#include "ui/inspector/componentInspector.h"
 
 #define REGISTER_COMPONENT_INSPECTOR(ComponentClass, InspectorClass)							\
 namespace {																						\

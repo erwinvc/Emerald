@@ -1,7 +1,6 @@
 #include "eepch.h"
 #include "util/color.h"
 #include "editor.h"
-#include "entities/componentArray.h"
 #include "hierarchyTree.h"
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -12,6 +11,7 @@
 #include "input/mouse.h"
 #include "util/utils.h"
 #include "undoRedo.h"
+#include "ecs/components/nameComponent.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {

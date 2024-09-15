@@ -4,7 +4,6 @@
 #include "framebuffer.h"
 #include "application.h"
 #include "util/GLUtils.h"
-#include "../glError.h"
 #include "renderSyncManager.h"
 
 namespace emerald {

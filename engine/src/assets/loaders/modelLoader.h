@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 #include "util/timer.h"
-#include "../mesh.h"
+#include "assets/mesh.h"
 
 namespace emerald {
 	struct Vertex {

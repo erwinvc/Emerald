@@ -3,7 +3,6 @@
 #include "util/GLUtils.h"
 #include "application.h"
 #include "renderer.h"
-#include "glError.h"
 
 namespace emerald {
 	static const uint32_t drawBuffers[16] = {

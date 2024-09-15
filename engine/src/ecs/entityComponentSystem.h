@@ -1,7 +1,7 @@
 #pragma once
-#include "components.h"
 #include "componentArray.h"
 #include "util/utils.h"
+#include "components/sceneGraphComponent.h"
 
 //RTTI based Entity Component System
 namespace emerald {
