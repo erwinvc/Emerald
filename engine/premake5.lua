@@ -75,7 +75,6 @@ project "Engine"
         runtime "Release"
         optimize "On"
 		symbols "Off"
-		libdirs { "dependencies/assimp/bin/Release" }
 		libdirs {
 			"dependencies/assimp/lib/Release",
 			"dependencies/zlib/lib/Release",
