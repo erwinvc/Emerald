@@ -11,7 +11,7 @@ namespace emerald {
 		void updateForRendering();
 
 		template <typename T>
-		void Set(const std::string& name, const T& value, uint32_t index = 0) {
+		void set(const std::string& name, const T& value, uint32_t index = 0) {
 			auto uniform = getShaderUniform(name);
 			//ASSERT(uniform, "Could not find uniform");
 			if (!uniform)
@@ -21,7 +21,7 @@ namespace emerald {
 		}
 
 		template <typename T>
-		void SetArray(const std::string& name, const T* value, uint32_t count) {
+		void setArray(const std::string& name, const T* value, uint32_t count) {
 			auto uniform = getShaderUniform(name);
 			//ASSERT(uniform, "Could not find uniform");
 			if (!uniform)
@@ -31,12 +31,13 @@ namespace emerald {
 			m_uniformStorageBuffer.write((byte*)&value, totalSize, uniform->m_offset);
 		}
 
-		template<typename T>
-		T& Get(const std::string& name) {
+		template <typename T>
+		T get(const std::string& name) {
 			auto uniform = getShaderUniform(name);
 			ASSERT(uniform, "Could not find uniform");
 			return m_uniformStorageBuffer.read<T>(uniform->m_offset);
 		}
+
 		const ShaderUniform* getShaderUniform(const std::string& name);
 
 	private:

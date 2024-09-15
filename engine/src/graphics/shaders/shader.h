@@ -64,13 +64,21 @@ namespace emerald {
 			});
 		}
 
-		void setUniformInt(uint32_t location, uint32_t count, const int32_t* value);
-		void setUniformUInt(uint32_t location, uint32_t count, const uint32_t* value);
-		void setUniformFloat1(uint32_t location, uint32_t count, const float* value);
-		void setUniformFloat2(uint32_t location, uint32_t count, const float* value);
-		void setUniformFloat3(uint32_t location, uint32_t count, const float* value);
-		void setUniformFloat4(uint32_t location, uint32_t count, const float* value);
-		void setUniformMatrix3(uint32_t location, uint32_t count, const float* value);
-		void setUniformMatrix4(uint32_t location, uint32_t count, const float* value);
+		void setUniformInt(uint32_t location, uint32_t count, const int32_t& value);
+		void setUniformInt(uint32_t location, uint32_t count, const std::vector<int32_t>& value);
+		void setUniformUInt(uint32_t location, uint32_t count, const uint32_t& value);
+		void setUniformUInt(uint32_t location, uint32_t count, const std::vector<uint32_t>& value);
+		void setUniformFloat1(uint32_t location, uint32_t count, const float& value);
+		void setUniformFloat1(uint32_t location, uint32_t count, const std::vector<float>& value);
+		void setUniformFloat2(uint32_t location, uint32_t count, const glm::vec2& value);
+		void setUniformFloat2(uint32_t location, uint32_t count, const std::vector<glm::vec2>& value);
+		void setUniformFloat3(uint32_t location, uint32_t count, const glm::vec3& value);
+		void setUniformFloat3(uint32_t location, uint32_t count, const std::vector<glm::vec3>& value);
+		void setUniformFloat4(uint32_t location, uint32_t count, const glm::vec4& value);
+		void setUniformFloat4(uint32_t location, uint32_t count, const std::vector<glm::vec4>& value);
+		void setUniformMatrix3(uint32_t location, uint32_t count, const glm::mat3& value);
+		void setUniformMatrix3(uint32_t location, uint32_t count, const std::vector<glm::mat3>& value);
+		void setUniformMatrix4(uint32_t location, uint32_t count, const glm::mat4& value);
+		void setUniformMatrix4(uint32_t location, uint32_t count, const std::vector<glm::mat4>& value);
 	};
 }

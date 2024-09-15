@@ -3,10 +3,15 @@
 #include "util/uuid.h"
 
 namespace emerald {
+	class Component;
+
 	class ComponentArrayBase {
 	public:
 		friend class EntityComponentSystem;
 		virtual ~ComponentArrayBase() = default;
+
+		virtual Component* getRaw(UUID entity) = 0;
+		virtual bool has(UUID entity) const = 0;
 
 	private:
 		virtual void removeComponent(UUID entity) = 0;
@@ -24,7 +29,13 @@ namespace emerald {
 			return components[entityToIndexMap[entity]].raw();
 		}
 
-		bool has(UUID entity) {
+		Component* getRaw(UUID entity) override {
+			if (!entity) return nullptr;
+			ASSERT(entityToIndexMap.find(entity) != entityToIndexMap.end(), "Retrieving non-existent component");
+			return components[entityToIndexMap[entity]].raw();
+		}
+
+		bool has(UUID entity) const {
 			return entityToIndexMap.find(entity) != entityToIndexMap.end();
 		}
 

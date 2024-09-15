@@ -122,8 +122,8 @@ namespace emerald {
 
 		//glm::vec4 colors[2] = { glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) };
 		//m_material->SetArray("color", colors, 2);
-		m_material->Set("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
-		m_material->Set("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 1);
+		m_material->set("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
+		m_material->set("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 1);
 	}
 
 	RenderPipeline::~RenderPipeline() {
@@ -169,7 +169,7 @@ namespace emerald {
 		if (Keyboard::keyJustDown(Key::R)) {
 			index++;
 			if (index > 1) index = 0;
-			m_material->Set("colorIndex", index);
+			m_material->set("colorIndex", index);
 		}
 
 		Renderer::submit([] {PROFILE_RENDER_BEGIN("Pipeline"); });
@@ -185,12 +185,15 @@ namespace emerald {
 		glm::mat4 modelMatrix = glm::mat4(1.0f);
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
 
-		m_material->Set("modelMatrix", modelMatrix);
-		m_material->Set("viewMatrix", Editor->getEditorCamera()->getViewMatrix());
-		m_material->Set("projectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
-		m_material->updateForRendering();
+		m_material->set("viewMatrix", Editor->getEditorCamera()->getViewMatrix());
+		m_material->set("projectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
+
+		SceneManager::getActiveScene()->updateAllTransforms();
 
 		for (auto& meshRenderer : SceneManager::getActiveScene()->getECS().getComponentArray<MeshRendererComponent>()) {
+			auto* transform = SceneManager::getActiveScene()->getECS().getComponent<TransformComponent>(meshRenderer->m_entity);
+			m_material->set("modelMatrix", transform->getGlobalTransform());
+			m_material->updateForRendering();
 			meshRenderer->m_mesh->bind();
 			Renderer::drawIndexed(meshRenderer->m_mesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
 		}

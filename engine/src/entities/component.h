@@ -8,6 +8,7 @@ namespace emerald {
 		RTTI_BASE_CLASS_DECL(Component);
 	public:
 		Component() = default;
+		bool m_enabled;
 		Entity m_entity;
 	};
 }

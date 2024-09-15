@@ -2589,7 +2589,11 @@ bool ImGui::DragScalar(const char* label, ImGuiDataType data_type, void* p_data,
         return false;
 
     // Default format string when passing NULL
-    if (format == NULL)
+   // if (format == NULL)
+	bool mixed_value = (g.LastItemData.InFlags & ImGuiItemFlags_MixedValue) != 0;
+	if (mixed_value) // Dash when value is mixed
+		format = "-";
+	else if (format == NULL) // Default format string when passing NULL
         format = DataTypeGetInfo(data_type)->PrintFmt;
 
     const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
@@ -3181,7 +3185,11 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
         return false;
 
     // Default format string when passing NULL
-    if (format == NULL)
+   // if (format == NULL)
+    bool mixed_value = (g.LastItemData.InFlags & ImGuiItemFlags_MixedValue) != 0;
+    if (mixed_value) // Dash when value is mixed
+        format = "-";
+    else if (format == NULL) // Default format string when passing NULL
         format = DataTypeGetInfo(data_type)->PrintFmt;
 
     const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
@@ -3347,7 +3355,11 @@ bool ImGui::VSliderScalar(const char* label, const ImVec2& size, ImGuiDataType d
         return false;
 
     // Default format string when passing NULL
-    if (format == NULL)
+    //if (format == NULL)
+	bool mixed_value = (g.LastItemData.InFlags & ImGuiItemFlags_MixedValue) != 0;
+	if (mixed_value) // Dash when value is mixed
+		format = "-";
+	else if (format == NULL) // Default format string when passing NULL
         format = DataTypeGetInfo(data_type)->PrintFmt;
 
     const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
@@ -3627,7 +3639,10 @@ bool ImGui::InputScalar(const char* label, ImGuiDataType data_type, void* p_data
     ImGuiContext& g = *GImGui;
     ImGuiStyle& style = g.Style;
 
-    if (format == NULL)
+	bool mixed_value = (g.LastItemData.InFlags & ImGuiItemFlags_MixedValue) != 0;
+	if (mixed_value) // Dash when value is mixed
+		format = "-";
+	else if (format == NULL) // Default format string when passing NULL
         format = DataTypeGetInfo(data_type)->PrintFmt;
 
     void* p_data_default = (g.NextItemData.Flags & ImGuiNextItemDataFlags_HasRefVal) ? &g.NextItemData.RefVal : &g.DataTypeZeroValue;

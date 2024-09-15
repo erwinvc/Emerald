@@ -105,8 +105,13 @@ namespace emerald {
 		}
 
 		template<typename T>
-		T& read(uint32_t offset = 0) {
+		T& read(uint32_t offset = 0) const {
 			return *(T*)((byte*)m_data + offset);
+		}
+
+		template<typename T>
+		void readArray(T* dst, size_t offset, size_t count) const {
+			std::memcpy(dst, &m_data[offset], sizeof(T) * count);
 		}
 
 		void write(void* data, uint32_t size, uint32_t offset = 0) {

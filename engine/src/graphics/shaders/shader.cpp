@@ -115,7 +115,7 @@ namespace emerald {
 			ShaderUniformType type = GLUtils::glTypeToShaderUniformType(glType);
 			uint32_t size = GLUtils::getUniformSize(type);
 
-			m_uniformBuffers[name] = ShaderUniform {
+			m_uniformBuffers[name] = ShaderUniform{
 												name,
 												GLUtils::glTypeToShaderUniformType(glType),
 												elementCount > 1,
@@ -128,36 +128,131 @@ namespace emerald {
 		}
 	}
 
-	void Shader::setUniformInt(uint32_t location, uint32_t count, const int32_t* value) {
-		setUniform(glUniform1iv, location, count, (GLint*)value);
+	void Shader::setUniformInt(uint32_t location, uint32_t count, const int32_t& value) {
+		Renderer::submit([=] {
+			GL(glUniform1iv(location, count, (GLint*)&value));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform1iv, location, count, (GLint*)value);
 	}
 
-	void Shader::setUniformUInt(uint32_t location, uint32_t count, const uint32_t* value) {
-		setUniform(glUniform1uiv, location, count, (GLuint*)value);
+	void Shader::setUniformInt(uint32_t location, uint32_t count, const std::vector<int32_t>& value) {
+		Renderer::submit([=] {
+			GL(glUniform1iv(location, count, (GLint*)value.data()));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform1iv, location, count, (GLint*)value);
 	}
 
-	void Shader::setUniformFloat1(uint32_t location, uint32_t count, const float* value) {
-		setUniform(glUniform1fv, location, count, (GLfloat*)value);
+	void Shader::setUniformUInt(uint32_t location, uint32_t count, const uint32_t& value) {
+		Renderer::submit([=] {
+			GL(glUniform1uiv(location, count, (GLuint*)&value));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform1uiv, location, count, (GLuint*)value);
 	}
 
-	void Shader::setUniformFloat2(uint32_t location, uint32_t count, const float* value) {
-		setUniform(glUniform2fv, location, count, (GLfloat*)value);
+	void Shader::setUniformUInt(uint32_t location, uint32_t count, const std::vector<uint32_t>& value) {
+		Renderer::submit([=] {
+			GL(glUniform1uiv(location, count, (GLuint*)value.data()));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform1uiv, location, count, (GLuint*)value);
 	}
 
-	void Shader::setUniformFloat3(uint32_t location, uint32_t count, const float* value) {
-		setUniform(glUniform3fv, location, count, (GLfloat*)value);
+	void Shader::setUniformFloat1(uint32_t location, uint32_t count, const float& value) {
+		Renderer::submit([=] {
+			GL(glUniform1fv(location, count, (GLfloat*)&value));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform1fv, location, count, (GLfloat*)value);
 	}
 
-	void Shader::setUniformFloat4(uint32_t location, uint32_t count, const float* value) {
-		setUniform(glUniform4fv, location, count, (GLfloat*)value);
+	void Shader::setUniformFloat1(uint32_t location, uint32_t count, const std::vector<float>& value) {
+		Renderer::submit([=] {
+			GL(glUniform1fv(location, count, (GLfloat*)value.data()));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform1fv, location, count, (GLfloat*)value);
 	}
 
-	void Shader::setUniformMatrix3(uint32_t location, uint32_t count, const float* value) {
-		setUniform(glUniformMatrix3fv, location, count, GL_FALSE, value);
+
+	void Shader::setUniformFloat2(uint32_t location, uint32_t count, const glm::vec2& value) {
+		Renderer::submit([=] {
+			GL(glUniform2fv(location, count, (GLfloat*)&value));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform2fv, location, count, (GLfloat*)value);
 	}
 
-	void Shader::setUniformMatrix4(uint32_t location, uint32_t count, const float* value) {
-		setUniform(glUniformMatrix4fv, location, count, GL_FALSE, value);
+	void Shader::setUniformFloat2(uint32_t location, uint32_t count, const std::vector<glm::vec2>& value) {
+		Renderer::submit([=] {
+			GL(glUniform2fv(location, count, (GLfloat*)value.data()));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform2fv, location, count, (GLfloat*)value);
+	}
+
+	void Shader::setUniformFloat3(uint32_t location, uint32_t count, const glm::vec3& value) {
+		Renderer::submit([=] {
+			GL(glUniform3fv(location, count, (GLfloat*)&value));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform3fv, location, count, (GLfloat*)value);
+	}
+
+	void Shader::setUniformFloat3(uint32_t location, uint32_t count, const std::vector<glm::vec3>& value) {
+		Renderer::submit([=] {
+			GL(glUniform3fv(location, count, (GLfloat*)value.data()));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform3fv, location, count, (GLfloat*)value);
+	}
+
+	void Shader::setUniformFloat4(uint32_t location, uint32_t count, const glm::vec4& value) {
+		Renderer::submit([=] {
+			GL(glUniform4fv(location, count, (GLfloat*)&value));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniform4fv, location, count, (GLfloat*)value);
+	}
+
+	void Shader::setUniformFloat4(uint32_t location, uint32_t count, const std::vector<glm::vec4>& value) {
+		Renderer::submit([=] {
+			GL(glUniform4fv(location, count, (GLfloat*)value.data()));
+		});
+	}
+
+	void Shader::setUniformMatrix3(uint32_t location, uint32_t count, const glm::mat3& value) {
+		Renderer::submit([=] {
+			GL(glUniformMatrix3fv(location, count, GL_FALSE, (GLfloat*)&value));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniformMatrix3fv, location, count, GL_FALSE, value);
+	}
+
+	void Shader::setUniformMatrix3(uint32_t location, uint32_t count, const std::vector<glm::mat3>& value) {
+		Renderer::submit([=] {
+			GL(glUniformMatrix3fv(location, count, GL_FALSE, (GLfloat*)value.data()));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniformMatrix3fv, location, count, GL_FALSE, value);
+	}
+
+	void Shader::setUniformMatrix4(uint32_t location, uint32_t count, const glm::mat4& value) {
+		Renderer::submit([=] {
+			GL(glUniformMatrix4fv(location, count, GL_FALSE, (GLfloat*)&value));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniformMatrix4fv, location, count, GL_FALSE, value);
+	}
+
+	void Shader::setUniformMatrix4(uint32_t location, uint32_t count, const std::vector<glm::mat4>& value) {
+		Renderer::submit([=] {
+			GL(glUniformMatrix4fv(location, count, GL_FALSE, (GLfloat*)value.data()));
+			//GL(func(location, count, args...));
+		});
+		//setUniform(glUniformMatrix4fv, location, count, GL_FALSE, value);
 	}
 
 	void Shader::reload() {

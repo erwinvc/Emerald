@@ -30,11 +30,11 @@ namespace emerald {
 		Entity::create("test9");
 		Entity::create("test10");
 
+		SceneGraphComponent* sponzaParent = m_ecs.getComponent<SceneGraphComponent>(sponza);
 		ModelLoader loader("I:\\Development\\C++\\EmeraldOldStuff\\res\\sponza\\sponza.obj");
 		for (auto& mesh : loader.load()) {
 			Entity e = m_ecs.createEntity(mesh->getName());
 			SceneGraphComponent* r = m_ecs.getComponent<SceneGraphComponent>(e);
-			SceneGraphComponent* sponzaParent = m_ecs.getComponent<SceneGraphComponent>(sponza);
 			m_ecs.addComponent<MeshRendererComponent>(e, mesh);
 			sponzaParent->addChild(r);
 		}
@@ -43,4 +43,21 @@ namespace emerald {
 	void Scene::save() {}
 	void Scene::update(Timestep ts) {}
 	void Scene::getActiveCamera() {}
+
+	void Scene::updateTransformsRecursively(SceneGraphComponent* node, const glm::mat4& parentTransform) {
+		TransformComponent* trans = m_ecs.getComponent<TransformComponent>(node->m_entity);
+
+		if (trans) {
+			trans->updateGlobalTransform(parentTransform);
+		}
+
+		const std::vector<SceneGraphComponent*>& children = node->getChildren();
+		for (SceneGraphComponent* child : children) {
+			updateTransformsRecursively(child, trans->getGlobalTransform());
+		}
+	}
+
+	void Scene::updateAllTransforms() {
+		updateTransformsRecursively(getRootNode(), glm::mat4(1.0f));
+	}
 }

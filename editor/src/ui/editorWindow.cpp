@@ -265,7 +265,7 @@ namespace emerald {
 		drawViewport();
 		DebugWindow::draw();
 
-		m_inspectorPanel.draw(&m_hierarchyPanel);
+		m_inspectorPanel.draw(activeScene, &m_hierarchyPanel);
 		m_logPanel.draw();
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);

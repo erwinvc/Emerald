@@ -15,6 +15,7 @@ namespace emerald {
 		void save();
 		void update(Timestep ts);
 		void getActiveCamera();
+		void updateAllTransforms();
 		const std::string& getName() const { return m_name; }
 		EntityComponentSystem& getECS() { return m_ecs; }
 		SceneGraphComponent* getRootNode() { return m_sceneRoot; }
@@ -25,5 +26,7 @@ namespace emerald {
 		EntityComponentSystem m_ecs;
 		WeakRef<Camera> m_activeCamera;
 		SceneGraphComponent* m_sceneRoot;
+
+		void updateTransformsRecursively(SceneGraphComponent* node, const glm::mat4& parentTransform);
 	};
 }
