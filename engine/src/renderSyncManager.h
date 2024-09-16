@@ -15,8 +15,6 @@ namespace emerald {
 		void executeRenderBuffer();
 		void waitForBufferAvailability();
 		void submitBufferForRendering();
-		void SetTempBuffer();
-		bool tempBuffer = false;
 	private:
 		//TODO: improve buffer storage, std::vector isnt the most efficient
 		std::vector<RenderCommand> bufferA, bufferB, bufferC;

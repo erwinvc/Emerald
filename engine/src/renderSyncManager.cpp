@@ -5,15 +5,10 @@
 
 namespace emerald {
 	static bool s_shutdown = false;
-	static std::vector<RenderCommand> tempBufferr;
-
+	static std::vector<RenderCommand> quickBuffer;
+	static std::mutex quickMutex;
 	RenderSyncManager::~RenderSyncManager() {
 		s_shutdown = true;
-	}
-
-	void RenderSyncManager::SetTempBuffer() {
-		tempBuffer = true;
-		tempBufferr.clear();
 	}
 
 	void RenderSyncManager::acquireRenderBuffer() {
@@ -32,29 +27,28 @@ namespace emerald {
 	void RenderSyncManager::submit(RenderCommand command) {
 		if (s_shutdown) return;
 		ASSERT(!ThreadManager::isThread(ThreadType::RENDER), "The render thread is not supposed to queue render commands");
-		if (tempBuffer)tempBufferr.emplace_back(command);
-		else backBuffer->emplace_back(command);
+		backBuffer->emplace_back(command);
 	}
 
 	void RenderSyncManager::submitFromAnyThread(RenderCommand command) {
 		if (s_shutdown) return;
-		if (tempBuffer)tempBufferr.emplace_back(command);
-		else backBuffer->emplace_back(command);
+
+		std::lock_guard<std::mutex> lock(quickMutex);
+		quickBuffer.emplace_back(command);
 	}
 
 	void RenderSyncManager::executeRenderBuffer() {
-		if (tempBuffer) {
-			for (const auto& cmd : tempBufferr) {
-				cmd();
-			}
-			tempBuffer = false;
-			return;
-		}
 		for (const auto& cmd : *frontBuffer) {
 			if (cmd) cmd();
 		}
 
 		frontBuffer->clear();
+
+		std::lock_guard<std::mutex> lock(quickMutex);
+		for (const auto& cmd : quickBuffer) {
+			if (cmd) cmd();
+		}
+		quickBuffer.clear();
 	}
 
 	void RenderSyncManager::waitForBufferAvailability() {

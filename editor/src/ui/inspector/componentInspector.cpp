@@ -7,6 +7,6 @@
 
 namespace emerald {
 	void DefaultComponentInspector::draw(const std::vector<Component*>& components) {
-		ImGui::Text(components[0]->getClassType().name());
+		//ImGui::Text(components[0]->getClassType().name());
 	}
 }

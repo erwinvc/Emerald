@@ -3,6 +3,8 @@
 #include "logPanel.h"
 #include "inspectorPanel.h"
 #include "hierarchyPanel.h"
+#include "assetPanel.h"
+#include "scenePanel.h"
 
 namespace emerald {
 	class EditorWindow {
@@ -28,5 +30,7 @@ namespace emerald {
 		HierarchyPanel m_hierarchyPanel;
 		InspectorPanel m_inspectorPanel;
 		LogPanel m_logPanel;
+		AssetPanel m_assetPanel;
+		ScenePanel m_scenePanel;
 	};
 }

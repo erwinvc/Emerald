@@ -25,8 +25,8 @@ namespace emerald {
 			return(retVal);
 		}
 
-		inline int32_t getIntInRange(int32_t min, int32_t max) {
-			return min + getInt() % (max - min);
+		inline int32_t getIntInRange(int32_t minInclusive, int32_t maxExclusive) {
+			return minInclusive + getInt() % (maxExclusive - minInclusive);
 		}
 
 
@@ -123,7 +123,7 @@ namespace emerald {
 	class StaticRandom {
 	public:
 		static inline uint32_t getInt(void) { return getThreadLocalRandom().getInt(); }
-		static inline int32_t getIntInRange(int32_t min, int32_t max) { return getThreadLocalRandom().getIntInRange(min, max); }
+		static inline int32_t getIntInRange(int32_t minInclusive, int32_t maxExclusive) { return getThreadLocalRandom().getIntInRange(minInclusive, maxExclusive); }
 		static inline float getFloat() { return getThreadLocalRandom().getFloat(); }
 		static inline float getFloatInRange(float min, float max) { return getThreadLocalRandom().getFloatInRange(min, max); }
 		static inline float getVariedFloat(float v) { return getThreadLocalRandom().getVariedFloat(v); }

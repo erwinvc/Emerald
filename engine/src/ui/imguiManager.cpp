@@ -167,7 +167,6 @@ namespace emerald {
 		fonts[ImGUIFont::SEGOE] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 10.0f, NULL, segmdl2Ranges);
 		fonts[ImGUIFont::AWESOME_R] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-regular-400.ttf", 16.0f, &config, awesomeRanges);
 		fonts[ImGUIFont::AWESOME_S] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-solid-900.ttf", 16.0f, &config, awesomeRanges);
-
 		io.Fonts->Build();
 
 		applyEmeraldTheme();

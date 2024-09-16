@@ -3,9 +3,8 @@
 #include "GLFW/glfw3.h"
 #include "texture.h"
 
-
 namespace emerald::icon {
-	void loadIcon(GLFWwindow* window) {
+	void loadIcon(void* window) {
 		TextureDesc desc;
 		desc.readWrite = true;
 		Texture texture(desc, 32, 32, icon32_map, NUMOF(icon32_map), TextureDataType::FILE);
@@ -15,6 +14,6 @@ namespace emerald::icon {
 		icon[0].height = 32;
 		icon[0].pixels = (byte*)texture.getBuffer().data();
 
-		glfwSetWindowIcon(window, 1, icon);
+		glfwSetWindowIcon((GLFWwindow*)window, 1, icon);
 	}
 }

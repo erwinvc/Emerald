@@ -12,6 +12,7 @@ namespace emerald {
 
 	void InspectorPanel::draw(const Ref<Scene> scene, HierarchyPanel* hierarchyPanel) {
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
+		//ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 		if (ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoNav)) {
 			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
 
@@ -53,6 +54,7 @@ namespace emerald {
 				renderComponentInspector(componentType, components);
 			}
 		}
+		//ImGui::PopStyleVar();
 		ImGui::End();
 	}
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "ui/imguiManager.h"
+#include "inspector.h"
 
 namespace emerald {
 	class Component;
@@ -27,19 +28,37 @@ namespace emerald {
 	}
 
 	template<typename PropertyType, typename T, typename Q>
-	static bool drawMultiPropertyFloat3(std::string_view name, const std::vector<Q*>& elements, PropertyType T::* member, PropertyType defaultValue) {
+	static bool drawMultiPropertyFloat3(std::string_view name, const std::vector<Q*>& elements, PropertyType T::* member, PropertyType defaultValue, const char** symbols) {
 		bool toRet = false;
 		PropertyType value;
 		bool commonValue = getCommonPropertyValue(elements, member, value, glm::vec3(0, 0, 0));
 
 		if (!commonValue) ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, true);
 
-		if (ImGui::DragFloat3(name.data(), glm::value_ptr(value), 0.1f)) {
+		ImGuiContext& g = *GImGui;
+		//ImGui::SetNextItemWidth(300);
+		ImGui::Text(name.data());
+
+		ImGui::SameLine();
+		ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.2f, 0.2f, 0.2f, 1));
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(290);
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, 2);
+		ImGui::SameLine();
+		ImGui::PopStyleColor();
+		ImGui::SetCursorPosX(300);
+		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+		ImGui::PushID(name.data());
+		if (Inspector::DragFloat3("", glm::value_ptr(value), symbols, 0.1f)) {
 			for (Q* element : elements) {
 				((T*)element)->*member = value;
 			}
 			toRet = true;
 		}
+		ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.2f, 0.2f, 0.2f, 1));
+		ImGui::Separator();
+		ImGui::PopStyleColor();
+		ImGui::PopID();
 		if (!commonValue) ImGui::PopItemFlag();
 		return toRet;
 	}

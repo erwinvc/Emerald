@@ -1,31 +1,27 @@
 #include "eepch.h"
-#include "editorWindow.h"
-#include "imgui.h"
-#include <GLFW/glfw3.h>
-#include "graphics/window.h"
-#include "ui/iconsFontAwesome.h"
-#include "ui/imguiManager.h"
-#include "ui/iconsFontSegoeMDL2.h"
-#include "editor.h"
-#include "graphics/renderPipeline.h"
-#include "graphics/renderPass.h"
-#include "graphics/frameBuffer.h"
-#include "graphics/texture.h"
-#include "graphics/engineIcon.h"
-#include "graphics/renderer.h"
-#include "imguiProfiler/Profiler.h"
-#include "project.h"
-#include <bitset>
-
-#include <imgui_internal.h>
-#include "util/fileSystem.h"
-#include "metrics/metrics.h"
 #include "debugWindow.h"
-#include "input/keyboard.h"
+#include "editor.h"
+#include "editorWindow.h"
+#include "graphics/engineIcon.h"
+#include "graphics/frameBuffer.h"
+#include "graphics/renderer.h"
+#include "graphics/renderPass.h"
+#include "graphics/renderPipeline.h"
+#include "graphics/texture.h"
+#include "graphics/window.h"
 #include "hierarchyTree.h"
+#include "imgui.h"
+#include "imguiProfiler/Profiler.h"
+#include "metrics/metrics.h"
+#include "profilerWindow.h"
+#include "project.h"
 #include "scene/sceneManager.h"
+#include "ui/iconsFontAwesome.h"
+#include "ui/iconsFontSegoeMDL2.h"
+#include "ui/imguiManager.h"
+#include "util/fileSystem.h"
+#include <GLFW/glfw3.h>
 #include <util/valueTester.h>
-#include "undoRedo.h"
 
 namespace emerald {
 	static bool s_mouseInViewport = false;
@@ -84,6 +80,9 @@ namespace emerald {
 			if (ImGui::BeginMenu("Window")) {
 				if (ImGui::MenuItem("Profiler")) {
 					EditorWindows.profiler = true;
+				}
+				if (ImGui::MenuItem("ImGui demo")) {
+					EditorWindows.demo = true;
 				}
 				ImGui::EndMenu();
 			}
@@ -204,13 +203,15 @@ namespace emerald {
 			ImGuiID right = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 0.25f, nullptr, &dockspace_main_id);
 			ImGuiID down = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_main_id);
 			ImGuiID left = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Left, 0.25f, nullptr, &dockspace_main_id);
+			ImGuiID rightDown = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.25f, nullptr, &right);
 
-			ImGui::DockBuilderDockWindow("Inspector", right);
 			ImGui::DockBuilderDockWindow("Debug", right);
 			ImGui::DockBuilderDockWindow("Dear ImGui Demo", right);
+			ImGui::DockBuilderDockWindow("Inspector", right);
 			ImGui::DockBuilderDockWindow("Log", down);
 			ImGui::DockBuilderDockWindow("Assets", down);
 			ImGui::DockBuilderDockWindow("Hierarchy", left);
+			ImGui::DockBuilderDockWindow("Scene", rightDown);
 			ImGui::DockBuilderDockWindow("Viewport", dockspace_main_id);
 			ImGui::DockBuilderFinish(dockspace_id);
 		}
@@ -263,32 +264,18 @@ namespace emerald {
 		bool sceneOpen = activeScene != nullptr;
 		ImGui::BeginDisabled(!sceneOpen);
 		drawViewport();
-		DebugWindow::draw();
 
+		if (EditorWindows.demo) {
+			ImGui::ShowDemoWindow(&EditorWindows.demo);
+		}
 		m_inspectorPanel.draw(activeScene, &m_hierarchyPanel);
 		m_logPanel.draw();
+		DebugWindow::draw();
 
-		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		if (ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoNav)) {
-			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
-		}
-		ImGui::End();
+		m_assetPanel.draw();
+		m_scenePanel.draw();
 
-		if (EditorWindows.profiler) {
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(800, 300));
-			ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-			if (ImGui::Begin("Profiler", &EditorWindows.profiler)) {
-				ImGuiManager::pushFont(ImGUIFont::INTER);
-				DrawProfilerHUD();
-				ImGuiManager::popFont();
-			}
-			ImGui::PopStyleVar();
-			ImGui::End();
-
-			if (!EditorWindows.profiler) {
-				PROFILE_DISABLE();
-			}
-		}
+		ProfilerWindow::draw();
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
@@ -324,9 +311,6 @@ namespace emerald {
 		ImGui::PopStyleVar(2);
 
 		drawWindows();
-
-		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		ImGui::ShowDemoWindow(nullptr);
 	}
 
 	void EditorWindow::fixedUpdate(Timestep ts) {

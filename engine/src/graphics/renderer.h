@@ -16,7 +16,6 @@ namespace emerald {
 
 	class Renderer {
 	public:
-		static void setTempBuffer();
 		static void acquireRenderBuffer();
 		static void waitForBufferAvailability();
 		static void submitBufferForRendering();

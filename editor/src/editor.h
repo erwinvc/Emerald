@@ -13,6 +13,7 @@ namespace emerald {
 
 	struct EditorWindowsVisibility {
 		bool profiler = false;
+		bool demo = false;
 	};
 
 	inline EditorWindowsVisibility EditorWindows;

@@ -10,9 +10,6 @@ namespace emerald {
 	static Ref<RenderPass> s_activeRenderPass;
 	static RenderSyncManager s_renderSyncManager;
 
-	void Renderer::setTempBuffer() {
-		s_renderSyncManager.SetTempBuffer();
-	}
 	void Renderer::acquireRenderBuffer() {
 		s_renderSyncManager.acquireRenderBuffer();
 	}

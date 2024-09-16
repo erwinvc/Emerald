@@ -13,6 +13,7 @@
 #include "util/threading/threadManager.h"
 #include "graphics/framebuffer.h"
 #include "util/reflection.h"
+#include "graphics/texture.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
