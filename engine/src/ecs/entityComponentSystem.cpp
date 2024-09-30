@@ -35,4 +35,14 @@ namespace emerald {
 			type == TransformComponent::getStaticClassType() ||
 			type == SceneGraphComponent::getStaticClassType());
 	}
+
+	std::unordered_set<emerald::RTTIType> EntityComponentSystem::getAllComponentTypesForEntity(UUID entity) {
+		std::unordered_set<emerald::RTTIType> allComponents;
+		for (auto& [type, componentArray] : getComponentArrays()) {
+			if (componentArray->has(entity)) {
+				allComponents.insert(type);
+			}
+		}
+		return allComponents;
+	}
 }

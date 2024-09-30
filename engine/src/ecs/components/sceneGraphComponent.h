@@ -20,9 +20,12 @@ namespace emerald {
 		void sortChildrenBasedOnIndex();
 
 		const std::vector<SceneGraphComponent*>& getChildren() const { return m_children; }
+		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
 
 	private:
 		friend class HierarchyTree;
+
+		static inline ComponentTypeInfo s_componentTypeInfo = { "Scene Graph Node", ComponentCategory::INTERNAL };
 
 		bool m_isOpenInHierarchy = false; //This most definitely should not be stored here but it's the only way we can keep the HierarchyTree immediate mode...
 		SceneGraphComponent* m_parent = nullptr;

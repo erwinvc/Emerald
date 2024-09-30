@@ -18,9 +18,13 @@ namespace emerald {
 		void updateGlobalTransform(const glm::mat4& parentTransform);
 		const glm::mat4 getLocalTransform() const { return m_localTransform; }
 		const glm::mat4 getGlobalTransform() const { return m_globalTransform; }
+		
+		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
 
 	private:
 		friend class TransformComponentInspector;
+		
+		static inline ComponentTypeInfo s_componentTypeInfo = { "Transform", ComponentCategory::INFO };
 
 		bool m_needsUpdate = true;
 		glm::mat4 m_localTransform = glm::mat4(1.0f);

@@ -8,7 +8,7 @@ namespace emerald {
 			m_activeScene = scene;
 		}
 
-		static const Ref<Scene>& getActiveScene() {
+		static Ref<Scene>& getActiveScene() {
 			return m_activeScene;
 		}
 

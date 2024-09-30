@@ -12,6 +12,8 @@
 #include "util/utils.h"
 #include "undoRedo.h"
 #include "ecs/components/nameComponent.h"
+#include "imguiProfiler/IconsFontAwesome4.h"
+#include "ui/iconsFontSegoeMDL2.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {
@@ -23,6 +25,10 @@ namespace emerald {
 		};
 	}
 
+	struct TableHeader {
+		std::string_view name;
+		ImGUIFont font;
+	};
 	void HierarchyTree::render(const Ref<Scene>& scene, const char* searchString) {
 		// Apply ImGui style settings
 		ImGui::PushStyleColor(ImGuiCol_NavHighlight, Color(0, 0, 0, 0));
@@ -30,18 +36,49 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
 		ImGui::ItemRowsBackground(18, IM_COL32(28, 28, 28, 255));
+		static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoHostExtendX;
+		static ImGuiTreeNodeFlags tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+		static TableHeader headers[4] = {
+			{ "Name", ImGUIFont::INTER },
+			{ (const char*)SEGOE_MDL2_ICON_DIAL_SHAPE1, ImGUIFont::SEGOE },
+			{ "Tag", ImGUIFont::INTER },
+			{  P_ICON_FA_EYE, ImGUIFont::AWESOME_S }
+		};
 
-		// Collect nodes
-		m_nodes.clear();
-		collectNodes(scene->getRootNode());
+		if (ImGui::BeginTable("hierarchyTreeTable", 4, flags)) {
+			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 18.0f);
+			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 36.0f);
+			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 18.0f);
+			
+			ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+			for (int column = 0; column < 4; column++) {
+				ImGui::TableSetColumnIndex(column);
+				ImGui::PushID(column);
+				ImGuiManager::pushFont(headers[column].font);
+				ImGui::TableHeader(headers[column].name.data());
+				ImGuiManager::popFont();
+				ImGui::PopID();
+			}
 
-		// Begin multi-selection and render nodes
-		auto* multiSelectIO = ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_None, (int)m_imGuiSelection.Size, (int)m_nodes.size());
-		m_imGuiSelection.ApplyRequests(multiSelectIO);
-		renderNode(scene.raw(), scene->getRootNode(), searchString);
-		onDrop(scene->getRootNode(), true, scene->getRootNode(), true);
-		multiSelectIO = ImGui::EndMultiSelect();
-		m_imGuiSelection.ApplyRequests(multiSelectIO);
+			// Collect nodes
+			m_nodes.clear();
+			collectNodes(scene->getRootNode());
+
+			// Begin multi-selection and render nodes
+			auto* multiSelectIO = ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_None, (int)m_imGuiSelection.Size, (int)m_nodes.size());
+			m_imGuiSelection.ApplyRequests(multiSelectIO);
+			renderNode(scene.raw(), scene->getRootNode(), searchString);
+
+			if (ImGui::BeginDragDropTarget()) {
+				onDrop(scene->getRootNode(), true, scene->getRootNode(), true);
+				ImGui::EndDragDropTarget();
+			}
+
+			multiSelectIO = ImGui::EndMultiSelect();
+			m_imGuiSelection.ApplyRequests(multiSelectIO);
+		}
+		ImGui::EndTable();
 
 		// Restore ImGui style settings
 		ImGui::PopStyleVar(3);
@@ -103,7 +140,7 @@ namespace emerald {
 		static std::function<void(SceneGraphComponent*)> _collectNodes = [&](SceneGraphComponent* node) {
 			m_nodes.push_back(node);
 			node->m_treeIndex = index++;
-			node->m_id = ImGui::GetID((void*)(intptr_t)node);
+			node->m_id = ImGui::ptrToImGuiID(node);
 			for (auto& child : node->m_children) {
 				_collectNodes(child);
 			}
@@ -112,50 +149,96 @@ namespace emerald {
 		_collectNodes(node);
 	}
 
-	void HierarchyTree::renderNode(Scene* scene, SceneGraphComponent* node, const char* searchString, int depth) {
-		if (!node) return;
+	ImRect HierarchyTree::renderNode(Scene* scene, SceneGraphComponent* node, const char* searchString, int depth) {
+		if (!node) return ImRect(ImVec4(0, 0, 0, 0));
 		bool isRootNode = depth == 0;
 		NameComponent* nameComponent = scene->getECS().getComponent<NameComponent>(node->m_entity);
-
-		if (!isRootNode && ImGui::IsDragDropActive()) {
-			drawInsertBeforeDropTarget();
-			onDrop(node->m_parent, true, node, false);
-		}
 
 		ImGuiTreeNodeFlags flags = prepareTreeNodeFlags(node, isRootNode);
 		ImGui::SetNextItemOpen(node->m_isOpenInHierarchy || isRootNode);
 
-		if (isRootNode) {
-			ImGui::Indent();
-			ImGui::PushStyleColor(ImGuiCol_Header, Color(0.07f, 0.07f, 0.07f, 1.0f));
+		// Begin table row
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		if (!isRootNode && ImGui::IsDragDropActive()) {
+			drawInsertBeforeDropTarget();
+			if (ImGui::BeginDragDropTarget()) {
+				onDrop(node->m_parent, true, node, false);
+				ImGui::EndDragDropTarget();
+			}
 		}
 
 		if (!ImGui::IsDragDropActive()) {
 			ImGui::SetNextItemSelectionUserData(utils::getIndexInVector(m_nodes, node));
 		}
 
-		node->m_isOpenInHierarchy = ImGui::TreeNodeEx((void*)(intptr_t)node->m_id, flags, nameComponent->m_name.c_str());
+		if (isRootNode) {
+			//ImGui::Indent();
+			ImGui::PushStyleColor(ImGuiCol_Header, Color(0.07f, 0.07f, 0.07f, 1.0f));
+		}
+
+		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, nameComponent->m_name.c_str());
+		const ImRect nodeRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+		ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
 
 		if (ImGui::IsItemFocused()) {
 			m_lastSelectedNode = node;
+		}
+
+		bool skip = false;
+		if (!isRootNode) {
+			onDrag(node);
+
+			if (ImGui::BeginDragDropTarget()) {
+				skip = onDrop(node, false, node, true);
+				ImGui::EndDragDropTarget();
+			}
+			onRightClick(node);
+		}
+
+		ImGui::TableNextColumn();
+
+		if (!isRootNode) {
+			static bool b;
+			ImGui::PushID((void*)(intptr_t)(node->m_id + 1));
+			ImGui::TableNextColumn();
+			ImGui::TextDisabled("--");
+			ImGui::TableNextColumn();
+			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+			ImGuiManager::pushFont(ImGUIFont::AWESOME_R);
+			ImGui::ToggleButton("##test", &b, ImVec2(0, 0), P_ICON_FA_EYE, P_ICON_FA_EYE_SLASH);
+			ImGuiManager::popFont();
+			ImGui::PopStyleColor();
+			ImGui::TableNextColumn();
+
+			ImGui::PopID();
 		}
 
 		if (isRootNode) {
 			ImGui::PopStyleColor();
 		}
 
-		if (!isRootNode) {
-			onDrag(node);
-			onDrop(node, false, node, true);
-			onRightClick(node);
-		}
-
+		const ImColor TreeLineColor = ImGui::GetColorU32(ImGuiCol_TextDisabled);
+		const float SmallOffsetX = -0.0f; //for now, a hardcoded value; should take into account tree indent size
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		verticalLineStart.x += SmallOffsetX; //to nicely line up with the arrow symbol
+		ImVec2 verticalLineEnd = verticalLineStart;
 		if (node->m_isOpenInHierarchy) {
-			for (auto& child : node->m_children) {
-				renderNode(scene, child, searchString, depth + 1);
+			if (!skip) {
+				for (auto* child : node->m_children) {
+					const float HorizontalTreeLineSize = 8.0f; //chosen arbitrarily
+					ImRect childRect = renderNode(scene, child, searchString, depth + 1);
+					const float midpoint = (childRect.Min.y + childRect.Max.y) / 2.0f;
+					drawList->AddLine(ImVec2(verticalLineStart.x, midpoint), ImVec2(verticalLineStart.x + HorizontalTreeLineSize, midpoint), TreeLineColor);
+					verticalLineEnd.y = midpoint;
+				}
 			}
 			ImGui::TreePop();
 		}
+
+		drawList->AddLine(verticalLineStart, verticalLineEnd, TreeLineColor);
+		return nodeRect;
 	}
 
 	void HierarchyTree::drawInsertBeforeDropTarget() {
@@ -171,6 +254,7 @@ namespace emerald {
 			ImGuiTreeNodeFlags_SpanFullWidth |
 			ImGuiTreeNodeFlags_NavLeftJumpsBackHere |
 			ImGuiTreeNodeFlags_AllowItemOverlap |
+			ImGuiTreeNodeFlags_SpanAllColumns |
 			ImGuiTreeNodeFlags_FramePadding;
 
 		if (isRootNode) {
@@ -227,61 +311,60 @@ namespace emerald {
 		}
 	}
 
-	void HierarchyTree::onDrop(SceneGraphComponent* node, bool insertBefore, SceneGraphComponent* beforeNode, bool open) {
-		if (!node) return;
-		if (ImGui::BeginDragDropTarget()) {
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("NodeDragDrop")) {
-				ImVector<SceneGraphComponent*> selectedNodes = getSelectedNodes();
+	bool HierarchyTree::onDrop(SceneGraphComponent* node, bool insertBefore, SceneGraphComponent* beforeNode, bool open) {
+		if (!node) return false;
+		bool toRet = false;
+		ImVector<SceneGraphComponent*> selectedNodes = getSelectedNodes();
 
-				auto action = UndoRedo::createAction<void>("Move nodes");
+		auto action = UndoRedo::createAction<void>("Move nodes");
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("NodeDragDrop")) {
+			for (auto& droppedNode : selectedNodes) {
+				if (droppedNode && node != droppedNode) {
+					if (!isAncestor(droppedNode, node)) {
+						toRet = true;
+						SceneGraphComponent* originalParent = droppedNode->m_parent;
+						auto originalPosition = utils::getIndexInVector(originalParent->m_children, droppedNode);
 
-				for (auto& droppedNode : selectedNodes) {
-					if (droppedNode && node != droppedNode) {
-						if (!isAncestor(droppedNode, node)) {
-							SceneGraphComponent* originalParent = droppedNode->m_parent;
-							auto originalPosition = utils::getIndexInVector(originalParent->m_children, droppedNode);
+						SceneGraphComponent* originalPrevSibling = originalPosition > 0 ? originalParent->m_children[originalPosition - 1] : nullptr;
+						SceneGraphComponent* originalNextSibling = (originalPosition < originalParent->m_children.size() - 1) ? originalParent->m_children[originalPosition + 1] : nullptr;
 
-							SceneGraphComponent* originalPrevSibling = originalPosition > 0 ? originalParent->m_children[originalPosition - 1] : nullptr;
-							SceneGraphComponent* originalNextSibling = (originalPosition < originalParent->m_children.size() - 1) ? originalParent->m_children[originalPosition + 1] : nullptr;
+						addNodeToParent(droppedNode, node, insertBefore, beforeNode);
 
-							addNodeToParent(droppedNode, node, insertBefore, beforeNode);
+						UUID beforeNodeEntity = beforeNode ? beforeNode->m_entity : Entity();
 
-							UUID beforeNodeEntity = beforeNode ? beforeNode->m_entity : Entity();
+						action->addUndoAction([droppedNodeEntity = droppedNode->m_entity, originalParentEntity = originalParent->m_entity, originalPrevSibling, originalNextSibling]() {
+							SceneGraphComponent* droppedNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
+							SceneGraphComponent* originalParent1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(originalParentEntity);
 
-							action->addUndoAction([droppedNodeEntity = droppedNode->m_entity, originalParentEntity = originalParent->m_entity, originalPrevSibling, originalNextSibling]() {
-								SceneGraphComponent* droppedNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
-								SceneGraphComponent* originalParent1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(originalParentEntity);
+							droppedNode1->setParent(nullptr);
 
-								droppedNode1->setParent(nullptr);
+							if (originalPrevSibling) {
+								auto it = std::find(originalParent1->m_children.begin(), originalParent1->m_children.end(), originalPrevSibling);
+								originalParent1->m_children.insert(it + 1, droppedNode1); //insert after the previous sibling
+							} else if (originalNextSibling) {
+								auto it = std::find(originalParent1->m_children.begin(), originalParent1->m_children.end(), originalNextSibling);
+								originalParent1->m_children.insert(it, droppedNode1); //insert before the next sibling
+							} else {
+								originalParent1->m_children.push_back(droppedNode1); //insert at the end if no siblings
+							}
+							droppedNode1->m_parent = originalParent1;
+						});
 
-								if (originalPrevSibling) {
-									auto it = std::find(originalParent1->m_children.begin(), originalParent1->m_children.end(), originalPrevSibling);
-									originalParent1->m_children.insert(it + 1, droppedNode1); //insert after the previous sibling
-								} else if (originalNextSibling) {
-									auto it = std::find(originalParent1->m_children.begin(), originalParent1->m_children.end(), originalNextSibling);
-									originalParent1->m_children.insert(it, droppedNode1); //insert before the next sibling
-								} else {
-									originalParent1->m_children.push_back(droppedNode1); //insert at the end if no siblings
-								}
-								droppedNode1->m_parent = originalParent1;
-							});
-
-							action->addDoAction([droppedNodeEntity = droppedNode->m_entity, nodeEntity = node->m_entity, insertBefore, beforeNodeEntity]() {
-								SceneGraphComponent* droppedNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
-								SceneGraphComponent* node1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(nodeEntity);
-								SceneGraphComponent* beforeNode1 = beforeNodeEntity != 0 ? SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
-								addNodeToParent(droppedNode1, node1, insertBefore, beforeNode1);
-							});
-						}
+						action->addDoAction([droppedNodeEntity = droppedNode->m_entity, nodeEntity = node->m_entity, insertBefore, beforeNodeEntity]() {
+							SceneGraphComponent* droppedNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
+							SceneGraphComponent* node1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(nodeEntity);
+							SceneGraphComponent* beforeNode1 = beforeNodeEntity != 0 ? SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
+							addNodeToParent(droppedNode1, node1, insertBefore, beforeNode1);
+						});
 					}
 				}
-
-				UndoRedo::commitAction(action);
-
-				if (open && node) node->m_isOpenInHierarchy = true;
 			}
-			ImGui::EndDragDropTarget();
 		}
+
+		UndoRedo::commitAction(action);
+
+		if (open && node) node->m_isOpenInHierarchy = true;
+		return toRet;
 	}
 
 	void HierarchyTree::onRightClick(SceneGraphComponent* node) {

@@ -11,11 +11,12 @@
 #include "imguiManager.h"
 #include "imguiProfiler/IconsFontAwesome4.h"
 #include "implot/implot.h"
+#include "iconsFontSegoeMDL2.h"
 
 namespace emerald {
-	ImGuiContext* context;
-
-	std::unordered_map<ImGUIFont, ImFont*> fonts;
+	static Color transparent = Color(0x00000000);
+	static ImGuiContext* context;
+	static std::unordered_map<ImGUIFont, ImFont*> fonts;
 
 	static const char* ImGui_ImplGlfw_GetClipboardText(void* user_data) {
 		return glfwGetClipboardString((GLFWwindow*)user_data);
@@ -29,9 +30,7 @@ namespace emerald {
 		ImGuiStyle* style = &ImGui::GetStyle();
 		ImVec4* colors = style->Colors;
 
-		Color transparent = Color(0x00000000);
-
-		colors[ImGuiCol_Text] = Color(0xD6D6D6FF);
+				colors[ImGuiCol_Text] = Color(0xD6D6D6FF);
 		colors[ImGuiCol_TextDisabled] = Color(0x808080FF);
 		colors[ImGuiCol_WindowBg] = Color(0x1F1F1FFF);
 		colors[ImGuiCol_ChildBg] = Color(0x1B1B1BFF);
@@ -117,6 +116,8 @@ namespace emerald {
 		style->HoverDelayNormal = 0.5f;
 		style->HoverDelayShort = 0.5f;
 		style->HoverStationaryDelay = 0.5f;
+		style->SeparatorTextAlign = ImVec2(0.5f, 0.5f);
+		style->CellPadding = ImVec2(0.0f, 0.0f);
 	}
 
 	void ImGuiManager::initialize(const Ref<Window>& window) {
@@ -152,6 +153,7 @@ namespace emerald {
 		config.GlyphMinAdvanceX = 15.0f;
 
 		const ImWchar segmdl2Ranges[] = { 0xE700, 0xF624, 0 };
+		const ImWchar segmdl2TitleRanges[] = { 0xE8BB, 0xE921, 0xE922, 0xE923, 0 };
 		const ImWchar awesomeRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 		const ImWchar profilerAwesomeRanges[] = { P_ICON_MIN_FA, P_ICON_MAX_FA, 0 };
 
@@ -164,7 +166,8 @@ namespace emerald {
 		io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 16.0f, &config, segmdl2Ranges);
 
 		config.MergeMode = false;
-		fonts[ImGUIFont::SEGOE] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 10.0f, NULL, segmdl2Ranges);
+		fonts[ImGUIFont::SEGOE] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 16.0f, NULL, segmdl2Ranges);
+		fonts[ImGUIFont::SEGOE_TITLEBAR] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 10.0f, NULL, segmdl2TitleRanges);
 		fonts[ImGUIFont::AWESOME_R] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-regular-400.ttf", 16.0f, &config, awesomeRanges);
 		fonts[ImGUIFont::AWESOME_S] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-solid-900.ttf", 16.0f, &config, awesomeRanges);
 		io.Fonts->Build();
@@ -208,13 +211,15 @@ namespace emerald {
 
 }
 namespace ImGui {
+	static emerald::Color transparent = emerald::Color(0x00000000);
+
 	//Custom widgets
 	void ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags flags) {
 		ImGuiWindowClass window_class;
 		window_class.DockNodeFlagsOverrideSet = flags;
 		ImGui::SetNextWindowClass(&window_class);
 	}
-	void DrawGradientBackgroundForWindow(GradientDirection gradientDirection, ImU32 color, float size) {
+	void DrawGradientBackgroundForWindow(GradientDirection gradientDirection, ImU32 color, float size, uint32_t offset) {
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 		ImVec2 windowPos = ImGui::GetWindowPos();
@@ -226,20 +231,22 @@ namespace ImGui {
 
 		switch (gradientDirection) {
 			case RIGHT:
-				p_min.x += (ImGui::GetWindowWidth() - size);
+				p_min.x += (ImGui::GetWindowWidth() - size) - offset;
 				p_max.x = p_min.x + size;
 				draw_list->AddRectFilledMultiColor(p_min, p_max, color_start, color_end, color_end, color_start);
 				break;
 			case LEFT:
+				p_min.x += offset;
 				p_max.x = p_min.x + size;
 				draw_list->AddRectFilledMultiColor(p_min, p_max, color_end, color_start, color_start, color_end);
 				break;
 			case TOP:
-				p_max.y = p_min.y + size;
+				p_min.y += offset;
+				p_max.y = p_min.y + size + offset;
 				draw_list->AddRectFilledMultiColor(p_min, p_max, color_end, color_end, color_start, color_start);
 				break;
 			case BOTTOM:
-				p_min.y += (ImGui::GetWindowHeight() - size);
+				p_min.y += (ImGui::GetWindowHeight() - size) - offset;
 				p_max.y = p_min.y + size;
 				draw_list->AddRectFilledMultiColor(p_min, p_max, color_start, color_start, color_end, color_end);
 				break;
@@ -363,52 +370,68 @@ namespace ImGui {
 	}
 
 	void PushEmeraldPopupStyle() {
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
-		ImGui::PushStyleColor(ImGuiCol_Separator, emerald::Color(0xD6D6D6FF));
-		ImGui::SetNextWindowSize(ImVec2(100, 0));
+		PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
+		PushStyleColor(ImGuiCol_Separator, GetColorU32(ImGuiCol_Text));
+		SetNextWindowSize(ImVec2(100, 0));
 	}
 	void PopEmeraldPopupStyle() {
-		ImGui::PopStyleColor();
-		ImGui::PopStyleVar();
+		PopStyleColor();
+		PopStyleVar();
 	}
 
 	void BorderSeparator(uint32_t extraYSpacing) {
-		ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_Border));
-		ImGui::Separator();
+		PushStyleColor(ImGuiCol_Separator, GetColorU32(ImGuiCol_Border));
+		Separator();
 		if (extraYSpacing != 0) {
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-			ImGui::Dummy(ImVec2(0, (float)extraYSpacing));
-			ImGui::PopStyleVar();
+			PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			Dummy(ImVec2(0, (float)extraYSpacing));
+			PopStyleVar();
 		}
-		ImGui::PopStyleColor();
+		PopStyleColor();
 	}
 
 	bool EmeraldButton(const char* label, const ImVec2& size) {
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5);
+		PushStyleVar(ImGuiStyleVar_FrameRounding, 5);
 		bool toRet = ImGui::Button(label, size);
-		ImGui::PopStyleVar();
+		PopStyleVar();
 		return toRet;
 	}
 
-	bool ToggleButton(const char* label, bool* v, const ImVec2& size_arg) {
-		ImVec4 inactiveColor = ImGui::GetStyleColorVec4(ImGuiCol_Button);
-		ImVec4 activeColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+	bool ToggleButton(const char* label, bool* v, const ImVec2& size_arg, ImVec4 inactiveColor, ImVec4 activeColor) {
 		ImVec4 buttonColor = *v ? activeColor : inactiveColor;
 		ImVec4 buttonClickColor = *v ? inactiveColor : activeColor;
 		ImVec4 buttonHoverColor = *v ? buttonColor : ImVec4(buttonColor.x + 0.025f, buttonColor.y + 0.025f, buttonColor.z + 0.025f, 1.0f);
 
-		ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, buttonHoverColor);
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, buttonClickColor);
+		PushStyleColor(ImGuiCol_Button, buttonColor);
+		PushStyleColor(ImGuiCol_ButtonHovered, buttonHoverColor);
+		PushStyleColor(ImGuiCol_ButtonActive, buttonClickColor);
 
-		bool pressed = ImGui::Button(label, size_arg);
+		bool pressed = Button(label, size_arg);
 
-		ImGui::PopStyleColor(3);
+		PopStyleColor(3);
 
 		if (pressed) {
 			*v = !(*v);
 		}
 
+		return pressed;
+	}
+
+	bool ToggleButton(const char* label, bool* v, const ImVec2& size_arg, const char* inactiveIcon, const char* activeIcon) {
+		ImGui::PushID(v);
+		PushStyleColor(ImGuiCol_Button, transparent);
+		PushStyleColor(ImGuiCol_ButtonHovered, transparent);
+		PushStyleColor(ImGuiCol_ButtonActive, transparent);
+
+		bool pressed = Button((*v) ? activeIcon : inactiveIcon, size_arg);
+
+		if (pressed) {
+			*v = !(*v);
+		}
+
+		PopStyleColor(3);
+
+		ImGui::PopID();
 		return pressed;
 	}
 }

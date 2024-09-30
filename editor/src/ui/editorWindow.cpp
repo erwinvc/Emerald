@@ -105,7 +105,7 @@ namespace emerald {
 		ImGui::SetNextWindowViewport(viewportID);
 
 		ImGui::Begin("TitleBarWindow", nullptr, window_flags);
-		ImGuiManager::pushFont(ImGUIFont::SEGOE);
+		ImGuiManager::pushFont(ImGUIFont::SEGOE_TITLEBAR);
 
 		const ImVec2 windowPadding = ImGui::GetCurrentWindow()->WindowPadding;
 		const float titleBarButtonSize = 46;
@@ -200,13 +200,12 @@ namespace emerald {
 			ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetWindowSize());
 			ImGuiID dockspace_main_id = dockspace_id;
 
-			ImGuiID right = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 0.25f, nullptr, &dockspace_main_id);
+			ImGuiID right = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 0.3f, nullptr, &dockspace_main_id);
 			ImGuiID down = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_main_id);
 			ImGuiID left = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Left, 0.25f, nullptr, &dockspace_main_id);
 			ImGuiID rightDown = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.25f, nullptr, &right);
 
 			ImGui::DockBuilderDockWindow("Debug", right);
-			ImGui::DockBuilderDockWindow("Dear ImGui Demo", right);
 			ImGui::DockBuilderDockWindow("Inspector", right);
 			ImGui::DockBuilderDockWindow("Log", down);
 			ImGui::DockBuilderDockWindow("Assets", down);
@@ -260,7 +259,7 @@ namespace emerald {
 	}
 
 	void EditorWindow::drawWindows() {
-		const Ref<Scene>& activeScene = SceneManager::getActiveScene();
+		Ref<Scene>& activeScene = SceneManager::getActiveScene();
 		bool sceneOpen = activeScene != nullptr;
 		ImGui::BeginDisabled(!sceneOpen);
 		drawViewport();

@@ -2,6 +2,7 @@
 #include "componentArray.h"
 #include "util/utils.h"
 #include "components/sceneGraphComponent.h"
+#include <unordered_set>
 
 //RTTI based Entity Component System
 namespace emerald {
@@ -142,11 +143,25 @@ namespace emerald {
 		}
 
 		template <typename T>
+		std::vector<T*> getComponentInEntities(const std::vector<UUID>& entities) {
+			std::vector<T*> components;
+			auto& componentArray = getComponentArray<T>();
+			for (UUID entity : entities) {
+				T* component = componentArray.get(entity);
+				if (component) components.push_back(component);
+			}
+			return components;
+		}
+
+
+		template <typename T>
 		bool hasComponent(UUID entity) const {
 			if (!entity) return false;
 			const auto& componentArray = getComponentArray<T>();
 			return componentArray.has(entity);
 		}
+
+		std::unordered_set<RTTIType> getAllComponentTypesForEntity(UUID entity);
 
 		const std::unordered_map<RTTIType, std::shared_ptr<ComponentArrayBase>> getComponentArrays() const {
 			return m_componentArrays;

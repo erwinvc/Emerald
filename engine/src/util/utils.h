@@ -11,7 +11,7 @@ namespace emerald::utils {
 		auto it = std::find(vec.begin(), vec.end(), item);
 		if (it != vec.end()) {
 			vec.erase(it);
-			return true; 
+			return true;
 		}
 		return false;
 	}
@@ -25,5 +25,16 @@ namespace emerald::utils {
 		} else {
 			return -1;
 		}
+	}
+
+	template<typename MemberPointerType>
+	size_t hashMemberPointer(MemberPointerType memberPointer) {
+		const unsigned char* bytes = reinterpret_cast<const unsigned char*>(&memberPointer);
+		size_t size = sizeof(memberPointer);
+		size_t hash = 0;
+		for (size_t i = 0; i < size; ++i) {
+			hash = hash * 31 + bytes[i];
+		}
+		return hash;
 	}
 }

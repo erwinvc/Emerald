@@ -10,7 +10,7 @@ namespace emerald {
 		friend class EntityComponentSystem;
 		virtual ~ComponentArrayBase() = default;
 
-		virtual Component* getRaw(UUID entity) = 0;
+		virtual Component* getAsComponent(UUID entity) = 0;
 		virtual bool has(UUID entity) const = 0;
 
 	private:
@@ -25,14 +25,16 @@ namespace emerald {
 
 		T* get(UUID entity) {
 			if (!entity) return nullptr;
-			ASSERT(entityToIndexMap.find(entity) != entityToIndexMap.end(), "Retrieving non-existent component");
-			return components[entityToIndexMap[entity]].raw();
+			auto it = entityToIndexMap.find(entity);
+			if (it == entityToIndexMap.end()) return nullptr;
+			return components[it->second].raw();
 		}
 
-		Component* getRaw(UUID entity) override {
+		Component* getAsComponent(UUID entity) override {
 			if (!entity) return nullptr;
-			ASSERT(entityToIndexMap.find(entity) != entityToIndexMap.end(), "Retrieving non-existent component");
-			return components[entityToIndexMap[entity]].raw();
+			auto it = entityToIndexMap.find(entity);
+			if (it == entityToIndexMap.end()) return nullptr;
+			return components[it->second].raw();
 		}
 
 		bool has(UUID entity) const {

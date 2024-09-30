@@ -21,7 +21,7 @@ namespace emerald {
 		ImGuiSelectionBasicStorage m_imGuiSelection;
 
 		void collectNodes(SceneGraphComponent* node);
-		void renderNode(Scene* scene, SceneGraphComponent* node, const char* searchString, int depth = 0);
+		ImRect renderNode(Scene* scene, SceneGraphComponent* node, const char* searchString, int depth = 0);
 		void drawInsertBeforeDropTarget();
 
 		ImGuiTreeNodeFlags prepareTreeNodeFlags(SceneGraphComponent* node, bool isRootNode);
@@ -31,7 +31,7 @@ namespace emerald {
 		static bool isAncestor(SceneGraphComponent* possibleParent, SceneGraphComponent* node);
 
 		void onDrag(SceneGraphComponent* node);
-		void onDrop(SceneGraphComponent* node, bool insertBefore, SceneGraphComponent* beforeNode, bool open);
+		bool onDrop(SceneGraphComponent* node, bool insertBefore, SceneGraphComponent* beforeNode, bool open);
 		void onRightClick(SceneGraphComponent* node);
 	};
 }

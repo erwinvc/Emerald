@@ -14,5 +14,10 @@ namespace emerald {
 		MeshRendererComponent(const Ref<Mesh>& mesh)
 			: m_mesh(mesh) {
 		}
+
+		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
+
+	private:
+		static inline ComponentTypeInfo s_componentTypeInfo = { "Mesh Renderer", ComponentCategory::GRAPHICS };
 	};
 }

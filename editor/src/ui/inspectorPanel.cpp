@@ -4,18 +4,57 @@
 #include "hierarchyPanel.h"
 #include <unordered_set>
 #include "inspectorRegistry.h"
+#include "util/color.h"
+#include "ecs/components/nameComponent.h"
+#include "inspector/propertyDrawer.h"
 
 namespace emerald {
+	static constexpr float MIN_FIRST_COLUMN_WIDTH = 50.0f;
+
 	void renderComponentInspector(RTTIType componentType, const std::vector<Component*>& components) {
 		InspectorRegistry::getInspector(componentType)(components);
 	}
 
-	void InspectorPanel::draw(const Ref<Scene> scene, HierarchyPanel* hierarchyPanel) {
-		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		//ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-		if (ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoNav)) {
-			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
+	void InspectorPanel::drawSplitter(uint32_t totalWidth) {
+		ImGui::SetCursorPos(ImVec2(m_firstColumnWidth - 8, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
+		ImGui::InvisibleButton("VerticalSplitter", ImVec2(8, ImGui::GetContentRegionAvail().y));
+
+		if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+			ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+
+		if (ImGui::IsItemActive()) {
+			float delta = ImGui::GetIO().MouseDelta.x;
+			m_firstColumnWidth += delta;
+
+			if (m_firstColumnWidth < MIN_FIRST_COLUMN_WIDTH)
+				m_firstColumnWidth = MIN_FIRST_COLUMN_WIDTH;
+			if (m_firstColumnWidth > totalWidth - MIN_FIRST_COLUMN_WIDTH - m_splitterWidth)
+				m_firstColumnWidth = totalWidth - MIN_FIRST_COLUMN_WIDTH - m_splitterWidth;
+		}
+
+		ImGui::PopStyleVar();
+	}
+
+	void InspectorPanel::drawInspectorHeader(Ref<Scene>& scene, std::vector<Entity>& selectedEntities) {
+		bool changed = false;
+		static const char* xyzSymbols[3] = { "X", "Y", "Z" };
+
+		std::vector<NameComponent*> nameComponents = scene->getECS().getComponentInEntities<NameComponent>((std::vector<UUID>&)selectedEntities);
+
+		ImGui::Spacing();
+		PropertyDrawer::drawLabel("Name", nameComponents, &NameComponent::m_name, FixedString<64>("~"), DividerType::SINGLELINE);
+	}
+
+	void InspectorPanel::draw(Ref<Scene>& scene, HierarchyPanel* hierarchyPanel) {
+		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
+		ImVec2 padding = ImGui::GetStyle().WindowPadding;
+		ImVec2 spacing = ImGui::GetStyle().ItemSpacing;
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+		if (ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoNav)) {
+			std::unordered_map<RTTIType, const ComponentTypeInfo*> componentInfo;
 			std::vector<Entity>& selectedEntities = hierarchyPanel->getSelectedEntities();
 			std::unordered_set<RTTIType> commonComponents;
 
@@ -23,7 +62,9 @@ namespace emerald {
 			for (UUID entity : selectedEntities) {
 				std::unordered_set<RTTIType> entityComponents;
 				for (auto& [type, componentArray] : scene->getECS().getComponentArrays()) {
-					if (componentArray->has(entity)) {
+					if (Component* comp = componentArray->getAsComponent(entity)) {
+						if (comp->getComponentTypeInfo().category == ComponentCategory::INTERNAL) continue;
+						componentInfo[type] = &comp->getComponentTypeInfo();
 						entityComponents.insert(type);
 					}
 				}
@@ -42,19 +83,76 @@ namespace emerald {
 				}
 			}
 
-			for (RTTIType componentType : commonComponents) {
+			float totalWidth = ImGui::GetContentRegionAvail().x;
+
+			ImGui::Columns(2, "inspectorPanelColumns", false);
+			ImGui::SetColumnWidth(0, m_firstColumnWidth);
+			ImGui::SetCursorPosX(0);
+			ImGui::PushStyleColor(ImGuiCol_ChildBg, 0xff171717);
+			ImGui::BeginChild("inspectorPanelColumn1", ImVec2(0, 0), ImGuiChildFlags_None);
+			auto& selectedComponentTypes = m_inspectorTree.draw(componentInfo);
+
+			drawSplitter((uint32_t)totalWidth);
+
+			ImGui::EndChild();
+			ImGui::PopStyleColor();
+
+			ImGui::NextColumn();
+			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::LEFT, IM_COL32(0, 0, 0, 155), 6.0f, (uint32_t)m_firstColumnWidth);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, padding);
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, spacing);
+			ImGui::BeginChild("inspectorPanelColumn2", ImVec2(0, 0), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoBackground);
+
+			struct SelectedComponent {
+				RTTIType type;
 				std::vector<Component*> components;
-				for (UUID entity : selectedEntities) {
-					Component* component = scene->getECS().getComponentArray(componentType).getRaw(entity);
-					if (component) {
-						components.push_back(component);
+			};
+
+			std::vector<SelectedComponent> selectedComponents;
+			if (!selectedComponentTypes.empty()) {
+				drawInspectorHeader(scene, selectedEntities);
+
+				for (auto& selectedComponentType : selectedComponentTypes) {
+					std::vector<Component*> components;
+					components.reserve(selectedEntities.size());
+					for (UUID entity : selectedEntities) {
+						Component* component = scene->getECS().getComponentArray(selectedComponentType).getAsComponent(entity);
+						if (component) components.push_back(component);
 					}
+
+					selectedComponents.push_back({ selectedComponentType, components });
+				}
+			}
+
+			//Sort selected components by category and name based deterministic priority index
+			std::sort(selectedComponents.begin(), selectedComponents.end(),
+				[](const SelectedComponent& a, const SelectedComponent& b) {
+				const ComponentTypeInfo& infoA = a.components[0]->getComponentTypeInfo();
+				const ComponentTypeInfo& infoB = b.components[0]->getComponentTypeInfo();
+
+				// Compare categories
+				if (infoA.category != infoB.category) {
+					return infoA.category < infoB.category;
 				}
 
-				renderComponentInspector(componentType, components);
+				// If categories are equal, compare priority indices
+				return infoA.priorityIndex < infoB.priorityIndex;
+			});
+
+			for (auto& selectedComponent : selectedComponents) {
+				bool& collapsed = selectedComponent.components[0]->getComponentTypeInfo().collapsedInInspector;
+				ImGui::SetNextItemOpen(!collapsed);
+				collapsed = !ImGui::CollapsingHeader(selectedComponent.components[0]->getComponentTypeInfo().name.c_str());
+				if (!collapsed) {
+					ImGui::Indent(10.0f);
+					renderComponentInspector(selectedComponent.type, selectedComponent.components);
+					ImGui::Unindent(10.0f);
+				}
 			}
+			ImGui::EndChild();
+			ImGui::PopStyleVar(2);
 		}
-		//ImGui::PopStyleVar();
 		ImGui::End();
+		ImGui::PopStyleVar(2);
 	}
 }

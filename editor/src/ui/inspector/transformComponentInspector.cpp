@@ -1,8 +1,8 @@
 #include "eepch.h"
-#include "transformComponentInspector.h"
 #include "ecs/components/transformComponent.h"
 #include "componentInspector.h"
 #include "inspectorRegistry.h"
+#include "propertyDrawer.h"
 
 namespace emerald {
 	class TransformComponentInspector : public ComponentInspector {
@@ -13,47 +13,23 @@ namespace emerald {
 			bool changed = false;
 			static const char* xyzSymbols[3] = { "X", "Y", "Z" };
 
-			ImGui::Columns(2, "mycolumns3", false);  // 3-ways, no border
-			ImGui::SetColumnWidth(0, 100);
-			ImGui::BeginChild("test");
-			ImGui::Button("Transform", ImVec2(100, 100));
-			ImGui::Button("Name", ImVec2(100, 100));
-			ImGui::Button("Test3", ImVec2(100, 100));
-			ImGui::Button("Test4", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::Button("Test5", ImVec2(100, 100));
-			ImGui::EndChild();
-			ImGui::NextColumn();
-			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::LEFT);
+			changed |= PropertyDrawer::drawFloat3("Position", components, &TransformComponent::m_position, glm::vec3(0, 0, 0), xyzSymbols, DividerType::TOP);
+			changed |= PropertyDrawer::drawFloat3("Rotation", components, &TransformComponent::m_rotation, glm::vec3(0, 0, 0), xyzSymbols, DividerType::MIDDLE);
+			changed |= PropertyDrawer::drawFloat3("Scale", components, &TransformComponent::m_scale, glm::vec3(0, 0, 0), xyzSymbols, DividerType::BOTTOM);
 
-			changed |= drawMultiPropertyFloat3("Position", components, &TransformComponent::m_position, glm::vec3(0, 0, 0), xyzSymbols);
-			changed |= drawMultiPropertyFloat3("Rotation", components, &TransformComponent::m_rotation, glm::vec3(0, 0, 0), xyzSymbols);
-			changed |= drawMultiPropertyFloat3("Scale", components, &TransformComponent::m_scale, glm::vec3(0, 0, 0), xyzSymbols);
+			//ImGui::SeparatorText("Een fiets");
+			//changed |= drawPropertyFloat3("Rotation", components, &TransformComponent::m_rotation, glm::vec3(0, 0, 0), xyzSymbols, DividerType::TOP);
+			//changed |= drawPropertyFloat3("Scale", components, &TransformComponent::m_scale, glm::vec3(0, 0, 0), xyzSymbols, DividerType::BOTTOM);
+			//
+			//ImGui::SeparatorText("Een tweede fiets");
+			//changed |= drawPropertyFloat3("Position", components, &TransformComponent::m_position, glm::vec3(0, 0, 0), xyzSymbols, DividerType::SINGLELINE);
+
 
 			if (changed) {
 				for (Component* component : components) {
 					((TransformComponent*)component)->markDirty();
 				}
 			}
-
 		}
 	};
 
