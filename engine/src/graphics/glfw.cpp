@@ -25,6 +25,43 @@ namespace emerald {
 #endif
 		}
 
+		GLFWmonitor* getWindowMonitor(GLFWwindow* window) {
+			int windowX, windowY, windowWidth, windowHeight;
+			glfwGetWindowPos(window, &windowX, &windowY);
+			glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+			int monitorCount;
+			GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+			GLFWmonitor* bestMonitor = NULL;
+			int bestOverlap = 0;
+
+			for (int i = 0; i < monitorCount; i++) {
+				int monitorX, monitorY;
+				glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
+
+				const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
+				if (!mode)
+					continue;
+
+				int monitorWidth = mode->width;
+				int monitorHeight = mode->height;
+
+				int areaMinX = std::max(windowX, monitorX);
+				int areaMinY = std::max(windowY, monitorY);
+				int areaMaxX = std::min<int>(windowX + windowWidth, monitorX + monitorWidth);
+				int areaMaxY = std::min<int>(windowY + windowHeight, monitorY + monitorHeight);
+
+				int overlapArea = glm::max(0, areaMaxX - areaMinX) * glm::max(0, areaMaxY - areaMinY);
+
+				if (overlapArea > bestOverlap) {
+					bestOverlap = overlapArea;
+					bestMonitor = monitors[i];
+				}
+			}
+
+			return bestMonitor;
+		}
+
 		bool initialize(const GLFWConfiguration& config) {
 			glfwSetErrorCallback(glfwErrorCallback);
 

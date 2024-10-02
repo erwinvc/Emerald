@@ -22,6 +22,7 @@
 #include "util/fileSystem.h"
 #include <GLFW/glfw3.h>
 #include <util/valueTester.h>
+#include "graphics/DPI.h"
 
 namespace emerald {
 	static bool s_mouseInViewport = false;
@@ -108,9 +109,9 @@ namespace emerald {
 		ImGuiManager::pushFont(ImGUIFont::SEGOE_TITLEBAR);
 
 		const ImVec2 windowPadding = ImGui::GetCurrentWindow()->WindowPadding;
-		const float titleBarButtonSize = 46;
+		const float titleBarButtonSize = DPI::getScale(46);
 		const float buttonsAreaWidth = titleBarButtonSize * 4;
-		const ImVec2 buttonSize = ImVec2(titleBarButtonSize, 46);
+		const ImVec2 buttonSize = ImVec2(titleBarButtonSize, DPI::getScale(46));
 
 		//Titlebar
 		const float contentRegionWidth = ImGui::GetContentRegionAvail().x;
@@ -119,9 +120,9 @@ namespace emerald {
 		ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth(), titlebarHeight });
 
 		//Logo
-		ImGui::BeginHorizontal("TitlebarLogo", ImVec2(46, 46), 0.5f);
+		ImGui::BeginHorizontal("TitlebarLogo", ImVec2(titleBarButtonSize, titleBarButtonSize), 0.5f);
 		ImGui::Spring();
-		ImGui::Image((void*)(uint64_t)m_icon->handle(), ImVec2(32.0f, 32.0f));
+		ImGui::Image((void*)(uint64_t)m_icon->handle(), DPI::getScale(ImVec2(32.0f, 32.0f)));
 		ImGui::Spring();
 		ImGui::EndHorizontal();
 		s_TitleBarHovered = ImGui::IsItemHovered();
@@ -129,7 +130,7 @@ namespace emerald {
 		//Title and subtitle
 		ImVec2 backupPos = ImGui::GetCursorPos();
 		ImGuiManager::pushFont(ImGUIFont::INTER);
-		ImGui::BeginVertical("TitlebarTitle", ImVec2(0, 46), 0.0f);
+		ImGui::BeginVertical("TitlebarTitle", ImVec2(0, titleBarButtonSize), 0.0f);
 		ImGui::Spring();
 		ImGui::Text((EditorHeader.title + " - Untitled - D:\\Emerald").c_str());
 		ImGui::BeginDisabled(true);
@@ -302,7 +303,7 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
 		float titlebarYOffset = App->getWindow()->isMaximized() ? 8.0f : 0.0f;
-		const float titleBarHeight = 44;
+		const float titleBarHeight = DPI::getScale(44);
 
 		drawTitlebar(viewport->Pos, ImVec2(viewport->Size.x, titleBarHeight + titlebarYOffset), viewport->ID, titleBarHeight);
 		drawEditor(ImVec2(viewport->Pos.x, viewport->Pos.y + titleBarHeight + titlebarYOffset), ImVec2(viewport->Size.x, viewport->Size.y - titleBarHeight - titlebarYOffset), viewport->ID, titleBarHeight);

@@ -6,6 +6,7 @@
 #include <mutex>
 #include "imguiProfiler/Profiler.h"
 #include "util/stringUtils.h"
+#include "graphics/DPI.h"
 
 namespace emerald {
 	static const char* s_logLevelStrings[4] = { "Fatal", "Error", "Warning", "Info" };
@@ -40,7 +41,7 @@ namespace emerald {
 
 		ImGui::Spring(1.0f, 0.0f);
 
-		ImGui::SetNextItemWidth(200);
+		ImGui::SetNextItemWidth(DPI::getScale(200));
 		bool searchChanged = ImGui::InputTextWithHint("##LogPanelFilter", ICON_FA_SEARCH " Search...", m_searchString, sizeof(m_searchString), ImGuiInputTextFlags_EscapeClearsAll);
 		if (ImGui::Button(ICON_FA_TIMES)) {
 			memset(m_searchString, 0, sizeof(m_searchString));
@@ -48,7 +49,7 @@ namespace emerald {
 		}
 		if (searchChanged) forceRefresh();
 
-		ImGui::SetNextItemWidth(100.0f);
+		ImGui::SetNextItemWidth(DPI::getScale(100));
 		if (ImGui::BeginCombo("##LogLevel", s_logLevelStrings[m_selectedLogLevel], ImGuiComboFlags_PopupAlignLeft)) {
 			ImGui::ItemRowsBackground();
 			for (int i = 0; i < 4; i++) {
@@ -114,9 +115,9 @@ namespace emerald {
 			float detailsPanelHeight = totalHeight - logPanelHeight;
 
 			// Ensure minimum height for details panel
-			if (detailsPanelHeight < LOG_PANEL_MIN_DETAIL_HEIGHT) {
-				detailsPanelHeight = LOG_PANEL_MIN_DETAIL_HEIGHT;
-				logPanelHeight = totalHeight - LOG_PANEL_MIN_DETAIL_HEIGHT;
+			if (detailsPanelHeight < DPI::getScale(LOG_PANEL_MIN_DETAIL_HEIGHT)) {
+				detailsPanelHeight = DPI::getScale(LOG_PANEL_MIN_DETAIL_HEIGHT);
+				logPanelHeight = totalHeight - DPI::getScale(LOG_PANEL_MIN_DETAIL_HEIGHT);
 			}
 
 			ImGui::BeginChild("LogPanelMessages", ImVec2(0, logPanelHeight), true);
@@ -169,7 +170,7 @@ namespace emerald {
 						char buf[LOG_PANEL_MESSAGE_MAX_LENGTH];
 						sprintf_s(buf, "%s %s##%d", entry->m_timestamp.c_str(), entry->m_message.c_str(), i);
 
-						if (ImGui::Selectable(buf, i == m_selectedMessageIndex, ImGuiSelectableFlags_None, ImVec2(0, 18))) {
+						if (ImGui::Selectable(buf, i == m_selectedMessageIndex, ImGuiSelectableFlags_None, ImVec2(0, DPI::getScale(18)))) {
 							m_selectedMessageIndex = i;
 							m_selectedMessage = *entry;
 						}
@@ -187,13 +188,13 @@ namespace emerald {
 							sprintf_s(countBuf, "%d", count);
 							ImVec2 buttonSize = ImGui::CalcTextSize(countBuf);
 
-							buttonSize.x += 16;
+							buttonSize.x += DPI::getScale(16);
 							buttonSize.y = 0;
 
 							float availableWidth = ImGui::GetContentRegionAvail().x;
-							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + availableWidth - buttonSize.x - 15);
+							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + availableWidth - buttonSize.x - DPI::getScale(15));
 
-							ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+							ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, DPI::getScale(6));
 							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 0));
 
 							ImGui::BeginDisabled(true);

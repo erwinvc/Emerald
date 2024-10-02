@@ -146,35 +146,51 @@ namespace emerald {
 		ImGui_ImplGlfw_InitForOpenGL(window->handle(), true);
 		ImGui_ImplOpenGL3_Init("#version 410");
 
-		ImGui::GetIO().Fonts->AddFontDefault();
-
-		ImFontConfig config;
-		config.MergeMode = true;
-		config.GlyphMinAdvanceX = 15.0f;
-
-		const ImWchar segmdl2Ranges[] = { 0xE700, 0xF624, 0 };
-		const ImWchar segmdl2TitleRanges[] = { 0xE8BB, 0xE921, 0xE922, 0xE923, 0 };
-		const ImWchar awesomeRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-		const ImWchar profilerAwesomeRanges[] = { P_ICON_MIN_FA, P_ICON_MAX_FA, 0 };
-
-		fonts[ImGUIFont::INTER] = io.FontDefault = io.Fonts->AddFontFromFileTTF("res/fonts/Inter.ttc", 18.0f, NULL);
-		io.Fonts->AddFontFromFileTTF("res/fonts/fontawesome-webfont.ttf", 18.0f, &config, profilerAwesomeRanges); //Profiler lib
-
-		config.MergeMode = true;
-		//config.GlyphOffset.y = 4;
-		fonts[ImGUIFont::CONSOLAS] = io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 16.0f, NULL);
-		io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 16.0f, &config, segmdl2Ranges);
-
-		config.MergeMode = false;
-		fonts[ImGUIFont::SEGOE] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 16.0f, NULL, segmdl2Ranges);
-		fonts[ImGUIFont::SEGOE_TITLEBAR] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 10.0f, NULL, segmdl2TitleRanges);
-		fonts[ImGUIFont::AWESOME_R] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-regular-400.ttf", 16.0f, &config, awesomeRanges);
-		fonts[ImGUIFont::AWESOME_S] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-solid-900.ttf", 16.0f, &config, awesomeRanges);
-		io.Fonts->Build();
+		rebuildFonts();
 
 		applyEmeraldTheme();
 
 		Log::info("[ImGui] initialized");
+	}
+
+	void ImGuiManager::rebuildFonts() {
+		ImGuiIO& io = ImGui::GetIO();
+		io.Fonts->Clear();
+
+		float fontSizeMultiplier = io.DisplayFramebufferScale.y;
+
+		ImFontConfig config;
+		config.MergeMode = true;
+		config.GlyphMinAdvanceX = 15.0f * fontSizeMultiplier;
+
+		const ImWchar segmdl2Ranges[] = { 0xE700, 0xF624, 0 };
+		//const ImWchar segmdl2TitleRanges[] = { 0xE8BB, 0xE921, 0xE922, 0xE923, 0 };
+		const ImWchar awesomeRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		const ImWchar profilerAwesomeRanges[] = { P_ICON_MIN_FA, P_ICON_MAX_FA, 0 };
+
+		ImVector<ImWchar> segmdl2TitleRanges;
+		ImFontGlyphRangesBuilder builder;
+		builder.AddChar(0xE8BB);
+		builder.AddChar(0xE921);
+		builder.AddChar(0xE922);
+		builder.AddChar(0xE923);
+		builder.BuildRanges(&segmdl2TitleRanges);
+
+		fonts[ImGUIFont::INTER] = io.FontDefault = io.Fonts->AddFontFromFileTTF("res/fonts/Inter.ttc", 18.0f * fontSizeMultiplier, NULL);
+		io.Fonts->AddFontFromFileTTF("res/fonts/fontawesome-webfont.ttf", 18.0f * fontSizeMultiplier, &config, profilerAwesomeRanges); //Profiler lib
+
+		config.MergeMode = true;
+		//config.GlyphOffset.y = 4;
+		fonts[ImGUIFont::CONSOLAS] = io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 16.0f * fontSizeMultiplier, NULL);
+		io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 16.0f * fontSizeMultiplier, &config, segmdl2Ranges);
+
+		config.MergeMode = false;
+		fonts[ImGUIFont::SEGOE] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 16.0f * fontSizeMultiplier, NULL, segmdl2Ranges);
+		fonts[ImGUIFont::SEGOE_TITLEBAR] = io.Fonts->AddFontFromFileTTF("res/fonts/SegMDL2.ttf", 10.0f * fontSizeMultiplier, NULL, segmdl2TitleRanges.Data);
+		fonts[ImGUIFont::AWESOME_R] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-regular-400.ttf", 16.0f * fontSizeMultiplier, &config, awesomeRanges);
+		fonts[ImGUIFont::AWESOME_S] = io.Fonts->AddFontFromFileTTF("res/fonts/fa-solid-900.ttf", 16.0f * fontSizeMultiplier, &config, awesomeRanges);
+		io.Fonts->Build();
+		ImGui_ImplOpenGL3_CreateFontsTexture();
 	}
 
 	void ImGuiManager::pushFont(ImGUIFont font) {

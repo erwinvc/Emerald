@@ -19,6 +19,7 @@ namespace emerald {
 		static void popFont();
 
 		static void initialize(const Ref<Window>& window);
+		static void rebuildFonts();
 		static void begin();
 		static void end();
 		static void shutdown();

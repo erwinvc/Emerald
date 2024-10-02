@@ -5,6 +5,7 @@
 #include "imgui_internal.h"
 #include "util/utils.h"
 #include "propertyDrawerUtils.h"
+#include "graphics/DPI.h"
 
 namespace emerald {
 
@@ -42,6 +43,7 @@ namespace emerald {
 		template<typename PropertyType, typename T, typename Q>
 		static bool drawLabel(std::string_view name, const std::vector<Q*>& elements, PropertyType T::* member, PropertyType defaultValue, DividerType dividerType) {
 			return drawMultiProperty<PropertyType, T, Q>(name, elements, member, defaultValue, dividerType, [&](PropertyType& value) -> bool {
+				ImGui::SetNextItemWidth(-FLT_MIN);
 				return ImGui::InputText("", value.data(), value.capacity());
 			});
 		}
@@ -83,9 +85,16 @@ namespace emerald {
 
 			float availWidth = ImGui::GetContentRegionAvail().x;
 
+			// Magic numbers!
+			float minColumnWidth = DPI::getScale(45.0f);
+			float maxColumnWidth = DPI::getScale(300.0f);
+			float scaledDividerSpacing = DPI::getScale(dividerSpacing);
+
+			float column0Width = glm::clamp(availWidth - maxColumnWidth, minColumnWidth, maxColumnWidth);
+
 			ImGui::BeginColumns(name.data(), 3, ImGuiOldColumnFlags_NoBorder);
-			ImGui::SetColumnWidth(0, glm::clamp(availWidth - 300.0f, 45.0f, 300.0f));
-			ImGui::SetColumnWidth(1, dividerSpacing);
+			ImGui::SetColumnWidth(0, column0Width);
+			ImGui::SetColumnWidth(1, scaledDividerSpacing);
 			ImGui::AlignTextToFramePadding();
 			ImGui::TextUnformatted(name.data());
 
@@ -107,14 +116,14 @@ namespace emerald {
 			ImVec2 endPos = ImGui::GetCursorScreenPos();
 			float endY = ImGui::GetCursorScreenPos().y - style.ItemSpacing.y;
 
-			float lineX = startPos.x + glm::clamp(availWidth - 300.0f, 45.0f, 300.0f) + dividerSpacing / 2;
+			float lineX = startPos.x + column0Width + scaledDividerSpacing / 2;
 
 			ImVec2 cp = ImGui::GetCursorPos();
 			draw_list->AddLine(ImVec2(lineX, startY), ImVec2(lineX, endY), ImGui::GetColorU32(ImGuiCol_Border), 2.0f);
 			ImGui::SetCursorPos(cp);
 			if (dividerType == DividerType::BOTTOM || dividerType == DividerType::SINGLELINE) {
-				draw_list->AddLine(ImVec2(startPos.x, endY + dividerSpacing / 2), ImVec2(startPos.x + availWidth, endY + dividerSpacing / 2), ImGui::GetColorU32(ImGuiCol_Border), 1.0f);
-				ImGui::Dummy(ImVec2(0, dividerSpacing / 2));
+				draw_list->AddLine(ImVec2(startPos.x, endY + scaledDividerSpacing / 2), ImVec2(startPos.x + availWidth, endY + scaledDividerSpacing / 2), ImGui::GetColorU32(ImGuiCol_Border), 1.0f);
+				ImGui::Dummy(ImVec2(0, scaledDividerSpacing / 2));
 			}
 			if (!commonValue) ImGui::PopItemFlag();
 			ImGui::PopID();

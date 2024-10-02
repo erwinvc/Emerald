@@ -14,6 +14,8 @@
 #include "graphics/framebuffer.h"
 #include "util/reflection.h"
 #include "graphics/texture.h"
+#include "imgui_impl_opengl3.h"
+#include "graphics/DPI.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -96,6 +98,10 @@ namespace emerald {
 				g_running = false;
 			}
 
+			PROFILE_RENDER_BEGIN("DPI check");
+			DPI::update();
+			PROFILE_RENDER_END();
+
 			PROFILE_RENDER_BEGIN("Process queue");
 			processQueue();
 			PROFILE_RENDER_END();
@@ -131,6 +137,7 @@ namespace emerald {
 			PROFILE_RENDER_END();
 		}
 	}
+
 
 	void Application::logicLoop() {
 		PROFILE_REGISTER_LOGIC_THREAD("Logic");

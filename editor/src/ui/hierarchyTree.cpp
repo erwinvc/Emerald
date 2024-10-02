@@ -14,6 +14,7 @@
 #include "ecs/components/nameComponent.h"
 #include "imguiProfiler/IconsFontAwesome4.h"
 #include "ui/iconsFontSegoeMDL2.h"
+#include "graphics/DPI.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {
@@ -47,10 +48,10 @@ namespace emerald {
 
 		if (ImGui::BeginTable("hierarchyTreeTable", 4, flags)) {
 			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 18.0f);
-			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 36.0f);
-			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 18.0f);
-			
+			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, DPI::getScale(19.0f));
+			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, DPI::getScale(38.0f));
+			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, DPI::getScale(19.0f));
+
 			ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
 			for (int column = 0; column < 4; column++) {
 				ImGui::TableSetColumnIndex(column);
@@ -77,8 +78,8 @@ namespace emerald {
 
 			multiSelectIO = ImGui::EndMultiSelect();
 			m_imGuiSelection.ApplyRequests(multiSelectIO);
+			ImGui::EndTable();
 		}
-		ImGui::EndTable();
 
 		// Restore ImGui style settings
 		ImGui::PopStyleVar(3);

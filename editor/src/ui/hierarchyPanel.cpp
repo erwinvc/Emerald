@@ -5,18 +5,33 @@
 #include "scene/sceneManager.h"
 #include "ui/iconsFontAwesome.h"
 #include "undoRedo.h"
+#include "graphics/DPI.h"
 
 namespace emerald {
 	void HierarchyPanel::draw() {
 		if (ImGui::Begin("Hierarchy", nullptr)) {
 
 			static char searchString[128] = { 0 };
-			ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionMax().x - 54);
-			ImGui::InputTextWithHint(ICON_FA_FILTER, ICON_FA_SEARCH " Search...", searchString, 256, ImGuiInputTextFlags_EscapeClearsAll);
-			ImGui::SameLine();
-			if (ImGui::Button(ICON_FA_TIMES)) {
-				memset(searchString, 0, sizeof(searchString));
+
+			if (ImGui::BeginTable("HierarchyColumns", 2, ImGuiTableFlags_None)) {
+				ImGui::TableSetupColumn("InputText", ImGuiTableColumnFlags_WidthStretch);
+				ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableNextRow();
+
+				// First column: InputTextWithHint
+				ImGui::TableSetColumnIndex(0);
+				ImGui::SetNextItemWidth(-FLT_MIN);
+				ImGui::InputTextWithHint("##SearchBar", ICON_FA_SEARCH " Search...", searchString, 256, ImGuiInputTextFlags_EscapeClearsAll);
+
+				// Second column: Button
+				ImGui::TableSetColumnIndex(1);
+				if (ImGui::Button(ICON_FA_TIMES)) {
+					memset(searchString, 0, sizeof(searchString));
+				}
+
+				ImGui::EndTable();
 			}
+
 			if (ImGui::EmeraldButton("Add Entity", ImVec2(-FLT_MIN, 0))) {
 				auto action = UndoRedo::createAction<Entity>("Add Entity");
 				UUID entityID = SceneManager::getActiveScene()->getECS().getNewEntityID();

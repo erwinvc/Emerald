@@ -2,6 +2,8 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <algorithm>
+#include "graphics/DPI.h"
+#include "util/color.h"
 
 namespace emerald::propertyDrawerUtils {
 	static bool DragScalarN(const char* label, ImGuiDataType data_type, void* p_data, int components, float v_speed, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, const char** symbols) {
@@ -13,16 +15,24 @@ namespace emerald::propertyDrawerUtils {
 		bool value_changed = false;
 		ImGui::BeginGroup();
 		ImGui::PushID(label);
-		const int spacing = 9; //Label size
-		const int spacingCount = 5; //1 for text, 3 for labels and 1 for separator
-		float width = std::max(00.0f, ImGui::GetContentRegionAvail().x - spacing * spacingCount);
+		const int labelSize = DPI::getScale(18);
+		float width = std::max(00.0f, ImGui::GetContentRegionAvail().x - labelSize * components);
 		ImGui::PushMultiItemsWidths(components, width);
 		size_t type_size = ImGui::DataTypeGetInfo(data_type)->Size;
+		const static Color colors[] = { Color(0x882c2cff), Color(0x174717ff), Color(0x29297eff) }; //This should not be in here
 		for (int i = 0; i < components; i++) {
 			ImGui::PushID(i);
 			if (i > 0)
 				ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
-			value_changed |= ImGui::DragScalar(symbols[i], data_type, p_data, v_speed, p_min, p_max, format, flags);
+			ImGui::AlignTextToFramePadding();
+			ImGui::PushStyleColor(ImGuiCol_Button, colors[i]);
+			ImGui::PushStyleColor(ImGuiCol_Text, Color::white());
+			ImGui::BeginDisabled(true);
+			ImGui::Button(symbols[i], ImVec2(labelSize, 0));
+			ImGui::EndDisabled();
+			ImGui::PopStyleColor(2);
+			ImGui::SameLine(0, 0);
+			value_changed |= ImGui::DragScalar("", data_type, p_data, v_speed, p_min, p_max, format, flags);
 			ImGui::PopID();
 			ImGui::PopItemWidth();
 			p_data = (void*)((char*)p_data + type_size);

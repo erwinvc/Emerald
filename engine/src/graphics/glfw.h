@@ -10,6 +10,7 @@ namespace emerald {
 			bool visible = false;
 		};
 
+		GLFWmonitor* getWindowMonitor(GLFWwindow* window);
 		bool initialize(const GLFWConfiguration& config);
 	}
 }
