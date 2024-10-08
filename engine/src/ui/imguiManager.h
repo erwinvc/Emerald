@@ -51,5 +51,5 @@ namespace ImGui {
 	void BorderSeparator(uint32_t extraYSpacing = 1);
 	bool EmeraldButton(const char* label, const ImVec2& size = ImVec2(0, 0));
 	bool ToggleButton(const char* label, bool* v, const ImVec2& size = ImVec2(0, 0), ImVec4 inactiveColor = ImGui::GetStyleColorVec4(ImGuiCol_Button), ImVec4 activeColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-	bool ToggleButton(const char* label, bool* v, const ImVec2& size_arg, const char* inactiveIcon, const char* activeIcon);
+	bool ToggleButton(const char* label, bool* v, const ImVec2& size_arg, const char* activeIcon, const char* inactiveIcon);
 }

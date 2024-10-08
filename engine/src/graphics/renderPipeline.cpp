@@ -191,8 +191,8 @@ namespace emerald {
 
 		SceneManager::getActiveScene()->updateAllTransforms();
 
-		for (auto& meshRenderer : SceneManager::getActiveScene()->getECS().getComponentArray<MeshRendererComponent>()) {
-			auto* transform = SceneManager::getActiveScene()->getECS().getComponent<TransformComponent>(meshRenderer->m_entity);
+		auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>(&SceneManager::getActiveScene()->getECS());
+		for (auto [meshRenderer, transform] : view) {
 			m_material->set("modelMatrix", transform->getGlobalTransform());
 			m_material->updateForRendering();
 			meshRenderer->m_mesh->bind();
@@ -210,5 +210,4 @@ namespace emerald {
 	const Ref<Texture>& RenderPipeline::getFinalTexture() {
 		return m_resolveFramebuffer->getTextures()[0];
 	}
-
 }

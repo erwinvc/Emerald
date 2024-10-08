@@ -1,10 +1,12 @@
 #include "eepch.h"
 #include "entityComponentSystem.h"
-#include "scene/sceneManager.h"
-#include "util/uuidGenerator.h"
 #include "components/transformComponent.h"
-#include "components/nameComponent.h"
+#include "components/metadataComponent.h"
 #include "components/sceneGraphComponent.h"
+#include "util/uuidGenerator.h"
+#include "scene/sceneManager.h"
+#include <memory>
+#include "componentArray.h"
 
 namespace emerald {
 	UUID EntityComponentSystem::getNewEntityID() {
@@ -16,33 +18,15 @@ namespace emerald {
 		m_entities.push_back(ID);
 
 		addComponent<TransformComponent>(ID);
-		addComponent<NameComponent>(ID, name);
-		const WeakRef<SceneGraphComponent>& sgc = addComponent<SceneGraphComponent>(ID);
-		if (!isRootEntity) SceneManager::getActiveScene()->getRootNode()->addChild(sgc.lock().raw());
+		addComponent<MetadataComponent>(ID, name);
+		//const WeakRef<SceneGraphComponent>& sgc = addComponent<SceneGraphComponent>(ID);
+		SceneGraphComponent* sgc = addComponent<SceneGraphComponent>(ID);
+		if (!isRootEntity) SceneManager::getActiveScene()->getRootNode()->addChild(sgc);
+		setEntityEnabled(ID, true);
 		return Entity(ID);
 	}
 
 	UUID EntityComponentSystem::createEntity(const std::string& name, bool isRootEntity) {
 		return createEntityFromID(getNewEntityID(), name, isRootEntity);
-	}
-
-	RTTIType EntityComponentSystem::getComponentRTTIType() const {
-		return Component::getStaticClassType();
-	};
-
-	bool EntityComponentSystem::isRemovableComponent(RTTIType type) const {
-		return !(type == NameComponent::getStaticClassType() ||
-			type == TransformComponent::getStaticClassType() ||
-			type == SceneGraphComponent::getStaticClassType());
-	}
-
-	std::unordered_set<emerald::RTTIType> EntityComponentSystem::getAllComponentTypesForEntity(UUID entity) {
-		std::unordered_set<emerald::RTTIType> allComponents;
-		for (auto& [type, componentArray] : getComponentArrays()) {
-			if (componentArray->has(entity)) {
-				allComponents.insert(type);
-			}
-		}
-		return allComponents;
 	}
 }

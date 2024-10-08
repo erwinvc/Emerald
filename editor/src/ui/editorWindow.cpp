@@ -109,9 +109,9 @@ namespace emerald {
 		ImGuiManager::pushFont(ImGUIFont::SEGOE_TITLEBAR);
 
 		const ImVec2 windowPadding = ImGui::GetCurrentWindow()->WindowPadding;
-		const float titleBarButtonSize = DPI::getScale(46);
+		const float titleBarButtonSize = DPI::getScale(46.0f);
 		const float buttonsAreaWidth = titleBarButtonSize * 4;
-		const ImVec2 buttonSize = ImVec2(titleBarButtonSize, DPI::getScale(46));
+		const ImVec2 buttonSize = ImVec2(titleBarButtonSize, DPI::getScale(46.0f));
 
 		//Titlebar
 		const float contentRegionWidth = ImGui::GetContentRegionAvail().x;
@@ -303,7 +303,7 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
 		float titlebarYOffset = App->getWindow()->isMaximized() ? 8.0f : 0.0f;
-		const float titleBarHeight = DPI::getScale(44);
+		const float titleBarHeight = DPI::getScale(44.0f);
 
 		drawTitlebar(viewport->Pos, ImVec2(viewport->Size.x, titleBarHeight + titlebarYOffset), viewport->ID, titleBarHeight);
 		drawEditor(ImVec2(viewport->Pos.x, viewport->Pos.y + titleBarHeight + titlebarYOffset), ImVec2(viewport->Size.x, viewport->Size.y - titleBarHeight - titlebarYOffset), viewport->ID, titleBarHeight);

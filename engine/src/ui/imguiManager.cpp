@@ -433,7 +433,7 @@ namespace ImGui {
 		return pressed;
 	}
 
-	bool ToggleButton(const char* label, bool* v, const ImVec2& size_arg, const char* inactiveIcon, const char* activeIcon) {
+	bool ToggleButton(const char* label, bool* v, const ImVec2& size_arg, const char* activeIcon, const char* inactiveIcon) {
 		ImGui::PushID(v);
 		PushStyleColor(ImGuiCol_Button, transparent);
 		PushStyleColor(ImGuiCol_ButtonHovered, transparent);

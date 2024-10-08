@@ -11,10 +11,10 @@
 #include "input/mouse.h"
 #include "util/utils.h"
 #include "undoRedo.h"
-#include "ecs/components/nameComponent.h"
 #include "imguiProfiler/IconsFontAwesome4.h"
 #include "ui/iconsFontSegoeMDL2.h"
 #include "graphics/DPI.h"
+#include "ecs/components/metadataComponent.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {
@@ -153,7 +153,7 @@ namespace emerald {
 	ImRect HierarchyTree::renderNode(Scene* scene, SceneGraphComponent* node, const char* searchString, int depth) {
 		if (!node) return ImRect(ImVec4(0, 0, 0, 0));
 		bool isRootNode = depth == 0;
-		NameComponent* nameComponent = scene->getECS().getComponent<NameComponent>(node->m_entity);
+		MetadataComponent* metadata = scene->getECS().getComponent<MetadataComponent>(node->m_entity);
 
 		ImGuiTreeNodeFlags flags = prepareTreeNodeFlags(node, isRootNode);
 		ImGui::SetNextItemOpen(node->m_isOpenInHierarchy || isRootNode);
@@ -179,7 +179,7 @@ namespace emerald {
 			ImGui::PushStyleColor(ImGuiCol_Header, Color(0.07f, 0.07f, 0.07f, 1.0f));
 		}
 
-		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, nameComponent->m_name.c_str());
+		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, metadata->m_name.c_str());
 		const ImRect nodeRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 		ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
 
@@ -208,7 +208,21 @@ namespace emerald {
 			ImGui::TableNextColumn();
 			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
 			ImGuiManager::pushFont(ImGUIFont::AWESOME_R);
-			ImGui::ToggleButton("##test", &b, ImVec2(0, 0), P_ICON_FA_EYE, P_ICON_FA_EYE_SLASH);
+			bool entityEnabled = scene->getECS().isEntityEnabled(node->m_entity);
+			if (ImGui::ToggleButton("", &entityEnabled, ImVec2(0, ImGui::GetTextLineHeight() + 2), P_ICON_FA_EYE, P_ICON_FA_EYE_SLASH)) {
+				auto& selectedEntities = getSelectedEntities();
+				auto it = std::find(selectedEntities.begin(), selectedEntities.end(), node->m_entity);
+				if (it != selectedEntities.end()) {
+					for (auto& selectedEntity : getSelectedEntities()) {
+						SceneGraphComponent* sgc = scene->getECS().getComponent<SceneGraphComponent>(selectedEntity);
+						sgc->setEnabledRecursive(entityEnabled);
+					}
+				} else {
+					SceneGraphComponent* sgc = scene->getECS().getComponent<SceneGraphComponent>(node->m_entity);
+					sgc->setEnabledRecursive(entityEnabled);
+				}
+
+			}
 			ImGuiManager::popFont();
 			ImGui::PopStyleColor();
 			ImGui::TableNextColumn();
@@ -302,8 +316,8 @@ namespace emerald {
 			std::string name;
 			ImVector<SceneGraphComponent*> selectedNodes = getSelectedNodes();
 			for (int i = 0; i < selectedNodes.size(); i++) {
-				auto* nameComponent = SceneManager::getActiveScene()->getECS().getComponent<NameComponent>(selectedNodes[i]->m_entity);
-				name += nameComponent->m_name;
+				auto* metadata = SceneManager::getActiveScene()->getECS().getComponent<MetadataComponent>(selectedNodes[i]->m_entity);
+				name += metadata->m_name;
 				if (i < selectedNodes.size() - 1) name += "\n";
 			}
 

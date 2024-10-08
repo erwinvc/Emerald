@@ -39,4 +39,5 @@
 
 #include "util/log.h"
 
+#define BIT(n)	(1<<(n))
 #define NUMOF(x) (uint32_t)(((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x]))))))

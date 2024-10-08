@@ -51,6 +51,12 @@ namespace emerald {
 		std::sort(m_children.begin(), m_children.end(), [](SceneGraphComponent* a, SceneGraphComponent* b) {
 			return a->m_index < b->m_index;
 		});
+	}
 
+	void SceneGraphComponent::setEnabledRecursive(bool enabled) {
+		SceneManager::getActiveScene()->getECS().setEntityEnabled(m_entity, enabled);
+		for (auto child : m_children) {
+			child->setEnabledRecursive(enabled);
+		}
 	}
 }

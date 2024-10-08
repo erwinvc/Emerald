@@ -15,7 +15,7 @@ namespace emerald::propertyDrawerUtils {
 		bool value_changed = false;
 		ImGui::BeginGroup();
 		ImGui::PushID(label);
-		const int labelSize = DPI::getScale(18);
+		const float labelSize = DPI::getScale(18.0f);
 		float width = std::max(00.0f, ImGui::GetContentRegionAvail().x - labelSize * components);
 		ImGui::PushMultiItemsWidths(components, width);
 		size_t type_size = ImGui::DataTypeGetInfo(data_type)->Size;
@@ -28,7 +28,7 @@ namespace emerald::propertyDrawerUtils {
 			ImGui::PushStyleColor(ImGuiCol_Button, colors[i]);
 			ImGui::PushStyleColor(ImGuiCol_Text, Color::white());
 			ImGui::BeginDisabled(true);
-			ImGui::Button(symbols[i], ImVec2(labelSize, 0));
+			ImGui::Button(symbols[i], ImVec2(labelSize, 0.0f));
 			ImGui::EndDisabled();
 			ImGui::PopStyleColor(2);
 			ImGui::SameLine(0, 0);

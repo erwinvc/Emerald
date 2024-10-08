@@ -18,6 +18,6 @@ namespace emerald {
 		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
 
 	private:
-		static inline ComponentTypeInfo s_componentTypeInfo = { "Mesh Renderer", ComponentCategory::GRAPHICS };
+		static inline ComponentTypeInfo s_componentTypeInfo = { "Mesh Renderer", ComponentCategory::GRAPHICS, true };
 	};
 }

@@ -5,8 +5,9 @@
 #include <unordered_set>
 #include "inspectorRegistry.h"
 #include "util/color.h"
-#include "ecs/components/nameComponent.h"
 #include "inspector/propertyDrawer.h"
+#include "ecs/components/metadataComponent.h"
+#include "ecs/components/component.h"
 
 namespace emerald {
 	static constexpr float MIN_FIRST_COLUMN_WIDTH = 50.0f;
@@ -41,10 +42,10 @@ namespace emerald {
 		bool changed = false;
 		static const char* xyzSymbols[3] = { "X", "Y", "Z" };
 
-		std::vector<NameComponent*> nameComponents = scene->getECS().getComponentInEntities<NameComponent>((std::vector<UUID>&)selectedEntities);
+		std::vector<MetadataComponent*> nameComponents = scene->getECS().getComponentsInEntities<MetadataComponent>((std::vector<UUID>&)selectedEntities);
 
 		ImGui::Spacing();
-		PropertyDrawer::drawLabel("Name", nameComponents, &NameComponent::m_name, FixedString<64>("~"), DividerType::SINGLELINE);
+		PropertyDrawer::drawLabel("Name", nameComponents, &MetadataComponent::m_name, FixedString<64>("~"), DividerType::SINGLELINE);
 	}
 
 	void InspectorPanel::draw(Ref<Scene>& scene, HierarchyPanel* hierarchyPanel) {
@@ -61,8 +62,8 @@ namespace emerald {
 			bool firstEntity = true;
 			for (UUID entity : selectedEntities) {
 				std::unordered_set<RTTIType> entityComponents;
-				for (auto& [type, componentArray] : scene->getECS().getComponentArrays()) {
-					if (Component* comp = componentArray->getAsComponent(entity)) {
+				for (auto& [type, componentArrayBase] : scene->getECS().getComponentArrays()) {
+					if (Component* comp = componentArrayBase->getComponentAsBase(entity)) {
 						if (comp->getComponentTypeInfo().category == ComponentCategory::INTERNAL) continue;
 						componentInfo[type] = &comp->getComponentTypeInfo();
 						entityComponents.insert(type);
@@ -116,8 +117,8 @@ namespace emerald {
 					std::vector<Component*> components;
 					components.reserve(selectedEntities.size());
 					for (UUID entity : selectedEntities) {
-						Component* component = scene->getECS().getComponentArray(selectedComponentType).getAsComponent(entity);
-						if (component) components.push_back(component);
+						Component* component = scene->getECS().getComponentArray(selectedComponentType).getComponentAsBase(entity);
+						if(component) components.push_back(component);
 					}
 
 					selectedComponents.push_back({ selectedComponentType, components });
@@ -127,16 +128,16 @@ namespace emerald {
 			//Sort selected components by category and name based deterministic priority index
 			std::sort(selectedComponents.begin(), selectedComponents.end(),
 				[](const SelectedComponent& a, const SelectedComponent& b) {
-				const ComponentTypeInfo& infoA = a.components[0]->getComponentTypeInfo();
-				const ComponentTypeInfo& infoB = b.components[0]->getComponentTypeInfo();
+				auto aa = a.components[0];
+				auto bb = b.components[0];
+				const ComponentTypeInfo& infoA = aa->getComponentTypeInfo();
+				const ComponentTypeInfo& infoB = bb->getComponentTypeInfo();
 
-				// Compare categories
 				if (infoA.category != infoB.category) {
 					return infoA.category < infoB.category;
 				}
 
-				// If categories are equal, compare priority indices
-				return infoA.priorityIndex < infoB.priorityIndex;
+				return infoA.inspectorPriorityIndex < infoB.inspectorPriorityIndex;
 			});
 
 			for (auto& selectedComponent : selectedComponents) {

@@ -18,15 +18,16 @@ namespace emerald {
 	struct ComponentTypeInfo {
 		FixedString<64> name;
 		ComponentCategory category;
-		uint32_t priorityIndex;
+		uint32_t inspectorPriorityIndex;
 		mutable bool collapsedInInspector = false;
+		bool canBeDisabled = true;
 
-		ComponentTypeInfo(const FixedString<64>& _name, ComponentCategory _category)
-			: name(_name), category(_category), priorityIndex(calculatePriorityIndex(_name)) {
+		ComponentTypeInfo(const FixedString<64>& _name, ComponentCategory _category, bool _canBeDisabled)
+			: name(_name), category(_category), inspectorPriorityIndex(calculateInspectorPriorityIndex(_name)), canBeDisabled(_canBeDisabled) {
 		}
 
 	private:
-		static uint32_t calculatePriorityIndex(const FixedString<64>& componentName) {
+		static uint32_t calculateInspectorPriorityIndex(const FixedString<64>& componentName) {
 			if (componentName.compare("Transform") == 0) {
 				return 0;
 			}
@@ -45,7 +46,6 @@ namespace emerald {
 		RTTI_BASE_CLASS_DECL(Component);
 	public:
 		Component() = default;
-		bool m_enabled = true;
 		Entity m_entity = Entity();
 		virtual const ComponentTypeInfo& getComponentTypeInfo() = 0;
 	};

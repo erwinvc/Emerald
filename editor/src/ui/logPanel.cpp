@@ -195,7 +195,7 @@ namespace emerald {
 							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + availableWidth - buttonSize.x - DPI::getScale(15));
 
 							ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, DPI::getScale(6));
-							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 0));
+							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(DPI::getScale(8), 0));
 
 							ImGui::BeginDisabled(true);
 							ImGui::Button(countBuf, buttonSize);

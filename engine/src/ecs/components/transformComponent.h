@@ -24,7 +24,7 @@ namespace emerald {
 	private:
 		friend class TransformComponentInspector;
 		
-		static inline ComponentTypeInfo s_componentTypeInfo = { "Transform", ComponentCategory::INFO };
+		static inline ComponentTypeInfo s_componentTypeInfo = { "Transform", ComponentCategory::INFO, false };
 
 		bool m_needsUpdate = true;
 		glm::mat4 m_localTransform = glm::mat4(1.0f);

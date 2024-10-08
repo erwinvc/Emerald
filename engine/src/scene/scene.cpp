@@ -2,7 +2,6 @@
 #include "scene.h"
 #include "assets/loaders/modelLoader.h"
 #include "ecs/components/transformComponent.h"
-#include "ecs/components/nameComponent.h"
 #include "ecs/components/meshRendererComponent.h"
 
 namespace emerald {
@@ -11,11 +10,6 @@ namespace emerald {
 	}
 
 	void Scene::initialize() {
-		m_ecs.registerComponent<SceneGraphComponent>();
-		m_ecs.registerComponent<TransformComponent>();
-		m_ecs.registerComponent<NameComponent>();
-		m_ecs.registerComponent<MeshRendererComponent>();
-
 		Entity root = m_ecs.createEntity(m_name, true);
 		m_sceneRoot = m_ecs.getComponent<SceneGraphComponent>(root);
 
@@ -33,6 +27,7 @@ namespace emerald {
 			sponzaParent->addChild(r);
 		}
 	}
+
 	void Scene::load() {}
 	void Scene::save() {}
 	void Scene::update(Timestep ts) {}

@@ -1,140 +1,176 @@
 #pragma once
-#include "componentArray.h"
-#include "util/utils.h"
-#include "components/sceneGraphComponent.h"
-#include <unordered_set>
+#include "ComponentArray.h"
+#include "entity.h"
+#include "util/uuid.h"
+#include <unordered_map>
+#include <typeindex>
+#include <memory>
+#include "components/component.h"
+#include "flags.h"
 
-//RTTI based Entity Component System
 namespace emerald {
+	enum EntityFlags {
+		ENTITY_ENABLED = BIT(0),
+		ENTITY_PERSISTENT = BIT(1), //Unused for now
+		ENTITY_PENDING_REMOVAL = BIT(2) //Unused for now
+	};
+
 	class EntityComponentSystem {
 	public:
 		template<typename MainComponent, typename... OtherComponents>
 		class View {
 		public:
 			View(EntityComponentSystem* ecs)
-				: m_ecs(ecs), m_mainArray(ecs->getComponentArray<MainComponent>().getVector()) {
+				: m_ecs(ecs) {
+				m_componentArray = ecs->getComponentArray<MainComponent>();
 			}
 
 			class iterator {
 			public:
-				iterator(EntityComponentSystem* ecs, const std::vector<Ref<MainComponent>>& mainArray, size_t index)
-					: m_ecs(ecs), m_mainArray(mainArray), m_index(index) {
+				iterator(EntityComponentSystem* ecs, ComponentArray<MainComponent>* componentArray,
+					size_t chunkIndex, size_t componentIndex)
+					: m_ecs(ecs), m_componentArray(componentArray),
+					m_chunkIndex(chunkIndex), m_componentIndex(componentIndex) {
+					advanceToNextValid();
 				}
 
 				iterator& operator++() {
-					++m_index;
+					++m_componentIndex;
+					advanceToNextValid();
 					return *this;
 				}
 
 				bool operator!=(const iterator& other) const {
-					return m_index != other.m_index;
+					return m_chunkIndex != other.m_chunkIndex || m_componentIndex != other.m_componentIndex;
 				}
 
 				auto operator*() {
-					MainComponent* mainComp = m_mainArray[m_index].raw();
-					UUID entity = mainComp->m_entity;
+					MainComponent* mainComp = m_componentArray->getComponentInChunk(m_chunkIndex, m_componentIndex);
+					UUID entity = m_componentArray->getEntityInChunk(m_chunkIndex, m_componentIndex);
+
 					return std::tuple<MainComponent*, OtherComponents*...>(mainComp, m_ecs->getComponent<OtherComponents>(entity)...);
 				}
 
 			private:
+				void advanceToNextValid() {
+					while (m_chunkIndex < m_componentArray->getChunkCount()) {
+						auto* chunk = m_componentArray->getChunk(m_chunkIndex);
+						while (m_componentIndex < chunk->getCount()) {
+							if (chunk->isEnabled(m_componentIndex)) {
+								return;
+							}
+							++m_componentIndex;
+						}
+						++m_chunkIndex;
+						m_componentIndex = 0;
+					}
+				}
+
 				EntityComponentSystem* m_ecs;
-				const std::vector<Ref<MainComponent>>& m_mainArray;
-				size_t m_index;
+				ComponentArray<MainComponent>* m_componentArray;
+				size_t m_chunkIndex;
+				size_t m_componentIndex;
 			};
 
 			iterator begin() {
-				return iterator(m_ecs, m_mainArray, 0);
+				return iterator(m_ecs, m_componentArray, 0, 0);
 			}
 
 			iterator end() {
-				return iterator(m_ecs, m_mainArray, m_mainArray.size());
+				return iterator(m_ecs, m_componentArray, m_componentArray->getChunkCount(), 0);
 			}
 
 		private:
 			EntityComponentSystem* m_ecs;
-			const std::vector<Ref<MainComponent>>& m_mainArray;
+			ComponentArray<MainComponent>* m_componentArray;
 		};
 
-		template<typename MainComponent, typename... OtherComponents>
-		View<MainComponent, OtherComponents...> view() {
-			return View<MainComponent, OtherComponents...>(this);
-		}
 
-		template <typename T>
-		void registerComponent() {
-			ASSERT_RTTI(T);
-			RTTIType type = T::getStaticClassType();
-			isComponent<T>();
-			ASSERT(m_componentArrays.find(type) == m_componentArrays.end(), "Registering component type more than once");
-			m_componentArrays[type] = std::make_shared<ComponentArray<T>>();
-		}
+		EntityComponentSystem() : m_nextEntityID(1) {} 
 
 		UUID getNewEntityID();
 		UUID createEntityFromID(UUID ID, const std::string& name, bool isRootEntity = false);
 		UUID createEntity(const std::string& name, bool isRootEntity = false);
 
 		void destroyEntity(UUID entity) {
-			//Recursively destroy children
-			auto* sgc = getComponent<SceneGraphComponent>(entity);
-			if (sgc) {
-				auto& children = sgc->getChildren();
-				for (SceneGraphComponent* child : children) {
-					destroyEntity(child->m_entity);
+			auto it = m_entities.begin();
+			while (it != m_entities.end()) {
+				if (*it == entity) {
+					it = m_entities.erase(it);
+				} else {
+					++it;
 				}
 			}
-			utils::eraseFromVector(m_entities, entity);
 
-			for (auto& pair : m_componentArrays) {
-				pair.second->removeComponent(entity);
+			for (auto& [typeIndex, componentArray] : m_componentArrays) {
+				componentArray->removeComponentsOfEntity(entity);
 			}
 		}
 
 		template<typename T, typename... Args>
-		WeakRef<T> addComponent(UUID entity, Args&&... args) {
-			if (!entity) return nullptr;
-			static_assert(std::is_base_of<Component, T>::value, "T must be derived from Component");
-			const WeakRef<T>& component = getComponentArray<T>().insert(entity, std::forward<Args>(args)...);
-			component.lock()->m_entity = entity;
-			return component;
-		}
-
-		//void addComponent(uint32_t entity, Component* component) {
-		//	getComponentArray(component->getClassType()).insert(entity, component);
-		//}
-
-		template <typename T>
-		void removeComponent(UUID entity) {
-			if (!entity) return;
-			ASSERT_RTTI(T);
-			if (!isRemovableComponent(T::getStaticClassType())) return;
-			getComponentArray<T>()->removeComponent(entity);
-		}
-
-		template <typename T>
-		T* getComponent(UUID entity) {
-			if (!entity) return nullptr;
-			auto& componentArray = getComponentArray<T>();
-			return componentArray.get(entity);
+		T* addComponent(UUID entity, Args&&... args) {
+			if (!entity.isValid()) return nullptr;
+			auto& componentArray = getOrCreateComponentArray<T>();
+			return componentArray.addComponent(entity, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
-		std::vector<T*> getComponents(const std::vector<UUID>& entities) {
+		void removeComponent(UUID entity, T* componentPtr) {
+			if (!entity.isValid()) return;
+			auto componentArray = getComponentArray<T>();
+			if (componentArray) {
+				componentArray->removeComponent(entity, componentPtr);
+			}
+		}
+
+		template<typename T>
+		std::vector<T*> getComponents(UUID entity) {
+			auto componentArray = getComponentArray<T>();
+			if (componentArray) {
+				return componentArray->getComponents(entity);
+			}
+			return {};
+		}
+
+		template<typename T>
+		T* getComponent(UUID entity) {
+			auto componentArray = getComponentArray<T>();
+			if (componentArray) {
+				return componentArray->getComponent(entity);
+			}
+			return nullptr;
+		}
+
+		template <typename T>
+		std::vector<T*> getComponentsInEntities(const std::vector<UUID>& entities) {
 			std::vector<T*> components;
-			auto& componentArray = getComponentArray<T>();
-			for (UUID entity : entities) {
-				if (componentArray.hasComponent(entity)) {
-					components.push_back(componentArray.get(entity));
+			auto componentArray = getComponentArray<T>();
+			if (componentArray) {
+				for (UUID entity : entities) {
+					T* component = componentArray->getComponent(entity);
+					if (component) components.push_back(component);
 				}
 			}
 			return components;
 		}
 
-		template <typename T>
-		ComponentArray<T>& getComponentArray() const {
-			RTTIType type = T::getStaticClassType();
-			auto it = m_componentArrays.find(type);  // Use find() instead of operator[]
-			ASSERT(it != m_componentArrays.end(), "Component not registered before use");
-			return (ComponentArray<T>&) * it->second;  // Access the value through the iterator
+		template<typename T>
+		std::vector<T*> getAllComponents() {
+			auto componentArray = getComponentArray<T>();
+			if (componentArray) {
+				return componentArray->getAllComponents();
+			}
+			return {};
+		}
+
+		template<typename T>
+		bool hasComponent(UUID entity) {
+			auto componentArray = getComponentArray<T>();
+			if (componentArray) {
+				auto components = componentArray->getComponents(entity);
+				return !components.empty();
+			}
+			return false;
 		}
 
 		ComponentArray<Component>& getComponentArray(RTTIType type) {
@@ -142,46 +178,51 @@ namespace emerald {
 			return (ComponentArray<Component>&) * m_componentArrays[type].get();
 		}
 
-		template <typename T>
-		std::vector<T*> getComponentInEntities(const std::vector<UUID>& entities) {
-			std::vector<T*> components;
-			auto& componentArray = getComponentArray<T>();
-			for (UUID entity : entities) {
-				T* component = componentArray.get(entity);
-				if (component) components.push_back(component);
-			}
-			return components;
+		const std::vector<UUID>& getEntities() const {
+			return m_entities;
 		}
-
-
-		template <typename T>
-		bool hasComponent(UUID entity) const {
-			if (!entity) return false;
-			const auto& componentArray = getComponentArray<T>();
-			return componentArray.has(entity);
-		}
-
-		std::unordered_set<RTTIType> getAllComponentTypesForEntity(UUID entity);
 
 		const std::unordered_map<RTTIType, std::shared_ptr<ComponentArrayBase>> getComponentArrays() const {
 			return m_componentArrays;
 		}
 
-		std::vector<UUID>& getEntities() {
-			return m_entities;
+		void setEntityEnabled(UUID entity, bool enabled) {
+			m_entityFlags[entity].setFlag(ENTITY_ENABLED, enabled);
+			for (auto& [typeIndex, componentArray] : m_componentArrays) {
+				componentArray->setEntityEnabled(entity, enabled);
+			}
+		}
+
+		bool isEntityEnabled(UUID entity) {
+			return m_entityFlags[entity].isFlagSet(ENTITY_ENABLED);
 		}
 
 	private:
-		std::unordered_map<RTTIType, std::shared_ptr<ComponentArrayBase>> m_componentArrays;
-		UUID m_nextEntityID; //Entity 0 is reserved for null entity
-		std::vector<UUID> m_entities;
-
-		template <typename T>
-		bool isComponent() {
-			ASSERT_RTTI(T);
-			return T::isClassType(Component::getStaticClassType());
+		template<typename T>
+		ComponentArray<T>& getOrCreateComponentArray() {
+			std::type_index typeIndex(typeid(T));
+			auto it = m_componentArrays.find(typeIndex);
+			if (it == m_componentArrays.end()) {
+				auto componentArray = std::make_shared<ComponentArray<T>>();
+				m_componentArrays[typeIndex] = componentArray;
+				return *componentArray;
+			}
+			return *std::static_pointer_cast<ComponentArray<T>>(it->second);
 		}
-		RTTIType getComponentRTTIType() const;
-		bool isRemovableComponent(RTTIType type) const;
+
+		template<typename T>
+		ComponentArray<T>* getComponentArray() {
+			std::type_index typeIndex(typeid(T));
+			auto it = m_componentArrays.find(typeIndex);
+			if (it != m_componentArrays.end()) {
+				return std::static_pointer_cast<ComponentArray<T>>(it->second).get();
+			}
+			return nullptr;
+		}
+
+		std::unordered_map<std::type_index, std::shared_ptr<ComponentArrayBase>> m_componentArrays;
+		std::unordered_map<UUID, Flags8> m_entityFlags;
+		std::vector<UUID> m_entities;
+		uint64_t m_nextEntityID;
 	};
 }
