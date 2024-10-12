@@ -2,15 +2,18 @@
 #include "debug.h"
 #include <algorithm>
 #include <DbgHelp.h>
+#include <iostream>
 #pragma comment(lib, "Dbghelp.lib")
 
 namespace emerald {
 	static bool s_initialized = false;
+	static std::unordered_map<size_t, std::string> s_stackTraceCache;
 
 	void Debug::initialize() {
 		if (!s_initialized) {
 			HANDLE process = GetCurrentProcess();
 			SymInitialize(process, NULL, TRUE);
+			SymSetOptions(SYMOPT_LOAD_LINES | SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
 			s_initialized = true;
 		}
 	}
@@ -18,8 +21,20 @@ namespace emerald {
 	void Debug::shutdown() {
 		if (s_initialized) {
 			SymCleanup(GetCurrentProcess());
+			s_stackTraceCache.clear();
 			s_initialized = false;
 		}
+	}
+
+	static size_t hashStackTrace(void** stack, unsigned short frameCount) {
+		std::hash<void*> ptrHash;
+		size_t hashValue = 0;
+
+		for (unsigned short i = 0; i < frameCount; ++i) {
+			hashValue ^= ptrHash(stack[i]) + 0x9e3779b9 + (hashValue << 6) + (hashValue >> 2);
+		}
+
+		return hashValue;
 	}
 
 	std::string Debug::captureStackTrace(uint32_t framesToSkip, uint32_t frameCount, bool writeAddress) {
@@ -28,6 +43,15 @@ namespace emerald {
 		// Capture the stack trace
 		void* stack[64];
 		unsigned short frames = CaptureStackBackTrace(framesToSkip, std::min((uint32_t)64, frameCount), stack, NULL);
+
+		// Compute a hash for the current stack trace
+		size_t stackHash = hashStackTrace(stack, frames);
+
+		// Check if the stack trace is already cached
+		auto it = s_stackTraceCache.find(stackHash);
+		if (it != s_stackTraceCache.end()) {
+			return it->second;
+		}
 
 		std::string result;
 		result.reserve(512);  // Reserve space to avoid reallocations
@@ -81,6 +105,8 @@ namespace emerald {
 				result += addressBuffer;
 			}
 		}
+
+		s_stackTraceCache[stackHash] = result;
 
 		return result;
 	}

@@ -61,12 +61,12 @@ project "Editor"
         defines { "EE_RELEASE" }
         runtime "Release"
         optimize "On"
-		symbols "Off"
+		symbols "On"
 		kind ("ConsoleApp")
 		
     filter "configurations:Dist"
         defines { "EE_DIST" }
         runtime "Release"
         optimize "On"
-        symbols "Off"
+        symbols "On"
 		kind ("WindowedApp")

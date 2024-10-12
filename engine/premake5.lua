@@ -74,7 +74,7 @@ project "Engine"
         defines { "EE_RELEASE" }
         runtime "Release"
         optimize "On"
-		symbols "Off"
+		symbols "On"
 		libdirs {
 			"dependencies/assimp/lib/Release",
 			"dependencies/zlib/lib/Release",
@@ -88,7 +88,7 @@ project "Engine"
 		defines { "EE_DIST" }
 		runtime "Release"
 		optimize "On"
-		symbols "Off"
+		symbols "On"
 		libdirs {
 			"dependencies/assimp/lib/Release",
 			"dependencies/zlib/lib/Release",
