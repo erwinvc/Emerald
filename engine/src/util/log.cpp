@@ -81,8 +81,10 @@ namespace emerald {
 	/*Get the time as a printable string*/
 	std::string Log::getTimeAsString(std::chrono::system_clock::time_point currentTime) {
 		auto currentTimeT = std::chrono::system_clock::to_time_t(currentTime);
+		std::tm localTime;
+		localtime_s(&localTime, &currentTimeT);
 		char buffer[16];
-		std::strftime(buffer, sizeof(buffer), "[%H:%M:%S]", std::localtime(&currentTimeT));
+		std::strftime(buffer, sizeof(buffer), "[%H:%M:%S]", &localTime);
 		return buffer;
 	}
 

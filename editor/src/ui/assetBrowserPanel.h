@@ -1,7 +1,7 @@
 #pragma once
 
 namespace emerald {
-	class AssetPanel {
+	class AssetBrowserPanel {
 	public:
 		void draw();
 	};

@@ -41,7 +41,7 @@ namespace emerald {
 
 		ImGui::Spring(1.0f, 0.0f);
 
-		ImGui::SetNextItemWidth(DPI::getScale(200));
+		ImGui::SetNextItemWidth(DPI::getScale(200.0f));
 		bool searchChanged = ImGui::InputTextWithHint("##LogPanelFilter", ICON_FA_SEARCH " Search...", m_searchString, sizeof(m_searchString), ImGuiInputTextFlags_EscapeClearsAll);
 		if (ImGui::Button(ICON_FA_TIMES)) {
 			memset(m_searchString, 0, sizeof(m_searchString));
@@ -49,7 +49,7 @@ namespace emerald {
 		}
 		if (searchChanged) forceRefresh();
 
-		ImGui::SetNextItemWidth(DPI::getScale(100));
+		ImGui::SetNextItemWidth(DPI::getScale(100.0f));
 		if (ImGui::BeginCombo("##LogLevel", s_logLevelStrings[m_selectedLogLevel], ImGuiComboFlags_PopupAlignLeft)) {
 			ImGui::ItemRowsBackground();
 			for (int i = 0; i < 4; i++) {
@@ -170,7 +170,7 @@ namespace emerald {
 						char buf[LOG_PANEL_MESSAGE_MAX_LENGTH];
 						sprintf_s(buf, "%s %s##%d", entry->m_timestamp.c_str(), entry->m_message.c_str(), i);
 
-						if (ImGui::Selectable(buf, i == m_selectedMessageIndex, ImGuiSelectableFlags_None, ImVec2(0, DPI::getScale(18)))) {
+						if (ImGui::Selectable(buf, i == m_selectedMessageIndex, ImGuiSelectableFlags_None, ImVec2(0, DPI::getScale(18.0f)))) {
 							m_selectedMessageIndex = i;
 							m_selectedMessage = *entry;
 						}
@@ -194,8 +194,8 @@ namespace emerald {
 							float availableWidth = ImGui::GetContentRegionAvail().x;
 							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + availableWidth - buttonSize.x - DPI::getScale(15));
 
-							ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, DPI::getScale(6));
-							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(DPI::getScale(8), 0));
+							ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, DPI::getScale(6.0f));
+							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(DPI::getScale(8.0f), 0));
 
 							ImGui::BeginDisabled(true);
 							ImGui::Button(countBuf, buttonSize);

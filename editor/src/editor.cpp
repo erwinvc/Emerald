@@ -109,6 +109,9 @@ namespace emerald {
 		s_editorWindow->fixedUpdate(ts);
 	}
 
+	void EmeraldEditorApplication::onEvent(Event& e) {
+	}
+
 	const Ref<Texture>& EmeraldEditorApplication::getFinalTexture() {
 		return s_renderPipeline->getFinalTexture();
 	}

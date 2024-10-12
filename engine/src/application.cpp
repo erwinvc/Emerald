@@ -16,6 +16,7 @@
 #include "graphics/texture.h"
 #include "imgui_impl_opengl3.h"
 #include "graphics/DPI.h"
+#include "events/eventSystem.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -31,6 +32,8 @@ namespace emerald {
 	}
 
 	void Application::run() {
+		EventSystem::setGlobalCallback(BIND_EVENT_HANDLER(onEvent));
+
 		GLFW::GLFWConfiguration config;
 		GLFW::initialize(config);
 
@@ -201,6 +204,8 @@ namespace emerald {
 			//FrameBufferManager::onResize(g_resizeData.m_width, g_resizeData.m_height); //We use the editor panel in the editor
 			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 			GL(glViewport(0, 0, g_resizeData.m_width, g_resizeData.m_height));
+			WindowResizeEvent e{ g_resizeData.m_width, g_resizeData.m_height };
+			EventSystem::dispatch(e);
 			g_resizeData.m_shouldResize = false;
 		}
 	}

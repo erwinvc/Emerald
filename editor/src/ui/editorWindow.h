@@ -3,7 +3,7 @@
 #include "logPanel.h"
 #include "inspectorPanel.h"
 #include "hierarchyPanel.h"
-#include "assetPanel.h"
+#include "assetBrowserPanel.h"
 #include "scenePanel.h"
 
 namespace emerald {
@@ -30,7 +30,7 @@ namespace emerald {
 		HierarchyPanel m_hierarchyPanel;
 		InspectorPanel m_inspectorPanel;
 		LogPanel m_logPanel;
-		AssetPanel m_assetPanel;
+		AssetBrowserPanel m_assetBrowserPanel;
 		ScenePanel m_scenePanel;
 	};
 }

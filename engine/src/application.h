@@ -4,6 +4,7 @@
 #include <functional>
 #include "util/datastructures/asyncQueue.h"
 #include "graphics/texture.h"
+#include "events/events.h"
 
 namespace emerald {
 	class Window;
@@ -24,16 +25,16 @@ namespace emerald {
 	public:
 		Application(const ApplicationSettings& settings = { "Emerald", 1920, 1080 });
 		virtual ~Application();
-
 		void run();
 		void close();
 		void handleResize();
 		void onResize(uint32_t width, uint32_t height);
-
+		
 		virtual void onInitialize() = 0;
 		virtual void onShutdown() = 0;
 		virtual void update(Timestep ts) = 0;
 		virtual void fixedUpdate(Timestep ts) = 0;
+		virtual void onEvent(Event& event) = 0;
 
 		uint32_t getWidth() const;
 		uint32_t getHeight() const;

@@ -13,7 +13,7 @@ public:                                                                         
 	virtual const RTTIType getParentClassType() const { return getStaticParentClassType(); }        \
     static const RTTIType getStaticClassType() { return type_##_thisclass; }                        \
 	static const RTTIType getStaticParentClassType() { return RTTIType(typeid(void)); }             \
-	static const std::string_view getStaticClassName() { return type_##_thisclass.name(); }         \
+	static const std::string_view getStaticClassName() { return #_thisclass; }                      \
 	virtual const std::string_view getClassName() const { return getStaticClassName(); }            \
     static bool isClassType(const RTTIType classType) {                                             \
         return classType == getStaticClassType();                                                   \
@@ -31,7 +31,7 @@ public:                                                                         
 	virtual const RTTIType getParentClassType() const { return _parentclass::getClassType(); }      \
     static const RTTIType getStaticClassType() { return type_##_thisclass; }                        \
 	static const RTTIType getStaticParentClassType() { return _parentclass::getStaticClassType(); } \
-	static const std::string_view getStaticClassName() { return type_##_thisclass.name(); }         \
+	static const std::string_view getStaticClassName() { return #_thisclass; }                      \
 	virtual const std::string_view getClassName() const { return getStaticClassName(); }            \
     static bool isClassType(const RTTIType classType) {                                             \
         if (classType == getStaticClassType()) return true;                                         \

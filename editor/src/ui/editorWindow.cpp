@@ -272,7 +272,7 @@ namespace emerald {
 		m_logPanel.draw();
 		DebugWindow::draw();
 
-		m_assetPanel.draw();
+		m_assetBrowserPanel.draw();
 		m_scenePanel.draw();
 
 		ProfilerWindow::draw();

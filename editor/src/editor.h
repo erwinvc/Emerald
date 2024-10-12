@@ -27,6 +27,7 @@ namespace emerald {
 		void onShutdown() override;
 		void update(Timestep ts) override;
 		void fixedUpdate(Timestep ts) override;
+		void onEvent(Event& event) override;
 
 		const Ref<Texture>& getFinalTexture();
 		const Ref<EditorCamera>& getEditorCamera();
