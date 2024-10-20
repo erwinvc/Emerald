@@ -1,6 +1,5 @@
 #pragma once
 #include "events.h"
-#define BIND_EVENT_HANDLER(fn) [this](auto& e) { this->fn(e); }
 
 namespace emerald {
 	class EventSystem {
@@ -24,8 +23,8 @@ namespace emerald {
 				auto callbackIter = callbacks.begin();
 				while (callbackIter != callbacks.end()) {
 					(*callbackIter)(e);
-					callbackIter = callbacks.erase(callbackIter);  
-					if (e.isHandled()) break;  
+					callbackIter = callbacks.erase(callbackIter);
+					if (e.isHandled()) break;
 				}
 			}
 
@@ -80,6 +79,15 @@ namespace emerald {
 			});
 		}
 
+		template<typename EventType, typename InstanceType>
+		static void subscribe(void (InstanceType::* func)(EventType&), InstanceType* instance) {
+			std::lock_guard<std::mutex> l(s_lock);
+			RTTIType type = EventType::getStaticClassType();
+			s_subscribers[type].push_back([func, instance](Event& e) {
+				(instance->*func)(static_cast<EventType&>(e));
+			});
+		}
+
 		template<typename EventType>
 		static void subscribeOnce(const EventCallback<EventType>& callback) {
 			std::lock_guard<std::mutex> l(s_lock);
@@ -89,7 +97,25 @@ namespace emerald {
 			});
 		}
 
-		static void setGlobalCallback(const EventCallback<Event>& callback) { s_callback = callback; }
+		template<typename EventType, typename InstanceType>
+		static void subscribeOnce(void (InstanceType::* func)(EventType&), InstanceType* instance) {
+			std::lock_guard<std::mutex> l(s_lock);
+			RTTIType type = EventType::getStaticClassType();
+			s_onceSubscribers[type].push_back([func, instance](Event& e) {
+				(instance->*func)(static_cast<EventType&>(e));
+			});
+		}
+
+		static void setGlobalCallback(const EventCallback<Event>& callback) {
+			std::lock_guard<std::mutex> l(s_lock);
+			s_callback = callback;
+		}
+
+		template<typename InstanceType>
+		static void setGlobalCallback(void (InstanceType::* func)(Event&), InstanceType* instance) {
+			std::lock_guard<std::mutex> l(s_lock);
+			s_callback = [instance, func](Event& e) { (instance->*func)(e); };
+		}
 
 	private:
 		static inline std::unordered_map<RTTIType, std::vector<std::function<void(Event&)>>> s_subscribers;

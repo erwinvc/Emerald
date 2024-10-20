@@ -32,8 +32,7 @@ namespace emerald {
 	}
 
 	void Application::run() {
-		EventSystem::setGlobalCallback(BIND_EVENT_HANDLER(onEvent));
-
+		EventSystem::setGlobalCallback(&Application::onEvent, this);
 		GLFW::GLFWConfiguration config;
 		GLFW::initialize(config);
 
