@@ -4,10 +4,10 @@
 #include "hierarchyPanel.h"
 #include <unordered_set>
 #include "inspectorRegistry.h"
-#include "util/color.h"
+#include "utils/math/color.h"
 #include "inspector/propertyDrawer.h"
-#include "ecs/components/metadataComponent.h"
-#include "ecs/components/component.h"
+#include "engine/ecs/components/metadataComponent.h"
+#include "engine/ecs/components/component.h"
 
 namespace emerald {
 	static constexpr float MIN_FIRST_COLUMN_WIDTH = 50.0f;

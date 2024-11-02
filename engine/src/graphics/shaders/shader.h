@@ -1,5 +1,5 @@
 #pragma once
-#include "graphics/renderer.h"
+#include "graphics/core/renderer.h"
 #include "shaderProgram.h"
 
 namespace emerald {

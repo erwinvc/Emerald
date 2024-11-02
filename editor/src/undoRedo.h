@@ -1,16 +1,15 @@
 #pragma once
 #include <stack>
 #include <functional>
-#include "ref.h"
-#include "ecs/entity.h"
-#include "scene/sceneManager.h"
+#include "engine/ecs/core/entity.h"
+#include "engine/scene/sceneManager.h"
 
 namespace emerald {
 	class UndoActionBase : public RefCounted{
 	protected:
 		friend class UndoRedo;
 
-		virtual void execute() = 0;
+		virtual bool execute() = 0;
 		virtual void undo() = 0;
 
 	public:
@@ -27,10 +26,12 @@ namespace emerald {
 		std::vector<std::function<void(T&)>> m_doActions;
 		std::vector<std::function<void(T&)>> m_undoActions;
 
-		void execute() override {
+		bool execute() override {
 			for (auto& action : m_doActions) {
 				action(m_userData);
 			}
+
+			return m_doActions.size() > 0;
 		}
 
 		void undo() override {
@@ -66,10 +67,12 @@ namespace emerald {
 		std::vector<std::function<void()>> m_doActions;
 		std::vector<std::function<void()>> m_undoActions;
 
-		void execute() override {
+		bool execute() override {
 			for (auto& action : m_doActions) {
 				action();
 			}
+
+			return m_doActions.size() > 0;
 		}
 
 		void undo() override {
@@ -99,9 +102,10 @@ namespace emerald {
 
 		template<typename T>
 		static void commitAction(const Ref<UndoAction<T>>& action) {
-			action->execute();
-			undoStack.push(action.template as<UndoActionBase>());
-			while (!redoStack.empty()) redoStack.pop();
+			if (action->execute()) {
+				undoStack.push(action.template as<UndoActionBase>());
+				while (!redoStack.empty()) redoStack.pop();
+			}
 		}
 
 		static void undo() {

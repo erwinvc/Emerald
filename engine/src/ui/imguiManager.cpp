@@ -1,12 +1,12 @@
 #include "eepch.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include <imgui.h>
-#include "imgui_impl_glfw.h"
-#include "imgui_internal.h"
-#include "imgui_impl_opengl3.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_internal.h"
+#include "imgui/imgui_impl_opengl3.h"
 
-#include "graphics/Window.h"
+#include "graphics/window/window.h"
 #include "iconsFontAwesome.h"
 #include "imguiManager.h"
 #include "imguiProfiler/IconsFontAwesome4.h"
@@ -30,7 +30,7 @@ namespace emerald {
 		ImGuiStyle* style = &ImGui::GetStyle();
 		ImVec4* colors = style->Colors;
 
-				colors[ImGuiCol_Text] = Color(0xD6D6D6FF);
+		colors[ImGuiCol_Text] = Color(0xD6D6D6FF);
 		colors[ImGuiCol_TextDisabled] = Color(0x808080FF);
 		colors[ImGuiCol_WindowBg] = Color(0x1F1F1FFF);
 		colors[ImGuiCol_ChildBg] = Color(0x1B1B1BFF);

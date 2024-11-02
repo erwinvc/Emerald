@@ -25,9 +25,9 @@ project "Runtime"
 	
 	externalincludedirs
 	{
-		"../engine/dependencies/GLFW/include",
+		"../engine/dependencies/assimp/include",
+	 	"../engine/dependencies/GLFW/include",
 	 	"../engine/dependencies/GLAD/include",
-	 	"../engine/dependencies/imgui",
 		"../engine/dependencies"
 	}
 	

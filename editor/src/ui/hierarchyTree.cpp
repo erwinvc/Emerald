@@ -1,20 +1,18 @@
 #include "eepch.h"
-#include "util/color.h"
 #include "editor.h"
 #include "hierarchyTree.h"
-#include "imgui.h"
-#include "imgui_internal.h"
-#include "scene/sceneManager.h"
 #include "ui/imguiManager.h"
 #include "ui/iconsFontAwesome.h"
-#include "input/keyboard.h"
-#include "input/mouse.h"
-#include "util/utils.h"
 #include "undoRedo.h"
 #include "imguiProfiler/IconsFontAwesome4.h"
 #include "ui/iconsFontSegoeMDL2.h"
-#include "graphics/DPI.h"
-#include "ecs/components/metadataComponent.h"
+#include "graphics/misc/DPI.h"
+#include "utils/math/color.h"
+#include "engine/input/keyboard.h"
+#include "engine/ecs/components/metadataComponent.h"
+#include "utils/misc/utils.h"
+#include "engine/scene/sceneManager.h"
+#include "utils/uuid/uuid.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {
@@ -371,12 +369,12 @@ namespace emerald {
 							SceneGraphComponent* beforeNode1 = beforeNodeEntity != 0 ? SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
 							addNodeToParent(droppedNode1, node1, insertBefore, beforeNode1);
 						});
+
+						UndoRedo::commitAction(action);
 					}
 				}
 			}
 		}
-
-		UndoRedo::commitAction(action);
 
 		if (open && node) node->m_isOpenInHierarchy = true;
 		return toRet;

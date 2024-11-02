@@ -1,11 +1,10 @@
 #pragma once
 #include <vector>
 #include <string_view>
-#include "imgui.h"
-#include "imgui_internal.h"
-#include "util/utils.h"
+#include "ui/imguiManager.h"
+#include "utils/misc/utils.h"
 #include "propertyDrawerUtils.h"
-#include "graphics/DPI.h"
+#include "graphics/misc/DPI.h"
 
 namespace emerald {
 

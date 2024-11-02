@@ -1,17 +1,18 @@
 #include "eepch.h"
-#include <windows.h>
-#include "emerald.h"
-#include "ui/editorWindow.h"
-#include "graphics/renderPipeline.h"
+#include "graphics/core/camera.h"
+#include "core/common/emerald.h"
 #include "editor.h"
-#include "graphics/renderer.h"
+#include "engine/input/keyboard.h"
+#include "engine/input/mouse.h"
+#include "engine/scene/sceneManager.h"
+#include "graphics/buffers/framebuffer.h"
+#include "graphics/render/renderPipeline.h"
 #include "imguiProfiler/Profiler.h"
 #include "project.h"
-#include "input/keyboard.h"
-#include "graphics/framebuffer.h"
-#include "scene/sceneManager.h"
-#include "input/mouse.h"
+#include "ui/editorWindow.h"
 #include "undoRedo.h"
+#include <windows.h>
+#include "graphics/core/renderer.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;

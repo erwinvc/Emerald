@@ -1,7 +1,7 @@
 #include "eepch.h"
 #include "project.h"
-#include "imgui.h"
 #include <filesystem>
+#include "ui/imguiManager.h"
 
 namespace emerald {
 	static std::string s_currentProject;

@@ -1,6 +1,6 @@
 #pragma once
 #include "vertexBufferLayout.h"
-#include "util/buffer.h"
+#include "utils/datastructures/buffer.h"
 
 namespace emerald {
 	class VertexBuffer : public RefCounted {

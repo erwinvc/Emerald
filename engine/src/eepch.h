@@ -35,13 +35,15 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "ref.h"
-#include "rtti.h"
+typedef unsigned char byte;
 
-#include "graphics/glError.h"
-#include "assrt.h"
+#include "core/common/ref.h"
+#include "core/common/rtti.h"
 
-#include "util/log.h"
+#include "graphics/misc/glError.h"
+#include "core/common/assrt.h"
+
+#include "utils/core/log.h"
 
 #define BIT(n)	(1<<(n))
 #define NUMOF(x) (uint32_t)(((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x]))))))

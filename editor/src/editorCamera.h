@@ -1,6 +1,6 @@
 #pragma once
-#include "graphics/camera.h"
 
+#include "graphics/core/camera.h"
 namespace emerald {
 	class EditorCamera : public Camera {
 	public:

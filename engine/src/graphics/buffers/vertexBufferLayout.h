@@ -1,5 +1,4 @@
 #pragma once
-#include "stdincl.h"
 
 namespace emerald {
 	class VertexArray;

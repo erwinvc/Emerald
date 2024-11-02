@@ -1,6 +1,6 @@
 #pragma once
-#include "util/buffer.h"
 
+#include "utils/datastructures/buffer.h"
 namespace emerald {
 	class IndexBuffer : public RefCounted {
 	private:

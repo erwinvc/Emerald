@@ -1,7 +1,7 @@
 #pragma once
-#include "scene/scene.h"
+#include "core/application/application.h"
+#include "engine/scene/scene.h"
 #include "editorCamera.h"
-#include "application.h"
 
 namespace emerald {
 	class RenderPipeline;

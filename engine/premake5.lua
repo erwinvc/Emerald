@@ -25,7 +25,6 @@ project "Engine"
 		"dependencies/assimp/include",
 	 	"dependencies/GLFW/include",
 	 	"dependencies/GLAD/include",
-	 	"dependencies/imgui",
 		"dependencies"
 	}
    

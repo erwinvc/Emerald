@@ -1,14 +1,10 @@
 #include "eepch.h"
+#include "core/application/application.h"
 #include "debugWindow.h"
-#include "imgui.h"
-#include "ui/imguiManager.h"
-#include "imgui_internal.h"
-#include "metrics/metrics.h"
-#include "application.h"
-#include <cstdio>
-#include <algorithm>
+#include "engine/input/keyboard.h"
 #include "Implot/implot.h"
-#include "input/keyboard.h"
+#include "metrics/metrics.h"
+#include "ui/imguiManager.h"
 
 namespace emerald {
 	static const uint32_t maxRenderSamples = 1000;

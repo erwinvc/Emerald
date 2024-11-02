@@ -1,8 +1,8 @@
 #include "eepch.h"
-#include "ecs/components/transformComponent.h"
 #include "componentInspector.h"
 #include "inspectorRegistry.h"
 #include "propertyDrawer.h"
+#include "engine/ecs/components/transformComponent.h"
 
 namespace emerald {
 	class TransformComponentInspector : public ComponentInspector {

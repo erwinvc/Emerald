@@ -1,12 +1,12 @@
 #include "eepch.h"
-#include "logPanel.h"
-#include "ui/imguiManager.h"
-#include "ui/iconsFontAwesome.h"
-#include "util/valueTester.h"
-#include <mutex>
+#include "graphics/misc/DPI.h"
 #include "imguiProfiler/Profiler.h"
-#include "util/stringUtils.h"
-#include "graphics/DPI.h"
+#include "logPanel.h"
+#include "ui/iconsFontAwesome.h"
+#include "ui/imguiManager.h"
+#include "utils/debug/valueTester.h"
+#include "utils/text/stringUtils.h"
+#include <mutex>
 
 namespace emerald {
 	static const char* s_logLevelStrings[4] = { "Fatal", "Error", "Warning", "Info" };

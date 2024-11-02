@@ -1,7 +1,7 @@
 #include "eepch.h"
 #include "editorCamera.h"
-#include "input/keyboard.h"
-#include "input/mouse.h"
+#include "engine/input/keyboard.h"
+#include "engine/input/mouse.h"
 #include "glm/ext/scalar_common.hpp"
 #include "glm/gtc/constants.hpp"
 

@@ -1,9 +1,8 @@
 #pragma once
 #include <unordered_map>
 #include <unordered_set>
-#include "ecs/components/component.h"
-#include "rtti.h"
-#include "imgui.h"
+#include "engine/ecs/components/component.h"
+#include "imgui/imgui.h"
 
 namespace emerald {
 	class InspectorTree {

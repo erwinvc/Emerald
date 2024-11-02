@@ -1,5 +1,5 @@
 #pragma once
-#include "emerald.h"
+#include "core/common/emerald.h"
 #include "logPanel.h"
 #include "inspectorPanel.h"
 #include "hierarchyPanel.h"

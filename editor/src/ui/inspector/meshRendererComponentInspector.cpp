@@ -1,7 +1,8 @@
 #include "eepch.h"
-#include "ecs/components/meshRendererComponent.h"
 #include "componentInspector.h"
 #include "inspectorRegistry.h"
+#include "ui/imguiManager.h"
+#include "engine/ecs/components/meshRendererComponent.h"
 
 namespace emerald {
 	class MeshRendererComponentInspector : public ComponentInspector {

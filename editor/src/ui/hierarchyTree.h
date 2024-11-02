@@ -1,8 +1,8 @@
 #pragma once
-#include "scene/scene.h"
+#include "engine/ecs/components/sceneGraphComponent.h"
+#include "engine/ecs/core/entity.h"
+#include "engine/scene/scene.h"
 #include "ui/imguiManager.h"
-#include "ecs/entity.h"
-#include "ecs/components/sceneGraphComponent.h"
 
 namespace emerald {
 	class HierarchyTree {

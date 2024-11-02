@@ -1,11 +1,11 @@
 #include "eepch.h"
 #include "hierarchyPanel.h"
 #include "ui/imguiManager.h"
-#include "ecs/entity.h"
-#include "scene/sceneManager.h"
+#include "engine/ecs/core/entity.h"
+#include "engine/scene/sceneManager.h"
 #include "ui/iconsFontAwesome.h"
 #include "undoRedo.h"
-#include "graphics/DPI.h"
+#include "graphics/misc/DPI.h"
 
 namespace emerald {
 	void HierarchyPanel::draw() {
