@@ -1,12 +1,11 @@
 #include "eepch.h"
+#include "engine/ecs/components/metadataComponent.h"
+#include "engine/ecs/components/sceneGraphComponent.h"
+#include "engine/ecs/components/transformComponent.h"
+#include "engine/scene/sceneManager.h"
 #include "entityComponentSystem.h"
-#include "components/transformComponent.h"
-#include "components/metadataComponent.h"
-#include "components/sceneGraphComponent.h"
-#include "util/uuidGenerator.h"
-#include "scene/sceneManager.h"
+#include "utils/uuid/uuidGenerator.h"
 #include <memory>
-#include "componentArray.h"
 
 namespace emerald {
 	UUID EntityComponentSystem::getNewEntityID() {

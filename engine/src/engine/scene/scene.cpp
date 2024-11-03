@@ -1,8 +1,9 @@
 #include "eepch.h"
 #include "scene.h"
-#include "assets/loaders/modelLoader.h"
-#include "ecs/components/transformComponent.h"
-#include "ecs/components/meshRendererComponent.h"
+#include "engine/assets/loaders/modelLoader.h"
+#include "engine/ecs/components/transformComponent.h"
+#include "engine/ecs/components/meshRendererComponent.h"
+#include "engine/ecs/components/sceneGraphComponent.h"
 
 namespace emerald {
 	Scene::Scene(const std::string name, const std::filesystem::path& scenePath) : m_name(name), m_path(scenePath) {

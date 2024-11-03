@@ -1,13 +1,13 @@
 #include "eepch.h"
-#include "datastructures/asyncQueue.h"
+#include "core/application//application.h"
 #include "log.h"
-#include "threading/threadManager.h"
-#include <application.h>
+#include "utils/datastructures/asyncQueue.h"
+#include "utils/debug/debug.h"
+#include "utils/threading/threadManager.h"
+#include <chrono>
 #include <format>
 #include <iostream>
 #include <sstream>
-#include <chrono>
-#include "debug.h"
 
 namespace emerald {
 	static std::mutex s_messageMutex;

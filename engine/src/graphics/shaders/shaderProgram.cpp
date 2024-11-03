@@ -1,6 +1,6 @@
 #include "eepch.h"
 #include "shaderProgram.h"
-#include "graphics/renderer.h"
+#include "graphics/core/renderer.h"
 
 namespace emerald {
 	ShaderProgram::~ShaderProgram() {

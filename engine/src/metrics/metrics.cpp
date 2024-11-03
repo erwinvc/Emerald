@@ -1,8 +1,8 @@
 #include "eepch.h"
+#include "core/application/application.h"
 #include "metrics.h"
-#include "application.h"
-#include "util/threading/threadManager.h"
-#include "util/time.h"
+#include "utils/system/time.h"
+#include "utils/threading/threadManager.h"
 
 namespace emerald {
 	struct TimerData {

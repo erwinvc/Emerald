@@ -10,7 +10,7 @@ namespace emerald {
 
 		template<typename T>
 		static T getScale(T value) {
-			return value * currentXScale;
+			return value * (T)currentXScale;
 		}
 
 		template<>

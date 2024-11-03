@@ -1,11 +1,10 @@
 #include "eepch.h"
+#include "core/application/application.h"
 #include "DPI.h"
-#include <ShellScalingAPI.h>
 #include "glfw.h"
-#include "application.h"
-#include "imgui.h"
-#include "graphics/window.h"
+#include "graphics/window/window.h"
 #include "ui/imguiManager.h"
+#include <ShellScalingAPI.h>
 #pragma comment(lib, "Shcore.lib")
 
 namespace emerald {

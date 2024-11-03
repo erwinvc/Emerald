@@ -1,6 +1,6 @@
 #include "eepch.h"
 #include "material.h"
-#include "shaders/shader.h"
+#include "graphics/shaders/shader.h"
 #include "imguiProfiler/Profiler.h"
 
 namespace emerald {

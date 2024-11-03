@@ -1,7 +1,7 @@
 #include "eepch.h"
-#include "graphics/vertexArray.h"
+#include "graphics/buffers/vertexArray.h"
 #include "graphics/buffers/vertexBuffer.h"
-#include "renderer.h"
+#include "graphics/core/renderer.h"
 
 namespace emerald {
 	VertexArray::VertexArray(VertexBufferLayout layout) : m_layout(layout), m_handle(0), m_validated(false) {

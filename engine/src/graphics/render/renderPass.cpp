@@ -1,7 +1,7 @@
 #pragma once
 #include "eepch.h"
 #include "renderPass.h"
-#include "graphics/frameBuffer.h"
+#include "graphics/buffers/frameBuffer.h"
 
 namespace emerald {
 	RenderPass::RenderPass(RenderPassDesc desc) : m_desc(desc) {

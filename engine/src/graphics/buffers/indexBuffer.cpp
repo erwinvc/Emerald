@@ -1,6 +1,6 @@
 #include "eepch.h"
 #include "indexBuffer.h"
-#include "graphics/renderer.h"
+#include "graphics/core/renderer.h"
 
 namespace emerald {
 	IndexBuffer::IndexBuffer(const byte* data, uint32_t size) {

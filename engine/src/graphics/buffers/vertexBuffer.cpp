@@ -1,7 +1,7 @@
 #include "eepch.h"
 #include "vertexBuffer.h"
-#include "util/buffer.h"
-#include "graphics/renderer.h"
+#include "utils/datastructures/buffer.h"
+#include "graphics/core/renderer.h"
 
 namespace emerald {
 	VertexBuffer::VertexBuffer(const byte* data, uint32_t size, BufferUsage usage) : m_handle(0), m_usage(usage) {

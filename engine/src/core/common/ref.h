@@ -45,6 +45,14 @@ namespace emerald {
 			other.m_reference = nullptr;
 		}
 
+		// Copy constructor for derived types: Creates a new Ref object that references the same object as the given Ref object.
+		template<typename U>
+		Ref(const Ref<U>& other) : m_reference(dynamic_cast<T*>(other.m_reference)) {
+			static_assert(std::is_base_of<T, U>::value || std::is_base_of<U, T>::value,
+				"Types must share an inheritance relationship");
+			incrementRef();
+		}
+
 		// Copy assignment operator: Assigns the referenced object of the given Ref object to this Ref object.
 		// The previously referenced object's reference count is decremented, and the new referenced object's reference count is incremented.
 		Ref& operator=(const Ref& other) {

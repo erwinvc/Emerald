@@ -1,12 +1,12 @@
 #include "eepch.h"
 #include "texture.h"
-#include "graphics/textureDesc.h"
-#include "util/utils.h"
-#include "util/fileSystem.h"
+#include "graphics/textures/textureDesc.h"
+#include "utils/misc/utils.h"
+#include "utils/system/fileSystem.h"
 
 #include <stb_image.h>
 #include <stb_image_write.h>
-#include "renderer.h"
+#include "graphics/core/renderer.h"
 
 namespace emerald {
 	Texture::Texture(TextureDesc desc, std::string path)

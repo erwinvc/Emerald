@@ -1,6 +1,6 @@
 #include "eepch.h"
-#include "graphics/textureDesc.h"
-#include "color.h"
+#include "graphics/textures/textureDesc.h"
+#include "utils/math/color.h"
 #include "graphics/shaders/shader.h"
 
 namespace emerald {

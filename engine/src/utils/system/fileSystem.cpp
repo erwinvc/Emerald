@@ -1,12 +1,12 @@
 #include "eepch.h"
+#include "core/application/application.h"
 #include "fileSystem.h"
-#include <format>
-#include <commdlg.h>
-#include "application.h"
 #include "GLFW/glfw3native.h"
-#include "graphics/window.h"
+#include "graphics/window/window.h"
+#include "utils/misc/utils.h"
+#include <commdlg.h>
+#include <format>
 #include <shobjidl.h>  // Required for IFileDialog
-#include "utils.h"
 
 namespace emerald {
 	std::filesystem::path FileSystem::openFileDialog(const std::vector<FilterSpec>& filters) {

@@ -1,4 +1,4 @@
-#include "Emerald.h"
+#include "core/common/emerald.h"
 
 //class EmeraldRuntimeApplication : public Application {
 //public:

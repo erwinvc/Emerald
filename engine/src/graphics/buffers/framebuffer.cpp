@@ -1,8 +1,8 @@
 #include "eepch.h"
 #include "framebuffer.h"
-#include "util/GLUtils.h"
-#include "application.h"
-#include "renderer.h"
+#include "utils/misc/GLUtils.h"
+#include "core/application/application.h"
+#include "graphics/core/renderer.h"
 
 namespace emerald {
 	static const uint32_t drawBuffers[16] = {

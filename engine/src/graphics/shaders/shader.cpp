@@ -1,10 +1,9 @@
 #include "eepch.h"
-#include "stdIncl.h"
 #include "shader.h"
 #include "shadInclude.h"
-#include "util/glUtils.h"
-#include "util/fileSystem.h"
-#include "graphics/renderer.h"
+#include "utils/misc/glUtils.h"
+#include "utils/system/fileSystem.h"
+#include "graphics/core/renderer.h"
 
 namespace emerald {
 	Shader::Shader(const std::string& name, const std::string& filePath, bool hasGeometry, bool hasTessellation) : m_shaderProgram(nullptr), m_hasGeometry(hasGeometry), m_hasTessellation(hasTessellation), m_name(name), m_shaderPath(filePath) {

@@ -1,6 +1,6 @@
 #include "eepch.h"
 #include "glError.h"
-#include "util/GLUtils.h"
+#include "utils/misc/GLUtils.h"
 
 #define HARD_OPENGL_ERROR_CHECK 0
 

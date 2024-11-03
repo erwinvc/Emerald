@@ -1,6 +1,5 @@
 #pragma once
 #include "windows.h"
-#include "stdincl.h"
 #include <functional>
 #include <stdexcept>
 

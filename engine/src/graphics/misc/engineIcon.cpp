@@ -1,7 +1,7 @@
 #include "eepch.h"
 #include "engineIcon.h"
 #include "GLFW/glfw3.h"
-#include "texture.h"
+#include "graphics/textures/texture.h"
 
 namespace emerald::icon {
 	void loadIcon(void* window) {

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/common/stdIncl.h"
 
 namespace emerald {
 	enum BufferUsage {

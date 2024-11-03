@@ -1,7 +1,7 @@
 #include "eepch.h"
 #include "uuidGenerator.h"
-#include "random.h"
-#include "time.h"
+#include "utils/math/random.h"
+#include "utils/system/time.h"
 #include <mutex>
 
 namespace emerald {

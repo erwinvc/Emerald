@@ -1,10 +1,10 @@
 #include "eepch.h"
+#include "core/application/application.h"
+#include "graphics/buffers/framebuffer.h"
+#include "graphics/render/renderPass.h"
 #include "renderer.h"
-#include "renderPass.h"
-#include "framebuffer.h"
-#include "application.h"
-#include "util/GLUtils.h"
 #include "renderSyncManager.h"
+#include "utils/misc/GLUtils.h"
 
 namespace emerald {
 	static Ref<RenderPass> s_activeRenderPass;
