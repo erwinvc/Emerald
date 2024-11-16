@@ -9,12 +9,12 @@ namespace emerald {
 
 	class AssetTypeDesc {
 	public:
-		std::string m_typeName;
+		AssetType m_type;
 		std::vector<std::string> m_extensions;
 		AssetFactory m_factory;
 
-		AssetTypeDesc(const std::string& name, std::initializer_list<std::string> exts, AssetFactory fact)
-			: m_typeName(name), m_extensions(exts), m_factory(fact) {
+		AssetTypeDesc(AssetType type, std::initializer_list<std::string> exts, AssetFactory fact)
+			: m_type(type), m_extensions(exts), m_factory(fact) {
 		}
 	};
 
@@ -23,42 +23,44 @@ namespace emerald {
 		AssetTypeRegistry() = default;
 
 		template<typename T>
-		void registerAssetType(const std::string& typeName,
-			std::initializer_list<std::string> extensions) {
-			AssetTypeDesc desc(
-				typeName,
-				extensions,
-				[]() -> Ref<Asset> { return Ref<T>::create(); }
-			);
+		void registerAssetType(AssetType type,std::initializer_list<std::string> extensions) {
+			AssetTypeDesc desc(type, extensions, []() -> Ref<Asset> { return Ref<T>::create(); });
 
-			m_assetTypes.insert({ typeName , desc });
+			m_assetTypes.insert({ type , desc });
 
 			for (const auto& ext : extensions) {
-				m_extensionMap.insert({ ext, typeName });
+				m_extensionMap.insert({ ext, type });
 			}
 		}
 
-		std::string getAssetTypeFromExtension(const std::string& extension) const {
+		AssetType getAssetTypeFromExtension(const std::string& extension) const {
 			auto it = m_extensionMap.find(extension);
-			return (it != m_extensionMap.end()) ? it->second : "unknown";
+			return (it != m_extensionMap.end()) ? it->second : AssetType::UNKNOWN;
 		}
 
-		Ref<Asset> createAsset(const std::string& typeName) const {
-			auto it = m_assetTypes.find(typeName);
+		Ref<Asset> createAsset(AssetType type) const {
+			auto it = m_assetTypes.find(type);
 			if (it != m_assetTypes.end()) {
 				return it->second.m_factory();
 			}
 			return nullptr;
 		}
 
-		const AssetTypeDesc* getAssetTypeDesc(const std::string& typeName) const {
-			auto it = m_assetTypes.find(typeName);
+		const AssetTypeDesc* getAssetTypeDesc(AssetType type) const {
+			auto it = m_assetTypes.find(type);
+			return (it != m_assetTypes.end()) ? &it->second : nullptr;
+			return nullptr;
+		}
+
+		const AssetTypeDesc* getAssetTypeDesc(const std::string& extension) const {
+			AssetType type = getAssetTypeFromExtension(extension);
+			auto it = m_assetTypes.find(type);
 			return (it != m_assetTypes.end()) ? &it->second : nullptr;
 			return nullptr;
 		}
 
 	private:
-		std::unordered_map<std::string, AssetTypeDesc> m_assetTypes;
-		std::unordered_map<std::string, std::string> m_extensionMap;
+		std::unordered_map<AssetType, AssetTypeDesc> m_assetTypes;
+		std::unordered_map<std::string, AssetType> m_extensionMap;
 	};
 }

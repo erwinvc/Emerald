@@ -225,6 +225,15 @@ namespace emerald {
 		ImGui::DestroyContext(context);
 	}
 
+	ImVec4 ImGuiManager::getSeverityColor(Severity severity) {
+		switch (severity) {
+			case Severity::INFO:  return ImVec4(0.80f, 0.90f, 0.63f, 1.0f);
+			case Severity::WARN:  return ImVec4(1.00f, 0.72f, 0.50f, 1.0f);
+			case Severity::ERROR: return ImVec4(0.75f, 0.25f, 0.25f, 1.0f);
+			case Severity::FATAL: return ImVec4(1.00f, 0.00f, 0.00f, 1.0f);
+		}
+		return ImVec4(1, 1, 1, 1);
+	}
 }
 namespace ImGui {
 	static emerald::Color transparent = emerald::Color(0x00000000);

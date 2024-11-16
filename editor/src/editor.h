@@ -2,6 +2,7 @@
 #include "core/application/application.h"
 #include "engine/scene/scene.h"
 #include "editorCamera.h"
+#include "editorProjectOpenedEvent.h"
 
 namespace emerald {
 	class RenderPipeline;
@@ -31,6 +32,10 @@ namespace emerald {
 
 		const Ref<Texture>& getFinalTexture();
 		const Ref<EditorCamera>& getEditorCamera();
+
+	private:
+
+		void onProjectOpened(EditorProjectOpenedEvent& e);
 	};
 
 	inline EmeraldEditorApplication* Editor;

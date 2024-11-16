@@ -15,12 +15,12 @@ namespace emerald {
 	static constexpr float LOG_PANEL_MIN_DETAIL_HEIGHT = 100.0f;
 
 	LogPanel::LogPanel()
-		: m_selectedLogLevel((uint32_t)LogLevel::INFO),
+		: m_selectedLogLevel((uint32_t)Severity::INFO),
 		m_logPanelHeightRatio(LOG_PANEL_HEIGHT_RATIO_DEFAULT),
 		m_lastLogCount(0),
 		m_selectedMessageIndex(-1),
 		m_autoscroll(true),
-		m_collapseLogs(true) {
+		m_collapseLogs(false) {
 		memset(m_searchString, 0, sizeof(m_searchString));
 	}
 
@@ -157,13 +157,7 @@ namespace emerald {
 						const auto* entry = m_collapsedLogs[i];
 						int count = m_logMessageCounts[std::hash<std::string>{}(entry->m_message)];
 
-						ImVec4 color;
-						switch (entry->m_level) {
-							case LogLevel::INFO:    color = ImVec4(0.80f, 0.90f, 0.63f, 1.0f); break;
-							case LogLevel::WARN:    color = ImVec4(1.00f, 0.72f, 0.50f, 1.0f); break;
-							case LogLevel::ERROR:   color = ImVec4(0.75f, 0.25f, 0.25f, 1.0f); break;
-							case LogLevel::FATAL:   color = ImVec4(1.00f, 0.00f, 0.00f, 1.0f); break;
-						}
+						ImVec4 color = ImGuiManager::getSeverityColor(entry->m_level);
 						ImGui::TextColored(color, "[%s] ", s_logLevelStrings[(uint32_t)entry->m_level]);
 
 						ImGui::SameLine();

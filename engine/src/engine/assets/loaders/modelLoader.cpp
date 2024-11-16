@@ -1,5 +1,6 @@
 #include "eepch.h"
 #include "modelLoader.h"
+#define ASSIMP_BUILD_DLL
 #include "assimp/postprocess.h"
 #include "assimp/mesh.h"
 #include "assimp/scene.h"

@@ -24,6 +24,7 @@ namespace emerald {
 		static void end();
 		static void shutdown();
 
+		static ImVec4 getSeverityColor(Severity severity);
 	};
 }
 

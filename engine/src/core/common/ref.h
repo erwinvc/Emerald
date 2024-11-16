@@ -1,5 +1,6 @@
 #pragma once
 #include <atomic>
+#include <type_traits>
 
 namespace emerald {
 	template<typename T>
@@ -8,49 +9,73 @@ namespace emerald {
 	template<typename T>
 	class WeakRef;
 
+	struct ControlBlock {
+		std::atomic<uint32_t> strongCount = 0;
+		std::atomic<uint32_t> weakCount = 0;
+	};
+
 	class RefCounted {
 	public:
-		std::atomic<uint32_t> m_refCount = 0;
+		template<typename T>
+		friend class Ref;
+
+		template<typename T>
+		friend class WeakRef;
+
+		virtual ~RefCounted() = default;
+
+		uint32_t getRefCount() const {
+			return m_controlBlock ? m_controlBlock->strongCount.load() : 0;
+		}
+
+	protected:
+		RefCounted() : m_controlBlock(new ControlBlock()) {}
+		RefCounted(const RefCounted&) = delete;
+		RefCounted& operator=(const RefCounted&) = delete;
+
+	private:
+		ControlBlock* m_controlBlock;
 	};
 
 	template<typename T>
 	class Ref {
 	public:
 		// Default constructor: Creates an empty Ref object with no referenced object.
-		Ref() : m_reference(nullptr) {}
-
+		constexpr Ref() : m_reference(nullptr), m_controlBlock(nullptr) {}
 		// Nullptr constructor: Creates an empty Ref object with no referenced object.
-		Ref(std::nullptr_t) : m_reference(nullptr) {}
+		constexpr Ref(std::nullptr_t) : m_reference(nullptr), m_controlBlock(nullptr) {}
 
 		// Pointer constructor: Creates a Ref object that references the given object.
-		Ref(T* pointer) : m_reference(pointer) {
+		Ref(T* pointer) : m_reference(pointer), m_controlBlock(pointer ? pointer->m_controlBlock : nullptr) {
 			incrementRef();
 		}
 
 		// Copy constructor: Creates a new Ref object that references the same object as the given Ref object.
 		// The referenced object's reference count is incremented.
-		Ref(const Ref& other) : m_reference(other.m_reference) {
+		Ref(const Ref& other) : m_reference(other.m_reference), m_controlBlock(other.m_controlBlock) {
+			incrementRef();
+		}
+
+		// Move constructor: Creates a new Ref object that takes ownership of the referenced object from the given Ref object.
+		// The referenced object's reference count is not incremented.
+		Ref(Ref&& other) : m_reference(other.m_reference), m_controlBlock(other.m_controlBlock) {
+			other.m_reference = nullptr;
+			other.m_controlBlock = nullptr;
+		}
+
+		// Copy constructor for derived types: Creates a new Ref object that references the same object as the given Ref object.
+		template<typename U>
+		Ref(const Ref<U>& other) : m_reference(dynamic_cast<T*>(other.m_reference)), m_controlBlock(other.m_controlBlock) {
+			static_assert(std::is_base_of<T, U>::value || std::is_base_of<U, T>::value,
+				"Types must share an inheritance relationship");
 			incrementRef();
 		}
 
 		Ref& operator=(std::nullptr_t) {
 			decrementRef();
 			m_reference = nullptr;
+			m_controlBlock = nullptr;
 			return *this;
-		}
-
-		// Move constructor: Creates a new Ref object that takes ownership of the referenced object from the given Ref object.
-		// The referenced object's reference count is not incremented.
-		Ref(Ref&& other) noexcept : m_reference(other.m_reference) {
-			other.m_reference = nullptr;
-		}
-
-		// Copy constructor for derived types: Creates a new Ref object that references the same object as the given Ref object.
-		template<typename U>
-		Ref(const Ref<U>& other) : m_reference(dynamic_cast<T*>(other.m_reference)) {
-			static_assert(std::is_base_of<T, U>::value || std::is_base_of<U, T>::value,
-				"Types must share an inheritance relationship");
-			incrementRef();
 		}
 
 		// Copy assignment operator: Assigns the referenced object of the given Ref object to this Ref object.
@@ -59,6 +84,7 @@ namespace emerald {
 			if (this != &other) {
 				decrementRef();
 				m_reference = other.m_reference;
+				m_controlBlock = other.m_controlBlock;
 				incrementRef();
 			}
 			return *this;
@@ -70,10 +96,23 @@ namespace emerald {
 			if (this != &other) {
 				decrementRef();
 				m_reference = other.m_reference;
+				m_controlBlock = other.m_controlBlock;
 				other.m_reference = nullptr;
+				other.m_controlBlock = nullptr;
 			}
 			return *this;
 		}
+
+		//template<typename U>
+		//Ref& operator=(Ref<U>&& other) noexcept {
+		//	static_assert(std::is_base_of<T, U>::value || std::is_base_of<U, T>::value, "Types must share an inheritance relationship");
+		//	if (this != &other) {
+		//		decrementRef();
+		//		m_reference = other.m_reference;
+		//		other.m_reference = nullptr;
+		//	}
+		//	return *this;
+		//}
 
 		~Ref() {
 			decrementRef();
@@ -91,9 +130,11 @@ namespace emerald {
 		T* raw() { return m_reference; }
 		T* raw() const { return m_reference; }
 
-		//template<typename T2>
-		//Ref<T2> as() const {
-		//	return Ref<T2>(*this);
+		//explicit Ref(const WeakRef<T>& weak) : m_reference(nullptr) {
+		//	if (!weak.expired()) {
+		//		m_reference = weak.m_reference;
+		//		incrementRef();
+		//	}
 		//}
 
 		template<typename T2>
@@ -101,10 +142,10 @@ namespace emerald {
 			T2* casted = dynamic_cast<T2*>(m_reference);
 			if (casted) {
 				return Ref<T2>(casted);
-			} else {
-				return Ref<T2>(nullptr);
 			}
+			return Ref<T2>(nullptr);
 		}
+
 
 		template<typename... Args>
 		static Ref<T> create(Args&&... args) {
@@ -116,6 +157,19 @@ namespace emerald {
 			m_reference = nullptr;
 		}
 
+		T* release() {
+			T* tmp = m_reference;
+			if (m_controlBlock) {
+				m_controlBlock->strongCount--;
+				if (m_controlBlock->weakCount == 0) {
+					delete m_controlBlock;
+				}
+			}
+			m_reference = nullptr;
+			m_controlBlock = nullptr;
+			return tmp;
+		}
+
 		bool operator==(const Ref<T>& other) const {
 			return m_reference == other.m_reference;
 		}
@@ -123,6 +177,9 @@ namespace emerald {
 		bool operator!=(const Ref<T>& other) const {
 			return !(*this == other);
 		}
+
+		bool operator==(std::nullptr_t) const { return m_reference == nullptr; }
+		bool operator!=(std::nullptr_t) const { return m_reference != nullptr; }
 
 		bool EqualsObject(const Ref<T>& other) {
 			if (!m_reference || !other.m_reference)
@@ -132,9 +189,7 @@ namespace emerald {
 		}
 
 		uint32_t getRefCount() const {
-			if (m_reference) {
-				return m_reference->m_refCount.load();
-			} else return 0;
+			return m_controlBlock ? m_controlBlock->strongCount.load() : 0;
 		}
 
 	private:
@@ -144,33 +199,47 @@ namespace emerald {
 		friend class WeakRef;
 
 		T* m_reference;
+		ControlBlock* m_controlBlock;
 
 		void incrementRef() const {
-			if (m_reference) {
-				auto& refCount = const_cast<std::atomic<uint32_t>&>(m_reference->m_refCount); // Cast away constness in case we're working with a const Ref object
+			if (m_controlBlock) {
+				auto& refCount = const_cast<std::atomic<uint32_t>&>(m_controlBlock->strongCount); // Cast away constness in case we're working with a const Ref object
 				refCount++;
 			}
 		}
 
-		void decrementRef() const {
-			if (m_reference) {
-				auto& refCount = const_cast<std::atomic<uint32_t>&>(m_reference->m_refCount);
-				refCount--;
-				if (refCount == 0) {
+		void decrementRef() {
+			if (m_controlBlock) {
+				if (--m_controlBlock->strongCount == 0) {
 					delete m_reference;
+					m_reference = nullptr;
+					if (m_controlBlock->weakCount == 0) {
+						delete m_controlBlock;
+						m_controlBlock = nullptr;
+					}
 				}
 			}
 		}
 	};
 
 	template<typename T>
+	bool operator==(std::nullptr_t, const Ref<T>& ref) {
+		return ref == nullptr;
+	}
+
+	template<typename T>
+	bool operator!=(std::nullptr_t, const Ref<T>& ref) {
+		return ref != nullptr;
+	}
+
+	template<typename T>
 	class UniqueRef {
 	public:
 		// Default constructor: Creates an empty UniqueRef object with no referenced object.
-		UniqueRef() : m_reference(nullptr) {}
+		constexpr UniqueRef() : m_reference(nullptr) {}
 
 		// Nullptr constructor: Creates an empty UniqueRef object with no referenced object.
-		UniqueRef(std::nullptr_t) : m_reference(nullptr) {}
+		constexpr UniqueRef(std::nullptr_t) : m_reference(nullptr) {}
 
 		// Pointer constructor: Creates a UniqueRef object that owns the given object.
 		explicit UniqueRef(T* pointer) : m_reference(pointer) {}
@@ -178,6 +247,24 @@ namespace emerald {
 		// Move constructor: Transfers ownership from another UniqueRef object.
 		UniqueRef(UniqueRef&& other) noexcept : m_reference(other.m_reference) {
 			other.m_reference = nullptr;
+		}
+
+		// Templated move constructor for upcasting
+		template<typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
+		UniqueRef(UniqueRef<U>&& other) noexcept
+			: m_reference(other.m_reference) {
+			other.m_reference = nullptr;
+		}
+
+		// Templated move assignment operator for upcasting
+		template<typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
+		UniqueRef& operator=(UniqueRef<U>&& other) noexcept {
+			if (this != reinterpret_cast<UniqueRef*>(&other)) {
+				reset();
+				m_reference = other.m_reference;
+				other.m_reference = nullptr;
+			}
+			return *this;
 		}
 
 		// Move assignment operator: Transfers ownership from another UniqueRef object.
@@ -237,58 +324,73 @@ namespace emerald {
 
 	private:
 		T* m_reference;
+
+		template<typename> friend class UniqueRef;
 	};
 
 	template<typename T>
 	class WeakRef {
 	public:
-		WeakRef() : m_reference(nullptr) {}
+		constexpr WeakRef() : m_reference(nullptr), m_controlBlock(nullptr) {}
+		constexpr WeakRef(std::nullptr_t) : m_reference(nullptr), m_controlBlock(nullptr) {}
 
-		WeakRef(std::nullptr_t) : m_reference(nullptr) {}
-
-		WeakRef(const Ref<T>& ref) : m_reference(ref.m_reference) {}
-
-		WeakRef(const WeakRef& other) : m_reference(other.m_reference) {}
-
-		WeakRef(WeakRef&& other) noexcept : m_reference(other.m_reference) {
-			other.m_reference = nullptr;
+		WeakRef(const Ref<T>& ref) : m_reference(ref.m_reference), m_controlBlock(ref.m_controlBlock) {
+			if (m_controlBlock) {
+				m_controlBlock->weakCount++;
+			}
 		}
 
-		WeakRef& operator=(std::nullptr_t) {
-			m_reference = nullptr;
-			return *this;
+		WeakRef(const WeakRef& other) : m_reference(other.m_reference), m_controlBlock(other.m_controlBlock) {
+			if (m_controlBlock) {
+				m_controlBlock->weakCount++;
+			}
+		}
+
+		WeakRef(WeakRef&& other) : m_reference(other.m_reference), m_controlBlock(other.m_controlBlock) {
+			other.m_reference = nullptr;
+			other.m_controlBlock = nullptr;
+		}
+
+		~WeakRef() {
+			if (m_controlBlock) {
+				if (--m_controlBlock->weakCount == 0 && m_controlBlock->strongCount == 0) {
+					delete m_controlBlock;
+				}
+			}
 		}
 
 		WeakRef& operator=(const Ref<T>& ref) {
+			decrementRef();
 			m_reference = ref.m_reference;
+			m_controlBlock = ref.m_controlBlock;
+			if (m_controlBlock) {
+				m_controlBlock->weakCount++;
+			}
 			return *this;
 		}
 
 		WeakRef& operator=(const WeakRef& other) {
 			if (this != &other) {
+				decrementRef();
 				m_reference = other.m_reference;
+				m_controlBlock = other.m_controlBlock;
+				if (m_controlBlock) {
+					m_controlBlock->weakCount++;
+				}
 			}
 			return *this;
 		}
-
-		WeakRef& operator=(WeakRef&& other) noexcept {
-			if (this != &other) {
-				m_reference = other.m_reference;
-				other.m_reference = nullptr;
-			}
-			return *this;
-		}
-
-		~WeakRef() = default;
-
-		operator bool() const { return m_reference != nullptr && m_reference->m_refCount > 0; }
 
 		bool expired() const {
-			return m_reference == nullptr || m_reference->m_refCount == 0;
+			return m_controlBlock == nullptr || m_controlBlock->strongCount == 0 || m_reference == nullptr;
 		}
 
 		Ref<T> lock() const {
-			return expired() ? Ref<T>(nullptr) : Ref<T>(m_reference);
+			if (expired()) {
+				return Ref<T>(nullptr);
+			}
+			Ref<T> ref(m_reference);
+			return ref;
 		}
 
 		T* raw() { return  m_reference; }
@@ -302,7 +404,19 @@ namespace emerald {
 			return !(*this == other);
 		}
 
+		bool operator==(std::nullptr_t) const { return m_reference == nullptr; }
+		bool operator!=(std::nullptr_t) const { return m_reference != nullptr; }
+
 	private:
 		T* m_reference;
+		ControlBlock* m_controlBlock;
+
+		void decrementRef() {
+			if (m_controlBlock) {
+				if (--m_controlBlock->weakCount == 0 && m_controlBlock->strongCount == 0) {
+					delete m_controlBlock;
+				}
+			}
+		}
 	};
 }

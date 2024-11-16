@@ -7,71 +7,112 @@ namespace emerald {
 	// Thread-safe queue for asynchronous inter-thread communication.
 	template<typename T>
 	class AsyncQueue {
-	private:
-		mutable std::mutex m_lock;
-		std::condition_variable m_conditionVariable;
-		std::queue <T> m_queue;
-		bool m_releaseThreads = false;
-
 	public:
-		AsyncQueue() : m_releaseThreads(false) {}
+		class QueueShutdownException : public std::runtime_error {
+		public:
+			QueueShutdownException() : std::runtime_error("AsyncQueue already released") {}
+		};
+
+		AsyncQueue() = default;
 		AsyncQueue(const AsyncQueue&) = delete;
 		AsyncQueue& operator=(const AsyncQueue&) = delete;
+		AsyncQueue(AsyncQueue&&) = delete;
+		AsyncQueue& operator=(AsyncQueue&&) = delete;
 
-		void add(T obj) {
-			std::lock_guard<std::mutex> l(m_lock);
-			if (m_releaseThreads) {
-				throw std::runtime_error("Attempted to add to a released queue");
+		template<typename U>
+		void add(U&& obj) {
+			std::lock_guard<std::mutex> l(m_mutex);
+			if (m_released) {
+				throw QueueShutdownException();
 			}
-			m_queue.emplace(std::move(obj));
-			m_conditionVariable.notify_one();
+			m_queue.emplace(std::forward<U>(obj));
+			m_condVar.notify_one();
 		}
 
-		bool tryToGet(T& obj) {
-			std::lock_guard<std::mutex> lock(m_lock);
+		template<typename InputIt>
+		void addBatch(InputIt first, InputIt last) {
+			std::lock_guard<std::mutex> lock(m_mutex);
+			if (m_released) {
+				throw QueueShutdownException();
+			}
+			for (; first != last; ++first) {
+				m_queue.emplace(*first);
+			}
+			m_condVar.notify_all();
+		}
+
+		bool tryGet(T& obj) {
+			std::lock_guard<std::mutex> lock(m_mutex);
 			if (m_queue.empty()) return false;
 			obj = std::move(m_queue.front());
 			m_queue.pop();
 			return true;
 		}
 
+		std::optional<T> waitAndGet() {
+			std::unique_lock<std::mutex> lock(m_mutex);
+			m_condVar.wait(lock, [this] {
+				return m_released || !m_queue.empty();
+			});
+
+			if (m_queue.empty()) {
+				return std::nullopt;
+			}
+
+			T value = std::move(m_queue.front());
+			m_queue.pop();
+			return value;
+		}
+
 		bool peek(T& obj) {
-			std::lock_guard<std::mutex> lock(m_lock);
+			std::lock_guard<std::mutex> lock(m_mutex);
 			if (m_queue.empty()) return false;
 			obj = m_queue.front();
 			return true;
 		}
 
 		bool waitForGet(T& obj) {
-			std::unique_lock<std::mutex> lock(m_lock);
-			while (!m_releaseThreads && m_queue.empty()) m_conditionVariable.wait(lock);
+			std::unique_lock<std::mutex> lock(m_mutex);
+			while (!m_released && m_queue.empty()) m_condVar.wait(lock);
 			if (m_queue.empty()) return false;
 			obj = std::move(m_queue.front());
 			m_queue.pop();
 			return true;
 		}
 
-		void shutdown() {
+		void clear() {
+			std::lock_guard<std::mutex> lock(m_mutex);
+			std::queue<T>().swap(m_queue);
+		}
+
+		void release() {
 			{
-				std::lock_guard<std::mutex> lock(m_lock);
-				m_releaseThreads = true;
+				std::lock_guard<std::mutex> lock(m_mutex);
+				m_released = true;
 			}
-			m_conditionVariable.notify_all();
+			m_condVar.notify_all();
 		}
 
-		bool isShutdown() const {
-			std::lock_guard<std::mutex> lock(m_lock);
-			return m_releaseThreads;
+		bool empty() const noexcept {
+			std::lock_guard<std::mutex> lock(m_mutex);
+			return m_queue.empty();
 		}
 
-		size_t size() const {
-			std::lock_guard<std::mutex> lock(m_lock);
+		size_t size() const noexcept {
+			std::lock_guard<std::mutex> lock(m_mutex);
 			return m_queue.size();
 		}
 
-		bool empty() const {
-			std::lock_guard<std::mutex> lock(m_lock);
-			return m_queue.empty();
+		bool isReleased() const noexcept {
+			std::lock_guard<std::mutex> lock(m_mutex);
+			return m_released;
 		}
+
+	private:
+		mutable std::mutex m_mutex;
+		std::condition_variable m_condVar;
+		std::queue <T> m_queue;
+		bool m_released = false;
+
 	};
 }

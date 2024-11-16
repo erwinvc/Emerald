@@ -107,14 +107,14 @@ namespace emerald {
 		}
 	}
 
-	void Log::logMessage(LogLevel level, const std::string& message) {
-		if (s_shutdown || s_messageQueue.isShutdown()) return;
+	void Log::logMessage(Severity level, const std::string& message) {
+		if (s_shutdown || s_messageQueue.isReleased()) return;
 
 		ConsoleColor color = ConsoleColor::WHITE; // Default color
 		switch (level) {
-			case LogLevel::ERROR: color = ConsoleColor::RED; break;
-			case LogLevel::WARN: color = ConsoleColor::YELLOW; break;
-			case LogLevel::INFO: color = ConsoleColor::WHITE; break;
+			case Severity::ERROR: color = ConsoleColor::RED; break;
+			case Severity::WARN: color = ConsoleColor::YELLOW; break;
+			case Severity::INFO: color = ConsoleColor::WHITE; break;
 		}
 		s_messageQueue.add(std::move(QueuedMessage(color, message, Debug::captureStackTrace(3, 64, false), level, std::chrono::system_clock::now())));
 	}
@@ -122,11 +122,11 @@ namespace emerald {
 	void Log::forceEmptyQueue() {
 		s_shutdown = true;
 
-		s_messageQueue.shutdown();
+		s_messageQueue.release();
 		s_outputThread->shutdown();
 
 		QueuedMessage message;
-		while (s_messageQueue.tryToGet(message)) {
+		while (s_messageQueue.tryGet(message)) {
 			processMessage(message);
 		}
 	}

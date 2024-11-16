@@ -1,6 +1,5 @@
 #include "eepch.h"
 #include "graphics/core/camera.h"
-#include "core/common/emerald.h"
 #include "editor.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/mouse.h"
@@ -8,16 +7,20 @@
 #include "graphics/buffers/framebuffer.h"
 #include "graphics/render/renderPipeline.h"
 #include "imguiProfiler/Profiler.h"
-#include "project.h"
 #include "ui/editorWindow.h"
 #include "undoRedo.h"
-#include <windows.h>
 #include "graphics/core/renderer.h"
+#include "core/common/engineError.h"
+#include "core/common/engineLoading.h"
+#include "engine/events/eventSystem.h"
+#include "editorProjectOpenedEvent.h"
+#include "engine/assets/core/assetRegistry.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
 	static UniqueRef<RenderPipeline> s_renderPipeline;
 	static Ref<EditorCamera> s_editorCamera;
+	static AssetRegistry s_assetRegistry;
 
 	static float s_lastTitleUpdateTime = 0.0f;
 
@@ -34,8 +37,6 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::onInitialize() {
-		SceneManager::setActiveScene(Ref<Scene>::create("Scene", "Fles"));
-		SceneManager::getActiveScene()->initialize();
 		s_editorWindow = UniqueRef<EditorWindow>::create();
 		s_renderPipeline = UniqueRef<RenderPipeline>::create();
 		s_editorCamera = Ref<EditorCamera>::create(70.0f, 0.05f, 500.0f);
@@ -86,11 +87,11 @@ namespace emerald {
 
 		if (SceneManager::getActiveScene()) {
 			SceneManager::getActiveScene()->update(ts);
-		}
 
-		PROFILE_LOGIC_BEGIN("Pipeline render");
-		s_renderPipeline->render();
-		PROFILE_LOGIC_END();
+			PROFILE_LOGIC_BEGIN("Pipeline render");
+			s_renderPipeline->render();
+			PROFILE_LOGIC_END();
+		}
 
 		Renderer::submit([ts, viewportSize] {
 			PROFILE_RENDER_BEGIN("ImGui start");
@@ -98,6 +99,8 @@ namespace emerald {
 			PROFILE_RENDER_END();
 			PROFILE_RENDER_BEGIN("ImGui render");
 			s_editorWindow->onImGuiRender();
+			EngineError::draw();
+			EngineLoading::draw();
 			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("ImGui end");
@@ -110,7 +113,20 @@ namespace emerald {
 		s_editorWindow->fixedUpdate(ts);
 	}
 
+	void EmeraldEditorApplication::onProjectOpened(EditorProjectOpenedEvent& e) {
+		if (e.isValid()) {
+			s_assetRegistry.parseCurrentProject();
+			SceneManager::setActiveScene(Ref<Scene>::create("New Scene", ""));
+			SceneManager::getActiveScene()->initialize();
+		} else {
+			s_assetRegistry.clear();
+			SceneManager::clearScenes();
+		}
+	}
+
 	void EmeraldEditorApplication::onEvent(Event& e) {
+		EventSystem::routeEvent<EditorProjectOpenedEvent>(e, this, &EmeraldEditorApplication::onProjectOpened);
+		//EventSystem::routeEvent<ErrorEvent>(e, [](ErrorEvent& e) { Log::error("{}", e.getMessage()); });
 	}
 
 	const Ref<Texture>& EmeraldEditorApplication::getFinalTexture() {

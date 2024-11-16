@@ -50,14 +50,13 @@ namespace emerald {
 	}
 
 	void drawMenuBar() {
-		bool open = false;
 		if (ImGui::BeginMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::MenuItem("New project", "Ctrl+N")) {
-					FileSystem::openFolderDialog(L"Choose location for new project");
+					Project::newProjectDialog();
 				}
 				if (ImGui::MenuItem("Open project", "Ctrl+O")) {
-					FileSystem::openFileDialog({ {L"Emerald Project Files", L"*.eep"} });
+					Project::openProjectDialog();
 				}
 				if (ImGui::BeginMenu("Recent projects")) {
 					ImGui::BeginDisabled(true);
@@ -89,8 +88,6 @@ namespace emerald {
 			ImGui::EndMenuBar();
 		}
 		//if (open)ImGui::OpenPopup("Select Project");
-
-		Project::showProjectPopup(open);
 	}
 
 	void EditorWindow::drawTitlebar(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
@@ -131,7 +128,9 @@ namespace emerald {
 		ImGuiManager::pushFont(ImGUIFont::INTER);
 		ImGui::BeginVertical("TitlebarTitle", ImVec2(0, titleBarButtonSize), 0.0f);
 		ImGui::Spring();
-		ImGui::Text((EditorHeader.title + " - Untitled - D:\\Emerald").c_str());
+
+		
+		ImGui::Text(std::format("{} - {}", EditorHeader.title, Project::getProjectFolderName()).c_str());
 		ImGui::BeginDisabled(true);
 		ImGui::Text(EditorHeader.subTitle.c_str());
 		ImGui::EndDisabled();
@@ -261,26 +260,30 @@ namespace emerald {
 	void EditorWindow::drawWindows() {
 		Ref<Scene>& activeScene = SceneManager::getActiveScene();
 		bool sceneOpen = activeScene != nullptr;
+
 		ImGui::BeginDisabled(!sceneOpen);
 		drawViewport();
 
-		if (EditorWindows.demo) {
-			ImGui::ShowDemoWindow(&EditorWindows.demo);
-		}
 		m_inspectorPanel.draw(activeScene, &m_hierarchyPanel);
-		m_logPanel.draw();
+
 		DebugWindow::draw();
 
 		m_assetBrowserPanel.draw();
 		m_scenePanel.draw();
 
-		ProfilerWindow::draw();
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
-
 		m_hierarchyPanel.draw();
+
 		ImGui::EndDisabled();
+
+		//These windows/panels should always be interactable
+		m_logPanel.draw();
+		ProfilerWindow::draw();
+
+		if (EditorWindows.demo) {
+			ImGui::ShowDemoWindow(&EditorWindows.demo);
+		}
 	}
 
 	void EditorWindow::update(Timestep ts) {

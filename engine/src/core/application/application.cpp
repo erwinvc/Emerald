@@ -11,12 +11,13 @@
 #include "graphics/misc/glError.h"
 #include "graphics/misc/glfw.h"
 #include "graphics/window/window.h"
-#include "imgui/imgui_impl_opengl3.h"
 #include "imguiProfiler/Profiler.h"
 #include "metrics/metrics.h"
 #include "ui/imguiManager.h"
 #include "utils/system/timestep.h"
 #include "utils/threading/threadManager.h"
+#include "core/common/engineError.h"
+#include "tests/test.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -35,6 +36,8 @@ namespace emerald {
 		EventSystem::setGlobalCallback(&Application::onEvent, this);
 		GLFW::GLFWConfiguration config;
 		GLFW::initialize(config);
+
+		//tests::test();
 
 		m_mainWindow = Ref<Window>::create(m_settings.m_name, m_settings.m_width, m_settings.m_height);
 		m_mainWindow->makeContextCurrent();
@@ -106,6 +109,7 @@ namespace emerald {
 
 			PROFILE_RENDER_BEGIN("Process queue");
 			processQueue();
+			EventSystem::processEvents();
 			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("Wait for render buffer");
@@ -170,6 +174,11 @@ namespace emerald {
 			PROFILE_LOGIC_BEGIN("Input");
 			Keyboard::update();
 			Mouse::update();
+
+			if (Keyboard::keyJustDown(Key::A)) {
+				EngineError::raise(Severity::INFO, "Test error", "subtext");
+			}
+
 			PROFILE_LOGIC_END();
 
 			PROFILE_LOGIC_BEGIN("Update");
@@ -203,8 +212,7 @@ namespace emerald {
 			//FrameBufferManager::onResize(g_resizeData.m_width, g_resizeData.m_height); //We use the editor panel in the editor
 			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 			GL(glViewport(0, 0, g_resizeData.m_width, g_resizeData.m_height));
-			WindowResizeEvent e{ g_resizeData.m_width, g_resizeData.m_height };
-			EventSystem::dispatch(e);
+			EventSystem::dispatch<WindowResizeEvent>(g_resizeData.m_width, g_resizeData.m_height);
 			g_resizeData.m_shouldResize = false;
 		}
 	}
@@ -234,7 +242,7 @@ namespace emerald {
 
 	void Application::processQueue() {
 		static std::function<void()> func;
-		while (m_eventQueue.tryToGet(func)) {
+		while (m_eventQueue.tryGet(func)) {
 			func();
 		}
 	}

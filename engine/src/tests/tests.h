@@ -1,7 +1,7 @@
 #pragma once
-#include "rtti.h"
-#include "util/log.h"
 
+#include "utils/core/log.h"
+#include "core/common/rtti.h"
 namespace emerald::tests {
 	class Test {
 		RTTI_BASE_CLASS_DECL(Test);

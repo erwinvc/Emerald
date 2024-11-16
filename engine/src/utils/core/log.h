@@ -34,7 +34,7 @@ namespace emerald {
 		RESET = 16
 	};
 
-	enum class LogLevel {
+	enum class Severity {
 		FATAL = 0,
 		ERROR,
 		WARN,
@@ -45,7 +45,7 @@ namespace emerald {
 		std::string m_message = "";
 		std::string m_stackTrace = "";
 		std::string m_timestamp = "";
-		LogLevel m_level = LogLevel::INFO;
+		Severity m_level = Severity::INFO;
 	};
 
 	/*Non-blocking logger*/
@@ -55,19 +55,19 @@ namespace emerald {
 			ConsoleColor m_color;
 			std::string m_message;
 			std::string m_stackTrace;
-			LogLevel m_level;
+			Severity m_level;
 			std::chrono::system_clock::time_point m_time;
 
-			QueuedMessage(ConsoleColor color, const std::string& message, const std::string& stackTrace, LogLevel level, std::chrono::system_clock::time_point time)
+			QueuedMessage(ConsoleColor color, const std::string& message, const std::string& stackTrace, Severity level, std::chrono::system_clock::time_point time)
 				: m_color(color), m_message(message), m_stackTrace(stackTrace), m_level(level), m_time(time) {
 			}
 			QueuedMessage()
-				: m_color(ConsoleColor::WHITE), m_time(std::chrono::system_clock::now()), m_level(LogLevel::INFO) {
+				: m_color(ConsoleColor::WHITE), m_time(std::chrono::system_clock::now()), m_level(Severity::INFO) {
 			}
 		};
 
 		static void initialize(const char* title);
-		static void logMessage(LogLevel level, const std::string& message);
+		static void logMessage(Severity level, const std::string& message);
 		static void forceEmptyQueue();
 		static void shutdown();
 
@@ -78,22 +78,22 @@ namespace emerald {
 
 		template<typename... Args>
 		static void info(std::format_string<Args...> format, Args&&... args) {
-			logMessage(LogLevel::INFO, std::format(format, std::forward<Args>(args)...));
+			logMessage(Severity::INFO, std::format(format, std::forward<Args>(args)...));
 		}
 
 		template<typename... Args>
 		static void warn(std::format_string<Args...> format, Args&&... args) {
-			logMessage(LogLevel::WARN, std::format(format, std::forward<Args>(args)...));
+			logMessage(Severity::WARN, std::format(format, std::forward<Args>(args)...));
 		}
 
 		template<typename... Args>
 		static void error(std::format_string<Args...> format, Args&&... args) {
-			logMessage(LogLevel::ERROR, std::format(format, std::forward<Args>(args)...));
+			logMessage(Severity::ERROR, std::format(format, std::forward<Args>(args)...));
 		}
 
 		template<typename... Args>
 		static void fatal(std::format_string<Args...> format, Args&&... args) {
-			logMessage(LogLevel::FATAL, std::format(format, std::forward<Args>(args)...));
+			logMessage(Severity::FATAL, std::format(format, std::forward<Args>(args)...));
 			Log::forceEmptyQueue();
 			__debugbreak();
 		}
