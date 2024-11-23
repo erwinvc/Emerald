@@ -1,8 +1,8 @@
 #pragma once
 #include "asset.h"
-#include "utils/uuid/uuid.h"
 #include "assetTypeRegistry.h"
-#include "assetMetadata.h"
+#include "engine/assets/metadata/assetMetadata.h"
+#include "utils/uuid/uuid.h"
 
 namespace emerald {
 	class AssetRegistry {

@@ -4,9 +4,10 @@
 #include "utils/uuid/uuid.h"
 #include "core/common/ref.h"
 #include "core/common/jsonSerializable.h"
+#include "engine/assets/core/asset.h"
 
 namespace emerald {
-	class AssetMetadata : public JsonSerializable<AssetMetadata> {
+	class AssetMetadata {
 	public:
 		virtual ~AssetMetadata() = default;
 
@@ -15,25 +16,20 @@ namespace emerald {
 			return m_asset.lock();
 		}
 
-		nlohmann::json toJsonImpl() const {
+		nlohmann::json toJson() const {
 			nlohmann::json j;
 			j["version"] = editorConstants::VERSION;
 			j["uuid"] = m_uuid;
 			return j;
 		}
 
-		template <typename T>
-		static T fromJsonImpl(const nlohmann::json& j) {
-			T metaData;
-
-			int version = deserializeRequiredValue<int>(j, "version");
+		static void fromJson(const nlohmann::json& j, AssetMetadata& metaData) {
+			int version = jsonUtils::deserializeRequiredValue<int>(j, "version");
 			if (version != editorConstants::VERSION) {
-				throw VersionMismatchError(editorConstants::VERSION, version);
+				throw jsonUtils::VersionMismatchError(editorConstants::VERSION, version);
 			}
 
-			metaData.m_uuid = deserializeRequiredValue<std::string>(j, "uuid");
-			T::
-			return metaData;
+			metaData.m_uuid = jsonUtils::deserializeRequiredValue<std::string>(j, "uuid");
 		}
 
 		static AssetMetadata create(const UUID& uuid, AssetType type) {
@@ -55,7 +51,5 @@ namespace emerald {
 		UUID m_uuid;
 		AssetType m_type;
 		WeakRef<Asset> m_asset;
-
-		friend class JsonSerializable<AssetMetadata>;
 	};
 }

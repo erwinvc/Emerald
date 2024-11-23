@@ -8,7 +8,7 @@ namespace emerald {
 		if (ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoNav)) {
 			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
 
-			AssetRegistry::getAsset()
+			//AssetRegistry::getAsset()
 		}
 		ImGui::End();
 	}

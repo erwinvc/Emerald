@@ -1,6 +1,6 @@
 #pragma once
 #include "engine/assets/core/asset.h"
-#include "engine/assets/core/assetMetadata.h"
+#include "engine/assets/metadata/assetMetadata.h"
 
 namespace emerald {
 	class TextureAsset : public Asset {

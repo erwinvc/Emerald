@@ -45,11 +45,13 @@ namespace emerald {
 
 		if (std::filesystem::exists(metaFilePath)) {
 			Log::info("Parsing existing .meta file: {}", metaFilePath.string());
+			nlohmann::json j = jsonUtils::deserializeFromFile(metaFilePath);
+			m_assetTypeRegistry.getAssetTypeDesc()
 			metadata = AssetMetadata::deserializeFromFile(metaFilePath);
 		} else {
 			Log::info("Creating new .meta file for asset: {}", assetPath.string());
 
-			metadata = AssetMetadata::create(UUIDGenerator::create(), );
+			metadata = AssetMetadata::create(UUIDGenerator::create(), m_assetTypeRegistry.getAssetTypeFromExtension(extension));
 			metadata.serializeToFile(metaFilePath);
 		}
 

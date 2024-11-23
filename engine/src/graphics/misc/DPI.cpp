@@ -15,7 +15,6 @@ namespace emerald {
 	void DPI::update() {
 		float xscale, yscale;
 		glfwGetMonitorContentScale(GLFW::getWindowMonitor(App->getWindow()->handle()), &xscale, &yscale);
-
 		ImGuiIO& io = ImGui::GetIO();
 		if (currentXScale != xscale) {
 			currentXScale = xscale;
