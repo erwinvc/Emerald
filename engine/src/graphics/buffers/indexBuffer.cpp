@@ -27,8 +27,8 @@ namespace emerald {
 	}
 
 	void IndexBuffer::bind() const {
-		Renderer::submit([handle = m_handle]() mutable {
-			GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, handle));
+		Renderer::submit([instance = Ref<const IndexBuffer>(this)]() mutable {
+			GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, instance->m_handle));
 		});
 	}
 }

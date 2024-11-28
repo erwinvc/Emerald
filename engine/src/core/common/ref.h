@@ -317,6 +317,15 @@ namespace emerald {
 			return !(*this == other);
 		}
 
+		template<typename T2>
+		UniqueRef<T2> as() const {
+			T2* casted = dynamic_cast<T2*>(m_reference);
+			if (casted) {
+				return UniqueRef<T2>(casted);
+			}
+			return UniqueRef<T2>(nullptr);
+		}
+
 		template<typename... Args>
 		static UniqueRef<T> create(Args&&... args) {
 			return UniqueRef<T>(new T(std::forward<Args>(args)...));

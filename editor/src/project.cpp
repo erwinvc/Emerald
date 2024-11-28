@@ -54,7 +54,12 @@ namespace emerald {
 	}
 
 	void Project::openProject(const std::filesystem::path& path) {
-		s_projectPath = path;
+		if (!std::filesystem::exists(path)) {
+			EngineError::raise(Severity::WARN, "Failed opening project", "Specified path does not exist.");
+			return;
+		}
+
+		s_projectPath = path.parent_path();
 
 		EventSystem::dispatch<EditorProjectOpenedEvent>(true);
 

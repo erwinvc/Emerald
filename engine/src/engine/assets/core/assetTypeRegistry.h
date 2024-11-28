@@ -1,70 +1,41 @@
 #pragma once
 #include "asset.h"
+#include "engine/assets/metadata/assetMetadata.h"
 
 namespace emerald {
 	class Asset;
-	class AssetMetadata;
-
-	using MetadataFactory = std::function<AssetMetadata()>;
-	using AssetFactory = std::function<Ref<Asset>()>;
-
-	class AssetTypeDesc {
-	public:
-		AssetType m_type;
-		std::vector<std::string> m_extensions;
-		MetadataFactory m_metadataFactory;
-		AssetFactory m_assetFactory;
-
-		AssetTypeDesc(AssetType type, std::initializer_list<std::string> exts, MetadataFactory metadataFact, AssetFactory assetFact)
-			: m_type(type), m_extensions(exts), m_metadataFactory(metadataFact), m_assetFactory(assetFact) {
-		}
-	};
 
 	class AssetTypeRegistry {
 	public:
-		AssetTypeRegistry() = default;
+		using MetadataCreator = std::function<UniqueRef<AssetMetadata>()>;
+		using ExtensionMap = std::unordered_map<std::string, AssetType>;
+		std::unordered_map<AssetType, MetadataCreator> m_creators;
 
 		template<typename T>
-		void registerAssetType(AssetType type,std::initializer_list<std::string> extensions) {
-			AssetTypeDesc desc(type, extensions, 
-				[]() -> 
-				[]() -> Ref<Asset> { return Ref<T>::create(); });
-
-			m_assetTypes.insert({ type , desc });
-
+		void registerType(AssetType type, const std::vector<std::string>& extensions) {
+			m_creators.insert({ type, []() { return UniqueRef<T>::create().as<AssetMetadata>(); } });
 			for (const auto& ext : extensions) {
 				m_extensionMap.insert({ ext, type });
 			}
 		}
 
-		AssetType getAssetTypeFromExtension(const std::string& extension) const {
-			auto it = m_extensionMap.find(extension);
-			return (it != m_extensionMap.end()) ? it->second : AssetType::UNKNOWN;
-		}
-
-		Ref<Asset> createAsset(AssetType type) const {
-			auto it = m_assetTypes.find(type);
-			if (it != m_assetTypes.end()) {
-				return it->second.m_factory();
+		UniqueRef<AssetMetadata> createMetadata(AssetType type) const {
+			auto it = m_creators.find(type);
+			if (it != m_creators.end()) {
+				return it->second();
 			}
 			return nullptr;
 		}
 
-		const AssetTypeDesc* getAssetTypeDesc(AssetType type) const {
-			auto it = m_assetTypes.find(type);
-			return (it != m_assetTypes.end()) ? &it->second : nullptr;
-			return nullptr;
-		}
-
-		const AssetTypeDesc* getAssetTypeDesc(const std::string& extension) const {
-			AssetType type = getAssetTypeFromExtension(extension);
-			auto it = m_assetTypes.find(type);
-			return (it != m_assetTypes.end()) ? &it->second : nullptr;
-			return nullptr;
+		AssetType getTypeFromExtension(const std::string& extension) const {
+			auto it = m_extensionMap.find(extension);
+			if (it != m_extensionMap.end()) {
+				return it->second;
+			}
+			return AssetType::UNKNOWN;
 		}
 
 	private:
-		std::unordered_map<AssetType, AssetTypeDesc> m_assetTypes;
-		std::unordered_map<std::string, AssetType> m_extensionMap;
+		ExtensionMap m_extensionMap;
 	};
 }

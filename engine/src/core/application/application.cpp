@@ -109,7 +109,6 @@ namespace emerald {
 
 			PROFILE_RENDER_BEGIN("Process queue");
 			processQueue();
-			EventSystem::processEvents();
 			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("Wait for render buffer");
@@ -171,13 +170,13 @@ namespace emerald {
 				m_accumulatedTime -= m_fixedTimeStep;
 			}
 
+			PROFILE_LOGIC_BEGIN("Process events");
+			EventSystem::processEvents();
+			PROFILE_LOGIC_END();
+
 			PROFILE_LOGIC_BEGIN("Input");
 			Keyboard::update();
 			Mouse::update();
-
-			if (Keyboard::keyJustDown(Key::A)) {
-				EngineError::raise(Severity::INFO, "Test error", "subtext");
-			}
 
 			PROFILE_LOGIC_END();
 

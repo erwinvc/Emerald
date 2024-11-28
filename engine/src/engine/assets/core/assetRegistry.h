@@ -9,12 +9,8 @@ namespace emerald {
 	public:
 		AssetRegistry();
 		void parseCurrentProject();
+		void registerAsset(UniqueRef<AssetMetadata> metadata, const std::filesystem::path& path);
 		void processAssetFile(const std::filesystem::path& assetPath);
-		void clear() {
-			m_uuidAssetMap.clear();
-			m_typeAssetMap.clear();
-			m_pathAssetMap.clear();
-		}
 
 		template<typename T>
 		Ref<T> getAsset(const UUID& uuid) {
@@ -34,9 +30,16 @@ namespace emerald {
 			return AssetMetadata();
 		}
 
+		void clear() {
+			m_assets.clear();
+			m_uuidAssetMap.clear();
+			m_typeAssetMap.clear();
+			m_pathAssetMap.clear();
+		}
+
 	private:
 		AssetTypeRegistry m_assetTypeRegistry;
-		std::vector<AssetMetadata> m_assets;
+		std::vector<UniqueRef<AssetMetadata>> m_assets;
 		std::unordered_map<UUID, AssetMetadata*> m_uuidAssetMap;
 		std::unordered_map<AssetType, AssetMetadata*> m_typeAssetMap;
 		std::unordered_map<std::filesystem::path, AssetMetadata*> m_pathAssetMap;

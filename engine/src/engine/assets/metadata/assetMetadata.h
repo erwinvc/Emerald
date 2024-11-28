@@ -23,13 +23,13 @@ namespace emerald {
 			return j;
 		}
 
-		static void fromJson(const nlohmann::json& j, AssetMetadata& metaData) {
+		void fromJson(const nlohmann::json& j) {
 			int version = jsonUtils::deserializeRequiredValue<int>(j, "version");
 			if (version != editorConstants::VERSION) {
 				throw jsonUtils::VersionMismatchError(editorConstants::VERSION, version);
 			}
 
-			metaData.m_uuid = jsonUtils::deserializeRequiredValue<std::string>(j, "uuid");
+			m_uuid = jsonUtils::deserializeRequiredValue<std::string>(j, "uuid");
 		}
 
 		static AssetMetadata create(const UUID& uuid, AssetType type) {

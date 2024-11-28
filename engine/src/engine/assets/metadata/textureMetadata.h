@@ -5,7 +5,7 @@ namespace emerald {
 	class TextureMetadata : public AssetMetadata {
 	public:
 		nlohmann::json toJson() const;
-		static void fromJson(const nlohmann::json& j, TextureMetadata& metaData);
+		void fromJson(const nlohmann::json& j);
 
 	private:
 		int m_compression = 0;

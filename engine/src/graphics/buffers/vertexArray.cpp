@@ -16,8 +16,7 @@ namespace emerald {
 		});
 	}
 	VertexArray::~VertexArray() {
-		auto handle = m_handle;
-		Renderer::submitFromAnyThread([handle]() mutable {
+		Renderer::submitFromAnyThread([handle = m_handle]() mutable {
 			GL(glDeleteVertexArrays(1, &handle));
 		});
 	}

@@ -28,8 +28,8 @@ namespace emerald {
 	}
 
 	void VertexBuffer::bind() const {
-		Renderer::submit([handle = m_handle]() mutable {
-			GL(glBindBuffer(GL_ARRAY_BUFFER, handle));
+		Renderer::submit([instance = Ref<const VertexBuffer>(this)]() mutable {
+			GL(glBindBuffer(GL_ARRAY_BUFFER, instance->m_handle));
 		});
 	}
 }

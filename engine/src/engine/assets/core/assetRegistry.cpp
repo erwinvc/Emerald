@@ -6,7 +6,7 @@
 
 namespace emerald {
 	AssetRegistry::AssetRegistry() {
-		m_assetTypeRegistry.registerAssetType<TextureAsset>(AssetType::TEXTURE, { ".png", ".bmp", ".jpg", ".jpeg" });
+		m_assetTypeRegistry.registerType<TextureAsset>(AssetType::TEXTURE, { ".png", ".bmp", ".jpg", ".jpeg" });
 		//m_assetTypeRegistry.registerAssetType<MaterialAsset>(AssetType::MATERIAL, { ".mat" });
 	}
 
@@ -20,6 +20,14 @@ namespace emerald {
 		}
 	}
 
+	void AssetRegistry::registerAsset(UniqueRef<AssetMetadata> metadata, const std::filesystem::path& path) {
+		m_assets.push_back(std::move(metadata));
+
+		m_uuidAssetMap[metadata->getUUID()] = metadata.raw();
+		m_typeAssetMap[metadata->getType()] = metadata.raw();
+		m_pathAssetMap[path] = metadata.raw();
+	}
+
 	void AssetRegistry::processAssetFile(const std::filesystem::path& assetPath) {
 		if (!std::filesystem::exists(assetPath)) {
 			return;
@@ -27,38 +35,31 @@ namespace emerald {
 
 		std::string extension = assetPath.extension().string();
 
-		if(extension == ".meta") {
+		if (extension == ".meta") {
 			return;
 		}
 
-		AssetType assetType = m_assetTypeRegistry.getAssetTypeFromExtension(extension);
+		AssetType type = m_assetTypeRegistry.getTypeFromExtension(extension);
 
-		if (assetType == AssetType::UNKNOWN) {
+		if (type == AssetType::UNKNOWN) {
 			Log::warn("Unknown asset type for file: {}", assetPath.string());
 			return;
 		}
 
-		std::filesystem::path metaFilePath = assetPath;
-		metaFilePath.replace_extension(assetPath.extension().string() + ".meta");
+		if (type != AssetType::UNKNOWN) {
+			std::filesystem::path metaFilePath = assetPath;
+			metaFilePath.replace_extension(assetPath.extension().string() + ".meta");
 
-		AssetMetadata metadata;
+			auto metadata = m_assetTypeRegistry.createMetadata(type);
 
-		if (std::filesystem::exists(metaFilePath)) {
-			Log::info("Parsing existing .meta file: {}", metaFilePath.string());
-			nlohmann::json j = jsonUtils::deserializeFromFile(metaFilePath);
-			m_assetTypeRegistry.getAssetTypeDesc()
-			metadata = AssetMetadata::deserializeFromFile(metaFilePath);
-		} else {
-			Log::info("Creating new .meta file for asset: {}", assetPath.string());
-
-			metadata = AssetMetadata::create(UUIDGenerator::create(), m_assetTypeRegistry.getAssetTypeFromExtension(extension));
-			metadata.serializeToFile(metaFilePath);
+			if (std::filesystem::exists(metaFilePath)) {
+				Log::info("Parsing existing .meta file: {}", metaFilePath.string());
+				metadata->fromJson(jsonUtils::deserializeFromFile(metaFilePath));
+			} else {
+				Log::info("Creating new .meta file for asset: {}", assetPath.string());
+				registerAsset(std::move(metadata), assetPath);
+				jsonUtils::saveToFile(metadata->toJson(), metaFilePath);
+			}
 		}
-
-		m_assets.push_back(metadata);
-		AssetMetadata* m_metadataRef = &m_assets.back();
-		m_pathAssetMap.insert({ assetPath, m_metadataRef });
-		m_typeAssetMap.insert({ metadata.getType(), m_metadataRef });
-		m_uuidAssetMap.insert({ metadata.getUUID(), m_metadataRef });
 	}
 }
