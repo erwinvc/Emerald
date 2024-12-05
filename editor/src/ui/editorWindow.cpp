@@ -27,6 +27,7 @@ namespace emerald {
 	static bool s_mouseInViewport = false;
 	static bool s_viewportFocused = false;
 	static bool s_TitleBarHovered = false;
+	static bool s_isPopupOpen = false;
 	static glm::vec2 s_sceneViewportSize = glm::vec2(1.0f, 1.0f);
 
 	EditorWindow::EditorWindow() {
@@ -59,10 +60,20 @@ namespace emerald {
 					Project::openProjectDialog();
 				}
 				if (ImGui::BeginMenu("Recent projects")) {
-					ImGui::BeginDisabled(true);
-					ImGui::MenuItem("Empty");
-					ImGui::EndDisabled();
-					//Add projects here
+					auto& recentProjects = Project::getRecentProjects();
+					if (recentProjects.empty()) {
+						ImGui::MenuItem("Empty", "", nullptr, false);
+					}
+					int index = 1;
+					for (const auto& project : Project::getRecentProjects()) {
+						if (ImGui::Button((std::to_string(index++) + " " + project.stem().string()).c_str())) {
+							Project::openProject(project);
+						}
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("Clear")) {
+						Project::clearRecentProjects();
+					}
 					ImGui::EndMenu();
 				}
 				ImGui::Separator();
@@ -129,7 +140,7 @@ namespace emerald {
 		ImGui::BeginVertical("TitlebarTitle", ImVec2(0, titleBarButtonSize), 0.0f);
 		ImGui::Spring();
 
-		
+
 		ImGui::Text(std::format("{} - {}", EditorHeader.title, Project::getProjectFolderName()).c_str());
 		ImGui::BeginDisabled(true);
 		ImGui::Text(EditorHeader.subTitle.c_str());
@@ -170,6 +181,8 @@ namespace emerald {
 	}
 
 	void EditorWindow::drawEditor(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight) {
+		s_isPopupOpen = ImGui::FindBlockingModal(NULL) != nullptr;
+
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
 			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav |
@@ -261,6 +274,7 @@ namespace emerald {
 		Ref<Scene>& activeScene = SceneManager::getActiveScene();
 		bool sceneOpen = activeScene != nullptr;
 
+
 		ImGui::BeginDisabled(!sceneOpen);
 		drawViewport();
 
@@ -268,9 +282,9 @@ namespace emerald {
 
 		DebugWindow::draw();
 
+		//ImGui::SetNextWindowFocus();
 		m_assetBrowserPanel.draw();
 		m_scenePanel.draw();
-
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		m_hierarchyPanel.draw();
@@ -278,18 +292,32 @@ namespace emerald {
 		ImGui::EndDisabled();
 
 		//These windows/panels should always be interactable
-		m_logPanel.draw();
 		ProfilerWindow::draw();
+		m_logPanel.draw();
 
 		if (EditorWindows.demo) {
 			ImGui::ShowDemoWindow(&EditorWindows.demo);
+		}
+
+		static auto first_time = true;
+		if (first_time) {
+			first_time = false;
+			ImGui::SetWindowFocus("Assets");
 		}
 	}
 
 	void EditorWindow::update(Timestep ts) {
 		m_hierarchyPanel.update(ts);
 
+		if (!s_isPopupOpen) {
+			if (Keyboard::keyJustDown(Key::O) && Keyboard::keyMod(KeyMod::CONTROL)) {
+				Project::openProjectDialog();
+			}
 
+			if (Keyboard::keyJustDown(Key::N) && Keyboard::keyMod(KeyMod::CONTROL)) {
+				Project::newProjectDialog();
+			}
+		}
 		//if (Keyboard::keyDown(Key::N)) {
 		//	offset++;
 		//}

@@ -3,7 +3,7 @@
 #include "core/common/engineError.h"
 #include "utils/uuid/uuid.h"
 #include "core/common/ref.h"
-#include "core/common/jsonSerializable.h"
+#include "utils/text/jsonUtils.h"
 #include "engine/assets/core/asset.h"
 
 namespace emerald {

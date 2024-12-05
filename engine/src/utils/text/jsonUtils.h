@@ -1,6 +1,9 @@
 #pragma once
 #include <stdexcept>
 #include <string>
+#include <filesystem>
+#include <fstream>
+#include "json.h"
 
 namespace emerald::jsonUtils {
 	// Custom exceptions for better error handling
@@ -49,32 +52,17 @@ namespace emerald::jsonUtils {
 		}
 	}
 
-	static std::string deserializeFromFile(const std::filesystem::path& path) {
-		try {
-			if (!std::filesystem::exists(path)) {
-				throw FileError("File does not exist: " + path.string());
-			}
-
-			std::ifstream file(path);
-			if (!file) {
-				throw FileError("Failed to open file for reading: " + path.string());
-			}
-
-			std::string content;
-			content.assign(
-				std::istreambuf_iterator<char>(file),
-				std::istreambuf_iterator<char>()
-			);
-
-			if (!file) {
-				throw FileError("Failed to read from file: " + path.string());
-			}
-
-			return content;
-
-		} catch (const std::filesystem::filesystem_error& e) {
-			throw FileError(std::string("Filesystem error: ") + e.what());
+	static nlohmann::json readFromFile(const std::filesystem::path& path) {
+		if (!std::filesystem::exists(path)) {
+			throw FileError("File does not exist: " + path.string());
 		}
+
+		std::ifstream file(path);
+		if (!file.is_open()) {
+			throw FileError("Failed to open file: " + path.string());
+		}
+
+		return nlohmann::json::parse(file);
 	}
 
 	template<typename T>

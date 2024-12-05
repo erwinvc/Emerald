@@ -27,5 +27,7 @@ namespace emerald {
 
 		static std::string getShortFilename(const std::string& filename);
 		static void copyFile(const std::string& source, const std::string& dest);
+
+		static std::filesystem::path getAppDataPath();
 	};
 }

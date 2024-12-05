@@ -54,7 +54,7 @@ namespace emerald {
 
 			if (std::filesystem::exists(metaFilePath)) {
 				Log::info("Parsing existing .meta file: {}", metaFilePath.string());
-				metadata->fromJson(jsonUtils::deserializeFromFile(metaFilePath));
+				metadata->fromJson(jsonUtils::readFromFile(metaFilePath));
 			} else {
 				Log::info("Creating new .meta file for asset: {}", assetPath.string());
 				registerAsset(std::move(metadata), assetPath);

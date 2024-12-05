@@ -15,6 +15,7 @@
 #include "engine/events/eventSystem.h"
 #include "editorProjectOpenedEvent.h"
 #include "engine/assets/core/assetRegistry.h"
+#include "project.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
@@ -40,6 +41,8 @@ namespace emerald {
 		s_editorWindow = UniqueRef<EditorWindow>::create();
 		s_renderPipeline = UniqueRef<RenderPipeline>::create();
 		s_editorCamera = Ref<EditorCamera>::create(70.0f, 0.05f, 500.0f);
+
+		Project::loadRecentProjects();
 
 		updateTitlebar(0, 0, 0, true);
 	}

@@ -8,6 +8,19 @@
 #include "engine/events/eventSystem.h"
 #include "editorProjectOpenedEvent.h"
 
+namespace nlohmann {
+	template <>
+	struct adl_serializer<std::filesystem::path> {
+		static void to_json(json& j, const std::filesystem::path& path) {
+			j = path.string();
+		}
+
+		static void from_json(const json& j, std::filesystem::path& path) {
+			path = j.get<std::string>();
+		}
+	};
+}
+
 namespace emerald {
 	static std::filesystem::path s_projectPath;
 	static std::vector<std::filesystem::path> s_recentProjects;
@@ -91,21 +104,31 @@ namespace emerald {
 
 
 	void Project::saveRecentProjects() {
-		std::ofstream out("recent_projects.txt");
-		for (const auto& project : s_recentProjects) {
-			out << project << "\n";
-		}
+		nlohmann::json j;
+		j["projects"] = s_recentProjects;
+		std::filesystem::path appDataPath = FileSystem::getAppDataPath();
+		std::filesystem::path recentProjectsPath = appDataPath / "Emerald" / "recent_projects.json";
+		std::filesystem::create_directories(recentProjectsPath.parent_path());
+		jsonUtils::saveToFile(j, recentProjectsPath);
 	}
 
 	void Project::loadRecentProjects() {
 		s_recentProjects.clear();
-		std::ifstream in("recent_projects.txt");
-		std::string line;
-		while (std::getline(in, line)) {
-			if (!line.empty()) {
-				s_recentProjects.push_back(line);
-			}
-		}
+		std::filesystem::path appDataPath = FileSystem::getAppDataPath();
+		std::filesystem::path recentProjectsPath = appDataPath / "Emerald" / "recent_projects.json";
+		try {
+			nlohmann::json j = jsonUtils::readFromFile(recentProjectsPath);
+			s_recentProjects = j["projects"].get<std::vector<std::filesystem::path>>();
+		} catch (...) {}
+	}
+
+	void Project::clearRecentProjects() {
+		s_recentProjects.clear();
+		saveRecentProjects();
+	}
+
+	const std::vector<std::filesystem::path> Project::getRecentProjects() {
+		return s_recentProjects;
 	}
 
 	void Project::showProjectPopup(bool open) {

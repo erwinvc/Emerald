@@ -1,12 +1,8 @@
 #include "eepch.h"
-#include "core/application/application.h"
 #include "fileSystem.h"
-#include "GLFW/glfw3native.h"
-#include "graphics/window/window.h"
-#include "utils/misc/utils.h"
-#include <commdlg.h>
 #include <format>
-#include <shobjidl.h>  // Required for IFileDialog
+#include <shobjidl.h>  
+#include <shlobj.h> 
 
 namespace emerald {
 	std::filesystem::path FileSystem::openFileDialog(const std::vector<FilterSpec>& filters) {
@@ -199,6 +195,15 @@ namespace emerald {
 			dst << src.rdbuf();
 			src.close();
 			dst.close();
+		}
+	}
+
+	std::filesystem::path FileSystem::getAppDataPath() {
+		WCHAR path[MAX_PATH];
+		if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, 0, path))) {
+			return std::filesystem::path(path);
+		} else {
+			throw std::runtime_error("Failed to get AppData path.");
 		}
 	}
 }

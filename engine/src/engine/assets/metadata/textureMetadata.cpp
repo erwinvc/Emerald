@@ -1,6 +1,6 @@
 #include "eepch.h"
 #include "textureMetadata.h"
-#include "core/common/jsonSerializable.h"
+#include "utils/text/jsonUtils.h"
 
 namespace emerald {
 	nlohmann::json TextureMetadata::toJson() const {

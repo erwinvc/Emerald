@@ -2,6 +2,10 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
+#define IMGUI_STRINGIFY(x) #x
+#define IMGUI_TOSTRING(x) IMGUI_STRINGIFY(x)
+#define UNIQUE_IMGUI_LABEL(label) label "##" IMGUI_TOSTRING(__LINE__) ":" IMGUI_TOSTRING(__COUNTER__)
+
 namespace emerald {
 	class Window;
 

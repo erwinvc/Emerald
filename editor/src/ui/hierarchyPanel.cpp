@@ -18,12 +18,10 @@ namespace emerald {
 				ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthFixed);
 				ImGui::TableNextRow();
 
-				// First column: InputTextWithHint
 				ImGui::TableSetColumnIndex(0);
 				ImGui::SetNextItemWidth(-FLT_MIN);
-				ImGui::InputTextWithHint("##SearchBar", ICON_FA_SEARCH " Search...", searchString, 256, ImGuiInputTextFlags_EscapeClearsAll);
+				ImGui::InputTextWithHint(UNIQUE_IMGUI_LABEL(), ICON_FA_SEARCH " Search...", searchString, 256, ImGuiInputTextFlags_EscapeClearsAll);
 
-				// Second column: Button
 				ImGui::TableSetColumnIndex(1);
 				if (ImGui::Button(ICON_FA_TIMES)) {
 					memset(searchString, 0, sizeof(searchString));

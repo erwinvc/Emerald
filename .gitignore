@@ -11,4 +11,3 @@ binaries/
 !premake5.exe
 imgui.ini
 *.log
-editor/recent_projects.txt
