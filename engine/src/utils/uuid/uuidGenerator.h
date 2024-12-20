@@ -9,6 +9,8 @@ namespace emerald {
 		static UUID createFast();
 
 		// Creates a version 1 UUID (time-based UUID)
+		[[deprecated]]
+		static UUID createVersion1();
 		static UUID create();
 
 	private:

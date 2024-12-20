@@ -8,7 +8,7 @@ layout(location = 4) in vec3 vsTangents;
 
 struct Data {
 	vec4 pos;
-	//vec2 uv;
+	vec2 uv;
 	vec3 normal;
 };
 

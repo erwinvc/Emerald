@@ -1,5 +1,7 @@
 #include "eepch.h"
 #include "window.h"
+#include "engine/events/eventSystem.h"
+#include "engine/input/mouse.h"
 
 namespace emerald {
 	const GLWindowCallbacks& GLWindowCallbacks::GLWindowCallbacks::getWindowCallbacks(GLFWwindow* wnd) {
@@ -38,18 +40,24 @@ namespace emerald {
 			for (auto& callback : getWindowCallbacks(wnd).m_onMouseButtonCallbacks) {
 				callback(button, action, mods);
 			}
+
+			EventSystem::dispatch<MouseButtonEvent>((MouseButton)button, action, mods);
 		});
 
 		glfwSetCursorPosCallback(window->handle(), [](GLFWwindow* wnd, double xpos, double ypos) {
 			for (auto& callback : getWindowCallbacks(wnd).m_onMousePosCallbacks) {
 				callback(xpos, ypos);
 			}
+
+			EventSystem::dispatch<MousePositionEvent>(xpos, ypos);
 		});
 
 		glfwSetScrollCallback(window->handle(), [](GLFWwindow* wnd, double xoffset, double yoffset) {
 			for (auto& callback : getWindowCallbacks(wnd).m_onScrollCallbacks) {
 				callback(xoffset, yoffset);
 			}
+
+			EventSystem::dispatch<MouseScrollEvent>(xoffset, yoffset);
 		});
 
 		glfwSetCharCallback(window->handle(), [](GLFWwindow* wnd, uint32_t character) {

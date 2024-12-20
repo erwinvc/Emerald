@@ -1,7 +1,7 @@
 #pragma once
 #include "utils/datastructures/buffer.h"
 #include "textureDesc.h"
-#include "assert.h"
+#include "engine/assets/core/asset.h"
 
 namespace emerald {
 	enum class TextureDataType {
@@ -9,7 +9,7 @@ namespace emerald {
 		FILE
 	};
 
-	class Texture : public RefCounted {
+	class Texture : public Asset {
 	private:
 		TextureDesc m_desc;
 		Buffer<byte> m_buffer;
@@ -22,7 +22,6 @@ namespace emerald {
 
 	public:
 		Texture() : m_desc(TextureDesc()) {}
-		Texture(TextureDesc desc, std::string path);
 		Texture(TextureDesc desc, uint32_t width, uint32_t height, const byte* data, uint32_t dataSize, TextureDataType textureDataType);
 		Texture(TextureDesc desc, uint32_t width, uint32_t height);
 		~Texture();

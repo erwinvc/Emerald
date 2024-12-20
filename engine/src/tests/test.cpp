@@ -1,5 +1,8 @@
 #include "eepch.h"
 #include "test.h"
+#include "utils/uuid/uuidGenerator.h"
+#include <unordered_set>
+#include "utils/system/timer.h"
 
 namespace emerald::tests {
 	class TestClass : public RefCounted {
@@ -384,7 +387,7 @@ namespace emerald::tests {
 		}
 	};
 
-	void test() {
+	void refCountingTests() {
 		RefCountingTests a;
 		a.RunAllTests();
 		return;
@@ -453,5 +456,107 @@ namespace emerald::tests {
 		assert(ref7.getRefCount() == 0);
 
 		Log::info("All tests passed successfully.");
+	}
+
+	static std::vector<unsigned char> uuidToBytes(const std::string& uuid) {
+		std::string hex;
+		for (auto c : uuid) {
+			if (c != '-') {
+				hex.push_back(c);
+			}
+		}
+
+		std::vector<unsigned char> bytes;
+		bytes.reserve(16);
+		for (size_t i = 0; i < hex.size(); i += 2) {
+			std::string byteStr = hex.substr(i, 2);
+			unsigned char byteVal = static_cast<unsigned char>(std::stoul(byteStr, nullptr, 16));
+			bytes.push_back(byteVal);
+		}
+		return bytes;
+	}
+
+	void test() {
+
+		Timer timer;
+		for (int i = 0; i < 1000000; i++) {
+			UUIDGenerator::createFast();
+		}
+		timer.print("fast");
+
+		Timer timer2;
+		for (int i = 0; i < 1000000; i++) {
+			UUIDGenerator::createVersion1();
+		}
+		timer2.print("V1");
+
+		Timer timer3;
+		for (int i = 0; i < 1000000; i++) {
+			UUIDGenerator::create();
+		}
+		timer3.print("V4");
+			const size_t NUM_UUIDS = 100000; // Generate 100k UUIDs for a basic test
+		Log::info("Generating {} UUIDs...", NUM_UUIDS);
+
+		std::unordered_set<std::string> seen;
+		seen.reserve(NUM_UUIDS);
+		seen.max_load_factor(0.7);
+
+		std::array<size_t, 128> bitCounts{};
+		for (auto& count : bitCounts) {
+			count = 0;
+		}
+
+		size_t duplicates = 0;
+		for (size_t i = 0; i < NUM_UUIDS; ++i) {
+			std::string uuid = UUIDGenerator::create();
+
+			// Check for duplicates
+			if (!seen.insert(uuid).second) {
+				duplicates++;
+			}
+
+			// Convert to bytes and update bit counts
+			auto bytes = uuidToBytes(uuid);
+			for (size_t bitPos = 0; bitPos < 128; ++bitPos) {
+				size_t byteIndex = bitPos / 8;
+				size_t bitIndex = bitPos % 8;
+				if ((bytes[byteIndex] >> bitIndex) & 0x01) {
+					bitCounts[bitPos]++;
+				}
+			}
+		}
+
+		// Report duplicates
+		Log::info("Duplicates found: {}/{} ({:.2f}%)", duplicates, NUM_UUIDS, (100.0 * duplicates / NUM_UUIDS));
+
+		// Analyze bit distribution
+		Log::info(""); // blank line
+		Log::info("Bit distribution:");
+		for (size_t i = 0; i < 128; ++i) {
+			double ratio = static_cast<double>(bitCounts[i]) / NUM_UUIDS;
+			// Using formatting to show bit index aligned and ratio with two decimal places
+			Log::info("Bit {:3}: {:.2f}% set", i, (ratio * 100.0));
+		}
+
+		double sum = 0.0;
+		for (auto c : bitCounts) {
+			double r = static_cast<double>(c) / NUM_UUIDS;
+			sum += r;
+		}
+		double mean = sum / 128.0;
+
+		double sqSum = 0.0;
+		for (auto c : bitCounts) {
+			double r = static_cast<double>(c) / NUM_UUIDS;
+			double diff = r - mean;
+			sqSum += diff * diff;
+		}
+		double variance = sqSum / 128.0;
+		double stddev = std::sqrt(variance);
+
+		Log::info("");
+		Log::info("Average bit set ratio: {:.2f}%", (mean * 100.0));
+		Log::info("Standard deviation of bit set ratio: {:.2f}%", (stddev * 100.0));
 	}
 }

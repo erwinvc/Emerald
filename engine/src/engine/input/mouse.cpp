@@ -1,38 +1,12 @@
 #include "eepch.h"
 #include "mouse.h"
-#include <queue>
+#include "engine/events/events.h"
+#include "engine/events/eventSystem.h"
 
 namespace emerald {
-	enum class MouseEventType {
-		Button,
-		Position,
-		Scroll
-	};
-
-	struct MouseButtonEvent {
-		uint32_t button;
-		uint32_t action;
-		uint32_t mods;
-	};
-
-	struct MousePositionEvent {
-		double x;
-		double y;
-	};
-
-	struct MouseScrollEvent {
-		double xOffset;
-		double yOffset;
-	};
-
-	struct MouseEvent {
-		MouseEventType type;
-		union {
-			MouseButtonEvent button;
-			MousePositionEvent position;
-			MouseScrollEvent scroll;
-		};
-	};
+	RTTI_CLASS_DEF(MouseButtonEvent);
+	RTTI_CLASS_DEF(MousePositionEvent);
+	RTTI_CLASS_DEF(MouseScrollEvent);
 
 	static InputState s_buttons[(uint32_t)MouseButton::_COUNT];
 	static glm::vec2 m_position(0.0f);
@@ -40,70 +14,44 @@ namespace emerald {
 	static glm::vec2 m_positionDelta(0.0f);
 	static glm::vec2 m_scroll(0.0f);
 
-	static std::queue<MouseEvent> s_eventQueue;
-
-	void Mouse::mouseButtonCallback(uint32_t button, uint32_t action, uint32_t mods) {
-		MouseEvent event;
-		event.type = MouseEventType::Button;
-		event.button = MouseButtonEvent{ button, action, mods };
-		s_eventQueue.push(event);
+	void Mouse::mouseButtonCallback(MouseButtonEvent& e) {
+		if (e.isPressed()) {
+			if (s_buttons[(uint32_t)e.getButton()] != InputState::DOWN) {
+				s_buttons[(uint32_t)e.getButton()] = InputState::JUSTDOWN;
+			}
+		} else {
+			if (s_buttons[(uint32_t)e.getButton()] == InputState::DOWN || s_buttons[(uint32_t)e.getButton()] == InputState::JUSTDOWN) {
+				s_buttons[(uint32_t)e.getButton()] = InputState::JUSTUP;
+			}
+		}
 	}
 
-	void Mouse::mousePosCallback(double x, double y) {
-		MouseEvent event;
-		event.type = MouseEventType::Position;
-		event.position = MousePositionEvent{ x, y };
-		s_eventQueue.push(event);
+	void Mouse::mousePosCallback(MousePositionEvent& e) {
+		m_prevPosition = m_position;
+		m_position.x = e.getX();
+		m_position.y = e.getY();
+		m_positionDelta = m_position - m_prevPosition;
 	}
 
-	void Mouse::mouseScrollCallback(double xOffset, double yOffset) {
-		MouseEvent event;
-		event.type = MouseEventType::Scroll;
-		event.scroll = MouseScrollEvent{ xOffset, yOffset };
-		s_eventQueue.push(event);
+	void Mouse::mouseScrollCallback(MouseScrollEvent& e) {
+		m_scroll.x = e.getXOffset();
+		m_scroll.y = e.getYOffset();
 	}
 
+
+	void Mouse::initialize() {
+		EventSystem::subscribe<MouseButtonEvent>(&Mouse::mouseButtonCallback);
+		EventSystem::subscribe<MousePositionEvent>(&Mouse::mousePosCallback);
+		EventSystem::subscribe<MouseScrollEvent>(&Mouse::mouseScrollCallback);
+	}
 	void Mouse::update() {
 		m_positionDelta = glm::vec2(0.0f);
 
-		// Process all queued events
 		for (int button = 0; button < (uint32_t)MouseButton::_COUNT; button++) {
 			if (s_buttons[button] == InputState::JUSTDOWN) {
 				s_buttons[button] = InputState::DOWN;
 			} else if (s_buttons[button] == InputState::JUSTUP) {
 				s_buttons[button] = InputState::UP;
-			}
-		}
-
-		// Process all queued events
-		while (!s_eventQueue.empty()) {
-			MouseEvent event = s_eventQueue.front();
-			s_eventQueue.pop();
-
-			switch (event.type) {
-				case MouseEventType::Button:
-					if (event.button.action == GLFW_PRESS) {
-						if (s_buttons[event.button.button] != InputState::DOWN) {
-							s_buttons[event.button.button] = InputState::JUSTDOWN;
-						}
-					} else if (event.button.action == GLFW_RELEASE) {
-						if (s_buttons[event.button.button] == InputState::DOWN || s_buttons[event.button.button] == InputState::JUSTDOWN) {
-							s_buttons[event.button.button] = InputState::JUSTUP;
-						}
-					}
-					break;
-
-				case MouseEventType::Position:
-					m_prevPosition = m_position;
-					m_position.x = static_cast<float>(event.position.x);
-					m_position.y = static_cast<float>(event.position.y);
-					m_positionDelta = m_position - m_prevPosition;
-					break;
-
-				case MouseEventType::Scroll:
-					m_scroll.x = (float)event.scroll.xOffset;
-					m_scroll.y = (float)event.scroll.yOffset;
-					break;
 			}
 		}
 	}

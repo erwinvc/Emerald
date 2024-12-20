@@ -10,8 +10,8 @@ namespace emerald {
 	static std::condition_variable m_condVar;
 	static std::array<std::thread::id, ThreadType::_COUNT> s_threadIDs;
 
-	Thread::Thread(const std::string& name, std::function<void()> func, bool background)
-		: m_name(name), m_function(std::move(func)), m_background(background), m_shutDown(false), m_finished(false) {
+	Thread::Thread(const std::string& name, std::function<void()> func, uint32_t affinity, bool background)
+		: m_name(name), m_function(std::move(func)), m_affinity(affinity), m_background(background), m_shutDown(false), m_finished(false) {
 	}
 
 	Thread::~Thread() {
@@ -35,7 +35,16 @@ namespace emerald {
 		}
 	}
 
+	void Thread::setAffinity() {
+		if (m_affinity != (uint32_t)-1) {
+			DWORD_PTR mask = (1ULL << m_affinity);
+			SetThreadAffinityMask(GetCurrentThread(), mask);
+		}
+	}
+
 	void Thread::run() {
+		setAffinity();
+
 		try {
 			m_function();
 		} catch (const std::exception& e) {
@@ -46,9 +55,22 @@ namespace emerald {
 		m_finished = true;
 	}
 
+	void ThreadManager::initializeAffinitySystem() {
+		if (s_maxAffinity == 0) {
+			uint32_t hc = std::thread::hardware_concurrency();
+			if (hc == 0) hc = 1;
+			s_maxAffinity = hc;
+		}
+	}
+
 	Thread* ThreadManager::createAndRegisterThread(ThreadType type, const std::string& name, std::function<void()> func, bool background) {
 		std::lock_guard<std::mutex> lock(m_lock);
-		m_threads.emplace_back(std::make_unique<Thread>(name, func, background));
+		initializeAffinitySystem();
+
+		uint32_t affinity = s_nextAffinity.fetch_add(1);
+		affinity %= s_maxAffinity;
+
+		m_threads.emplace_back(std::make_unique<Thread>(name, func, affinity, background));
 		Thread* thread = m_threads.back().get();
 		thread->start();
 		s_threadIDs[type] = thread->getID();
@@ -64,14 +86,13 @@ namespace emerald {
 	}
 
 
-	void ThreadManager::cleanup() {
+	void ThreadManager::shutdown() {
 		for (auto& thread : m_threads) {
 			if (!thread->isFinished()) {
 				thread->shutdown();
 			}
 		}
 
-		// Wait for non-background threads to finish
 		std::unique_lock<std::mutex> lock(m_lock);
 		m_condVar.wait(lock, [] {
 			for (auto& thread : m_threads) {

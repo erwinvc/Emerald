@@ -2,7 +2,7 @@
 
 struct Data {
 	vec4 pos;
-//	vec2 uv;
+	vec2 uv;
 	vec3 normal;  // Added normal for lighting calculations
 };
 

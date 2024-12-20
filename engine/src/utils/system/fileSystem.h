@@ -14,7 +14,7 @@ namespace emerald {
 
 		static std::string readFile(const std::string& path);
 
-		static bool doesFileExist(const std::string& path);
+		static bool doesFileExist(const std::filesystem::path& path);
 
 		static void saveJsonToFile(const nlohmann::json& jsonOb, const std::string& name);
 
@@ -29,5 +29,7 @@ namespace emerald {
 		static void copyFile(const std::string& source, const std::string& dest);
 
 		static std::filesystem::path getAppDataPath();
+
+		static void openFolderAndSelectItem(const std::filesystem::path& path);
 	};
 }

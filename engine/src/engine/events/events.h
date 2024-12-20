@@ -1,4 +1,5 @@
 #pragma once
+#include "../assets/metadata/assetMetadata.h"
 
 namespace emerald {
 	class Event {
@@ -16,6 +17,7 @@ namespace emerald {
 	class WindowResizeEvent : public Event {
 		RTTI_DERIVED_CLASS_DECL(WindowResizeEvent, Event);
 
+	public:
 		WindowResizeEvent(unsigned int width, unsigned int height)
 			: m_width(width), m_height(height) {
 		}
@@ -28,9 +30,8 @@ namespace emerald {
 
 	class ErrorEvent : public Event {
 		RTTI_DERIVED_CLASS_DECL(ErrorEvent, Event);
-		~ErrorEvent() {
-			Log::info("Del");
-		}
+
+	public:
 		ErrorEvent(const std::string& message, const std::string subMessage = "")
 			: m_message(message), m_subMessage(subMessage) {
 		}
@@ -41,5 +42,21 @@ namespace emerald {
 	private:
 		std::string m_message;
 		std::string m_subMessage;
+	};
+
+	class AssetStreamedEvent : public Event {
+		RTTI_DERIVED_CLASS_DECL(AssetStreamedEvent, Event);
+
+	public:
+		AssetStreamedEvent(AssetMetadata* metadata, const Ref<Asset>& asset) 
+			: m_metadata(metadata), m_asset(asset) {
+		}
+
+		inline AssetMetadata* getMetadata() const { return m_metadata; }
+		inline Ref<Asset> getAsset() const { return m_asset; }
+
+	private:
+		AssetMetadata* m_metadata;
+		Ref<Asset> m_asset;
 	};
 }

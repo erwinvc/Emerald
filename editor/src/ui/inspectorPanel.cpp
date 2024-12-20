@@ -8,6 +8,7 @@
 #include "inspector/propertyDrawer.h"
 #include "engine/ecs/components/metadataComponent.h"
 #include "engine/ecs/components/component.h"
+#include "engine/scene/sceneManager.h"
 
 namespace emerald {
 	static constexpr float MIN_FIRST_COLUMN_WIDTH = 50.0f;
@@ -38,7 +39,9 @@ namespace emerald {
 		ImGui::PopStyleVar();
 	}
 
-	void InspectorPanel::drawInspectorHeader(Ref<Scene>& scene, std::vector<Entity>& selectedEntities) {
+	void InspectorPanel::drawInspectorHeader(std::vector<Entity>& selectedEntities) {
+		Ref<Scene>& scene = SceneManager::getActiveScene();
+
 		bool changed = false;
 		static const char* xyzSymbols[3] = { "X", "Y", "Z" };
 
@@ -48,7 +51,9 @@ namespace emerald {
 		PropertyDrawer::drawLabel("Name", nameComponents, &MetadataComponent::m_name, FixedString<64>("~"), DividerType::SINGLELINE);
 	}
 
-	void InspectorPanel::draw(Ref<Scene>& scene, HierarchyPanel* hierarchyPanel) {
+	void InspectorPanel::draw(HierarchyPanel* hierarchyPanel) {
+		Ref<Scene>& scene = SceneManager::getActiveScene();
+
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImVec2 padding = ImGui::GetStyle().WindowPadding;
 		ImVec2 spacing = ImGui::GetStyle().ItemSpacing;
@@ -111,7 +116,7 @@ namespace emerald {
 
 			std::vector<SelectedComponent> selectedComponents;
 			if (!selectedComponentTypes.empty()) {
-				drawInspectorHeader(scene, selectedEntities);
+				drawInspectorHeader(selectedEntities);
 
 				for (auto& selectedComponentType : selectedComponentTypes) {
 					std::vector<Component*> components;

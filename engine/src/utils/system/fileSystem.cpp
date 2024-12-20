@@ -3,6 +3,7 @@
 #include <format>
 #include <shobjidl.h>  
 #include <shlobj.h> 
+#include <shellapi.h>
 
 namespace emerald {
 	std::filesystem::path FileSystem::openFileDialog(const std::vector<FilterSpec>& filters) {
@@ -137,9 +138,9 @@ namespace emerald {
 		return str;
 	}
 
-	bool FileSystem::doesFileExist(const std::string& path) {
-		struct stat buffer;
-		return (stat(path.c_str(), &buffer) == 0);
+	bool FileSystem::doesFileExist(const std::filesystem::path& path) {
+		auto absolutePath = std::filesystem::absolute(path);
+		return std::filesystem::exists(absolutePath);
 	}
 
 	void FileSystem::saveJsonToFile(const nlohmann::json& jsonOb, const std::string& name) {
@@ -205,5 +206,10 @@ namespace emerald {
 		} else {
 			throw std::runtime_error("Failed to get AppData path.");
 		}
+	}
+
+	void FileSystem::openFolderAndSelectItem(const std::filesystem::path &path) {
+		std::wstring argument = L"/select,\"" + path.wstring() + L"\"";
+		ShellExecuteW(NULL, L"open", L"explorer.exe", argument.c_str(), NULL, SW_SHOWNORMAL);
 	}
 }

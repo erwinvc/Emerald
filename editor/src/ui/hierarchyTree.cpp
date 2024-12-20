@@ -13,6 +13,7 @@
 #include "utils/misc/utils.h"
 #include "engine/scene/sceneManager.h"
 #include "utils/uuid/uuid.h"
+#include "project.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {
@@ -62,7 +63,7 @@ namespace emerald {
 
 			// Collect nodes
 			m_nodes.clear();
-			collectNodes(scene->getRootNode());
+			if(Project::isProjectOpen()) collectNodes(scene->getRootNode());
 
 			// Begin multi-selection and render nodes
 			auto* multiSelectIO = ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_None, (int)m_imGuiSelection.Size, (int)m_nodes.size());

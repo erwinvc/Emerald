@@ -14,6 +14,7 @@ namespace emerald {
 		SEGOE,
 		SEGOE_TITLEBAR,
 		INTER,
+		INTER_BOLD,
 		AWESOME_R, //regular
 		AWESOME_S //solid
 	};
@@ -27,8 +28,13 @@ namespace emerald {
 		static void begin();
 		static void end();
 		static void shutdown();
-
 		static ImVec4 getSeverityColor(Severity severity);
+
+		static inline const char* generateLabel(const char* baseLabel, uint32_t index, size_t bufferSize = 64) {
+			thread_local static std::vector<char> buffer(bufferSize);
+			snprintf(buffer.data(), buffer.size(), "%s_%u", baseLabel, index);
+			return buffer.data();
+		}
 	};
 }
 

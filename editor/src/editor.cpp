@@ -16,12 +16,12 @@
 #include "editorProjectOpenedEvent.h"
 #include "engine/assets/core/assetRegistry.h"
 #include "project.h"
+#include "input/dragDrop.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
 	static UniqueRef<RenderPipeline> s_renderPipeline;
 	static Ref<EditorCamera> s_editorCamera;
-	static AssetRegistry s_assetRegistry;
 
 	static float s_lastTitleUpdateTime = 0.0f;
 
@@ -33,6 +33,8 @@ namespace emerald {
 	}
 
 	EmeraldEditorApplication::EmeraldEditorApplication() {
+		Editor = this;
+
 		PROFILE_INITIALIZE();
 		PROFILE_DISABLE();
 	}
@@ -107,6 +109,7 @@ namespace emerald {
 			PROFILE_RENDER_END();
 
 			PROFILE_RENDER_BEGIN("ImGui end");
+			DragDrop::handleDragDropVisuals();
 			ImGuiManager::end();
 			PROFILE_RENDER_END();
 		});
@@ -118,11 +121,11 @@ namespace emerald {
 
 	void EmeraldEditorApplication::onProjectOpened(EditorProjectOpenedEvent& e) {
 		if (e.isValid()) {
-			s_assetRegistry.parseCurrentProject();
+			m_assetRegistry.parseCurrentProject();
 			SceneManager::setActiveScene(Ref<Scene>::create("New Scene", ""));
 			SceneManager::getActiveScene()->initialize();
 		} else {
-			s_assetRegistry.clear();
+			m_assetRegistry.clear();
 			SceneManager::clearScenes();
 		}
 	}

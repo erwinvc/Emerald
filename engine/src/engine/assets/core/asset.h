@@ -2,14 +2,30 @@
 
 namespace emerald {
 	enum class AssetType {
-		UNKNOWN,
+		DEFAULT,
+		FOLDER,
 		PREFAB,
 		MATERIAL,
 		SHADER,
 		TEXTURE,
+		SCENE,
 		MODEL,
 		AUDIO,
 	};
+
+	inline const char* assetTypeToString(AssetType type, bool capitalizeFirstLetter = false) {
+		switch (type) {
+			case AssetType::DEFAULT: return capitalizeFirstLetter ? "Default" : "default";
+			case AssetType::FOLDER:  return capitalizeFirstLetter ? "Folder" : "folder";
+			case AssetType::PREFAB:  return capitalizeFirstLetter ? "Prefab" : "prefab";
+			case AssetType::MATERIAL:return capitalizeFirstLetter ? "Material" : "material";
+			case AssetType::SHADER:  return capitalizeFirstLetter ? "Shader" : "shader";
+			case AssetType::TEXTURE: return capitalizeFirstLetter ? "Texture" : "texture";
+			case AssetType::MODEL:   return capitalizeFirstLetter ? "Model" : "model";
+			case AssetType::AUDIO:   return capitalizeFirstLetter ? "Audio" : "audio";
+			default:                 return capitalizeFirstLetter ? "Unknown" : "unknown";
+		}
+	}
 
 	class Asset : public RefCounted {
 	public:

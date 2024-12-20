@@ -112,6 +112,7 @@ namespace emerald {
 
 		ConsoleColor color = ConsoleColor::WHITE; // Default color
 		switch (level) {
+			case Severity::FATAL: color = ConsoleColor::RED; break;
 			case Severity::ERROR: color = ConsoleColor::RED; break;
 			case Severity::WARN: color = ConsoleColor::YELLOW; break;
 			case Severity::INFO: color = ConsoleColor::WHITE; break;

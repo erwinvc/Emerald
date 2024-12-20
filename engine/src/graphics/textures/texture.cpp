@@ -4,45 +4,12 @@
 #include "utils/misc/utils.h"
 #include "utils/system/fileSystem.h"
 
-#include <stb_image.h>
-#include <stb_image_write.h>
 #include "graphics/core/renderer.h"
+#include "core/common/assrt.h"
+#include "stb_image.h"
+#include "stb_image_write.h"
 
 namespace emerald {
-	Texture::Texture(TextureDesc desc, std::string path)
-		: m_desc(desc) {
-		if (!FileSystem::doesFileExist(path)) {
-			//Log::info(path.c_str(), "");
-			Log::error("[Texture] texture file at {} does not exist!", path);
-			return;
-		}
-
-		int channelCount;
-		int width, height;
-
-		//stbi_set_flip_vertically_on_load(desc.m_flip);
-		byte* data = stbi_load(path.c_str(), &width, &height, &channelCount, 4);
-
-		//if (bpc != 3 && bpc != 4) {
-		//	LOG_ERROR("[~gTexture~x] Unsupported image bit-depth (%d) ~1%s", bpc, path.c_str());
-		//	stbi_image_free(data);
-		//	return false;
-		//}
-
-		if (channelCount < 1 || channelCount > 4) Log::error("[Texture] unsupported image channel count ({}) {}", channelCount, path.c_str());
-
-		uint32_t size = channelCount * width * height;
-
-		if (data) {
-			m_channelCount = channelCount;
-			m_width = width;
-			m_height = height;
-			m_buffer = Buffer<byte>::copy(data, size);
-			stbi_image_free(data);
-			Log::info("[Texture] loaded {}", path.c_str());
-		} else Log::error("[Texture] failed to load {}", path.c_str());
-	}
-
 	Texture::Texture(TextureDesc desc, uint32_t width, uint32_t height, const byte* data, uint32_t dataSize, TextureDataType textureDataType)
 		: m_desc(desc), m_width(width), m_height(height) {
 		if (textureDataType == TextureDataType::RAW) {
@@ -88,6 +55,8 @@ namespace emerald {
 	}
 
 	void Texture::invalidate() {
+		//ASSERT(ThreadManager::isThread(RENDER), "textures should be invalidated on the render thread");
+
 		if (m_handle) cleanup();
 
 		GLenum target = m_desc.getTarget();

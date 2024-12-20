@@ -1,20 +1,37 @@
 #pragma once
 #include "core/common/engineConstants.h"
-#include "core/common/engineError.h"
 #include "utils/uuid/uuid.h"
-#include "core/common/ref.h"
 #include "utils/text/jsonUtils.h"
 #include "engine/assets/core/asset.h"
+#include "engine/assets/loaders/assetLoader.h"
 
 namespace emerald {
+	enum class AssetLoadedState {
+		NOTLOADED,
+		LOADING,
+		LOADED
+	};
+
 	class AssetMetadata {
 	public:
+		AssetMetadata(AssetType type, const std::filesystem::path& path);
 		virtual ~AssetMetadata() = default;
 
-		template <typename T>
-		Ref<T> getAsset() {
-			return m_asset.lock();
-		}
+		//template <typename T>
+		//Ref<T> getAsset() {
+		//	if (m_asset.expired()) {
+		//		m_loadedState = AssetLoadedState::NOTLOADED;
+		//	}
+		//	if (m_loadedState == AssetLoadedState::NOTLOADED) {
+		//		m_loadedState = AssetLoadedState::LOADING;
+		//		loadAsset();
+		//	}
+		//	return m_asset.lock();
+		//}
+
+		virtual Ref<AssetLoader> createAssetLoader() = 0;
+
+		AssetLoadedState getLoadedState() const { return m_loadedState; }
 
 		nlohmann::json toJson() const {
 			nlohmann::json j;
@@ -32,13 +49,6 @@ namespace emerald {
 			m_uuid = jsonUtils::deserializeRequiredValue<std::string>(j, "uuid");
 		}
 
-		static AssetMetadata create(const UUID& uuid, AssetType type) {
-			AssetMetadata metaData;
-			metaData.m_uuid = uuid;
-			metaData.m_type = type;
-			return metaData;
-		}
-
 		AssetType getType() const {
 			return m_type;
 		}
@@ -47,9 +57,15 @@ namespace emerald {
 			return m_uuid;
 		}
 
-	private:
+		std::filesystem::path getPath() const {
+			return m_path;
+		}
+
+	protected:
 		UUID m_uuid;
 		AssetType m_type;
 		WeakRef<Asset> m_asset;
+		std::filesystem::path m_path;
+		AssetLoadedState m_loadedState = AssetLoadedState::NOTLOADED;
 	};
 }

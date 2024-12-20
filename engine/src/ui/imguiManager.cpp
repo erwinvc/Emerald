@@ -176,9 +176,12 @@ namespace emerald {
 		builder.AddChar(0xE923);
 		builder.BuildRanges(&segmdl2TitleRanges);
 
-		fonts[ImGUIFont::INTER] = io.FontDefault = io.Fonts->AddFontFromFileTTF("res/fonts/Inter.ttc", 18.0f * fontSizeMultiplier, NULL);
+		fonts[ImGUIFont::INTER] = io.FontDefault = io.Fonts->AddFontFromFileTTF("res/fonts/Inter-Regular.otf", 18.0f * fontSizeMultiplier, NULL); // Regular
 		io.Fonts->AddFontFromFileTTF("res/fonts/fontawesome-webfont.ttf", 18.0f * fontSizeMultiplier, &config, profilerAwesomeRanges); //Profiler lib
 
+		fonts[ImGUIFont::INTER_BOLD] = io.Fonts->AddFontFromFileTTF("res/fonts/Inter-Bold.otf", 18.0f * fontSizeMultiplier, NULL); // Bold		
+		io.Fonts->AddFontFromFileTTF("res/fonts/fontawesome-webfont.ttf", 18.0f * fontSizeMultiplier, &config, profilerAwesomeRanges); //Profiler lib
+		
 		config.MergeMode = true;
 		//config.GlyphOffset.y = 4;
 		fonts[ImGUIFont::CONSOLAS] = io.Fonts->AddFontFromFileTTF("res/fonts/Consolas.ttf", 16.0f * fontSizeMultiplier, NULL);

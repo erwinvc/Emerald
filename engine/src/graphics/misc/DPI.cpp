@@ -14,12 +14,15 @@ namespace emerald {
 
 	void DPI::update() {
 		float xscale, yscale;
-		glfwGetMonitorContentScale(GLFW::getWindowMonitor(App->getWindow()->handle()), &xscale, &yscale);
-		ImGuiIO& io = ImGui::GetIO();
-		if (currentXScale != xscale) {
-			currentXScale = xscale;
-			io.DisplayFramebufferScale = ImVec2(xscale, yscale);
-			ImGuiManager::rebuildFonts();
+		GLFWmonitor* monitor = GLFW::getWindowMonitor(App->getWindow()->handle());
+		if (monitor) {
+			glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+			ImGuiIO& io = ImGui::GetIO();
+			if (currentXScale != xscale) {
+				currentXScale = xscale;
+				io.DisplayFramebufferScale = ImVec2(xscale, yscale);
+				ImGuiManager::rebuildFonts();
+			}
 		}
 	}
 }

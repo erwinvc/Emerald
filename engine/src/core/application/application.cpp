@@ -18,6 +18,8 @@
 #include "utils/threading/threadManager.h"
 #include "core/common/engineError.h"
 #include "tests/test.h"
+#include "utils/threading/jobSystem.h"
+#include "engine/assets/streaming/streaming.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -49,11 +51,15 @@ namespace emerald {
 
 		icon::loadIcon(m_mainWindow->handle());
 
+		Mouse::initialize();
+		JobSystem::initialize();
+
+		// #TODO: remove callbacks and move to 
 		m_mainWindow->getCallbacks().addOnResizeCallback(this, &Application::onResize);
 		m_mainWindow->getCallbacks().addOnKeyCallback(Keyboard::keyCallback);
-		m_mainWindow->getCallbacks().addOnMouseButtonCallback(Mouse::mouseButtonCallback);
-		m_mainWindow->getCallbacks().addOnMousePosCallback(Mouse::mousePosCallback);
-		m_mainWindow->getCallbacks().addOnScrollCallback(Mouse::mouseScrollCallback);
+		//m_mainWindow->getCallbacks().addOnMouseButtonCallback(Mouse::mouseButtonCallback);
+		//m_mainWindow->getCallbacks().addOnMousePosCallback(Mouse::mousePosCallback);
+		//m_mainWindow->getCallbacks().addOnScrollCallback(Mouse::mouseScrollCallback);
 		m_mainWindow->setVSync(true);
 		m_mainWindow->setLimits(200, 60, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
@@ -85,6 +91,7 @@ namespace emerald {
 		close();
 
 		Metrics::shutdown();
+		JobSystem::shutdown();
 		ImGuiManager::shutdown();
 		FrameBufferManager::shutdown();
 
@@ -170,14 +177,21 @@ namespace emerald {
 				m_accumulatedTime -= m_fixedTimeStep;
 			}
 
+			PROFILE_LOGIC_BEGIN("Input");
+			Keyboard::update();
+			Mouse::update();
+			PROFILE_LOGIC_END();
+
 			PROFILE_LOGIC_BEGIN("Process events");
 			EventSystem::processEvents();
 			PROFILE_LOGIC_END();
 
-			PROFILE_LOGIC_BEGIN("Input");
-			Keyboard::update();
-			Mouse::update();
+			PROFILE_LOGIC_BEGIN("Process queue");
+			processQueueCPU();
+			PROFILE_LOGIC_END();
 
+			PROFILE_LOGIC_BEGIN("Streaming queue");
+			Streaming::handleStreamingQueue();
 			PROFILE_LOGIC_END();
 
 			PROFILE_LOGIC_BEGIN("Update");
@@ -242,6 +256,13 @@ namespace emerald {
 	void Application::processQueue() {
 		static std::function<void()> func;
 		while (m_eventQueue.tryGet(func)) {
+			func();
+		}
+	}
+
+	void Application::processQueueCPU() {
+		static std::function<void()> func;
+		while (m_eventQueueCPU.tryGet(func)) {
 			func();
 		}
 	}

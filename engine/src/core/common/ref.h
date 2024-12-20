@@ -318,9 +318,11 @@ namespace emerald {
 		}
 
 		template<typename T2>
-		UniqueRef<T2> as() const {
+		UniqueRef<T2> as() {
 			T2* casted = dynamic_cast<T2*>(m_reference);
 			if (casted) {
+				T* temp = m_reference;
+				m_reference = nullptr;
 				return UniqueRef<T2>(casted);
 			}
 			return UniqueRef<T2>(nullptr);

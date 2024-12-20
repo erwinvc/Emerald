@@ -22,7 +22,7 @@ namespace emerald {
 		});
 	}
 
-	UUID UUIDGenerator::create() {
+	UUID UUIDGenerator::createVersion1() {
 		std::lock_guard<std::mutex> lock(s_uuidMutex);
 		initialize();
 
@@ -64,6 +64,38 @@ namespace emerald {
 		uuid.m_data8[15] = (uint8_t)(node & 0xFF);
 
 		s_clockSeq = (s_clockSeq + 1) & 0x3FFF;
+
+		return uuid;
+	}
+
+	UUID UUIDGenerator::create() {
+		std::lock_guard<std::mutex> lock(s_uuidMutex);
+		initialize();
+
+		UUID uuid;
+
+		// Generate 128 bits of random data
+		// Assuming s_random.getInt() returns a random uint32_t
+		uint32_t r0 = s_random.getInt();
+		uint32_t r1 = s_random.getInt();
+		uint32_t r2 = s_random.getInt();
+		uint32_t r3 = s_random.getInt();
+
+		uuid.m_data32[0] = r0;
+		uuid.m_data32[1] = r1;
+		uuid.m_data32[2] = r2;
+		uuid.m_data32[3] = r3;
+
+		// Set the version to 4 (random UUID)
+		// Version is stored in the 4 most significant bits of the timeHiAndVersion field (m_data16[3]).
+		// Clear these bits (0x0FFF) and then set them to 0x4000.
+		uuid.m_data16[3] = (uuid.m_data16[3] & 0x0FFF) | 0x4000;
+
+		// Set the two most significant bits of the clockSeqHi field to 10
+		// This ensures the UUID variant is correctly set to "RFC 4122".
+		// The clockSeqHi is at m_data8[8]. Clearing the top two bits and then setting them to 10 (binary)
+		// is done by: & 0x3F to clear top two bits, then | 0x80 to set them to 10.
+		uuid.m_data8[8] = (uuid.m_data8[8] & 0x3F) | 0x80;
 
 		return uuid;
 	}

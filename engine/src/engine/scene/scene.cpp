@@ -14,19 +14,19 @@ namespace emerald {
 		Entity root = m_ecs.createEntity(m_name, true);
 		m_sceneRoot = m_ecs.getComponent<SceneGraphComponent>(root);
 
-		Entity sponza = Entity::create("sponza");
-
-		SceneGraphComponent* sponzaParent = m_ecs.getComponent<SceneGraphComponent>(sponza);
-		TransformComponent* sponzaTransform = m_ecs.getComponent<TransformComponent>(sponza);
-		sponzaTransform->setScale(glm::vec3(0.1f));
-
-		ModelLoader loader("I:\\Development\\C++\\EmeraldOldStuff\\res\\sponza\\sponza.obj");
-		for (auto& mesh : loader.load()) {
-			Entity e = m_ecs.createEntity(mesh->getName());
-			SceneGraphComponent* r = m_ecs.getComponent<SceneGraphComponent>(e);
-			m_ecs.addComponent<MeshRendererComponent>(e, mesh);
-			sponzaParent->addChild(r);
-		}
+		//Entity sponza = Entity::create("sponza");
+		//
+		//SceneGraphComponent* sponzaParent = m_ecs.getComponent<SceneGraphComponent>(sponza);
+		//TransformComponent* sponzaTransform = m_ecs.getComponent<TransformComponent>(sponza);
+		//sponzaTransform->setScale(glm::vec3(0.1f));
+		//
+		//ModelLoader loader("I:\\Development\\C++\\EmeraldOldStuff\\res\\sponza\\sponza.obj");
+		//for (auto& mesh : loader.load()) {
+		//	Entity e = m_ecs.createEntity(mesh->getName());
+		//	SceneGraphComponent* r = m_ecs.getComponent<SceneGraphComponent>(e);
+		//	m_ecs.addComponent<MeshRendererComponent>(e, mesh);
+		//	sponzaParent->addChild(r);
+		//}
 	}
 
 	void Scene::load() {}

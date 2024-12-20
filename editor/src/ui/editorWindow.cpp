@@ -24,11 +24,8 @@
 #include <GLFW/glfw3.h>
 
 namespace emerald {
-	static bool s_mouseInViewport = false;
-	static bool s_viewportFocused = false;
 	static bool s_TitleBarHovered = false;
 	static bool s_isPopupOpen = false;
-	static glm::vec2 s_sceneViewportSize = glm::vec2(1.0f, 1.0f);
 
 	EditorWindow::EditorWindow() {
 		glfwSetTitlebarHitTestCallback(App->getWindow()->handle(), [](GLFWwindow* window, int x, int y, int* hit) {
@@ -43,7 +40,7 @@ namespace emerald {
 		desc.filter = NEAREST;
 
 		m_icon = Ref<Texture>::create(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
-		Renderer::submit([instance = Ref<Texture>(m_icon)]() mutable { instance->invalidate(); });
+		Renderer::submit([instance = Ref<Texture>(m_icon)]() { instance->invalidate(); });
 	}
 
 	EditorWindow::~EditorWindow() {
@@ -64,7 +61,7 @@ namespace emerald {
 					if (recentProjects.empty()) {
 						ImGui::MenuItem("Empty", "", nullptr, false);
 					}
-					int index = 1;
+					uint8_t index = 1;
 					for (const auto& project : Project::getRecentProjects()) {
 						if (ImGui::Button((std::to_string(index++) + " " + project.stem().string()).c_str())) {
 							Project::openProject(project);
@@ -212,9 +209,9 @@ namespace emerald {
 			ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetWindowSize());
 			ImGuiID dockspace_main_id = dockspace_id;
 
-			ImGuiID right = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 0.3f, nullptr, &dockspace_main_id);
-			ImGuiID down = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_main_id);
-			ImGuiID left = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Left, 0.25f, nullptr, &dockspace_main_id);
+			ImGuiID right = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 0.4f, nullptr, &dockspace_main_id);
+			ImGuiID down = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.45f, nullptr, &dockspace_main_id);
+			ImGuiID left = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Left, 0.5f, nullptr, &dockspace_main_id);
 			ImGuiID rightDown = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.25f, nullptr, &right);
 
 			ImGui::DockBuilderDockWindow("Debug", right);
@@ -232,53 +229,16 @@ namespace emerald {
 		ImGui::End();
 	}
 
-	//Windows
-	void EditorWindow::drawViewport() {
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoNav;
-
-		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-
-		if (ImGui::Begin("Viewport", nullptr, windowFlags)) {
-			ImVec2 avail = ImGui::GetContentRegionAvail();
-
-			ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), avail, { 0, 1 }, { 1, 0 });
-
-			s_sceneViewportSize = glm::ivec2((uint32_t)avail.x, (uint32_t)avail.y);
-			s_mouseInViewport = ImGui::IsWindowHovered();
-
-			s_viewportFocused = ImGui::IsWindowFocused();
-
-			if (s_mouseInViewport) {
-				ImGui::SetNextFrameWantCaptureMouse(false);
-			}
-
-			if (s_viewportFocused) {
-				ImGui::SetNextFrameWantCaptureKeyboard(false);
-			}
-
-			if (s_mouseInViewport && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-				ImGui::FocusWindow(ImGui::GetCurrentWindow());
-			}
-		} else {
-			s_sceneViewportSize = glm::ivec2(1, 1);
-			s_mouseInViewport = false;
-			s_viewportFocused = false;
-		}
-
-		ImGui::End();
-		ImGui::PopStyleVar();
-	}
-
 	void EditorWindow::drawWindows() {
 		Ref<Scene>& activeScene = SceneManager::getActiveScene();
 		bool sceneOpen = activeScene != nullptr;
 
 
 		ImGui::BeginDisabled(!sceneOpen);
-		drawViewport();
+		
+		m_viewportPanel.draw();
 
-		m_inspectorPanel.draw(activeScene, &m_hierarchyPanel);
+		m_inspectorPanel.draw(&m_hierarchyPanel);
 
 		DebugWindow::draw();
 
@@ -345,21 +305,5 @@ namespace emerald {
 
 	void EditorWindow::fixedUpdate(Timestep ts) {
 
-	}
-
-	void EditorWindow::destroy() {
-
-	}
-
-	glm::ivec2 EditorWindow::getSceneViewportSize() const {
-		return s_sceneViewportSize;
-	}
-
-	bool EditorWindow::isViewportFocused() const {
-		return s_viewportFocused;
-	}
-
-	bool EditorWindow::isMouseInViewport() const {
-		return s_mouseInViewport;
 	}
 }

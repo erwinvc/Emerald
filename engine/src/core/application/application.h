@@ -46,7 +46,12 @@ namespace emerald {
 		void QueueEvent(F&& function) {
 			m_eventQueue.add(function);
 		}
+		template<typename F>
+		void QueueEventCPU(F&& function) {
+			m_eventQueueCPU.add(function);
+		}
 		void processQueue();
+		void processQueueCPU();
 
 		uint64_t getFrameCount() const { return m_frameCount; }
 		uint32_t getFPS() const { return m_fps; }
@@ -62,11 +67,12 @@ namespace emerald {
 		void logicLoop();
 		void renderLoop();
 
-	private:
+	protected:
 		ApplicationSettings m_settings;
 		AssetRegistry m_assetRegistry;
 		Ref<Window> m_mainWindow;
 		AsyncQueue<std::function<void()>> m_eventQueue;
+		AsyncQueue<std::function<void()>> m_eventQueueCPU;
 
 		bool m_initialized = false;
 		uint64_t m_frameCount = 0;

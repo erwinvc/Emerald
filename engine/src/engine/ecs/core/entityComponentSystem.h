@@ -35,16 +35,27 @@ namespace emerald {
 				}
 
 				iterator& operator++() {
-					++m_componentIndex;
-					advanceToNextValid();
+					if (m_componentArray) {
+						++m_componentIndex;
+						advanceToNextValid();
+					}
 					return *this;
 				}
 
 				bool operator!=(const iterator& other) const {
+					if (m_componentArray == nullptr && other.m_componentArray == nullptr) {
+						return false;
+					}
 					return m_chunkIndex != other.m_chunkIndex || m_componentIndex != other.m_componentIndex;
 				}
 
 				auto operator*() {
+					if (!m_componentArray) {
+						// Return a dummy tuple or handle it by assertion
+						static MainComponent dummyMain;
+						return std::tuple<MainComponent*, OtherComponents*...>(&dummyMain, (m_ecs->template getComponent<OtherComponents>(UUID()))...);
+					}
+
 					MainComponent* mainComp = m_componentArray->getComponentInChunk(m_chunkIndex, m_componentIndex);
 					UUID entity = m_componentArray->getEntityInChunk(m_chunkIndex, m_componentIndex);
 
@@ -53,7 +64,7 @@ namespace emerald {
 
 			private:
 				void advanceToNextValid() {
-					while (m_chunkIndex < m_componentArray->getChunkCount()) {
+					while (m_componentArray && m_chunkIndex < m_componentArray->getChunkCount()) {
 						auto* chunk = m_componentArray->getChunk(m_chunkIndex);
 						while (m_componentIndex < chunk->getCount()) {
 							if (chunk->isEnabled(m_componentIndex)) {
@@ -73,10 +84,16 @@ namespace emerald {
 			};
 
 			iterator begin() {
+				if (!m_componentArray) {
+					return end();
+				}
 				return iterator(m_ecs, m_componentArray, 0, 0);
 			}
 
 			iterator end() {
+				if (!m_componentArray) {
+					return iterator(m_ecs, nullptr, 0, 0);
+				}
 				return iterator(m_ecs, m_componentArray, m_componentArray->getChunkCount(), 0);
 			}
 
