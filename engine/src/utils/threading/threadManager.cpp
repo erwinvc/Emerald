@@ -45,13 +45,13 @@ namespace emerald {
 	void Thread::run() {
 		setAffinity();
 
-		try {
+		//try {
 			m_function();
-		} catch (const std::exception& e) {
-			Log::fatal("Exception in thread {}: {}", m_name.c_str(), e.what());
-		} catch (...) {
-			Log::fatal("Unknown exception in thread {}", m_name.c_str());
-		}
+		//} catch (const std::exception& e) {
+		//	Log::fatal("Exception in thread {}: {}", m_name.c_str(), e.what());
+		//} catch (...) {
+		//	Log::fatal("Unknown exception in thread {}", m_name.c_str());
+		//}
 		m_finished = true;
 	}
 

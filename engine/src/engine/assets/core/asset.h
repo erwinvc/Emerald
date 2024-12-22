@@ -1,4 +1,5 @@
 #pragma once
+#include "core/common/ref.h"
 
 namespace emerald {
 	enum class AssetType {
@@ -23,8 +24,8 @@ namespace emerald {
 			case AssetType::TEXTURE: return capitalizeFirstLetter ? "Texture" : "texture";
 			case AssetType::MODEL:   return capitalizeFirstLetter ? "Model" : "model";
 			case AssetType::AUDIO:   return capitalizeFirstLetter ? "Audio" : "audio";
-			default:                 return capitalizeFirstLetter ? "Unknown" : "unknown";
 		}
+		throw std::runtime_error("Unknown asset type");
 	}
 
 	class Asset : public RefCounted {

@@ -4,6 +4,7 @@
 #include "graphics/render/renderPass.h"
 #include "renderer.h"
 #include "renderSyncManager.h"
+#include "utils/threading/threadManager.h"
 #include "utils/misc/GLUtils.h"
 
 namespace emerald {
@@ -11,14 +12,17 @@ namespace emerald {
 	static RenderSyncManager s_renderSyncManager;
 
 	void Renderer::acquireRenderBuffer() {
+		ASSERT(ThreadManager::isThread(RENDER), "Renderer::acquireRenderBuffer should be called on the render thread");
 		s_renderSyncManager.acquireRenderBuffer();
 	}
 
 	void Renderer::waitForBufferAvailability() {
+		ASSERT(ThreadManager::isThread(LOGIC), "Renderer::waitForBufferAvailability should be called on the logic thread");
 		s_renderSyncManager.waitForBufferAvailability();
 	}
 
 	void Renderer::submitBufferForRendering() {
+		ASSERT(ThreadManager::isThread(LOGIC), "Renderer::submitBufferForRendering should be called on the logic thread");
 		s_renderSyncManager.submitBufferForRendering();
 	}
 
@@ -36,11 +40,9 @@ namespace emerald {
 		s_renderSyncManager.executeRenderBuffer();
 	}
 
-	void Renderer::flushCommandBufferOnThisThread() {
-		waitForBufferAvailability();
+	void Renderer::flushRenderCommands() {
 		submitBufferForRendering();
-		acquireRenderBuffer();
-		executeCommandBuffer();
+		waitForBufferAvailability();
 	}
 
 	void Renderer::submit(RenderCommand command) {

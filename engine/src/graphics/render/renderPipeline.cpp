@@ -15,6 +15,8 @@
 #include "imguiProfiler/Profiler.h"
 #include "renderPass.h"
 #include "renderPipeline.h"
+#include "engine/assets/loaders/textureLoader.h"
+#include "utils/system/timer.h"
 
 namespace emerald {
 	RenderPipeline::RenderPipeline() {
@@ -37,7 +39,8 @@ namespace emerald {
 
 		RenderPassDesc mainPassDesc;
 		mainPassDesc.frameBuffer = FrameBuffer::create(mainfbDesc);
-		mainPassDesc.shader = Ref<Shader>::create("Geometry", "res/shaders/geometry");
+		shader = Ref<Shader>::create("Geometry", "res/shaders/geometry");
+		mainPassDesc.shader = shader;
 		m_mainPass = Ref<RenderPass>::create(mainPassDesc);
 
 		struct Vertex {
@@ -116,15 +119,17 @@ namespace emerald {
 		m_vao->addBuffer(m_vbo);
 		m_vao->validate();
 
-		Renderer::flushCommandBufferOnThisThread();
+		//We flush twice because this is the first time we are rendering
+		Renderer::flushRenderCommands();
+		Renderer::flushRenderCommands();
 
 		m_material = Ref<Material>::create("Geometry", mainPassDesc.shader);
 		//m_material->Set("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
 		//glm::vec4 colors[2] = { glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) };
 		//m_material->SetArray("color", colors, 2);
-		m_material->set("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
-		m_material->set("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 1);
+		//m_material->set("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
+		//m_material->set("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 1);
 	}
 
 	RenderPipeline::~RenderPipeline() {
@@ -193,8 +198,11 @@ namespace emerald {
 
 		auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>(&SceneManager::getActiveScene()->getECS());
 		for (auto [meshRenderer, transform] : view) {
-			m_material->set("modelMatrix", transform->getGlobalTransform());
-			m_material->updateForRendering();
+			Ref<Material> mat = meshRenderer->m_mesh->getMaterial();
+			mat->set("viewMatrix", Editor->getEditorCamera()->getViewMatrix());
+			mat->set("projectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
+			mat->set("modelMatrix", transform->getGlobalTransform());
+			mat->updateForRendering();
 			meshRenderer->m_mesh->bind();
 			Renderer::drawIndexed(meshRenderer->m_mesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
 		}

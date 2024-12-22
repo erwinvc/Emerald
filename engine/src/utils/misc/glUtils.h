@@ -3,10 +3,11 @@
 
 namespace emerald {
 	class Color;
-	enum TextureFormat : int;
+	enum class TextureFormat : int;
 
 	namespace GLUtils {
 		const char* shaderTypeToString(int type, bool upperCase = false);
+		const char* shaderUniformTypeToString(ShaderUniformType type, bool upperCase = false);
 		const char* getFBOStatus(GLenum status);
 		const char* glErrorToString(int error);
 		ShaderUniformType glTypeToShaderUniformType(uint32_t type);

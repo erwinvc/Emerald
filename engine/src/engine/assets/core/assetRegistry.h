@@ -3,51 +3,61 @@
 #include "assetTypeRegistry.h"
 #include "engine/assets/metadata/assetMetadata.h"
 #include "utils/uuid/uuid.h"
+#include "../loaders/assetLoader.h"
+#include <future>
 
 namespace emerald {
 	class AssetRegistry {
 	public:
-		AssetRegistry();
+		enum class AssetStreamingState {
+			NOTLOADED,
+			LOADING,
+			LOADED
+		};
 
-		void parseCurrentProject();
-		void registerAsset(UniqueRef<AssetMetadata> metadata, const std::filesystem::path& path);
-		void processAssetFile(const std::filesystem::path& assetPath);
+		AssetRegistry() = delete;
+		AssetRegistry(const AssetRegistry&) = delete;
+		AssetRegistry& operator=(const AssetRegistry&) = delete;
 
-		template<typename T>
-		Ref<T> getAsset(const UUID& uuid) {
-			auto it = m_uuidAssetMap.find(uuid);
-			if (it != m_uuidAssetMap.end()) {
-				return it->second.getAsset();
-			}
-			return nullptr;
+		static void initialize();
+		static void parseCurrentProject();
+		static void processAssetFile(const std::filesystem::path& assetPath);
+
+		static void streamAsset(AssetMetadata* metadata);
+
+		static bool isAssetStreamed(AssetMetadata* metadata) {
+			return getAssetStreamingState(metadata) == AssetStreamingState::LOADED;
 		}
 
-		AssetMetadata* getAssetMetadata(const UUID& uuid) {
-			auto it = m_uuidAssetMap.find(uuid);
-			if (it != m_uuidAssetMap.end()) {
-				return it->second;
-			}
-			return nullptr;
+		static bool isAssetLoading(AssetMetadata* metadata) {
+			return getAssetStreamingState(metadata) == AssetStreamingState::LOADING;
 		}
 
-		AssetMetadata* getAssetMetadata(const std::filesystem::path& path) {
-			auto it = m_pathAssetMap.find(path);
-			if (it != m_pathAssetMap.end()) {
-				return it->second;
-			}
-			return nullptr;
-		}
+		static AssetStreamingState getAssetStreamingState(AssetMetadata* metadata);
+		static Ref<Asset> getAsset(AssetMetadata* metadata);
+		static AssetMetadata* getAssetMetadata(const UUID& uuid);
+		static AssetMetadata* getAssetMetadata(const std::filesystem::path& path);
 
-		void clear() {
-			m_assets.clear();
-			m_uuidAssetMap.clear();
-			m_pathAssetMap.clear();
-		}
+		static void clear();
+		static void update();
 
 	private:
-		AssetTypeRegistry m_assetTypeRegistry;
-		std::vector<UniqueRef<AssetMetadata>> m_assets;
-		std::unordered_map<UUID, AssetMetadata*> m_uuidAssetMap;
-		std::unordered_map<std::filesystem::path, AssetMetadata*> m_pathAssetMap;
+		static void startLoading(AssetMetadata* metadata);
+		static void finalizeLoading(AssetMetadata* metadata, const Ref<AssetLoader>& loader);
+
+		struct StreamingTask {
+			AssetMetadata* metadata;
+			std::future<Ref<AssetLoader>> futureAsset;
+		};
+
+		static inline AssetTypeRegistry m_assetTypeRegistry;
+		static inline std::vector<UniqueRef<AssetMetadata>> m_assetMetadata;
+		static inline std::unordered_map<UUID, AssetMetadata*> m_uuidAssetMap;
+		static inline std::unordered_map<std::filesystem::path, AssetMetadata*> m_pathAssetMap;
+
+		static inline std::mutex m_mutex;
+		static inline std::vector<StreamingTask> m_streamingQueue;
+		static inline std::map<AssetMetadata*, AssetStreamingState> m_streamingState;
+		static inline std::map<AssetMetadata*, Ref<Asset>> m_assets;
 	};
 }

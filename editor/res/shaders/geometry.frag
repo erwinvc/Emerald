@@ -11,10 +11,12 @@ out vec4 FragColor;
 
 uniform int colorIndex;
 uniform vec4 color[2];
-uniform sampler2D tex;
+uniform sampler2D _Albedo;
+uniform sampler2D _Normal;
+uniform vec4 _BaseColor;
 
 // Hardcoded directional light parameters
-vec3 lightDir = normalize(vec3(0.5, -1.0, -0.3));  // Directional light direction
+vec3 lightDir = normalize(vec3(0.5, -1.0, -0.1));  // Directional light direction
 vec3 lightColor = vec3(1.0, 1.0, 1.0);             // Light color (white)
 float ambientStrength = 0.1;                       // Ambient light strength
 vec3 viewPos = vec3(0.0, 0.0, 3.0);                // Camera position
@@ -37,7 +39,8 @@ void main() {
 	// Combine all lighting components
 	vec3 lighting = ambient + diffuse + specular;
 
-	// Apply texture and color with lighting
-//	vec4 texColor = texture(tex, vsData.uv);
-	FragColor = color[colorIndex] * vec4(lighting, 1.0);
+	vec4 albedo = texture(_Albedo, vsData.uv).rgba;
+	if (albedo.a < 0.2) discard;
+
+	FragColor = _BaseColor * albedo * vec4(lighting, 1.0);
 }

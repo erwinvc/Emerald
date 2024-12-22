@@ -19,7 +19,7 @@ namespace emerald {
 		static void acquireRenderBuffer();
 		static void waitForBufferAvailability();
 		static void submitBufferForRendering();
-		static void flushCommandBufferOnThisThread();
+		static void flushRenderCommands();
 
 		static void beginRenderPass(const Ref<RenderPass>& renderPass);
 		static void endRenderPass();

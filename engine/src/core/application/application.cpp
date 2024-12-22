@@ -20,6 +20,7 @@
 #include "tests/test.h"
 #include "utils/threading/jobSystem.h"
 #include "engine/assets/streaming/streaming.h"
+#include "engine/assets/core/assetRegistry.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -73,18 +74,12 @@ namespace emerald {
 		GL(glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
 		GLError::setGLDebugMessageCallback();
 
-		onInitialize();
-		Renderer::flushCommandBufferOnThisThread();
-
-		m_mainWindow->show();
-
-		m_initialized = true;
-
 		ThreadManager::registerCurrentThread(ThreadType::RENDER);
 
 		Metrics::initialize();
+		AssetRegistry::initialize();
 
-		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, "Logic", [this]() { logicLoop(); });
+		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, "Logic", [this]() { initializeLogic(); });
 
 		renderLoop();
 
@@ -150,70 +145,83 @@ namespace emerald {
 		}
 	}
 
+	void Application::initializeLogic() {
+		PROFILE_REGISTER_LOGIC_THREAD("Logic");
+
+		Renderer::waitForBufferAvailability();
+		onInitialize();
+		Renderer::submitBufferForRendering();
+
+		//We need to show the window after the first frame has been rendered
+		logicLoop();
+
+		Renderer::submit([window = Ref<Window>(m_mainWindow)] { window->show(); });
+
+		while (g_running) {
+			logicLoop();
+		}
+	}
 
 	void Application::logicLoop() {
-		PROFILE_REGISTER_LOGIC_THREAD("Logic");
-		while (g_running) {
-			PROFILE_LOGIC_FRAME();
+		PROFILE_LOGIC_FRAME();
 
-			PROFILE_LOGIC_BEGIN("Wait");
-			Metrics::startTimer(Metric::LOGICWAIT);
-			Renderer::waitForBufferAvailability();
-			Metrics::endTimer(Metric::LOGICWAIT);
-			PROFILE_LOGIC_END();
+		PROFILE_LOGIC_BEGIN("Wait");
+		Metrics::startTimer(Metric::LOGICWAIT);
+		Renderer::waitForBufferAvailability();
+		Metrics::endTimer(Metric::LOGICWAIT);
+		PROFILE_LOGIC_END();
 
-			PROFILE_LOGIC_BEGIN("Logic");
-			Metrics::startTimer(Metric::LOGIC);
-			float currentTime = (float)glfwGetTime();
-			float deltaTime = currentTime - m_lastFrameTime;
-			m_totalFrameTime += deltaTime;
-			m_frameCount++;
+		PROFILE_LOGIC_BEGIN("Logic");
+		Metrics::startTimer(Metric::LOGIC);
+		float currentTime = (float)glfwGetTime();
+		float deltaTime = currentTime - m_lastFrameTime;
+		m_totalFrameTime += deltaTime;
+		m_frameCount++;
 
-			m_accumulatedTime += deltaTime;
+		m_accumulatedTime += deltaTime;
 
-			while (m_accumulatedTime >= m_fixedTimeStep) {
-				fixedUpdate(Timestep(m_fixedTimeStep, m_totalFrameTime, m_frameCount));
-				m_upsCounter++;
-				m_accumulatedTime -= m_fixedTimeStep;
-			}
-
-			PROFILE_LOGIC_BEGIN("Input");
-			Keyboard::update();
-			Mouse::update();
-			PROFILE_LOGIC_END();
-
-			PROFILE_LOGIC_BEGIN("Process events");
-			EventSystem::processEvents();
-			PROFILE_LOGIC_END();
-
-			PROFILE_LOGIC_BEGIN("Process queue");
-			processQueueCPU();
-			PROFILE_LOGIC_END();
-
-			PROFILE_LOGIC_BEGIN("Streaming queue");
-			Streaming::handleStreamingQueue();
-			PROFILE_LOGIC_END();
-
-			PROFILE_LOGIC_BEGIN("Update");
-			update(Timestep(deltaTime, m_totalFrameTime, m_frameCount));
-			PROFILE_LOGIC_END();
-
-			m_lastFrameTime = currentTime;
-
-			if (currentTime - m_upsfpsCounter >= 1.0f) {
-				m_fps = m_fpsCounter;
-				m_ups = m_upsCounter;
-				m_fpsCounter = 0;
-				m_upsCounter = 0;
-				m_upsfpsCounter = currentTime;
-			}
-
-			PROFILE_LOGIC_END();
-			Metrics::endTimer(Metric::LOGIC);
-			PROFILE_LOGIC_BEGIN("Submit buffer");
-			Renderer::submitBufferForRendering();
-			PROFILE_LOGIC_END();
+		while (m_accumulatedTime >= m_fixedTimeStep) {
+			fixedUpdate(Timestep(m_fixedTimeStep, m_totalFrameTime, m_frameCount));
+			m_upsCounter++;
+			m_accumulatedTime -= m_fixedTimeStep;
 		}
+
+		PROFILE_LOGIC_BEGIN("Input");
+		Keyboard::update();
+		Mouse::update();
+		PROFILE_LOGIC_END();
+
+		PROFILE_LOGIC_BEGIN("Process events");
+		EventSystem::processEvents();
+		PROFILE_LOGIC_END();
+
+		PROFILE_LOGIC_BEGIN("Process queue");
+		processQueueCPU();
+		PROFILE_LOGIC_END();
+
+		PROFILE_LOGIC_BEGIN("Asset streaming");
+		AssetRegistry::update();
+		PROFILE_LOGIC_END();
+
+		PROFILE_LOGIC_BEGIN("Update");
+		update(Timestep(deltaTime, m_totalFrameTime, m_frameCount));
+		PROFILE_LOGIC_END();
+
+		m_lastFrameTime = currentTime;
+
+		if (currentTime - m_upsfpsCounter >= 1.0f) {
+			m_fps = m_fpsCounter;
+			m_ups = m_upsCounter;
+			m_fpsCounter = 0;
+			m_upsCounter = 0;
+			m_upsfpsCounter = currentTime;
+		}
+
+		PROFILE_LOGIC_END();
+		Metrics::endTimer(Metric::LOGIC);
+		PROFILE_LOGIC_BEGIN("Submit buffer");
+		Renderer::submitBufferForRendering();
+		PROFILE_LOGIC_END();
 	}
 
 	void Application::close() {

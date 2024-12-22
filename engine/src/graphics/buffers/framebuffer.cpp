@@ -3,6 +3,7 @@
 #include "utils/misc/GLUtils.h"
 #include "core/application/application.h"
 #include "graphics/core/renderer.h"
+#include "utils/threading/threadManager.h"
 
 namespace emerald {
 	static const uint32_t drawBuffers[16] = {
@@ -53,13 +54,15 @@ namespace emerald {
 	}
 
 	void FrameBuffer::invalidateTextures() {
+		ASSERT(ThreadManager::isThread(RENDER), "framebuffers should be invalidated on the render thread");
+
 		m_textures.clear();
 		m_depthTexture = nullptr;
 		for (auto& attachmentDesc : m_desc.attachments) {
 			TextureDesc desc;
 			desc.format = attachmentDesc.format;
-			desc.filter = LINEAR;
-			desc.wrap = REPEAT;
+			desc.filter = TextureFilter::LINEAR;
+			desc.wrap = TextureWrap::REPEAT;
 			desc.hasMipmaps = false;
 			desc.isImmutable = false;
 			desc.samples = m_desc.samples;

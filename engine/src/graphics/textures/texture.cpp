@@ -8,13 +8,14 @@
 #include "core/common/assrt.h"
 #include "stb_image.h"
 #include "stb_image_write.h"
+#include "utils/threading/threadManager.h"
 
 namespace emerald {
 	Texture::Texture(TextureDesc desc, uint32_t width, uint32_t height, const byte* data, uint32_t dataSize, TextureDataType textureDataType)
 		: m_desc(desc), m_width(width), m_height(height) {
 		if (textureDataType == TextureDataType::RAW) {
 			if (data) {
-				m_buffer = Buffer<byte>::copy((byte*)data, getImageMemorySize());
+				m_buffer = Buffer<byte>::copy((byte*)data, dataSize);
 			}
 		} else if (textureDataType == TextureDataType::FILE) {
 			int channelCount;
@@ -55,7 +56,7 @@ namespace emerald {
 	}
 
 	void Texture::invalidate() {
-		//ASSERT(ThreadManager::isThread(RENDER), "textures should be invalidated on the render thread");
+		ASSERT(ThreadManager::isThread(RENDER), "textures should be invalidated on the render thread");
 
 		if (m_handle) cleanup();
 

@@ -5,7 +5,6 @@
 #include "utils/system/timestep.h"
 #include <functional>
 #include <string>
-#include "engine/assets/core/assetRegistry.h"
 
 namespace emerald {
 	class Window;
@@ -61,20 +60,17 @@ namespace emerald {
 		float getFixedTimeStep() const { return m_fixedTimeStep; }
 		void setFixedTimeStep(float timeStep) { m_fixedTimeStep = timeStep; }
 
-		AssetRegistry& getAssetRegistry() { return m_assetRegistry; }
-
 	private:
+		void initializeLogic();
 		void logicLoop();
 		void renderLoop();
 
 	protected:
 		ApplicationSettings m_settings;
-		AssetRegistry m_assetRegistry;
 		Ref<Window> m_mainWindow;
 		AsyncQueue<std::function<void()>> m_eventQueue;
 		AsyncQueue<std::function<void()>> m_eventQueueCPU;
 
-		bool m_initialized = false;
 		uint64_t m_frameCount = 0;
 		uint32_t m_fpsCounter = 0;
 		uint32_t m_upsCounter = 0;

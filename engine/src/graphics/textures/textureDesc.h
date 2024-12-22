@@ -1,8 +1,10 @@
 #pragma once
 
 namespace emerald {
-	enum TextureFormat : int {
+	enum class TextureFormat : int {
 		NONE,
+		R,
+		RG,
 		RGB,
 		RGBA8F,
 		RGBA16F,
@@ -15,12 +17,12 @@ namespace emerald {
 		DEPTH24STENCIL8,
 	};
 
-	enum TextureFilter {
+	enum class TextureFilter {
 		LINEAR,
 		NEAREST
 	};
 
-	enum TextureWrap {
+	enum class TextureWrap {
 		CLAMP = 0x2900,
 		REPEAT = 0x2901,
 		MIRRORED_REPEAT = 0x8370,
@@ -45,9 +47,9 @@ namespace emerald {
 
 	class TextureDesc final {
 	public:
-		TextureFormat format = RGBA8F;
-		TextureFilter filter = LINEAR;
-		TextureWrap wrap = REPEAT;
+		TextureFormat format = TextureFormat::RGBA8F;
+		TextureFilter filter = TextureFilter::LINEAR;
+		TextureWrap wrap = TextureWrap::REPEAT;
 		MSAA samples = MSAA::NONE;
 		uint32_t anisotropyLevel = 0;
 		bool hasMipmaps = false;
@@ -57,7 +59,7 @@ namespace emerald {
 		std::string wrapToString(TextureWrap wrap) const;
 		std::string filterToString(TextureFilter filter) const;
 
-		uint32_t getWrap() const { return wrap; }
+		uint32_t getWrap() const { return (uint32_t)wrap; }
 		uint32_t getFilter(int type, bool mipmap) const;
 
 		uint32_t getSamples() const;
@@ -67,6 +69,6 @@ namespace emerald {
 		uint32_t getInternalFormat() const;
 		uint32_t getDataType() const;
 		uint32_t textureFormatToAttachmentType(uint32_t colorAttachmentIndex = 0) const;
-		bool isColorAttachmentType()const;
+		bool isColorAttachmentType() const;
 	};
 }

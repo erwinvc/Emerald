@@ -28,5 +28,6 @@ namespace emerald {
 
 		void render();
 		const Ref<Texture>& getFinalTexture();
+		static inline Ref<Shader> shader;
 	};
 }

@@ -12,7 +12,7 @@ namespace emerald {
 		void fromJson(const nlohmann::json& j);
 
 		virtual Ref<AssetLoader> createAssetLoader() override {
-			return Ref<TextureLoader>::create(m_desc, m_path);
+			return Ref<TextureLoader>::create(m_desc, m_path, true);
 		}
 
 	private:

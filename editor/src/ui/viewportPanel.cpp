@@ -64,7 +64,7 @@ namespace emerald {
 
 				for (size_t i = 0; i < assetCount; i++) {
 					UUID droppedUUID = assetUUIDs[i];
-					AssetMetadata* metaData = App->getAssetRegistry().getAssetMetadata(droppedUUID);
+					AssetMetadata* metaData = AssetRegistry::getAssetMetadata(droppedUUID);
 					if (!metaData) {
 						throw std::runtime_error("Asset dropped but not found in registry");
 					}
@@ -75,7 +75,7 @@ namespace emerald {
 						} else if (metaData->getType() == AssetType::MODEL) {
 
 							auto createAsset = [metaData] {
-								Ref<Model> asset = Streaming::getAsset(metaData);
+								Ref<Model> asset = AssetRegistry::getAsset(metaData);
 								auto& ecs = SceneManager::getActiveScene()->getECS();
 
 
@@ -90,10 +90,10 @@ namespace emerald {
 								}
 							};
 
-							if (Streaming::isAssetStreamed(metaData)) {
+							if (AssetRegistry::isAssetStreamed(metaData)) {
 								createAsset();
 							} else {
-								Streaming::streamAsset(metaData);
+								AssetRegistry::streamAsset(metaData);
 								EventSystem::subscribeOnce<AssetStreamedEvent>([createAsset](AssetStreamedEvent&) {
 									createAsset();
 								});

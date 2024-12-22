@@ -35,9 +35,9 @@ namespace emerald {
 		TextureDesc desc;
 		desc.hasMipmaps = false;
 		desc.anisotropyLevel = 0;
-		desc.format = RGBA8F;
+		desc.format = TextureFormat::RGBA8F;
 		desc.readWrite = false;
-		desc.filter = NEAREST;
+		desc.filter = TextureFilter::NEAREST;
 
 		m_icon = Ref<Texture>::create(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
 		Renderer::submit([instance = Ref<Texture>(m_icon)]() { instance->invalidate(); });

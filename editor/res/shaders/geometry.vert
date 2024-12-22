@@ -18,7 +18,7 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
 void main(){
-	//vsData.uv = vsUv;                                       // Pass UV coordinates
+	vsData.uv = vsUv;                                       // Pass UV coordinates
 	vsData.normal = mat3(transpose(inverse(modelMatrix))) * vsNormal;  // Transform normal to world space
 
 	vec4 worldPos = modelMatrix * vec4(vsPos, 1.0);         // Transform position to world space

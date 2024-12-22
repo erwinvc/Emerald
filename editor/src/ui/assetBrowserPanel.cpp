@@ -25,11 +25,15 @@ namespace emerald {
 		EventSystem::subscribe<MouseScrollEvent>(&AssetBrowserPanel::onMouseScrollEvent, this);
 
 		TextureDesc desc;
-		m_folderIcon = TextureLoader(desc, "res/textures/folder.png").load();
-		m_folderEmptyIcon = TextureLoader(desc, "res/textures/folderEmpty.png").load();
+		m_folderIcon = TextureLoader(desc, "res/textures/folder.png", false).load();
+		m_folderEmptyIcon = TextureLoader(desc, "res/textures/folderEmpty.png", false).load();
 
-		Renderer::submit([instance = Ref<Texture>(m_folderIcon)]() { instance->invalidate(); });
-		Renderer::submit([instance = Ref<Texture>(m_folderEmptyIcon)]() { instance->invalidate(); });
+		Renderer::submit([instance = Ref<Texture>(m_folderIcon)]() {
+			instance->invalidate();
+		});
+		Renderer::submit([instance = Ref<Texture>(m_folderEmptyIcon)]() {
+			instance->invalidate();
+		});
 	}
 
 	void AssetBrowserPanel::onProjectOpened(EditorProjectOpenedEvent& e) {
@@ -193,7 +197,7 @@ namespace emerald {
 			const float bottomPadding = 5.0f;
 
 			bool isDirectory = std::filesystem::is_directory(assetPath);
-			AssetMetadata* metadata = Editor->getAssetRegistry().getAssetMetadata(assetPath);
+			AssetMetadata* metadata = AssetRegistry::getAssetMetadata(assetPath);
 			if (!metadata && !isDirectory) continue;
 
 			ImGui::PushID(assetPath.string().c_str());
@@ -232,8 +236,8 @@ namespace emerald {
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID | ImGuiDragDropFlags_SourceNoPreviewTooltip)) {
 				std::vector<UUID> selectedAssets;
 				for (const auto& selectedAsset : getSelectedAssets()) {
-					AssetMetadata* selectedAssetMetadata = Editor->getAssetRegistry().getAssetMetadata(selectedAsset);
-					Streaming::streamAsset(selectedAssetMetadata);
+					AssetMetadata* selectedAssetMetadata = AssetRegistry::getAssetMetadata(selectedAsset);
+					AssetRegistry::streamAsset(selectedAssetMetadata);
 					selectedAssets.push_back(selectedAssetMetadata->getUUID());
 				}
 

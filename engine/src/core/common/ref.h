@@ -58,7 +58,7 @@ namespace emerald {
 
 		// Move constructor: Creates a new Ref object that takes ownership of the referenced object from the given Ref object.
 		// The referenced object's reference count is not incremented.
-		Ref(Ref&& other) : m_reference(other.m_reference), m_controlBlock(other.m_controlBlock) {
+		Ref(Ref&& other) noexcept : m_reference(other.m_reference), m_controlBlock(other.m_controlBlock) {
 			other.m_reference = nullptr;
 			other.m_controlBlock = nullptr;
 		}
@@ -118,7 +118,7 @@ namespace emerald {
 			decrementRef();
 		}
 
-		operator bool() { return m_reference != nullptr; }
+		//operator bool() { return m_reference != nullptr; }
 		operator bool() const { return m_reference != nullptr; }
 
 		T* operator->() { return m_reference; }

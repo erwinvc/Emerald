@@ -11,17 +11,6 @@ namespace emerald {
 	}
 
 	void Material::initializeBuffer() {
-		//ASSERT(m_shader->isLoaded(), "Trying to create a material for a shader that is not yet loaded");
-		//const auto& uniformBuffers = m_shader->getUniformBuffers();
-		//uint32_t totalSize = 0;
-		//
-		//for (auto& [name, uniform] : uniformBuffers) {
-		//	totalSize += uniform.m_size * uniform.m_count;
-		//}
-		//
-		//m_uniformStorageBuffer.reserve(totalSize);
-		//m_uniformStorageBuffer.zeroInitialize();
-
 		ASSERT(m_shader->isLoaded(), "Trying to create a material for a shader that is not yet loaded");
 		const auto& uniformBuffers = m_shader->getUniformBuffers();
 		uint32_t size = 0;
@@ -38,8 +27,16 @@ namespace emerald {
 		m_shader->bind();
 
 		PROFILE_LOGIC_BEGIN("Update material");
-		const auto& uniformBuffers = m_shader->getUniformBuffers();
 
+		int textureSlot = 0;
+
+		for (const auto& [name, binding] : m_textureBindings) {
+			if (binding.texture) {
+				binding.texture->bind(binding.unit);
+			}
+		}
+
+		const auto& uniformBuffers = m_shader->getUniformBuffers();
 		for (auto& [name, uniform] : uniformBuffers) {
 			uint32_t count = uniform.m_isArray ? uniform.m_count : 1;
 
@@ -184,6 +181,14 @@ namespace emerald {
 		auto it = uniformBuffers.find(name);
 		if (it != uniformBuffers.end()) {
 			return &it->second;
+		}
+		return nullptr;
+	}
+
+	Ref<Texture> Material::getTexture(const std::string& name) const {
+		auto it = m_textureBindings.find(name);
+		if (it != m_textureBindings.end()) {
+			return it->second.texture;
 		}
 		return nullptr;
 	}

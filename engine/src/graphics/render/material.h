@@ -1,10 +1,16 @@
 #pragma once
 #include "graphics/shaders/shader.h"
 #include "utils/datastructures/buffer.h"
+#include "../textures/texture.h"
 
 namespace emerald {
 	class Material : public RefCounted {
 	public:
+		struct TextureBinding {
+			Ref<Texture> texture = nullptr;
+			int32_t unit = 0;
+		};
+
 		Material(std::string name, const Ref<Shader>& shader);
 
 		void initializeBuffer();
@@ -40,9 +46,33 @@ namespace emerald {
 
 		const ShaderUniform* getShaderUniform(const std::string& name);
 
+		void setTexture(const std::string& name, const Ref<Texture>& value) {
+			if (value == nullptr) {
+				auto it = m_textureBindings.find(name);
+				if (it != m_textureBindings.end()) {
+					it->second.texture = nullptr;
+				}
+			} else {
+				auto uniform = getShaderUniform(name);
+				ASSERT(uniform, "Could not find uniform");
+				if (!uniform)
+					return;
+
+				if (m_textureBindings.find(name) == m_textureBindings.end()) {
+					m_textureBindings[name] = TextureBinding{ value, (int32_t)m_textureBindings.size() };
+					set(name, m_textureBindings[name].unit);
+				} else {
+					m_textureBindings[name].texture = value;
+				}
+			}
+		}
+
+		Ref<Texture> getTexture(const std::string& name) const;
+
 	private:
 		std::string m_name;
 		Ref<Shader> m_shader;
 		Buffer<byte> m_uniformStorageBuffer;
+		std::unordered_map<std::string, TextureBinding> m_textureBindings;
 	};
 }

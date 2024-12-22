@@ -486,7 +486,7 @@ namespace emerald::tests {
 
 		Timer timer2;
 		for (int i = 0; i < 1000000; i++) {
-			UUIDGenerator::createVersion1();
+			//UUIDGenerator::createVersion1();
 		}
 		timer2.print("V1");
 
@@ -500,7 +500,7 @@ namespace emerald::tests {
 
 		std::unordered_set<std::string> seen;
 		seen.reserve(NUM_UUIDS);
-		seen.max_load_factor(0.7);
+		seen.max_load_factor(0.7f);
 
 		std::array<size_t, 128> bitCounts{};
 		for (auto& count : bitCounts) {

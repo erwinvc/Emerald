@@ -49,7 +49,7 @@ namespace emerald {
 				callback(xpos, ypos);
 			}
 
-			EventSystem::dispatch<MousePositionEvent>(xpos, ypos);
+			EventSystem::dispatch<MousePositionEvent>((float)xpos, (float)ypos);
 		});
 
 		glfwSetScrollCallback(window->handle(), [](GLFWwindow* wnd, double xoffset, double yoffset) {
@@ -57,7 +57,7 @@ namespace emerald {
 				callback(xoffset, yoffset);
 			}
 
-			EventSystem::dispatch<MouseScrollEvent>(xoffset, yoffset);
+			EventSystem::dispatch<MouseScrollEvent>((float)xoffset, (float)yoffset);
 		});
 
 		glfwSetCharCallback(window->handle(), [](GLFWwindow* wnd, uint32_t character) {

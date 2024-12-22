@@ -1,6 +1,8 @@
 #include "eepch.h"
 #include "modelLoader.h"
-#define ASSIMP_BUILD_DLL
+
+#define ASSIMP_BUILD_NO_EXPORT
+#define ASSIMP_BUILD_NO_IMPORT
 #include "assimp/postprocess.h"
 #include "assimp/mesh.h"
 #include "assimp/scene.h"
@@ -9,6 +11,9 @@
 #include "graphics/buffers/vertexArray.h"
 #include "graphics/buffers/indexBuffer.h"
 #include "utils/system/timer.h"
+#include "graphics/textures/texture.h"
+#include "textureLoader.h"
+#include "graphics/render/renderPipeline.h"
 
 namespace emerald {
 	static const uint32_t ImportFlags =
@@ -33,7 +38,7 @@ namespace emerald {
 		{VertexAttributeType::FLOAT3, "vsTangents", 0}
 	};
 
-	PreloadedMesh::PreloadedMesh(const std::string& name, aiMesh* mesh, const aiScene* scene, uint32_t subMeshIndex) : m_name(name), m_subMeshIndex(subMeshIndex) {
+	PreloadedMesh::PreloadedMesh(const std::string& name, aiMesh* mesh, const aiScene* scene, uint32_t subMeshIndex) : m_name(name), m_subMeshIndex(subMeshIndex), m_materialIndex(mesh->mMaterialIndex) {
 		m_vertices.reserve(mesh->mNumVertices);
 		m_indices.reserve((size_t)(mesh->mNumFaces) * 3);
 
@@ -59,43 +64,7 @@ namespace emerald {
 		}
 	}
 
-	Ref<Mesh> processMesh(const std::string& meshName, aiMesh* mesh, const aiScene* scene, uint32_t& index) {
-		std::vector<Vertex> vertices;
-		std::vector<GLuint> indices;
-		vertices.reserve(mesh->mNumVertices);
-		indices.reserve((size_t)(mesh->mNumFaces) * 3);
-
-		for (uint32_t i = 0; i < mesh->mNumVertices; i++) {
-			Vertex vertex;
-			vertex.m_position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
-			vertex.m_normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-			//vertex.m_uv = mesh->mTextureCoords[0] ? glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y) : glm::vec2(0.0f, 0.0f);
-			//vertex.m_tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
-			//vertex.m_biTangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
-			vertices.push_back(vertex);
-		}
-
-		for (uint32_t i = 0; i < mesh->mNumFaces; i++) {
-			aiFace face = mesh->mFaces[i];
-			if (face.mNumIndices == 3) {
-				indices.push_back(face.mIndices[0]);
-				indices.push_back(face.mIndices[1]);
-				indices.push_back(face.mIndices[2]);
-			} else {
-				Log::error("[Model] Unexpected number of indices ({}) in a face", face.mNumIndices);
-			}
-		}
-
-		// Create the vertex array and buffers
-		Ref<IndexBuffer> ibo = Ref<IndexBuffer>::create((byte*)indices.data(), (uint32_t)(indices.size() * sizeof(uint32_t)));
-		Ref<VertexBuffer> vbo = Ref<VertexBuffer>::create((byte*)vertices.data(), (uint32_t)(vertices.size() * sizeof(Vertex)));
-		Ref<VertexArray> vao = Ref<VertexArray>::create(s_layout);
-		vao->addBuffer(vbo);
-		vao->validate();
-		return Ref<Mesh>::create(std::format("{}_{}", meshName, index), vao, ibo);
-	}
-
-	void processNode(std::vector<PreloadedMesh>& meshes, const std::string& meshName, aiNode* node, const aiScene* scene, uint32_t& index) {
+	static void processNode(std::vector<PreloadedMesh>& meshes, const std::string& meshName, aiNode* node, const aiScene* scene, uint32_t& index) {
 		for (GLuint i = 0; i < node->mNumMeshes; i++) {
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			meshes.push_back(PreloadedMesh(meshName, mesh, scene, index));
@@ -107,10 +76,43 @@ namespace emerald {
 		}
 	}
 
-	void ModelLoader::asyncLoad() {
+	static Ref<TextureLoader> loadMaterialTexture(aiMaterial* mat, aiTextureType type, const std::filesystem::path& basePath) {
+		if (mat->GetTextureCount(type) > 0) {
+			aiString str;
+			mat->GetTexture(type, 0, &str);
+			std::filesystem::path texPath = basePath.parent_path() / str.C_Str();
+			
+			if (std::filesystem::exists(texPath)) {
+				TextureDesc desc;
+				desc.hasMipmaps = true;
+				Ref<TextureLoader> loader = Ref<TextureLoader>::create(desc, texPath, true);
+				loader->onBeginLoad();
+				return loader;
+			}
+		}
+		return nullptr;
+	}
+
+	// Helper to get a float factor from material
+	static float getMaterialFloat(aiMaterial* mat, const char* key, unsigned int type, unsigned int idx, float defaultValue = 1.0f) {
+		float value;
+		if (mat->Get(key, type, idx, value) == AI_SUCCESS)
+			return value;
+		return defaultValue;
+	}
+
+	// Helper to get a color (glm::vec3) from material
+	static glm::vec3 getMaterialColor(aiMaterial* mat, const char* key, unsigned int type, unsigned int idx, glm::vec3 defaultColor = glm::vec3(1.0f)) {
+		aiColor3D color;
+		if (mat->Get(key, type, idx, color) == AI_SUCCESS)
+			return glm::vec3(color.r, color.g, color.b);
+		return defaultColor;
+	}
+
+	bool ModelLoader::onBeginLoad() {
 		if (!std::filesystem::exists(m_path.string())) {
 			Log::error("[Model] File at {} does not exist!", m_path.string().c_str());
-			return;
+			return false;
 		}
 
 		Timer timer;
@@ -119,7 +121,7 @@ namespace emerald {
 
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 			Log::error("[Model] Failed to load model from {}", m_path.string().c_str());
-			return;
+			return false;
 		}
 
 		m_modelName = m_path.stem().string();
@@ -128,12 +130,52 @@ namespace emerald {
 		processNode(m_preloadedMeshes, m_modelName, scene->mRootNode, scene, index);
 
 
+		m_materials.resize(scene->mNumMaterials);
+
+		for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
+			aiMaterial* aiMat = scene->mMaterials[i];
+			PreloadedMaterial preloadedMat;
+
+			aiString name;
+			aiMat->Get(AI_MATKEY_NAME, name);
+			preloadedMat.name = name.C_Str();
+
+			Log::info("[Model] Loading material {}", preloadedMat.name);
+			preloadedMat.materialIndex = i;
+			preloadedMat.m_baseColor = getMaterialColor(aiMat, AI_MATKEY_BASE_COLOR, glm::vec3(1.0f));
+			preloadedMat.m_metallic = getMaterialFloat(aiMat, AI_MATKEY_METALLIC_FACTOR, 1.0f);
+			preloadedMat.m_roughness = getMaterialFloat(aiMat, AI_MATKEY_ROUGHNESS_FACTOR, 1.0f);
+
+			preloadedMat.m_baseColorTextureLoader = loadMaterialTexture(aiMat, aiTextureType_DIFFUSE, m_path);
+			preloadedMat.m_normalTextureLoader = loadMaterialTexture(aiMat, aiTextureType_NORMALS, m_path);
+			preloadedMat.m_metallicRoughnessTextureLoader = loadMaterialTexture(aiMat, aiTextureType_METALNESS, m_path);
+			if (!preloadedMat.m_metallicRoughnessTextureLoader) {
+				preloadedMat.m_metallicRoughnessTextureLoader = loadMaterialTexture(aiMat, aiTextureType_DIFFUSE_ROUGHNESS, m_path);
+			}
+			preloadedMat.m_emissiveTextureLoader = loadMaterialTexture(aiMat, aiTextureType_EMISSIVE, m_path);
+
+			m_preloadedMaterials.push_back(preloadedMat);
+		}
+
 		asyncLoadTime = timer.get();
+		return true;
 	}
 
-	Ref<Asset> ModelLoader::syncLoad() {
+	Ref<Asset> ModelLoader::onFinishLoad() {
 		if (m_preloadedMeshes.empty()) return Ref<Model>();
 		Timer timer;
+
+		for (auto& preloadedMat : m_preloadedMaterials) {
+			Ref<Material> material = Ref<Material>::create(preloadedMat.name, RenderPipeline::shader);
+			if (preloadedMat.m_baseColorTextureLoader) material->setTexture("_Albedo", preloadedMat.m_baseColorTextureLoader->syncLoadAndInvalidate());
+			if (preloadedMat.m_normalTextureLoader) material->setTexture("_Normal", preloadedMat.m_normalTextureLoader->syncLoadAndInvalidate());
+			if (preloadedMat.m_metallicRoughnessTextureLoader) material->set("_RoughnessMetalic", preloadedMat.m_metallicRoughnessTextureLoader->syncLoadAndInvalidate());
+			if (preloadedMat.m_emissiveTextureLoader) material->set("_Emission", preloadedMat.m_emissiveTextureLoader->syncLoadAndInvalidate());
+			material->set("_BaseColor", preloadedMat.m_baseColor);
+			material->set("_Metallic", preloadedMat.m_metallic);
+			material->set("_Roughness", preloadedMat.m_roughness);
+			m_materials[preloadedMat.materialIndex] = material;
+		}
 
 		Ref<Model> model = Ref<Model>::create(m_modelName);
 		for (auto& mesh : m_preloadedMeshes) {
@@ -142,7 +184,14 @@ namespace emerald {
 			Ref<VertexArray> vao = Ref<VertexArray>::create(s_layout);
 			vao->addBuffer(vbo);
 			vao->validate();
-			model->addSubmesh(Ref<Mesh>::create(std::format("{}_{}", mesh.m_name, mesh.m_subMeshIndex), vao, ibo));
+
+			Ref<Mesh> subMesh = Ref<Mesh>::create(std::format("{}_{}", mesh.m_name, mesh.m_subMeshIndex), vao, ibo);
+
+			if (mesh.m_materialIndex < m_materials.size()) {
+				subMesh->setMaterial(m_materials[mesh.m_materialIndex]);
+			}
+
+			model->addSubmesh(subMesh);
 		}
 
 		Log::info("[Model] Loaded {} in {:.2f} ms cpu and {:.2f} ms gpu", m_path.string().c_str(), asyncLoadTime, timer.get());

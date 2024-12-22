@@ -13,7 +13,24 @@ namespace emerald {
 				case GL_TESS_EVALUATION_SHADER: return upperCase ? "Tessellation evaluation" : "tessellation evaluation";
 				case GL_TESS_CONTROL_SHADER: return upperCase ? "Tessellation control" : "tessellation control";
 			}
-			return "NULL";
+			throw std::runtime_error("Unknown shader type");
+		}
+
+		const char* shaderUniformTypeToString(ShaderUniformType type, bool upperCase) {
+			switch (type) {
+				case ShaderUniformType::NONE: return upperCase ? "None" : "none";
+				case ShaderUniformType::BOOL: return upperCase ? "Bool" : "bool";
+				case ShaderUniformType::INT:  return upperCase ? "Int" : "int";
+				case ShaderUniformType::UINT: return upperCase ? "UInt" : "uint";
+				case ShaderUniformType::FLOAT:return upperCase ? "Float" : "float";
+				case ShaderUniformType::VEC2: return upperCase ? "Vec2" : "vec2";
+				case ShaderUniformType::VEC3: return upperCase ? "Vec3" : "vec3";
+				case ShaderUniformType::VEC4: return upperCase ? "Vec4" : "vec4";
+				case ShaderUniformType::MAT3: return upperCase ? "Mat3" : "mat3";
+				case ShaderUniformType::MAT4: return upperCase ? "Mat4" : "mat4";
+
+			}
+			throw std::runtime_error("Unknown shader uniform type");
 		}
 
 		const char* getFBOStatus(GLenum status) {

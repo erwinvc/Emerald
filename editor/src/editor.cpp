@@ -64,6 +64,12 @@ namespace emerald {
 
 		//Undo redo
 
+		if (Keyboard::keyJustDown(Key::H)) {
+			Ref<Shader>::create("Geometry", "res/shaders/geometry");
+			Renderer::submitBufferForRendering();
+			Renderer::waitForBufferAvailability();
+		}
+
 		if (Keyboard::keyMod(KeyMod::CONTROL)) {
 			if (Keyboard::keyJustDown(Key::Z) || Keyboard::keyRepeat(Key::Z)) {
 				if (Keyboard::keyMod(KeyMod::SHIFT)) {
@@ -121,11 +127,11 @@ namespace emerald {
 
 	void EmeraldEditorApplication::onProjectOpened(EditorProjectOpenedEvent& e) {
 		if (e.isValid()) {
-			m_assetRegistry.parseCurrentProject();
+			AssetRegistry::parseCurrentProject();
 			SceneManager::setActiveScene(Ref<Scene>::create("New Scene", ""));
 			SceneManager::getActiveScene()->initialize();
 		} else {
-			m_assetRegistry.clear();
+			AssetRegistry::clear();
 			SceneManager::clearScenes();
 		}
 	}

@@ -27,11 +27,6 @@ project "Engine"
 	 	"dependencies/GLAD/include",
 		"dependencies"
 	}
-   
-   	libdirs  
-	{ 
-		"dependencies/AssImp",
-	}
 	
 	links
 	{
@@ -61,14 +56,20 @@ project "Engine"
         defines { "EE_DEBUG" }
         runtime "Debug"
         symbols "On"
-		libdirs { "dependencies/assimp/bin/Debug" }
+		libdirs {
+			"dependencies/assimp/lib/Debug",
+			"dependencies/zlib/lib/Debug",
+		}
 		links
 		{
-			"assimp-vc141-mtd.lib",
-			"zlibstatic"
+			"assimp-vc143-mtd.lib",
+			"zlibstaticd.lib"
 		}
-		postbuildcommands { '{COPY} "dependencies/assimp/bin/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"' }
-    
+		postbuildcommands {
+			'{COPY} "../engine/dependencies/assimp/lib/Debug/assimp-vc143-mtd.pdb" "%{cfg.targetdir}"',
+			'{COPY} "../engine/dependencies/zlib/lib/Debug/zlibstaticd.pdb" "%{cfg.targetdir}"'
+		}
+		
     filter "configurations:Release"
         defines { "EE_RELEASE" }
         runtime "Release"
@@ -81,6 +82,10 @@ project "Engine"
 		links {
 			"assimp-vc143-mt.lib",
 			"zlibstatic.lib",
+		}
+		postbuildcommands {
+			'{COPY} "../engine/dependencies/assimp/lib/Release/assimp-vc143-mt.pdb" "%{cfg.targetdir}"',
+			'{COPY} "../engine/dependencies/zlib/lib/Release/zlibstatic.pdb" "%{cfg.targetdir}"'
 		}
     
     filter "configurations:Dist"
@@ -95,4 +100,8 @@ project "Engine"
 		links {
 			"assimp-vc143-mt.lib",
 			"zlibstatic.lib",
+		}
+		postbuildcommands {
+			'{COPY} "../engine/dependencies/assimp/lib/Release/assimp-vc143-mt.pdb" "%{cfg.targetdir}"',
+			'{COPY} "../engine/dependencies/zlib/lib/Release/zlibstatic.pdb" "%{cfg.targetdir}"'
 		}
