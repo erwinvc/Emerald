@@ -59,4 +59,26 @@ namespace emerald {
 			child->setEnabledRecursive(enabled);
 		}
 	}
+
+	nlohmann::json SceneGraphComponent::serialize() {
+		nlohmann::json json;
+		json["parent"] = m_parent ? m_parent->m_entity : 0;
+		json["children"] = nlohmann::json::array();
+		for (auto child : m_children) {
+			json["children"].push_back(child->m_entity);
+		}
+		return json;
+	}
+
+	SceneGraphComponent* SceneGraphComponent::deserialize(const nlohmann::json& json, Entity entity) {
+		EntityComponentSystem& ecs = SceneManager::getActiveScene()->getECS();
+		SceneGraphComponent* comp = ecs.addComponent<SceneGraphComponent>(entity);
+
+		comp->setParent((Entity)json["parent"]);
+		for (auto child : json["children"]) {
+			comp->addChild((Entity)child);
+		}
+
+		return comp;
+	}
 }

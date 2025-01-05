@@ -7,6 +7,7 @@
 #include "editor.h"
 #include "engine/events/eventSystem.h"
 #include "editorProjectOpenedEvent.h"
+#include "utils/misc/utils.h"
 
 namespace nlohmann {
 	template <>
@@ -93,8 +94,9 @@ namespace emerald {
 	}
 
 	void Project::addToRecentProjects(const std::filesystem::path& path) {
-		s_recentProjects.erase(std::remove(s_recentProjects.begin(), s_recentProjects.end(), path), s_recentProjects.end());
-		s_recentProjects.insert(s_recentProjects.begin(), path);
+		std::filesystem::path _path = path;
+		utils::eraseFromVector(s_recentProjects, _path);
+		s_recentProjects.insert(s_recentProjects.begin(), _path);
 		if (s_recentProjects.size() > s_maxRecentProjects) {
 			s_recentProjects.resize(s_maxRecentProjects);
 		}
@@ -120,6 +122,9 @@ namespace emerald {
 			nlohmann::json j = jsonUtils::readFromFile(recentProjectsPath);
 			s_recentProjects = j["projects"].get<std::vector<std::filesystem::path>>();
 		} catch (...) {}
+
+		if (s_recentProjects.size() > 0)
+			openProject(s_recentProjects[0]);
 	}
 
 	void Project::clearRecentProjects() {

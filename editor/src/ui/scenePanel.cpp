@@ -7,7 +7,6 @@ namespace emerald {
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		if (ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_NoNav)) {
 			ImGui::DrawGradientBackgroundForWindow(ImGui::GradientDirection::TOP);
-			ImGui::Text("Scene Panel");
 		}
 		ImGui::End();
 	}

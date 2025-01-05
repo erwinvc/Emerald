@@ -59,7 +59,7 @@ namespace emerald {
 				case 0x507: return "GL_CONTEXT_LOST";
 				case 0x5031: return "GL_TABLE_TOO_LARGE1";
 			}
-			return "";
+			throw std::runtime_error("Unknown glError");
 		}
 
 		ShaderUniformType glTypeToShaderUniformType(uint32_t type) {
@@ -74,10 +74,12 @@ namespace emerald {
 				case GL_SAMPLER_1D: 		return ShaderUniformType::INT;
 				case GL_SAMPLER_2D: 		return ShaderUniformType::INT;
 				case GL_SAMPLER_3D: 		return ShaderUniformType::INT;
+				case GL_SAMPLER_1D_SHADOW:	return ShaderUniformType::INT;
+				case GL_SAMPLER_2D_SHADOW:	return ShaderUniformType::INT;
+				case GL_SAMPLER_1D_ARRAY:	return ShaderUniformType::INT;
 				case GL_SAMPLER_2D_ARRAY:	return ShaderUniformType::INT;
 			}
-			Log::error("Unknow GL type {}", type);
-			return ShaderUniformType();
+			throw std::runtime_error("Unknown glType");
 		}
 
 		uint32_t getUniformSize(ShaderUniformType type) {
@@ -85,12 +87,11 @@ namespace emerald {
 				case ShaderUniformType::INT:   return sizeof(int);
 				case ShaderUniformType::FLOAT: return sizeof(float);
 				case ShaderUniformType::VEC2:  return sizeof(float) * 2;
-				case ShaderUniformType::VEC3:  return sizeof(float) * 3;
+				case ShaderUniformType::VEC3:  return sizeof(float) * 4;
 				case ShaderUniformType::VEC4:  return sizeof(float) * 4;
 				case ShaderUniformType::MAT4:  return sizeof(float) * 16;
 			}
-			Log::error("Unknow ShaderUniformType type {}", (uint32_t)type);
-			return 0;
+			throw std::runtime_error("Unknown ShaderUniformType");
 		};
 
 		bool isDepthFormat(TextureFormat format) {

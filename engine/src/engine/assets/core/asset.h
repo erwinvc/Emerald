@@ -12,6 +12,8 @@ namespace emerald {
 		SCENE,
 		MODEL,
 		AUDIO,
+		SCRIPT,
+		FONT
 	};
 
 	inline const char* assetTypeToString(AssetType type, bool capitalizeFirstLetter = false) {
@@ -24,6 +26,8 @@ namespace emerald {
 			case AssetType::TEXTURE: return capitalizeFirstLetter ? "Texture" : "texture";
 			case AssetType::MODEL:   return capitalizeFirstLetter ? "Model" : "model";
 			case AssetType::AUDIO:   return capitalizeFirstLetter ? "Audio" : "audio";
+			case AssetType::SCRIPT:  return capitalizeFirstLetter ? "Script" : "script";
+			case AssetType::FONT:    return capitalizeFirstLetter ? "Font" : "font";
 		}
 		throw std::runtime_error("Unknown asset type");
 	}

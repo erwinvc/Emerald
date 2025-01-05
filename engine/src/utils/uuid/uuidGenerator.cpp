@@ -8,23 +8,9 @@ namespace emerald {
 	static std::atomic_uint64_t s_counter;
 	static std::mutex s_uuidMutex;
 	static uint16_t s_clockSeq = 0;
-	static Random s_random;
-	static uint32_t s_seed = 0;
-
-	void UUIDGenerator::initialize() {
-		static std::once_flag flag;
-		std::call_once(flag, []() {
-			do {
-				s_seed = (uint32_t)Time::getTicks();
-				s_random.reset(s_seed);
-			} while (!s_seed);
-			s_clockSeq = (uint16_t)s_random.getIntInRange(0, 0x3FFF);
-		});
-	}
 
 	UUID UUIDGenerator::createVersion1() {
 		std::lock_guard<std::mutex> lock(s_uuidMutex);
-		initialize();
 
 		UUID uuid;
 
@@ -46,7 +32,7 @@ namespace emerald {
 		uint8_t clockSeqLow = (uint8_t)(s_clockSeq & 0xFF);  // Low 8 bits
 
 		// Node address (random 48-bit number)
-		uint64_t node = ((uint64_t)(s_random.getInt()) << 32) | s_random.getInt();
+		uint64_t node = ((uint64_t)(StaticRandom::getInt()) << 32) | StaticRandom::getInt();
 
 		// Assign the components to the UUID
 		uuid.m_data32[0] = timeLow;
@@ -69,17 +55,16 @@ namespace emerald {
 	}
 
 	UUID UUIDGenerator::create() {
-		std::lock_guard<std::mutex> lock(s_uuidMutex);
-		initialize();
+		//std::lock_guard<std::mutex> lock(s_uuidMutex);
 
 		UUID uuid;
 
 		// Generate 128 bits of random data
 		// Assuming s_random.getInt() returns a random uint32_t
-		uint32_t r0 = s_random.getInt();
-		uint32_t r1 = s_random.getInt();
-		uint32_t r2 = s_random.getInt();
-		uint32_t r3 = s_random.getInt();
+		uint32_t r0 = StaticRandom::getInt();
+		uint32_t r1 = StaticRandom::getInt();
+		uint32_t r2 = StaticRandom::getInt();
+		uint32_t r3 = StaticRandom::getInt();
 
 		uuid.m_data32[0] = r0;
 		uuid.m_data32[1] = r1;
@@ -101,12 +86,22 @@ namespace emerald {
 	}
 
 	UUID UUIDGenerator::createFast() {
-		initialize();
+		uint64_t t = Time::getTickTimeNs<uint64_t>();
+		uint64_t r = (static_cast<uint64_t>(StaticRandom::getInt()) << 32) | static_cast<uint64_t>(StaticRandom::getInt());
 
 		UUID uuid;
-		uuid.m_data64[0] = s_counter++;
-		uuid.m_data32[2] = s_random.getInt();
-		uuid.m_data32[3] = s_seed;
+		uuid.m_data64[0] = t;
+		uuid.m_data64[1] = r;
+
+		// 3) Set the "version" bits (bits 12..15 of timeHiAndVersion) to 4
+		//    which indicates a (pseudo-)random or "fast" UUID.
+		//    m_data16[3] is the high 16 bits of the second 32-bit block
+		//    or equivalently bits [48..63] in the 128-bit data.
+		uuid.m_data16[3] = static_cast<uint16_t>((uuid.m_data16[3] & 0x0FFF) | (4 << 12));
+
+		// 4) Set the "variant" bits (bits 6..7 of clockSeqHi) to binary 10
+		//    which indicates RFC 4122 style. That lives in m_data8[8].
+		uuid.m_data8[8] = static_cast<uint8_t>((uuid.m_data8[8] & 0x3F) | 0x80);
 		return uuid;
 	}
 }

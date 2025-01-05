@@ -1,9 +1,11 @@
 #include "eepch.h"
 #include "application.h"
+#include "engine/assets/core/assetRegistry.h"
+#include "engine/events/events.h"
 #include "engine/events/eventSystem.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/mouse.h"
-#include "engine/events/events.h"
+#include "graphics/textures/fallbackTextures.h"
 #include "graphics/buffers/framebuffer.h"
 #include "graphics/core/renderer.h"
 #include "graphics/misc/DPI.h"
@@ -15,12 +17,8 @@
 #include "metrics/metrics.h"
 #include "ui/imguiManager.h"
 #include "utils/system/timestep.h"
-#include "utils/threading/threadManager.h"
-#include "core/common/engineError.h"
-#include "tests/test.h"
 #include "utils/threading/jobSystem.h"
-#include "engine/assets/streaming/streaming.h"
-#include "engine/assets/core/assetRegistry.h"
+#include "utils/threading/threadManager.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -69,7 +67,6 @@ namespace emerald {
 
 		ImGuiManager::initialize(m_mainWindow);
 
-
 		GL(glEnable(GL_DEBUG_OUTPUT));
 		GL(glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
 		GLError::setGLDebugMessageCallback();
@@ -79,14 +76,14 @@ namespace emerald {
 		Metrics::initialize();
 		AssetRegistry::initialize();
 
-		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, "Logic", [this]() { initializeLogic(); });
+		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, ThreadPriority::NORMAL, "Logic", [this]() { initializeLogic(); });
 
 		renderLoop();
 
 		close();
 
 		Metrics::shutdown();
-		JobSystem::shutdown();
+		//JobSystem::shutdown();
 		ImGuiManager::shutdown();
 		FrameBufferManager::shutdown();
 
@@ -96,8 +93,10 @@ namespace emerald {
 		glfwTerminate();
 	}
 
+
 	void Application::renderLoop() {
 		PROFILE_REGISTER_RENDER_THREAD();
+
 		while (g_running) {
 			PROFILE_RENDER_FRAME();
 
@@ -136,7 +135,6 @@ namespace emerald {
 			PROFILE_RENDER_BEGIN("SwapBuffers");
 			m_mainWindow->swapBuffers();
 			Metrics::endTimer(Metric::GPU);
-
 			m_fpsCounter++;
 			PROFILE_RENDER_END();
 
@@ -149,6 +147,8 @@ namespace emerald {
 		PROFILE_REGISTER_LOGIC_THREAD("Logic");
 
 		Renderer::waitForBufferAvailability();
+		FallbackTextures::initialize();
+	
 		onInitialize();
 		Renderer::submitBufferForRendering();
 

@@ -6,9 +6,9 @@
 
 namespace emerald {
 	struct TimerData {
-		float m_startTime;
+		double m_startTime;
 		uint32_t m_frame = 0; //The frame index this measurement was taken
-		float m_elapsedTime = 0.0;
+		double m_elapsedTime = 0.0;
 	};
 
 	static GLuint s_queryID;
@@ -25,7 +25,7 @@ namespace emerald {
 
 			GL(glBeginQuery(GL_TIME_ELAPSED, s_queryID));
 		} else {
-			s_timers[(uint32_t)timer].m_startTime = Time::getTickTimeMs();
+			s_timers[(uint32_t)timer].m_startTime = Time::getTickTimeMs<double>();
 		}
 	}
 
@@ -39,13 +39,13 @@ namespace emerald {
 			GL(glGetQueryObjectui64v(s_queryID, GL_QUERY_RESULT, &gpuTimeElapsed));
 			s_timers[(uint32_t)timer].m_elapsedTime = gpuTimeElapsed / 1000000.0f;
 		} else {
-			auto endTime = Time::getTickTimeMs();
+			double endTime = Time::getTickTimeMs<double>();
 			s_timers[(uint32_t)timer].m_elapsedTime = endTime - s_timers[(uint32_t)timer].m_startTime;
 		}
 	}
 
 	float Metrics::getElapsedTime(Metric timer) {
-		return s_timers[(uint32_t)timer].m_elapsedTime;
+		return (float)s_timers[(uint32_t)timer].m_elapsedTime;
 	}
 
 	uint32_t Metrics::getFrame(Metric timer) {

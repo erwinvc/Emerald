@@ -41,7 +41,7 @@ namespace emerald {
 
 			instance->invalidateTextures();
 			instance->attachTextures();
-		//	instance->resize(width, height, true);
+			//	instance->resize(width, height, true);
 
 			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 		});
@@ -54,12 +54,13 @@ namespace emerald {
 	}
 
 	void FrameBuffer::invalidateTextures() {
-		ASSERT(ThreadManager::isThread(RENDER), "framebuffers should be invalidated on the render thread");
+		ASSERT(ThreadManager::isThread(ThreadType::RENDER), "framebuffers should be invalidated on the render thread");
 
 		m_textures.clear();
 		m_depthTexture = nullptr;
 		for (auto& attachmentDesc : m_desc.attachments) {
 			TextureDesc desc;
+			desc.name = m_desc.name + "_" + attachmentDesc.name;
 			desc.format = attachmentDesc.format;
 			desc.filter = TextureFilter::LINEAR;
 			desc.wrap = TextureWrap::REPEAT;
@@ -70,6 +71,7 @@ namespace emerald {
 			const Ref<Texture>& texture = Ref<Texture>::create(desc, m_desc.width, m_desc.height);
 			texture->invalidate();
 
+			Log::info("Creating texture for framebuffer: {} {} {}", m_desc.name.c_str(), m_desc.width, m_desc.height);
 			if (!GLUtils::isDepthFormat(attachmentDesc.format)) m_textures.emplace_back(texture);
 			else m_depthTexture = texture;
 		}
@@ -78,6 +80,9 @@ namespace emerald {
 	void FrameBuffer::attachTextures() {
 		GL(glBindFramebuffer(GL_FRAMEBUFFER, m_handle));
 
+#ifdef EE_DEBUG
+		GL(glObjectLabel(GL_FRAMEBUFFER, m_handle, static_cast<GLsizei>(m_desc.name.size()), m_desc.name.c_str()));
+#endif
 		m_colorAttachments = 0;
 		uint32_t attachmentIndex = 0;
 		for (auto& texture : m_textures) {
@@ -116,15 +121,10 @@ namespace emerald {
 	}
 
 	void FrameBuffer::resize(uint32_t width, uint32_t height, bool forceRecreate) {
-		if (!forceRecreate && (getWidth() == width && getHeight() == height)) return;
+		if (!forceRecreate && (getWidth() == width && getHeight() == height) || m_desc.scale == FBOScale::STATIC) return;
 
-		if (m_desc.scale == FBOScale::STATIC) {
-			m_desc.width = width;
-			m_desc.height = height;
-		} else {
-			m_desc.width = (uint32_t)(width * fboScaleToFloat(m_desc.scale));
-			m_desc.height = (uint32_t)(height * fboScaleToFloat(m_desc.scale));
-		}
+		m_desc.width = (uint32_t)(width * fboScaleToFloat(m_desc.scale));
+		m_desc.height = (uint32_t)(height * fboScaleToFloat(m_desc.scale));
 
 		if (m_desc.samples != MSAA::NONE) {
 			// If we use multisampling we need to recreate all textures
@@ -179,7 +179,7 @@ namespace emerald {
 		} else return true;
 	}
 
-	
+
 	void FrameBuffer::blit(const Ref<FrameBuffer>& targetFBO) const {
 		Renderer::submit([instance = Ref<const FrameBuffer>(this), targetFBO = Ref<FrameBuffer>(targetFBO)] {
 			uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
@@ -203,7 +203,7 @@ namespace emerald {
 			glBlitNamedFramebuffer(instance->m_handle, targetFBO ? targetFBO->handle() : 0, 0, 0, instance->m_desc.width, instance->m_desc.height, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		});
 	}
-	
+
 	void FrameBuffer::bind() const {
 		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
 			GL(glBindFramebuffer(GL_FRAMEBUFFER, instance->m_handle));

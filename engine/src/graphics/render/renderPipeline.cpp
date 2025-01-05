@@ -24,138 +24,129 @@ namespace emerald {
 		mainfbDesc.width = App->getWidth() / 8;
 		mainfbDesc.height = App->getHeight() / 8;
 		mainfbDesc.samples = MSAA::X4;
-		mainfbDesc.attachments = { {"Main", TextureFormat::RGBA8F}, {"Depth", TextureFormat::DEPTH24STENCIL8} };
+		mainfbDesc.attachments = { {"Main", TextureFormat::RGBA8}, {"Depth", TextureFormat::DEPTH24STENCIL8} };
 		mainfbDesc.clearColor = { 0.5f, 0.7f, 1.0f, 1.0f };
 		mainfbDesc.name = "MainFB";
 
+		// Resolve
 		FramebufferDesc resolveFbDesc;
-		resolveFbDesc.width = App->getWidth() / 8;
-		resolveFbDesc.height = App->getHeight() / 8;
-		resolveFbDesc.attachments = { {"Resolved", TextureFormat::RGBA8F} };
+		resolveFbDesc.width = App->getWidth();
+		resolveFbDesc.height = App->getHeight();
+		resolveFbDesc.attachments = { {"Resolved", TextureFormat::RGBA8} };
 		resolveFbDesc.clearColor = { 0.5f, 0.7f, 1.0f, 1.0f };
 		resolveFbDesc.name = "ResolveFB";
 
 		m_resolveFramebuffer = FrameBuffer::create(resolveFbDesc);
 
+		// Main
 		RenderPassDesc mainPassDesc;
 		mainPassDesc.frameBuffer = FrameBuffer::create(mainfbDesc);
 		shader = Ref<Shader>::create("Geometry", "res/shaders/geometry");
 		mainPassDesc.shader = shader;
 		m_mainPass = Ref<RenderPass>::create(mainPassDesc);
 
-		struct Vertex {
-			glm::vec3 m_position;
-			glm::vec2 m_uv;
-
-			Vertex(glm::vec3 pos, glm::vec2 uv) : m_position(pos), m_uv(uv) {}
+		// Shadow
+		FramebufferDesc shadowFbDesc;
+		shadowFbDesc.width = 2048 * 8;
+		shadowFbDesc.height = 2048 * 8;
+		shadowFbDesc.scale = FBOScale::STATIC;
+		shadowFbDesc.samples = MSAA::NONE;
+		shadowFbDesc.attachments = {
+			{"VSM", TextureFormat::RG32F},
+			{"Depth", TextureFormat::DEPTH24STENCIL8}
 		};
+		shadowFbDesc.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		shadowFbDesc.name = "ShadowFB";
 
-		Vertex vertices[24] = {
-			// Front face
-			Vertex(glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec2(0, 0)),
-			Vertex(glm::vec3(0.5f, -0.5f,  0.5f), glm::vec2(1, 0)),
-			Vertex(glm::vec3(0.5f,  0.5f,  0.5f), glm::vec2(1, 1)),
-			Vertex(glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec2(0, 1)),
+		m_shadowFramebuffer = FrameBuffer::create(shadowFbDesc);
 
-			// Back face
-			Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0, 0)),
-			Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(1, 0)),
-			Vertex(glm::vec3(0.5f,  0.5f, -0.5f), glm::vec2(1, 1)),
-			Vertex(glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec2(0, 1)),
+		m_shadowShader = Ref<Shader>::create("Shadow", "res/shaders/shadow");
 
-			// Left face
-			Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0, 0)),
-			Vertex(glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec2(1, 0)),
-			Vertex(glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec2(1, 1)),
-			Vertex(glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec2(0, 1)),
+		RenderPassDesc shadowPassDesc;
+		shadowPassDesc.frameBuffer = m_shadowFramebuffer;
+		shadowPassDesc.shader = m_shadowShader;
+		m_shadowPass = Ref<RenderPass>::create(shadowPassDesc);
 
-			// Right face
-			Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(0, 0)),
-			Vertex(glm::vec3(0.5f,  0.5f, -0.5f), glm::vec2(1, 0)),
-			Vertex(glm::vec3(0.5f,  0.5f,  0.5f), glm::vec2(1, 1)),
-			Vertex(glm::vec3(0.5f, -0.5f,  0.5f), glm::vec2(0, 1)),
-
-			// Top face
-			Vertex(glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec2(0, 0)),
-			Vertex(glm::vec3(0.5f,  0.5f, -0.5f), glm::vec2(1, 0)),
-			Vertex(glm::vec3(0.5f,  0.5f,  0.5f), glm::vec2(1, 1)),
-			Vertex(glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec2(0, 1)),
-
-			// Bottom face
-			Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0, 0)),
-			Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(1, 0)),
-			Vertex(glm::vec3(0.5f, -0.5f,  0.5f), glm::vec2(1, 1)),
-			Vertex(glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec2(0, 1))
-		};
-
-		uint32_t indices[] = {
-			// Front face
-			0, 1, 2, 0, 2, 3,
-
-			// Back face
-			4, 5, 6, 4, 6, 7,
-
-			// Left face
-			8, 9, 10, 8, 10, 11,
-
-			// Right face
-			12, 13, 14, 12, 14, 15,
-
-			// Top face
-			16, 17, 18, 16, 18, 19,
-
-			// Bottom face
-			20, 21, 22, 20, 22, 23
-		};
-
-		VertexBufferLayout layout = {
-			{VertexAttributeType::FLOAT3, "vsPos", 0},
-			{VertexAttributeType::FLOAT2, "vsUv", 0},
-		};
-
-		m_ibo = Ref<IndexBuffer>::create((byte*)indices, (uint32_t)(NUMOF(indices) * sizeof(uint32_t)));
-		m_vbo = Ref<VertexBuffer>::create((byte*)vertices, (uint32_t)(NUMOF(vertices) * sizeof(Vertex)));
-		m_vao = Ref<VertexArray>::create(layout);
-		m_vao->addBuffer(m_vbo);
-		m_vao->validate();
-
-		//We flush twice because this is the first time we are rendering
-		Renderer::flushRenderCommands();
 		Renderer::flushRenderCommands();
 
-		m_material = Ref<Material>::create("Geometry", mainPassDesc.shader);
-		//m_material->Set("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+		m_shadowMaterial = Ref<Material>::create("Shadow", m_shadowShader);
 
-		//glm::vec4 colors[2] = { glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) };
-		//m_material->SetArray("color", colors, 2);
-		//m_material->set("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
-		//m_material->set("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 1);
+		// Blur
+		FramebufferDesc blurFbDesc;
+		blurFbDesc.width = 2048;
+		blurFbDesc.height = 2048;
+		blurFbDesc.samples = MSAA::NONE;
+		blurFbDesc.attachments = {
+			{"BlurColor", TextureFormat::RG32F}
+		};
+		blurFbDesc.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		blurFbDesc.name = "BlurFB_Horizontal";
+
+		m_blurFBOHorizontal = FrameBuffer::create(blurFbDesc);
+
+		blurFbDesc.name = "BlurFB_Vertical";
+		m_blurFBOVertical = FrameBuffer::create(blurFbDesc);
+
+		updateLightMatrices();
 	}
 
 	RenderPipeline::~RenderPipeline() {
 	}
 
-	void RenderPipeline::createRenderQueue() {}
+	void RenderPipeline::updateLightMatrices() {
+		// Update light view matrix
+		m_lightView = glm::lookAt(
+			m_lightPosition,
+			m_lightTarget,
+			glm::vec3(0.0f, 1.0f, 0.0f)
+		);
 
-	void RenderPipeline::processRenderQueue() {
-		//while (!renderqueue_.empty()) {
-		//	RenderCommand command = renderqueue_.front();
-		//	renderqueue_.pop();
-		//	// Process the render command
-		//	switch (command.type) {
-		//		case RenderCommand::Type::DRAW:
-		//			// Draw the object
-		//			glDrawArrays(command.mode, command.first, command.count);
-		//			break;
-		//		case RenderCommand::Type::CLEAR:
-		//			// Clear the screen
-		//			glClear(command.mask);
-		//			break;
-		//	}
-		//}
+		// Update light projection matrix
+		m_lightProjection = glm::ortho(
+			-m_orthoSize, m_orthoSize,
+			-m_orthoSize, m_orthoSize,
+			m_zNear, m_zFar
+		);
 	}
+	void RenderPipeline::onImGuiRender() {
 
-	int index = 0;
+		ImGui::Begin("Debug ShadowMap", nullptr);
+		ImGui::End();
+
+		ImGui::Begin("Light Controls");
+
+		if (ImGui::DragFloat3("Light Position", &m_lightPosition[0], 0.1f)) {
+			updateLightMatrices();
+		}
+		if (ImGui::DragFloat3("Light Target", &m_lightTarget[0], 0.1f)) {
+			updateLightMatrices();
+		}
+		if (ImGui::DragFloat("Shadow Area Size", &m_orthoSize, 0.5f, 1.0f, 500.0f)) {
+			updateLightMatrices();
+		}
+		if (ImGui::DragFloat("zNear", &m_zNear, 0.1f, 0.001f, 100.0f, "%.3f", ImGuiSliderFlags_Logarithmic)) {
+			updateLightMatrices();
+		}
+		if (ImGui::DragFloat("zFar", &m_zFar, 0.1f, 1.0f, 1000.0f, "%.3f", ImGuiSliderFlags_Logarithmic)) {
+			updateLightMatrices();
+		}
+		if (ImGui::TreeNode("Debug Info")) {
+			glm::vec3 lightDir = glm::normalize(m_lightTarget - m_lightPosition);
+			ImGui::Text("Light Direction: %.2f, %.2f, %.2f", lightDir.x, lightDir.y, lightDir.z);
+			ImGui::TreePop();
+		}
+
+		ImGui::End();
+
+		if (ImGui::Begin("Debug ShadowMap", nullptr)) {
+			float sizeX = 512;
+			float sizeY = 512;
+
+			ImTextureID texID = (ImTextureID)(intptr_t)m_shadowFramebuffer->getTextures()[0]->handle();
+			ImGui::Image(texID, ImVec2(sizeX, sizeY), ImVec2(0, 1), ImVec2(1, 0));
+		}
+		ImGui::End();
+	}
 	void RenderPipeline::render() {
 		if (Keyboard::keyJustDown(Key::KEY_1)) {
 			m_mainPass->descriptor().frameBuffer->setMSAA(MSAA::NONE);
@@ -172,10 +163,41 @@ namespace emerald {
 		if (Keyboard::keyJustDown(Key::KEY_5)) {
 			m_mainPass->descriptor().frameBuffer->setMSAA(MSAA::X16);
 		}
-		if (Keyboard::keyJustDown(Key::R)) {
-			index++;
-			if (index > 1) index = 0;
-			m_material->set("colorIndex", index);
+
+		SceneManager::getActiveScene()->updateAllTransforms();
+
+		{
+			Renderer::submit([] {
+				PROFILE_RENDER_BEGIN("ShadowPass");
+			});
+			Renderer::beginRenderPass(m_shadowPass);
+
+			Renderer::submit([] {
+				glEnable(GL_DEPTH_TEST);
+				glClear(GL_DEPTH_BUFFER_BIT);
+				glDisable(GL_CULL_FACE);
+				//glEnable(GL_CULL_FACE);
+				//glCullFace(GL_FRONT); // optional to reduce acne
+			});
+
+			m_shadowMaterial->updateForRendering();
+
+			glm::mat4 lightSpaceMatrix = m_lightProjection * m_lightView;
+			m_shadowMaterial->set("_LightSpaceMatrix", lightSpaceMatrix);
+
+			auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>(&SceneManager::getActiveScene()->getECS());
+			for (auto [meshRenderer, transform] : view) {
+				glm::mat4 model = transform->getGlobalTransform();
+				m_shadowMaterial->set("_ModelMatrix", model);
+
+				meshRenderer->m_mesh->bind();
+				Renderer::drawIndexed(meshRenderer->m_mesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
+			}
+
+			Renderer::endRenderPass();
+			Renderer::submit([] {
+				PROFILE_RENDER_END();
+			});
 		}
 
 		Renderer::submit([] {PROFILE_RENDER_BEGIN("Pipeline"); });
@@ -188,20 +210,18 @@ namespace emerald {
 			GL(glEnable(GL_DEPTH_TEST));
 		});
 
-		glm::mat4 modelMatrix = glm::mat4(1.0f);
-		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
-
-		m_material->set("viewMatrix", Editor->getEditorCamera()->getViewMatrix());
-		m_material->set("projectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
-
-		SceneManager::getActiveScene()->updateAllTransforms();
-
 		auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>(&SceneManager::getActiveScene()->getECS());
 		for (auto [meshRenderer, transform] : view) {
 			Ref<Material> mat = meshRenderer->m_mesh->getMaterial();
-			mat->set("viewMatrix", Editor->getEditorCamera()->getViewMatrix());
-			mat->set("projectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
-			mat->set("modelMatrix", transform->getGlobalTransform());
+			mat->set("_ViewMatrix", Editor->getEditorCamera()->getViewMatrix());
+			mat->set("_ProjectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
+			mat->set("_ModelMatrix", transform->getGlobalTransform());
+			mat->set("_LightSpaceMatrix", m_lightProjection * m_lightView);
+			mat->set("_ViewPosition", Editor->getEditorCamera()->getPosition());
+			glm::vec3 lightDir = glm::normalize(m_lightPosition - m_lightTarget);
+			mat->set("_LightPosition", m_lightPosition);
+			mat->set("_LightDirection", lightDir);
+			mat->setTexture("_VSM", m_shadowFramebuffer->getTextures()[0]);
 			mat->updateForRendering();
 			meshRenderer->m_mesh->bind();
 			Renderer::drawIndexed(meshRenderer->m_mesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);

@@ -8,9 +8,8 @@
 #include "engine/scene/sceneManager.h"
 #include "engine/ecs/components/meshRendererComponent.h"
 #include "engine/ecs/components/sceneGraphComponent.h"
-#include "utils/threading/jobSystem.h"
-#include "engine/assets/streaming/streaming.h"
 #include "engine/events/events.h"
+#include "engine/events/eventSystem.h"
 
 namespace emerald {
 	ViewportPanel::ViewportPanel() {
@@ -64,18 +63,18 @@ namespace emerald {
 
 				for (size_t i = 0; i < assetCount; i++) {
 					UUID droppedUUID = assetUUIDs[i];
-					AssetMetadata* metaData = AssetRegistry::getAssetMetadata(droppedUUID);
-					if (!metaData) {
+					AssetMetadata* metadata = AssetRegistry::getAssetMetadata(droppedUUID);
+					if (!metadata) {
 						throw std::runtime_error("Asset dropped but not found in registry");
 					}
 
 					if (payload->IsDelivery()) {
-						if (metaData->getType() == AssetType::TEXTURE) {
+						if (metadata->getType() == AssetType::TEXTURE) {
 
-						} else if (metaData->getType() == AssetType::MODEL) {
+						} else if (metadata->getType() == AssetType::MODEL) {
 
-							auto createAsset = [metaData] {
-								Ref<Model> asset = AssetRegistry::getAsset(metaData);
+							auto createAsset = [metadata] {
+								Ref<Model> asset = AssetRegistry::getAsset(metadata);
 								auto& ecs = SceneManager::getActiveScene()->getECS();
 
 
@@ -88,19 +87,22 @@ namespace emerald {
 									ecs.addComponent<MeshRendererComponent>(e, mesh);
 									sponzaParent->addChild(r);
 								}
-							};
+								};
 
-							if (AssetRegistry::isAssetStreamed(metaData)) {
+							if (AssetRegistry::isAssetStreamed(metadata)) {
 								createAsset();
 							} else {
-								AssetRegistry::streamAsset(metaData);
-								EventSystem::subscribeOnce<AssetStreamedEvent>([createAsset](AssetStreamedEvent&) {
-									createAsset();
-								});
+								AssetRegistry::streamAsset(metadata);
+								EventSystem::subscribeOnce<AssetStreamedEvent>([createAsset, metadata](AssetStreamedEvent& e) {
+									if (e.getMetadata() == metadata) {
+										createAsset();
+										e.setHandled();
+									}
+									});
 							}
-						} else if (metaData->getType() == AssetType::MATERIAL) {
+						} else if (metadata->getType() == AssetType::MATERIAL) {
 
-						} else if (metaData->getType() == AssetType::SHADER) {
+						} else if (metadata->getType() == AssetType::SHADER) {
 
 						}
 					}

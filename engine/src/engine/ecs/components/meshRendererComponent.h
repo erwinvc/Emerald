@@ -16,6 +16,9 @@ namespace emerald {
 
 		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
 
+		virtual nlohmann::json serialize() override;
+		static MeshRendererComponent* deserialize(const nlohmann::json& json, Entity entity);
+
 	private:
 		static inline ComponentTypeInfo s_componentTypeInfo = { "Mesh Renderer", ComponentCategory::GRAPHICS, true };
 	};

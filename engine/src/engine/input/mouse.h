@@ -23,9 +23,9 @@ namespace emerald {
 			: m_button(button), m_action(action)/*, m_mods(mods)*/ {
 		}
 
-		inline MouseButton getButton() const { return m_button; }
-		//inline uint32_t getMods() const { return m_mods; }
-		inline bool isPressed() const { return m_action == /*GLFW_PRESS*/ 1; }
+		MouseButton getButton() const { return m_button; }
+		//uint32_t getMods() const { return m_mods; }
+		bool isPressed() const { return m_action == /*GLFW_PRESS*/ 1; }
 
 	private:
 		MouseButton m_button;
@@ -41,8 +41,8 @@ namespace emerald {
 			: m_x(x), m_y(y) {
 		}
 
-		inline float getX() const { return m_x; }
-		inline float getY() const { return m_y; }
+		float getX() const { return m_x; }
+		float getY() const { return m_y; }
 
 	private:
 		float m_x;
@@ -57,8 +57,8 @@ namespace emerald {
 			: m_xOffset(xOffset), m_yOffset(yOffset) {
 		}
 
-		inline float getXOffset() const { return m_xOffset; }
-		inline float getYOffset() const { return m_yOffset; }
+		float getXOffset() const { return m_xOffset; }
+		float getYOffset() const { return m_yOffset; }
 
 	private:
 		float m_xOffset;

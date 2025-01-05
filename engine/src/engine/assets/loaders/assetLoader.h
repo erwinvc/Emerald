@@ -49,7 +49,7 @@ namespace emerald {
 			return nullptr;
 		}
 
-	private:
+	protected:
 		enum class AssetLoaderState {
 			IDLE,
 			LOADING,

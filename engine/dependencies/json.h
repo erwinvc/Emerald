@@ -18928,8 +18928,9 @@ class serializer
             }
         };
 
-        JSON_ASSERT(byte < utf8d.size());
-        const std::uint8_t type = utf8d[byte];
+        //JSON_ASSERT(byte < utf8d.size());
+        //const std::uint8_t type = utf8d[byte];
+        const std::uint8_t type = utf8d[static_cast<size_t>(byte)];
 
         codep = (state != UTF8_ACCEPT)
                 ? (byte & 0x3fu) | (codep << 6u)

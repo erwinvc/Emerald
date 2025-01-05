@@ -178,7 +178,7 @@ namespace emerald {
 			ImGui::PushStyleColor(ImGuiCol_Header, Color(0.07f, 0.07f, 0.07f, 1.0f));
 		}
 
-		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, metadata->m_name.c_str());
+		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, metadata->getName().c_str());
 		const ImRect nodeRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 		ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
 
@@ -316,7 +316,7 @@ namespace emerald {
 			ImVector<SceneGraphComponent*> selectedNodes = getSelectedNodes();
 			for (int i = 0; i < selectedNodes.size(); i++) {
 				auto* metadata = SceneManager::getActiveScene()->getECS().getComponent<MetadataComponent>(selectedNodes[i]->m_entity);
-				name += metadata->m_name;
+				name += metadata->getName();
 				if (i < selectedNodes.size() - 1) name += "\n";
 			}
 

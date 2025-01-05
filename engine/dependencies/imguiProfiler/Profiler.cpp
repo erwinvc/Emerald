@@ -1,5 +1,7 @@
 
 #include "Profiler.h"
+#include "windows.h"
+#include <winnt.h>
 
 #if WITH_PROFILING
 
@@ -9,7 +11,6 @@ CPUProfiler gGPUProfiler;
 //-----------------------------------------------------------------------------
 // [SECTION] CPU Profiler
 //-----------------------------------------------------------------------------
-
 
 void CPUProfiler::Initialize(std::string name, uint32 historySize, uint32 maxEvents)
 {

@@ -22,6 +22,7 @@
 #include "utils/debug/valueTester.h"
 #include "utils/system/fileSystem.h"
 #include <GLFW/glfw3.h>
+#include "engine/assets/loaders/textureLoader.h"
 
 namespace emerald {
 	static bool s_TitleBarHovered = false;
@@ -33,14 +34,12 @@ namespace emerald {
 		});
 
 		TextureDesc desc;
-		desc.hasMipmaps = false;
-		desc.anisotropyLevel = 0;
-		desc.format = TextureFormat::RGBA8F;
-		desc.readWrite = false;
+		desc.format = TextureFormat::RGBA8;
 		desc.filter = TextureFilter::NEAREST;
 
-		m_icon = Ref<Texture>::create(desc, 32, 32, icon::icon32_map, NUMOF(icon::icon32_map), TextureDataType::FILE);
-		Renderer::submit([instance = Ref<Texture>(m_icon)]() { instance->invalidate(); });
+		TextureLoader loader(desc, icon::icon32_map, NUMOF(icon::icon32_map), false);
+		m_icon = loader.load();
+		m_icon->submitInvalidate();
 	}
 
 	EditorWindow::~EditorWindow() {
@@ -137,8 +136,7 @@ namespace emerald {
 		ImGui::BeginVertical("TitlebarTitle", ImVec2(0, titleBarButtonSize), 0.0f);
 		ImGui::Spring();
 
-
-		ImGui::Text(std::format("{} - {}", EditorHeader.title, Project::getProjectFolderName()).c_str());
+		ImGui::Text(std::format("{} - {}", EditorHeader.title, Project::GetProjectPath().stem().string()).c_str());
 		ImGui::BeginDisabled(true);
 		ImGui::Text(EditorHeader.subTitle.c_str());
 		ImGui::EndDisabled();
@@ -235,7 +233,7 @@ namespace emerald {
 
 
 		ImGui::BeginDisabled(!sceneOpen);
-		
+
 		m_viewportPanel.draw();
 
 		m_inspectorPanel.draw(&m_hierarchyPanel);
@@ -276,6 +274,10 @@ namespace emerald {
 
 			if (Keyboard::keyJustDown(Key::N) && Keyboard::keyMod(KeyMod::CONTROL)) {
 				Project::newProjectDialog();
+			}
+
+			if (Keyboard::keyJustDown(Key::S) && Keyboard::keyMod(KeyMod::CONTROL)) {
+				SceneManager::getActiveScene()->save();
 			}
 		}
 		//if (Keyboard::keyDown(Key::N)) {

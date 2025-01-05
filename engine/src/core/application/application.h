@@ -43,11 +43,11 @@ namespace emerald {
 
 		template<typename F>
 		void QueueEvent(F&& function) {
-			m_eventQueue.add(function);
+			m_eventQueue.emplace(function);
 		}
 		template<typename F>
 		void QueueEventCPU(F&& function) {
-			m_eventQueueCPU.add(function);
+			m_eventQueueCPU.emplace(function);
 		}
 		void processQueue();
 		void processQueueCPU();

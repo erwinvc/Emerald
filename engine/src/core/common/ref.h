@@ -340,6 +340,40 @@ namespace emerald {
 	};
 
 	template<typename T>
+	class UniqueRef<T[]> {
+	public:
+		~UniqueRef() { reset(); }
+
+		T& operator[](std::size_t index) {
+			return m_reference[index];
+		}
+		const T& operator[](std::size_t index) const {
+			return m_reference[index];
+		}
+
+		void reset(T* pointer = nullptr) {
+			if (m_reference) {
+				delete[] m_reference; 
+			}
+			m_reference = pointer;
+		}
+
+		bool operator==(const UniqueRef<T[]>& other) const {
+			return m_reference == other.m_reference;
+		}
+		bool operator!=(const UniqueRef<T[]>& other) const {
+			return !(*this == other);
+		}
+
+		static UniqueRef<T[]> create(std::size_t size) {
+			return UniqueRef<T[]>(new T[size]());
+		}
+
+	private:
+		T* m_reference;
+	};
+
+	template<typename T>
 	class WeakRef {
 	public:
 		constexpr WeakRef() : m_reference(nullptr), m_controlBlock(nullptr) {}

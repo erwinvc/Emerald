@@ -12,8 +12,5 @@ namespace emerald {
 		[[deprecated]]
 		static UUID createVersion1();
 		static UUID create();
-
-	private:
-		static void initialize();
 	};
 }

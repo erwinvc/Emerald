@@ -74,7 +74,7 @@ namespace emerald {
 
 	void AssetRegistry::streamAsset(AssetMetadata* metadata) {
 		AssetStreamingState state = getAssetStreamingState(metadata);
-		if (state == AssetStreamingState::LOADED || state == AssetStreamingState::LOADING) {
+		if (state == AssetStreamingState::LOADED || state == AssetStreamingState::LOADING || state == AssetStreamingState::CANNOTLOAD) {
 			return;
 		}
 
@@ -85,25 +85,28 @@ namespace emerald {
 	}
 
 	void AssetRegistry::startLoading(AssetMetadata* metadata) {
-		std::future<Ref<AssetLoader>> fut = JobSystem::submit([metadata]() -> Ref<AssetLoader> {
-			Log::info("Loading asset from metadata: {}", metadata->getPath().string());
+		m_streamingQueue.emplace_back(metadata, Ref<AssetLoader>());
 
-			Ref<AssetLoader> loader = metadata->createAssetLoader();
+		StreamingTask& task = m_streamingQueue.back();
+		JobSystem::execute(task.m_ctx, [&task](JobArgs args) {
+			Log::info("Loading asset from metadata: {}", task.m_metadata->getPath().string());
+
+			Ref<AssetLoader> loader = task.m_metadata->createAssetLoader();
 			if (!loader) {
-				Log::error("Failed to create asset loader instance for {}", metadata->getPath().string());
-				return nullptr;
+				Log::error("Failed to create asset loader instance for {}", task.m_metadata->getPath().string());
+				m_streamingState[task.m_metadata] = AssetStreamingState::CANNOTLOAD;
+				return;
 			}
 
 			if (!loader->beginLoad()) {
-				Log::error("Failed async loading {}", metadata->getPath().string());
-				return nullptr;
+				Log::error("Failed async loading {}", task.m_metadata->getPath().string());
+				return;
 			}
 
-			Log::info("Finished async loading {}", metadata->getPath().string());
-			return loader;
-		});
+			task.m_loader = loader;
+			Log::info("Finished async loading {}", task.m_metadata->getPath().string());
+			});
 
-		m_streamingQueue.push_back({ metadata, std::move(fut) });
 	}
 
 	AssetRegistry::AssetStreamingState AssetRegistry::getAssetStreamingState(AssetMetadata* metadata) {
@@ -127,6 +130,8 @@ namespace emerald {
 	}
 
 	AssetMetadata* AssetRegistry::getAssetMetadata(const UUID& uuid) {
+		std::lock_guard<std::mutex> lock(m_mutex);
+
 		auto it = m_uuidAssetMap.find(uuid);
 		if (it != m_uuidAssetMap.end()) {
 			return it->second;
@@ -135,6 +140,8 @@ namespace emerald {
 	}
 
 	AssetMetadata* AssetRegistry::getAssetMetadata(const std::filesystem::path& path) {
+		std::lock_guard<std::mutex> lock(m_mutex);
+
 		auto it = m_pathAssetMap.find(path);
 		if (it != m_pathAssetMap.end()) {
 			return it->second;
@@ -143,6 +150,8 @@ namespace emerald {
 	}
 
 	void AssetRegistry::clear() {
+		std::lock_guard<std::mutex> lock(m_mutex);
+
 		m_assets.clear();
 		m_uuidAssetMap.clear();
 		m_pathAssetMap.clear();
@@ -153,11 +162,8 @@ namespace emerald {
 
 		for (auto it = m_streamingQueue.begin(); it != m_streamingQueue.end();) {
 			StreamingTask& task = *it;
-			std::future_status status = task.futureAsset.wait_for(std::chrono::seconds(0));
-			if (status == std::future_status::ready) {
-				Ref<AssetLoader> loader = task.futureAsset.get();
-				Log::info("Asset {} is loaded.", task.metadata->getPath().string());
-				finalizeLoading(task.metadata, loader);
+			if (!JobSystem::isBusy(task.m_ctx)) {
+				finalizeLoading(task.m_metadata, task.m_loader);
 				it = m_streamingQueue.erase(it);
 			} else {
 				++it;
@@ -166,8 +172,9 @@ namespace emerald {
 	}
 
 	void AssetRegistry::finalizeLoading(AssetMetadata* metadata, const Ref<AssetLoader>& loader) {
+		if (m_streamingState[metadata] == AssetStreamingState::CANNOTLOAD) return;
 		if (!loader) {
-			Log::warn("Asset {} failed to load properly.", metadata->getPath().string());
+			Log::warn("Asset {} failed to load", metadata->getPath().string());
 			m_streamingState[metadata] = AssetStreamingState::NOTLOADED;
 			return;
 		}
@@ -180,6 +187,6 @@ namespace emerald {
 			m_streamingState[metadata] = AssetStreamingState::NOTLOADED;
 		}
 		EventSystem::dispatch<AssetStreamedEvent>(metadata, m_assets[metadata]);
-		Log::info("Asset {} is loaded.", metadata->getPath().string());
+		Log::info("Asset {} is loaded", metadata->getPath().string());
 	}
 }

@@ -15,7 +15,12 @@ project "Editor"
 		"**.hpp",
 		"*.rc",
 		'*.ico',
-		"*.aps"
+		"*.aps",
+		"*.vert",
+		"*.frag",
+		"*.geom",
+		"*.tese",
+		"*.tesc"
 	}
 		
 	includedirs

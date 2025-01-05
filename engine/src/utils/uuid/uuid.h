@@ -27,12 +27,19 @@ namespace emerald {
 		friend class UUIDGenerator;
 
 		union {
-			uint64_t m_data64[2];
-			uint32_t m_data32[4];
-			uint16_t m_data16[8];
-			uint8_t m_data8[16];
+			std::array<uint64_t, 2> m_data64;
+			std::array<uint32_t, 4> m_data32;
+			std::array<uint16_t, 8> m_data16;
+			std::array<uint8_t, 16> m_data8;
 		};
 	};
+
+	inline void to_json(nlohmann::json& j, const UUID& uuid) {
+		j = nlohmann::json{ uuid.toString()};
+	}
+	inline void from_json(const nlohmann::json& j, UUID& uuid) {
+		uuid.fromString(j.get<std::string>());
+	}
 }
 
 namespace std {

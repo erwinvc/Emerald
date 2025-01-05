@@ -8,10 +8,10 @@ namespace emerald {
 	static std::vector<std::unique_ptr<Thread>> m_threads;
 	static std::mutex m_lock;
 	static std::condition_variable m_condVar;
-	static std::array<std::thread::id, ThreadType::_COUNT> s_threadIDs;
+	static std::array<std::thread::id, (uint32_t)ThreadType::_COUNT> s_threadIDs;
 
-	Thread::Thread(const std::string& name, std::function<void()> func, uint32_t affinity, bool background)
-		: m_name(name), m_function(std::move(func)), m_affinity(affinity), m_background(background), m_shutDown(false), m_finished(false) {
+	Thread::Thread(const std::string& name, std::function<void()> func, uint32_t affinity, ThreadPriority priority, bool background)
+		: m_name(name), m_priority(priority), m_function(std::move(func)), m_affinity(affinity), m_background(background), m_shutDown(false), m_finished(false) {
 	}
 
 	Thread::~Thread() {
@@ -22,6 +22,7 @@ namespace emerald {
 		std::wstring wsTmp(m_name.begin(), m_name.end());
 		m_handle = std::make_unique<std::thread>(&Thread::run, this);
 		SetThreadDescription(m_handle->native_handle(), wsTmp.c_str());
+		SetThreadPriority(m_handle->native_handle(), (int)m_priority);
 		if (m_background) {
 			m_handle->detach();
 		}
@@ -63,26 +64,26 @@ namespace emerald {
 		}
 	}
 
-	Thread* ThreadManager::createAndRegisterThread(ThreadType type, const std::string& name, std::function<void()> func, bool background) {
+	Thread* ThreadManager::createAndRegisterThread(ThreadType type, ThreadPriority priority, const std::string& name, std::function<void()> func, bool background) {
 		std::lock_guard<std::mutex> lock(m_lock);
 		initializeAffinitySystem();
 
 		uint32_t affinity = s_nextAffinity.fetch_add(1);
 		affinity %= s_maxAffinity;
 
-		m_threads.emplace_back(std::make_unique<Thread>(name, func, affinity, background));
+		m_threads.emplace_back(std::make_unique<Thread>(name, func, affinity, priority, background));
 		Thread* thread = m_threads.back().get();
 		thread->start();
-		s_threadIDs[type] = thread->getID();
+		s_threadIDs[(uint32_t)type] = thread->getID();
 		return thread;
 	}
 
 	void ThreadManager::registerCurrentThread(ThreadType type) {
-		s_threadIDs[type] = std::this_thread::get_id();
+		s_threadIDs[(uint32_t)type] = std::this_thread::get_id();
 	}
 
 	bool ThreadManager::isThread(ThreadType type) {
-		return std::this_thread::get_id() == s_threadIDs[type];
+		return std::this_thread::get_id() == s_threadIDs[(uint32_t)type];
 	}
 
 

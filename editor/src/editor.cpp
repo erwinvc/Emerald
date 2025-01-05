@@ -110,6 +110,7 @@ namespace emerald {
 			PROFILE_RENDER_END();
 			PROFILE_RENDER_BEGIN("ImGui render");
 			s_editorWindow->onImGuiRender();
+			s_renderPipeline->onImGuiRender();
 			EngineError::draw();
 			EngineLoading::draw();
 			PROFILE_RENDER_END();
@@ -129,7 +130,6 @@ namespace emerald {
 		if (e.isValid()) {
 			AssetRegistry::parseCurrentProject();
 			SceneManager::setActiveScene(Ref<Scene>::create("New Scene", ""));
-			SceneManager::getActiveScene()->initialize();
 		} else {
 			AssetRegistry::clear();
 			SceneManager::clearScenes();

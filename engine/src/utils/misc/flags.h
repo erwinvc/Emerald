@@ -102,4 +102,30 @@ namespace emerald {
 	using Flags16 = Flags<16>;
 	using Flags32 = Flags<32>;
 	using Flags64 = Flags<64>;
+
+	template<size_t N>
+	void to_json(nlohmann::json& j, const Flags<N>& f) {
+		std::string bitstring(N, '0');
+		for (int i = N - 1; i >= 0; --i) {
+			bitstring[N - 1 - i] = f.isFlagSet(size_t(i)) ? '1' : '0';
+		}
+		j = bitstring;
+	}
+
+	template<size_t N>
+	void from_json(const nlohmann::json& j, Flags<N>& f) {
+		if (!j.is_string()) {
+			throw std::runtime_error(std::format("Expected a string for Flags<{}>", N));
+		}
+		std::string bitstring = j.get<std::string>();
+		if (bitstring.size() != N) {
+			throw std::runtime_error(std::format("Flags<{}> string must be length {}", N, N));
+		}
+		f.clearAllFlags();
+		for (int i = 0; i < N; i++) {
+			if (bitstring[i] == '1') {
+				f.setFlag(N - 1 - i);
+			}
+		}
+	}
 }

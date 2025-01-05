@@ -12,7 +12,12 @@ project "Runtime"
 	{
 		"**.h",
 		"**.cpp",
-		"**.hpp"
+		"**.hpp",
+		"*.vert",
+		"*.frag",
+		"*.geom",
+		"*.tese",
+		"*.tesc"
 	}
 	
 	includedirs

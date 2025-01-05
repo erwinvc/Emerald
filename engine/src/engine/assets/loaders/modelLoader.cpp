@@ -14,6 +14,11 @@
 #include "graphics/textures/texture.h"
 #include "textureLoader.h"
 #include "graphics/render/renderPipeline.h"
+#include "../core/assetRegistry.h"
+#include "graphics/textures/fallbackTextures.h"
+#include "../texture/textureAsset.h"
+#include "../../events/eventSystem.h"
+#include "core/application/application.h"
 
 namespace emerald {
 	static const uint32_t ImportFlags =
@@ -76,21 +81,31 @@ namespace emerald {
 		}
 	}
 
-	static Ref<TextureLoader> loadMaterialTexture(aiMaterial* mat, aiTextureType type, const std::filesystem::path& basePath) {
+	static bool loadMaterialTexture(const std::string& name, Ref<Material> material, aiMaterial* mat, aiTextureType type, const std::filesystem::path& basePath, const Ref<Texture>& fallback) {
+		material->setTexture(name, fallback);
+
 		if (mat->GetTextureCount(type) > 0) {
 			aiString str;
 			mat->GetTexture(type, 0, &str);
 			std::filesystem::path texPath = basePath.parent_path() / str.C_Str();
-			
-			if (std::filesystem::exists(texPath)) {
-				TextureDesc desc;
-				desc.hasMipmaps = true;
-				Ref<TextureLoader> loader = Ref<TextureLoader>::create(desc, texPath, true);
-				loader->onBeginLoad();
-				return loader;
+
+			AssetMetadata* metadata = AssetRegistry::getAssetMetadata(texPath);
+			if (metadata) {
+				if (AssetRegistry::isAssetStreamed(metadata)) {
+					material->setTexture(name, AssetRegistry::getAsset(metadata));
+				} else {
+					AssetRegistry::streamAsset(metadata);
+					EventSystem::subscribeOnce<AssetStreamedEvent>([fallback, name, material, metadata](AssetStreamedEvent& e) {
+						if (e.getMetadata() == metadata) {
+							material->setTexture(name, e.getAsset());
+							e.setHandled();
+						}
+						});
+				}
+				return true;
 			}
 		}
-		return nullptr;
+		return false;
 	}
 
 	// Helper to get a float factor from material
@@ -102,10 +117,10 @@ namespace emerald {
 	}
 
 	// Helper to get a color (glm::vec3) from material
-	static glm::vec3 getMaterialColor(aiMaterial* mat, const char* key, unsigned int type, unsigned int idx, glm::vec3 defaultColor = glm::vec3(1.0f)) {
-		aiColor3D color;
+	static glm::vec4 getMaterialColor(aiMaterial* mat, const char* key, unsigned int type, unsigned int idx, glm::vec4 defaultColor = glm::vec4(1.0f)) {
+		aiColor4D color;
 		if (mat->Get(key, type, idx, color) == AI_SUCCESS)
-			return glm::vec3(color.r, color.g, color.b);
+			return glm::vec4(color.r, color.g, color.b, color.a);
 		return defaultColor;
 	}
 
@@ -130,31 +145,30 @@ namespace emerald {
 		processNode(m_preloadedMeshes, m_modelName, scene->mRootNode, scene, index);
 
 
-		m_materials.resize(scene->mNumMaterials);
+		m_materials.reserve(scene->mNumMaterials);
 
 		for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
 			aiMaterial* aiMat = scene->mMaterials[i];
-			PreloadedMaterial preloadedMat;
 
 			aiString name;
 			aiMat->Get(AI_MATKEY_NAME, name);
-			preloadedMat.name = name.C_Str();
 
-			Log::info("[Model] Loading material {}", preloadedMat.name);
-			preloadedMat.materialIndex = i;
-			preloadedMat.m_baseColor = getMaterialColor(aiMat, AI_MATKEY_BASE_COLOR, glm::vec3(1.0f));
-			preloadedMat.m_metallic = getMaterialFloat(aiMat, AI_MATKEY_METALLIC_FACTOR, 1.0f);
-			preloadedMat.m_roughness = getMaterialFloat(aiMat, AI_MATKEY_ROUGHNESS_FACTOR, 1.0f);
+			Ref<Material> material = Ref<Material>::create(name.C_Str(), RenderPipeline::shader);
 
-			preloadedMat.m_baseColorTextureLoader = loadMaterialTexture(aiMat, aiTextureType_DIFFUSE, m_path);
-			preloadedMat.m_normalTextureLoader = loadMaterialTexture(aiMat, aiTextureType_NORMALS, m_path);
-			preloadedMat.m_metallicRoughnessTextureLoader = loadMaterialTexture(aiMat, aiTextureType_METALNESS, m_path);
-			if (!preloadedMat.m_metallicRoughnessTextureLoader) {
-				preloadedMat.m_metallicRoughnessTextureLoader = loadMaterialTexture(aiMat, aiTextureType_DIFFUSE_ROUGHNESS, m_path);
+			m_materials.push_back(material);
+
+			Log::info("[Model] Loading material {}", material->getName());
+
+			material->set("_BaseColor", getMaterialColor(aiMat, AI_MATKEY_BASE_COLOR, glm::vec4(1.0f)));
+			material->set("_Metallic", getMaterialFloat(aiMat, AI_MATKEY_METALLIC_FACTOR, 1.0f));
+			material->set("_Roughness", getMaterialFloat(aiMat, AI_MATKEY_ROUGHNESS_FACTOR, 1.0f));
+
+			loadMaterialTexture("_Albedo", material, aiMat, aiTextureType_DIFFUSE, m_path, FallbackTextures::null());
+			loadMaterialTexture("_Normal", material, aiMat, aiTextureType_HEIGHT, m_path, FallbackTextures::normal());
+			if (!loadMaterialTexture("_RoughnessMetalic", material, aiMat, aiTextureType_METALNESS, m_path, FallbackTextures::white())) {
+				loadMaterialTexture("_RoughnessMetalic", material, aiMat, aiTextureType_DIFFUSE_ROUGHNESS, m_path, FallbackTextures::white());
 			}
-			preloadedMat.m_emissiveTextureLoader = loadMaterialTexture(aiMat, aiTextureType_EMISSIVE, m_path);
-
-			m_preloadedMaterials.push_back(preloadedMat);
+			loadMaterialTexture("_Emission", material, aiMat, aiTextureType_EMISSIVE, m_path, FallbackTextures::black());
 		}
 
 		asyncLoadTime = timer.get();
@@ -162,20 +176,8 @@ namespace emerald {
 	}
 
 	Ref<Asset> ModelLoader::onFinishLoad() {
-		if (m_preloadedMeshes.empty()) return Ref<Model>();
+		if (m_preloadedMeshes.empty()) return nullptr;
 		Timer timer;
-
-		for (auto& preloadedMat : m_preloadedMaterials) {
-			Ref<Material> material = Ref<Material>::create(preloadedMat.name, RenderPipeline::shader);
-			if (preloadedMat.m_baseColorTextureLoader) material->setTexture("_Albedo", preloadedMat.m_baseColorTextureLoader->syncLoadAndInvalidate());
-			if (preloadedMat.m_normalTextureLoader) material->setTexture("_Normal", preloadedMat.m_normalTextureLoader->syncLoadAndInvalidate());
-			if (preloadedMat.m_metallicRoughnessTextureLoader) material->set("_RoughnessMetalic", preloadedMat.m_metallicRoughnessTextureLoader->syncLoadAndInvalidate());
-			if (preloadedMat.m_emissiveTextureLoader) material->set("_Emission", preloadedMat.m_emissiveTextureLoader->syncLoadAndInvalidate());
-			material->set("_BaseColor", preloadedMat.m_baseColor);
-			material->set("_Metallic", preloadedMat.m_metallic);
-			material->set("_Roughness", preloadedMat.m_roughness);
-			m_materials[preloadedMat.materialIndex] = material;
-		}
 
 		Ref<Model> model = Ref<Model>::create(m_modelName);
 		for (auto& mesh : m_preloadedMeshes) {
@@ -194,7 +196,7 @@ namespace emerald {
 			model->addSubmesh(subMesh);
 		}
 
-		Log::info("[Model] Loaded {} in {:.2f} ms cpu and {:.2f} ms gpu", m_path.string().c_str(), asyncLoadTime, timer.get());
+		Log::info("[Model] Loaded {} in {:.2f} ms", m_path.string().c_str(), asyncLoadTime + timer.get());
 		return model;
 	}
 }

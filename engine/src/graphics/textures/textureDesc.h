@@ -6,7 +6,12 @@ namespace emerald {
 		R,
 		RG,
 		RGB,
-		RGBA8F,
+		RGBA8,
+
+		RG16F,
+		RG32F,
+		RGB16F,
+		RGB32F,
 		RGBA16F,
 		RGBA32F,
 
@@ -47,7 +52,8 @@ namespace emerald {
 
 	class TextureDesc final {
 	public:
-		TextureFormat format = TextureFormat::RGBA8F;
+		std::string name;
+		TextureFormat format = TextureFormat::RGBA8;
 		TextureFilter filter = TextureFilter::LINEAR;
 		TextureWrap wrap = TextureWrap::REPEAT;
 		MSAA samples = MSAA::NONE;
@@ -64,11 +70,12 @@ namespace emerald {
 
 		uint32_t getSamples() const;
 		uint32_t getTarget() const;
-		uint32_t getChannelCount() const;
+		uint32_t getBytesPerPixel() const;
 		uint32_t getImageFormat() const;
 		uint32_t getInternalFormat() const;
 		uint32_t getDataType() const;
 		uint32_t textureFormatToAttachmentType(uint32_t colorAttachmentIndex = 0) const;
 		bool isColorAttachmentType() const;
+		bool isDepthAttachmentType() const;
 	};
 }

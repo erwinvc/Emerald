@@ -20,8 +20,8 @@ int main(int argc, char** argv) {
 	emerald::Application* app = emerald::createApplication();
 	emerald::App = app;
 	app->run();
-	delete app;
 	emerald::Log::shutdown();
+	delete app;
 	emerald::Debug::shutdown();
 	return 0;
 }
@@ -35,8 +35,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	emerald::Application* app = emerald::createApplication();
 	emerald::App = app;
 	app->run();
-	delete app;
 	emerald::Log::shutdown();
+	delete app;
 	emerald::Debug::shutdown();
 	return 0;
 }

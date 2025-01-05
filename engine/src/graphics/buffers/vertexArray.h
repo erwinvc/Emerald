@@ -19,8 +19,8 @@ namespace emerald {
 		void bind() const;
 		uint32_t handle() const { return m_handle; }
 
-		inline uint32_t getBufferCount() { return (uint32_t)m_buffers.size(); }
-		inline std::vector<Ref<VertexBuffer>>& getBuffers() { return m_buffers; }
-		inline const Ref<VertexBuffer>& getBuffer(int index) { return m_buffers.at(index); }
+		uint32_t getBufferCount() { return (uint32_t)m_buffers.size(); }
+		std::vector<Ref<VertexBuffer>>& getBuffers() { return m_buffers; }
+		const Ref<VertexBuffer>& getBuffer(int index) { return m_buffers.at(index); }
 	};
 }

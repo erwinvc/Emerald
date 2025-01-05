@@ -36,153 +36,123 @@ namespace emerald {
 			}
 		}
 
-		const auto& uniformBuffers = m_shader->getUniformBuffers();
-		for (auto& [name, uniform] : uniformBuffers) {
-			uint32_t count = uniform.m_isArray ? uniform.m_count : 1;
+		Renderer::submit([buffer = m_uniformStorageBuffer, shader = Ref<Shader>(m_shader)] {
+			const auto& uniformBuffers = shader->getUniformBuffers();
+			for (auto& [name, uniform] : uniformBuffers) {
+				uint32_t count = uniform.m_isArray ? uniform.m_count : 1;
 
-			if (count == 1) {
-				switch (uniform.m_type) {
-					case ShaderUniformType::BOOL:
-					{
-						auto value = m_uniformStorageBuffer.read<uint32_t>(uniform.m_offset);
-						m_shader->setUniformUInt(uniform.m_location, uniform.m_count, value);
-						break;
+				if (count == 1) {
+					switch (uniform.m_type) {
+						case ShaderUniformType::BOOL:
+						{
+							shader->setUniformUInt(uniform.m_location, buffer.read<uint32_t>(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::UINT:
+						{
+							shader->setUniformUInt(uniform.m_location, buffer.read<uint32_t>(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::INT:
+						{
+							shader->setUniformInt(uniform.m_location, buffer.read<int32_t>(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::FLOAT:
+						{
+							shader->setUniformFloat1(uniform.m_location, buffer.read<float>(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::VEC2:
+						{
+							shader->setUniformFloat2(uniform.m_location, buffer.read<glm::vec2>(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::VEC3:
+						{
+							shader->setUniformFloat3(uniform.m_location, buffer.read<glm::vec3>(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::VEC4:
+						{
+							shader->setUniformFloat4(uniform.m_location, buffer.read<glm::vec4>(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::MAT3:
+						{
+							shader->setUniformMatrix3(uniform.m_location, buffer.read<glm::mat3>(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::MAT4:
+						{
+							shader->setUniformMatrix4(uniform.m_location, buffer.read<glm::mat4>(uniform.m_offset));
+							break;
+						}
+						default:
+						{
+							ASSERT(false, "Unknown ShaderUniformType");
+							break;
+						}
 					}
-					case ShaderUniformType::UINT:
-					{
-						auto value = m_uniformStorageBuffer.read<uint32_t>(uniform.m_offset);
-						m_shader->setUniformUInt(uniform.m_location, uniform.m_count, value);
-						break;
+				} else {
+					switch (uniform.m_type) {
+						case ShaderUniformType::BOOL:
+						{
+							shader->setUniformUInt(uniform.m_location, count, (uint32_t*)buffer.at(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::UINT:
+						{
+							shader->setUniformUInt(uniform.m_location, count, (uint32_t*)buffer.at(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::INT:
+						{
+							shader->setUniformInt(uniform.m_location, count, (int32_t*)buffer.at(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::FLOAT:
+						{
+							shader->setUniformFloat1(uniform.m_location, count, (float*)buffer.at(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::VEC2:
+						{
+							shader->setUniformFloat2(uniform.m_location, count, (glm::vec2*)buffer.at(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::VEC3:
+						{
+							shader->setUniformFloat3(uniform.m_location, count, (glm::vec3*)buffer.at(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::VEC4:
+						{
+							shader->setUniformFloat4(uniform.m_location, count, (glm::vec4*)buffer.at(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::MAT3:
+						{
+							shader->setUniformMatrix3(uniform.m_location, count, (glm::mat3*)buffer.at(uniform.m_offset));
+							break;
+						}
+						case ShaderUniformType::MAT4:
+						{
+							shader->setUniformMatrix4(uniform.m_location, count, (glm::mat4*)buffer.at(uniform.m_offset));
+							break;
+						}
+						default:
+							ASSERT(false, "Unknown ShaderUniformType");
+							break;
 					}
-					case ShaderUniformType::INT:
-					{
-						auto value = m_uniformStorageBuffer.read<int32_t>(uniform.m_offset);
-						m_shader->setUniformInt(uniform.m_location, uniform.m_count, value);
-						break;
-					}
-					case ShaderUniformType::FLOAT:
-					{
-						auto value = m_uniformStorageBuffer.read<float>(uniform.m_offset);
-						m_shader->setUniformFloat1(uniform.m_location, uniform.m_count, value);
-						break;
-					}
-					case ShaderUniformType::VEC2:
-					{
-						auto value = m_uniformStorageBuffer.read<glm::vec2>(uniform.m_offset);
-						m_shader->setUniformFloat2(uniform.m_location, uniform.m_count, value);
-						break;
-					}
-					case ShaderUniformType::VEC3:
-					{
-						auto value = m_uniformStorageBuffer.read<glm::vec3>(uniform.m_offset);
-						m_shader->setUniformFloat3(uniform.m_location, uniform.m_count, value);
-						break;
-					}
-					case ShaderUniformType::VEC4:
-					{
-						auto value = m_uniformStorageBuffer.read<glm::vec4>(uniform.m_offset);
-						m_shader->setUniformFloat4(uniform.m_location, uniform.m_count, value);
-						break;
-					}
-					case ShaderUniformType::MAT3:
-					{
-						auto value = m_uniformStorageBuffer.read<glm::mat3>(uniform.m_offset);
-						m_shader->setUniformMatrix3(uniform.m_location, uniform.m_count, value);
-						break;
-					}
-					case ShaderUniformType::MAT4:
-					{
-						auto value = m_uniformStorageBuffer.read<glm::mat4>(uniform.m_offset);
-						m_shader->setUniformMatrix4(uniform.m_location, uniform.m_count, value);
-						break;
-					}
-					default:
-					{
-						ASSERT(false, "Unknown ShaderUniformType");
-						break;
-					}
-				}
-			} else {
-				switch (uniform.m_type) {
-					case ShaderUniformType::BOOL:
-					{
-						std::vector<uint32_t> values(count);
-						m_uniformStorageBuffer.readArray(values.data(), uniform.m_offset, count);
-						m_shader->setUniformUInt(uniform.m_location, count, values);
-						break;
-					}
-					case ShaderUniformType::UINT:
-					{
-						std::vector<uint32_t> values(count);
-						m_uniformStorageBuffer.readArray(values.data(), uniform.m_offset, count);
-						m_shader->setUniformUInt(uniform.m_location, count, values);
-						break;
-					}
-					case ShaderUniformType::INT:
-					{
-						std::vector<int32_t> values(count);
-						m_uniformStorageBuffer.readArray(values.data(), uniform.m_offset, count);
-						m_shader->setUniformInt(uniform.m_location, count, values);
-						break;
-					}
-					case ShaderUniformType::FLOAT:
-					{
-						std::vector<float> values(count);
-						m_uniformStorageBuffer.readArray(values.data(), uniform.m_offset, count);
-						m_shader->setUniformFloat1(uniform.m_location, count, values);
-						break;
-					}
-					case ShaderUniformType::VEC2:
-					{
-						std::vector<glm::vec2> values(count);
-						m_uniformStorageBuffer.readArray(values.data(), uniform.m_offset, count);
-						m_shader->setUniformFloat2(uniform.m_location, count, values);
-						break;
-					}
-					case ShaderUniformType::VEC3:
-					{
-						std::vector<glm::vec3> values(count);
-						m_uniformStorageBuffer.readArray(values.data(), uniform.m_offset, count);
-						m_shader->setUniformFloat3(uniform.m_location, count, values);
-						break;
-					}
-					case ShaderUniformType::VEC4:
-					{
-						std::vector<glm::vec4> values(count);
-						m_uniformStorageBuffer.readArray(values.data(), uniform.m_offset, count);
-						m_shader->setUniformFloat4(uniform.m_location, count, values);
-						break;
-					}
-					case ShaderUniformType::MAT3:
-					{
-						std::vector<glm::mat3> values(count);
-						m_uniformStorageBuffer.readArray(values.data(), uniform.m_offset, count);
-						m_shader->setUniformMatrix3(uniform.m_location, count, values);
-						break;
-					}
-					case ShaderUniformType::MAT4:
-					{
-						std::vector<glm::mat4> values(count);
-						m_uniformStorageBuffer.readArray(values.data(), uniform.m_offset, count);
-						m_shader->setUniformMatrix4(uniform.m_location, count, values);
-						break;
-					}
-					default:
-						ASSERT(false, "Unknown ShaderUniformType");
-						break;
 				}
 			}
-		}
+		});
 		PROFILE_LOGIC_END();
 	}
 
 	const ShaderUniform* Material::getShaderUniform(const std::string& name) {
-		const auto& uniformBuffers = m_shader->getUniformBuffers();
-		auto it = uniformBuffers.find(name);
-		if (it != uniformBuffers.end()) {
-			return &it->second;
-		}
-		return nullptr;
+		return m_shader->getUniform(name);
 	}
 
 	Ref<Texture> Material::getTexture(const std::string& name) const {

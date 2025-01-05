@@ -19,35 +19,35 @@ namespace emerald {
 			initialize();
 		}
 
-		inline uint32_t getInt(void) {
+		uint32_t getInt(void) {
 			uint32_t retVal = rand();
 			retVal = retVal & (~0u >> 1); //Limit range to positive numbers
 			return(retVal);
 		}
 
-		inline int32_t getIntInRange(int32_t minInclusive, int32_t maxExclusive) {
+		int32_t getIntInRange(int32_t minInclusive, int32_t maxExclusive) {
 			return minInclusive + getInt() % (maxExclusive - minInclusive);
 		}
 
 
-		inline float getFloat() {
+		float getFloat() {
 			return (getInt() & ((1 << 23) - 1)) * 0.00000011920928955078125f; // Mask lower 23 bits
 		}
 
-		inline float getFloatInRange(float min, float max) {
+		float getFloatInRange(float min, float max) {
 			return min + (max - min) * getFloat();
 		}
 
-		inline float getVariedFloat(float v) {
+		float getVariedFloat(float v) {
 			return(v * (getFloat() - 0.5f));
 		}
 
-		inline bool getBool() {
+		bool getBool() {
 			return (getInt() & 1);
 		}
 
 		// Generate a Gaussian (normal) distributed random number using the Box-Muller transform
-		inline float getGaussian(float mean = 0.0f, float variance = 1.0f) {
+		float getGaussian(float mean = 0.0f, float variance = 1.0f) {
 			if (m_hasSpare) {
 				m_hasSpare = false;
 				return mean + variance * m_spare;
@@ -66,7 +66,7 @@ namespace emerald {
 			return mean + variance * x * radiusSquared;
 		}
 
-		inline float getExponential(float lambda = 1.0f) {
+		float getExponential(float lambda = 1.0f) {
 			return -std::log(1.0f - getFloat()) / lambda;
 		}
 

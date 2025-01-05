@@ -20,8 +20,12 @@ namespace emerald {
 
 		void setEnabledRecursive(bool enabled);
 
+		SceneGraphComponent* getParent() const { return m_parent; }
 		const std::vector<SceneGraphComponent*>& getChildren() const { return m_children; }
 		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
+
+		virtual nlohmann::json serialize() override;
+		static SceneGraphComponent* deserialize(const nlohmann::json& json, Entity entity);
 
 	private:
 		friend class HierarchyTree;

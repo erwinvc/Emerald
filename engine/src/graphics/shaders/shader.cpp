@@ -126,6 +126,16 @@ namespace emerald {
 		}
 	}
 
+	ShaderUniform* Shader::getUniform(const std::string& name) {
+		auto it = m_uniformBuffers.find(name);
+		if (it != m_uniformBuffers.end()) {
+			return &it->second;
+		}
+		return nullptr;
+	}
+
+	/*
+
 	void Shader::setUniformInt(uint32_t location, uint32_t count, const int32_t& value) {
 		Renderer::submit([=] {
 			GL(glUniform1iv(location, count, (GLint*)&value));
@@ -252,6 +262,8 @@ namespace emerald {
 		});
 		//setUniform(glUniformMatrix4fv, location, count, GL_FALSE, value);
 	}
+
+	*/
 
 	void Shader::reload() {
 		//Ref<Shader> instance = this;

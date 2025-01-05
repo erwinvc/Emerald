@@ -67,9 +67,9 @@ namespace emerald {
 		uint32_t getTotalComponentCountSize();
 		void setVertexAttributeLocations(uint32_t attributeIndex);
 
-		inline std::vector<BufferElement>::iterator begin() { return m_elements.begin(); }
-		inline std::vector<BufferElement>::iterator end() { return m_elements.end(); }
-		inline const std::vector<BufferElement>& elements() const { return m_elements; }
-		inline uint32_t stride() const { return m_stride; }
+		std::vector<BufferElement>::iterator begin() { return m_elements.begin(); }
+		std::vector<BufferElement>::iterator end() { return m_elements.end(); }
+		const std::vector<BufferElement>& elements() const { return m_elements; }
+		uint32_t stride() const { return m_stride; }
 	};
 }

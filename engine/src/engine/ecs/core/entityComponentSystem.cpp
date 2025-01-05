@@ -9,7 +9,7 @@
 
 namespace emerald {
 	UUID EntityComponentSystem::getNewEntityID() {
-		UUID newID = UUIDGenerator::createFast();
+		UUID newID = UUIDGenerator::create();
 		return newID;
 	}
 

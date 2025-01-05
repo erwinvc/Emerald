@@ -12,7 +12,6 @@ namespace emerald {
 		Scene(const std::string name, const std::filesystem::path& scenePath);
 		~Scene() = default;
 		
-		void initialize();
 		void load();
 		void save();
 		void update(Timestep ts);

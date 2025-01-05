@@ -19,9 +19,11 @@ namespace emerald {
 		AsyncQueue(AsyncQueue&&) = delete;
 		AsyncQueue& operator=(AsyncQueue&&) = delete;
 
+		// Moves the item into the queue
 		template<typename U>
-		void add(U&& obj) {
-			std::lock_guard<std::mutex> l(m_mutex);
+		void emplace(U&& obj) {
+			std::lock_guard<std::mutex> lock(m_mutex);
+
 			if (m_released) {
 				throw QueueShutdownException();
 			}
@@ -29,9 +31,22 @@ namespace emerald {
 			m_condVar.notify_one();
 		}
 
-		template<typename InputIt>
-		void addBatch(InputIt first, InputIt last) {
+		// Copies the item into the queue
+		template <typename U>
+		void pushBack(const U& item) {
 			std::lock_guard<std::mutex> lock(m_mutex);
+
+			if (m_released) {
+				throw QueueShutdownException();
+			}
+			m_queue.push_back(item);
+			m_condVar.notify_one();
+		}
+
+		template<typename InputIt>
+		void emplaceBatch(InputIt first, InputIt last) {
+			std::lock_guard<std::mutex> lock(m_mutex);
+
 			if (m_released) {
 				throw QueueShutdownException();
 			}
@@ -43,6 +58,7 @@ namespace emerald {
 
 		bool tryGet(T& obj) {
 			std::lock_guard<std::mutex> lock(m_mutex);
+
 			if (m_queue.empty()) return false;
 			obj = std::move(m_queue.front());
 			m_queue.pop();
@@ -50,10 +66,11 @@ namespace emerald {
 		}
 
 		std::optional<T> waitAndGet() {
-			std::unique_lock<std::mutex> lock(m_mutex);
+			std::lock_guard<std::mutex> lock(m_mutex);
+
 			m_condVar.wait(lock, [this] {
 				return m_released || !m_queue.empty();
-			});
+				});
 
 			if (m_queue.empty()) {
 				return std::nullopt;
@@ -66,6 +83,7 @@ namespace emerald {
 
 		bool peek(T& obj) {
 			std::lock_guard<std::mutex> lock(m_mutex);
+
 			if (m_queue.empty()) return false;
 			obj = m_queue.front();
 			return true;
@@ -73,6 +91,7 @@ namespace emerald {
 
 		bool waitForGet(T& obj) {
 			std::unique_lock<std::mutex> lock(m_mutex);
+
 			while (!m_released && m_queue.empty()) m_condVar.wait(lock);
 			if (m_queue.empty()) return false;
 			obj = std::move(m_queue.front());
@@ -82,12 +101,14 @@ namespace emerald {
 
 		void clear() {
 			std::lock_guard<std::mutex> lock(m_mutex);
+
 			std::queue<T>().swap(m_queue);
 		}
 
 		void release() {
 			{
 				std::lock_guard<std::mutex> lock(m_mutex);
+
 				m_released = true;
 			}
 			m_condVar.notify_all();
@@ -95,16 +116,19 @@ namespace emerald {
 
 		bool empty() const noexcept {
 			std::lock_guard<std::mutex> lock(m_mutex);
+
 			return m_queue.empty();
 		}
 
 		size_t size() const noexcept {
 			std::lock_guard<std::mutex> lock(m_mutex);
+
 			return m_queue.size();
 		}
 
 		bool isReleased() const noexcept {
 			std::lock_guard<std::mutex> lock(m_mutex);
+
 			return m_released;
 		}
 

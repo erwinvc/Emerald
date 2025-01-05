@@ -138,7 +138,7 @@ namespace emerald {
 
 					for (const auto& entry : Log::getMessages()) {
 						if (m_selectedLogLevel >= static_cast<uint32_t>(entry.m_level) &&
-							(strlen(m_searchString) == 0 || stringUtils::toLower(entry.m_message).find(stringUtils::toLower(m_searchString)) != std::string::npos)) {
+							(strlen(m_searchString) == 0 || StringUtils::toLower(entry.m_message).find(StringUtils::toLower(m_searchString)) != std::string::npos)) {
 
 							size_t hash = std::hash<std::string>{}(entry.m_message);
 

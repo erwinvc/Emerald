@@ -5,6 +5,7 @@
 #include "utils/uuid/uuid.h"
 #include "../loaders/assetLoader.h"
 #include <future>
+#include "utils/threading/jobSystem.h"
 
 namespace emerald {
 	class AssetRegistry {
@@ -12,7 +13,8 @@ namespace emerald {
 		enum class AssetStreamingState {
 			NOTLOADED,
 			LOADING,
-			LOADED
+			LOADED,
+			CANNOTLOAD
 		};
 
 		AssetRegistry() = delete;
@@ -46,8 +48,12 @@ namespace emerald {
 		static void finalizeLoading(AssetMetadata* metadata, const Ref<AssetLoader>& loader);
 
 		struct StreamingTask {
-			AssetMetadata* metadata;
-			std::future<Ref<AssetLoader>> futureAsset;
+			Context m_ctx;
+			AssetMetadata* m_metadata;
+			Ref<AssetLoader> m_loader;
+
+			StreamingTask(AssetMetadata* metadata, Ref<AssetLoader>&& loader)
+				: m_ctx(), m_metadata(metadata), m_loader(loader) {}
 		};
 
 		static inline AssetTypeRegistry m_assetTypeRegistry;
@@ -56,7 +62,7 @@ namespace emerald {
 		static inline std::unordered_map<std::filesystem::path, AssetMetadata*> m_pathAssetMap;
 
 		static inline std::mutex m_mutex;
-		static inline std::vector<StreamingTask> m_streamingQueue;
+		static inline std::list<StreamingTask> m_streamingQueue;
 		static inline std::map<AssetMetadata*, AssetStreamingState> m_streamingState;
 		static inline std::map<AssetMetadata*, Ref<Asset>> m_assets;
 	};

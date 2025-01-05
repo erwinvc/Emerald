@@ -19,7 +19,7 @@ namespace emerald {
 		void deleteAttachedShaders();
 		void bind();
 
-		inline bool hasValidHandle() const { return m_handle != 0xffffffff; }
-		inline uint32_t handle() const { return m_handle; }
+		bool hasValidHandle() const { return m_handle != 0xffffffff; }
+		uint32_t handle() const { return m_handle; }
 	};
 }

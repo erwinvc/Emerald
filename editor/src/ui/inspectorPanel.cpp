@@ -68,9 +68,9 @@ namespace emerald {
 			for (UUID entity : selectedEntities) {
 				std::unordered_set<RTTIType> entityComponents;
 				for (auto& [type, componentArrayBase] : scene->getECS().getComponentArrays()) {
-					if (Component* comp = componentArrayBase->getComponentAsBase(entity)) {
-						if (comp->getComponentTypeInfo().category == ComponentCategory::INTERNAL) continue;
-						componentInfo[type] = &comp->getComponentTypeInfo();
+					for (auto* component : componentArrayBase->getComponentsAsBase(entity)) {
+						if (component->getComponentTypeInfo().category == ComponentCategory::INTERNAL) continue;
+						componentInfo[type] = &component->getComponentTypeInfo();
 						entityComponents.insert(type);
 					}
 				}
@@ -122,8 +122,9 @@ namespace emerald {
 					std::vector<Component*> components;
 					components.reserve(selectedEntities.size());
 					for (UUID entity : selectedEntities) {
-						Component* component = scene->getECS().getComponentArray(selectedComponentType).getComponentAsBase(entity);
-						if(component) components.push_back(component);
+						for (auto* component : scene->getECS().getComponentArray(selectedComponentType).getComponentsAsBase(entity)) {
+							components.push_back(component);
+						}
 					}
 
 					selectedComponents.push_back({ selectedComponentType, components });

@@ -10,18 +10,28 @@ struct Data {
 	vec4 pos;
 	vec2 uv;
 	vec3 normal;
+	mat3 TBN;
 };
 
 out Data vsData;
-uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
+
+uniform mat4 _ModelMatrix;
+uniform mat4 _ViewMatrix;
+uniform mat4 _ProjectionMatrix;
 
 void main(){
-	vsData.uv = vsUv;                                       // Pass UV coordinates
-	vsData.normal = mat3(transpose(inverse(modelMatrix))) * vsNormal;  // Transform normal to world space
+	vsData.uv = vsUv;
 
-	vec4 worldPos = modelMatrix * vec4(vsPos, 1.0);         // Transform position to world space
-	vsData.pos = worldPos;                                  // Pass world position to fragment shader
-	gl_Position = projectionMatrix * viewMatrix * worldPos; // Calculate clip space position
+	vec3 n = normalize((_ModelMatrix * vec4(vsNormal, 0.0)).xyz);
+	vec3 t = (_ModelMatrix * vec4(vsTangents, 0.0)).xyz;
+
+	t = normalize(t - dot(t, n) * n);
+	vec3 b = cross(n, t);
+	vsData.TBN = mat3(t, b, n);
+
+	vsData.normal = mat3(transpose(inverse(_ModelMatrix))) * vsNormal;
+
+	vec4 worldPos = _ModelMatrix * vec4(vsPos, 1.0);
+	vsData.pos = worldPos;
+	gl_Position = _ProjectionMatrix * _ViewMatrix * worldPos;
 }

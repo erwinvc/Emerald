@@ -3,13 +3,9 @@
 #include <algorithm>
 #include <atomic>
 #include <vector>
-#include <cinttypes>
 #include <mutex>
-#include <array>
 #include <span>
-#include <unordered_map>
 #include <assert.h>
-#include <d3d12.h>
 
 #define check(op, ...) assert(op)
 #define checkf(op, ...) assert(op)
@@ -30,7 +26,6 @@ struct URange {
 	uint32 Begin;
 	uint32 End;
 };
-
 
 #ifndef WITH_PROFILING
 #define WITH_PROFILING 1
@@ -204,6 +199,8 @@ public:
 		std::atomic<uint32>				NumEvents = 0;		// The number of events
 	};
 
+#define _NUMOF(x) (uint32_t)(((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x]))))))
+
 	// Thread-local storage to keep track of current depth and event stack
 	struct TLS {
 		static constexpr int MAX_STACK_DEPTH = 32;
@@ -219,7 +216,7 @@ public:
 
 			T& Push() {
 				Depth++;
-				check(Depth < ARRAYSIZE(StackData));
+				check(Depth < _NUMOF(StackData));
 				return StackData[Depth - 1];
 			}
 

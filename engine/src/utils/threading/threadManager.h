@@ -7,9 +7,14 @@
 #include "../datastructures/asyncQueue.h"
 
 namespace emerald {
-	enum ThreadType {
+	enum class ThreadPriority {
+		LOWEST = THREAD_PRIORITY_LOWEST,
+		NORMAL = THREAD_PRIORITY_NORMAL,
+		HIGHEST = THREAD_PRIORITY_HIGHEST,
+	};
+
+	enum class ThreadType {
 		LOGIC,
-		ASSETLOADING,
 		RENDER,
 		CONSOLE_OUTPUT,
 		_COUNT
@@ -17,7 +22,7 @@ namespace emerald {
 
 	class Thread {
 	public:
-		Thread(const std::string& name, std::function<void()> func, uint32_t affinity, bool background = false);
+		Thread(const std::string& name, std::function<void()> func, uint32_t affinity, ThreadPriority priority, bool background = false);
 		~Thread();
 
 		void start();
@@ -31,6 +36,7 @@ namespace emerald {
 
 	private:
 		std::string m_name;
+		ThreadPriority m_priority;
 		std::function<void()> m_function;
 		uint32_t m_affinity;
 		bool m_background;
@@ -48,7 +54,7 @@ namespace emerald {
 		ThreadManager(const ThreadManager&) = delete;
 		ThreadManager& operator=(const ThreadManager&) = delete;
 
-		static Thread* createAndRegisterThread(ThreadType type, const std::string& name, std::function<void()> func, bool background = false);
+		static Thread* createAndRegisterThread(ThreadType type, ThreadPriority priority, const std::string& name, std::function<void()> func, bool background = false);
 		static void registerCurrentThread(ThreadType type);
 		static bool isThread(ThreadType type);
 		static void shutdown();
@@ -59,4 +65,13 @@ namespace emerald {
 
 		static void initializeAffinitySystem();
 	};
+
+	inline std::string_view threadPriorityToString(ThreadPriority type, bool upperCase) {
+		switch (type) {
+		case ThreadPriority::LOWEST: return upperCase ? "Lowest" : "lowest";
+		case ThreadPriority::NORMAL: return upperCase ? "Normal" : "normal";
+		case ThreadPriority::HIGHEST: return upperCase ? "Highest" : "highest";
+		}
+		return "UNKNOWN";
+	}
 }

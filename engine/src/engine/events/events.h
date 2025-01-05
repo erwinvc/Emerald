@@ -22,8 +22,8 @@ namespace emerald {
 			: m_width(width), m_height(height) {
 		}
 
-		inline uint32_t getWidth() const { return m_width; }
-		inline uint32_t getHeight() const { return m_height; }
+		uint32_t getWidth() const { return m_width; }
+		uint32_t getHeight() const { return m_height; }
 	private:
 		unsigned int m_width, m_height;
 	};
@@ -36,8 +36,8 @@ namespace emerald {
 			: m_message(message), m_subMessage(subMessage) {
 		}
 
-		inline const std::string& getMessage() const { return m_message; }
-		inline const std::string& getSubMessage() const { return m_subMessage; }
+		const std::string& getMessage() const { return m_message; }
+		const std::string& getSubMessage() const { return m_subMessage; }
 
 	private:
 		std::string m_message;
@@ -52,8 +52,8 @@ namespace emerald {
 			: m_metadata(metadata), m_asset(asset) {
 		}
 
-		inline AssetMetadata* getMetadata() const { return m_metadata; }
-		inline Ref<Asset> getAsset() const { return m_asset; }
+		AssetMetadata* getMetadata() const { return m_metadata; }
+		Ref<Asset> getAsset() const { return m_asset; }
 
 	private:
 		AssetMetadata* m_metadata;

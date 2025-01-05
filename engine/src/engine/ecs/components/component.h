@@ -1,6 +1,7 @@
 #pragma once
 #include "engine/ecs/core/entity.h"
 #include "utils/text/fixedString.h"
+#include "utils/text/stringUtils.h"
 
 namespace emerald {
 	enum class ComponentCategory {
@@ -30,11 +31,7 @@ namespace emerald {
 				return 0;
 			}
 
-			// DJB2 hash algorithm
-			uint32_t hash = 5381;
-			for (size_t i = 0; i < componentName.size(); ++i) {
-				hash = ((hash << 5) + hash) + static_cast<uint32_t>(componentName[i]);
-			}
+			uint32_t hash = StringUtils::hash32(componentName);
 
 			return hash != 0 ? hash : 1;
 		}
@@ -44,7 +41,14 @@ namespace emerald {
 		RTTI_BASE_CLASS_DECL(Component);
 	public:
 		Component() = default;
+		//virtual ~Component() = default;
+
 		Entity m_entity = Entity();
 		virtual const ComponentTypeInfo& getComponentTypeInfo() = 0;
+		virtual nlohmann::json serialize() = 0;
+
+		uint64_t getHash();
+
+		friend class InspectorPanel;
 	};
 }

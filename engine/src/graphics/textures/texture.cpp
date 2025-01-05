@@ -11,35 +11,15 @@
 #include "utils/threading/threadManager.h"
 
 namespace emerald {
-	Texture::Texture(TextureDesc desc, uint32_t width, uint32_t height, const byte* data, uint32_t dataSize, TextureDataType textureDataType)
-		: m_desc(desc), m_width(width), m_height(height) {
-		if (textureDataType == TextureDataType::RAW) {
-			if (data) {
-				m_buffer = Buffer<byte>::copy((byte*)data, dataSize);
-			}
-		} else if (textureDataType == TextureDataType::FILE) {
-			int channelCount;
-			int width, height;
-
-			byte* loadedData = stbi_load_from_memory(data, dataSize, &width, &height, &channelCount, 4);
-
-			if (channelCount < 1 || channelCount > 4) Log::error("[Texture] unsupported image channel count ({})", channelCount);
-
-			uint32_t size = channelCount * width * height;
-
-			if (loadedData) {
-				m_channelCount = channelCount;
-				m_width = width;
-				m_height = height;
-				m_buffer = Buffer<byte>::copy(loadedData, size);
-				stbi_image_free(loadedData);
-				Log::info("[Texture] loaded texture from memory");
-			} else Log::error("[Texture] failed to load texture from memory");
+	Texture::Texture(TextureDesc desc, uint32_t width, uint32_t height, const byte* data, uint32_t dataSize)
+		: m_desc(desc), m_width(width), m_height(height), m_dirty(true) {
+		if (data) {
+			m_buffer = Buffer<byte>::copy((byte*)data, dataSize);
 		}
 	}
 
 	Texture::Texture(TextureDesc desc, uint32_t width, uint32_t height)
-		: m_desc(desc), m_width(width), m_height(height) {
+		: m_desc(desc), m_width(width), m_height(height), m_dirty(true) {
 	}
 
 	Texture::~Texture() {
@@ -56,14 +36,16 @@ namespace emerald {
 	}
 
 	void Texture::invalidate() {
-		ASSERT(ThreadManager::isThread(RENDER), "textures should be invalidated on the render thread");
+		ASSERT(ThreadManager::isThread(ThreadType::RENDER), "textures should be invalidated on the render thread");
 
 		if (m_handle) cleanup();
 
 		GLenum target = m_desc.getTarget();
 
 		GL(glCreateTextures(target, 1, &m_handle));
-
+#ifdef EE_DEBUG
+		GL(glObjectLabel(GL_TEXTURE, m_handle, static_cast<GLsizei>(m_desc.name.size()), m_desc.name.c_str()));
+#endif
 		if (m_desc.samples != MSAA::NONE) {
 			// Multisampled texture
 			GL(glTextureStorage2DMultisample(m_handle, m_desc.getSamples(), m_desc.getInternalFormat(), m_width, m_height, GL_TRUE));
@@ -95,10 +77,24 @@ namespace emerald {
 			GL(glTextureParameteri(m_handle, GL_TEXTURE_WRAP_T, m_desc.getWrap()));
 			GL(glTextureParameteri(m_handle, GL_TEXTURE_MIN_FILTER, m_desc.getFilter(GL_TEXTURE_MIN_FILTER, m_desc.hasMipmaps)));
 			GL(glTextureParameteri(m_handle, GL_TEXTURE_MAG_FILTER, m_desc.getFilter(GL_TEXTURE_MAG_FILTER, m_desc.hasMipmaps)));
+
+			if (m_desc.isDepthAttachmentType()) {
+				glTextureParameteri(m_handle, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+				glTextureParameteri(m_handle, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+			}
+
+			m_dirty = false;
 		}
 	}
 
+	void Texture::submitInvalidate() {
+		Renderer::submit([instance = Ref<Texture>(this)] {
+			instance->invalidate();
+		});
+	}
+
 	void Texture::bind(uint32_t slot /*= 0*/) const {
+		//ASSERT(!m_dirty, "Texture is dirty, call invalidate() before binding");
 		Renderer::submit([instance = Ref<const Texture>(this), slot] {
 			GL(glBindTextureUnit(slot, instance->m_handle)); // Use DSA function to bind texture
 		});
@@ -131,7 +127,7 @@ namespace emerald {
 
 	void Texture::saveAsPNG(const std::string& file) {
 		if (m_desc.readWrite && m_buffer) {
-			uint32_t channels = m_desc.getChannelCount();
+			uint32_t channels = m_desc.getBytesPerPixel();
 			stbi_write_png(file.c_str(), getWidth(), getHeight(), channels, m_buffer.data(), channels * getWidth());
 			Log::info("[Texture] saved texture to {}", file.c_str());
 		} else Log::warn("[Texture] failed to save texture because texture has no data");

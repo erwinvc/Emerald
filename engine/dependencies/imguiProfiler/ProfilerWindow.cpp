@@ -410,7 +410,7 @@ static void DrawProfilerTimeline(const ImVec2& size = ImVec2(0, 0)) {
 					context.IsSelectingRange = false;
 				} else {
 					// Distance between mouse cursor and measuring start
-					float distance = fabs(ImGui::GetMousePos().x - context.RangeSelectionStart);
+					float distance = (float)fabs(ImGui::GetMousePos().x - context.RangeSelectionStart);
 
 					// Fade in based on distance
 					float opacity = ImClamp(distance / 30.0f, 0.0f, 1.0f);

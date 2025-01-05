@@ -8,6 +8,6 @@ namespace emerald {
 	}
 
 	float HighPrecisionTimer::getTime() const {
-		return Time::getTickTimeMs();
+		return Time::getTickTimeMs<float>();
 	}
 }

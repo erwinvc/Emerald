@@ -15,7 +15,7 @@ namespace emerald {
 
 		virtual void removeComponentsOfEntity(UUID entity) = 0;
 
-		virtual Component* getComponentAsBase(UUID entity) = 0;
+		virtual std::vector<Component*> getComponentsAsBase(UUID entity) = 0;
 
 		virtual RTTIType getComponentType() const = 0;
 	};
@@ -108,16 +108,16 @@ namespace emerald {
 			return components;
 		}
 
-		Component* getComponentAsBase(UUID entity) override {
+		std::vector<Component*> getComponentsAsBase(UUID entity) override {
+			std::vector<Component*> components;
 			auto it = m_entityToComponentIndices.find(entity);
-			if (it == m_entityToComponentIndices.end()) return nullptr;
-
-			if (!it->second.empty()) {
-				const auto& index = it->second.front();
-				T* componentPtr = m_chunks[index.chunkIndex]->getComponent(index.componentIndex);
-				return static_cast<Component*>(componentPtr);
+			if (it != m_entityToComponentIndices.end()) {
+				for (const auto& index : it->second) {
+					Component* componentPtr = m_chunks[index.chunkIndex]->getComponent(index.componentIndex);
+					components.push_back(componentPtr);
+				}
 			}
-			return nullptr;
+			return components;
 		}
 
 		RTTIType getComponentType() const override {

@@ -12,17 +12,17 @@ namespace emerald {
 	static RenderSyncManager s_renderSyncManager;
 
 	void Renderer::acquireRenderBuffer() {
-		ASSERT(ThreadManager::isThread(RENDER), "Renderer::acquireRenderBuffer should be called on the render thread");
+		ASSERT(ThreadManager::isThread(ThreadType::RENDER), "Renderer::acquireRenderBuffer should be called on the render thread");
 		s_renderSyncManager.acquireRenderBuffer();
 	}
 
 	void Renderer::waitForBufferAvailability() {
-		ASSERT(ThreadManager::isThread(LOGIC), "Renderer::waitForBufferAvailability should be called on the logic thread");
+		ASSERT(ThreadManager::isThread(ThreadType::LOGIC), "Renderer::waitForBufferAvailability should be called on the logic thread");
 		s_renderSyncManager.waitForBufferAvailability();
 	}
 
 	void Renderer::submitBufferForRendering() {
-		ASSERT(ThreadManager::isThread(LOGIC), "Renderer::submitBufferForRendering should be called on the logic thread");
+		ASSERT(ThreadManager::isThread(ThreadType::LOGIC), "Renderer::submitBufferForRendering should be called on the logic thread");
 		s_renderSyncManager.submitBufferForRendering();
 	}
 
@@ -41,6 +41,9 @@ namespace emerald {
 	}
 
 	void Renderer::flushRenderCommands() {
+		//Twice, because we use three buffers
+		submitBufferForRendering();
+		waitForBufferAvailability();
 		submitBufferForRendering();
 		waitForBufferAvailability();
 	}

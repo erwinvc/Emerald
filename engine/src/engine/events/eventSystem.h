@@ -11,11 +11,11 @@ namespace emerald {
 		template<typename EventType, typename... Args>
 		static void dispatch(Args&&... args) {
 			UniqueRef<EventType> e = UniqueRef<EventType>::create(std::forward<Args>(args)...);
-			return dispatch(std::move(e)); 
+			return dispatch(std::move(e));
 		}
 
 		static void dispatch(UniqueRef<Event>&& e) {
-			s_eventQueue.add(std::move(e));
+			s_eventQueue.emplace(std::move(e));
 			//std::lock_guard<std::mutex> l(s_lock);
 			//
 			//// Dispatch to callback
@@ -82,7 +82,7 @@ namespace emerald {
 			RTTIType type = EventType::getStaticClassType();
 			s_subscribers[type].push_back([callback](Event& e) {
 				callback(static_cast<EventType&>(e));
-			});
+				});
 		}
 
 		template<typename EventType, typename InstanceType>
@@ -91,7 +91,7 @@ namespace emerald {
 			RTTIType type = EventType::getStaticClassType();
 			s_subscribers[type].push_back([func, instance](Event& e) {
 				(instance->*func)(static_cast<EventType&>(e));
-			});
+				});
 		}
 
 		template<typename EventType>
@@ -100,7 +100,7 @@ namespace emerald {
 			RTTIType type = EventType::getStaticClassType();
 			s_onceSubscribers[type].push_back([callback](Event& e) {
 				callback(static_cast<EventType&>(e));
-			});
+				});
 		}
 
 		template<typename EventType, typename InstanceType>
@@ -109,7 +109,7 @@ namespace emerald {
 			RTTIType type = EventType::getStaticClassType();
 			s_onceSubscribers[type].push_back([func, instance](Event& e) {
 				(instance->*func)(static_cast<EventType&>(e));
-			});
+				});
 		}
 
 		static void setGlobalCallback(const EventCallback<Event>& callback) {
@@ -143,11 +143,15 @@ namespace emerald {
 			auto itOnce = s_onceSubscribers.find(e.getClassType());
 			if (itOnce != s_onceSubscribers.end()) {
 				auto& callbacks = itOnce->second;
-				auto callbackIter = callbacks.begin();
-				while (callbackIter != callbacks.end()) {
-					(*callbackIter)(e);
-					callbackIter = callbacks.erase(callbackIter);
-					if (e.isHandled()) break;
+				// Iterate callbacks, remove only the ones that handle the event,
+				for (auto it = callbacks.begin(); it != callbacks.end(); ) {
+					(*it)(e);
+					if (e.isHandled()) {
+						it = callbacks.erase(it);
+						break;
+					} else {
+						++it;
+					}
 				}
 			}
 

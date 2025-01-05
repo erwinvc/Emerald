@@ -103,7 +103,7 @@ namespace emerald {
 		};
 
 
-		EntityComponentSystem() : m_nextEntityID(1) {} 
+		EntityComponentSystem() : m_nextEntityID(1) {}
 
 		UUID getNewEntityID();
 		UUID createEntityFromID(UUID ID, const std::string& name, bool isRootEntity = false);
@@ -147,6 +147,16 @@ namespace emerald {
 				return componentArray->getComponents(entity);
 			}
 			return {};
+		}
+
+		std::vector<Component*> getAllComponents(UUID entity) {
+			std::vector<Component*> components;
+			for (auto& [typeIndex, componentArray] : m_componentArrays) {
+				for (auto* component : componentArray->getComponentsAsBase(entity)) {
+					components.push_back(component);
+				}
+			}
+			return components;
 		}
 
 		template<typename T>

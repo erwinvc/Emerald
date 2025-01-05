@@ -4,7 +4,7 @@
 
 namespace emerald {
 
-	enum FBOScale {
+	enum class FBOScale {
 		STATIC,
 		FULL,
 		HALF,
@@ -75,7 +75,7 @@ namespace emerald {
 
 		std::vector<Ref<Texture>>& getTextures() { return m_textures; }
 		std::vector<std::string>& getTextureNames() { return m_textureNames; }
-		const Ref<Texture>& getDepthTexture() { return m_textures[0]; }
+		const Ref<Texture>& getDepthTexture() { return m_depthTexture; }
 	};
 
 	namespace FrameBufferManager {

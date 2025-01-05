@@ -20,6 +20,9 @@ namespace emerald {
 		
 		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
 
+		virtual nlohmann::json serialize() override;
+		static TransformComponent* deserialize(const nlohmann::json& json, Entity entity);
+
 	private:
 		friend class TransformComponentInspector;
 		
