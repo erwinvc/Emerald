@@ -19,6 +19,7 @@
 #include "../texture/textureAsset.h"
 #include "../../events/eventSystem.h"
 #include "core/application/application.h"
+#include "assimp/cimport.h"
 
 namespace emerald {
 	static const uint32_t ImportFlags =
@@ -91,17 +92,9 @@ namespace emerald {
 
 			AssetMetadata* metadata = AssetRegistry::getAssetMetadata(texPath);
 			if (metadata) {
-				if (AssetRegistry::isAssetStreamed(metadata)) {
-					material->setTexture(name, AssetRegistry::getAsset(metadata));
-				} else {
-					AssetRegistry::streamAsset(metadata);
-					EventSystem::subscribeOnce<AssetStreamedEvent>([fallback, name, material, metadata](AssetStreamedEvent& e) {
-						if (e.getMetadata() == metadata) {
-							material->setTexture(name, e.getAsset());
-							e.setHandled();
-						}
-						});
-				}
+				AssetRegistry::executeWhenAssetStreamed(metadata, [material, name](const Ref<Asset>& asset) {
+					material->setTexture(name, asset);
+				});
 				return true;
 			}
 		}
@@ -124,7 +117,15 @@ namespace emerald {
 		return defaultColor;
 	}
 
+	void myCallback(const char* msg, char* userData) {
+		Log::info("{}", msg);
+	}
+
 	bool ModelLoader::onBeginLoad() {
+		struct aiLogStream stream;
+		stream.callback = myCallback;
+		aiAttachLogStream(&stream);
+
 		if (!std::filesystem::exists(m_path.string())) {
 			Log::error("[Model] File at {} does not exist!", m_path.string().c_str());
 			return false;

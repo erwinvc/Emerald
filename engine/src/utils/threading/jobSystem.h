@@ -13,25 +13,31 @@ namespace emerald {
 		_COUNT
 	};
 
-	struct Context
+	class Context
 	{
+	public:
+		bool isBusy() const;
+		void wait();
+
+	private:
 		std::atomic<uint32_t> counter{ 0 };
 		Priority priority = Priority::HIGH;
+		friend class JobSystem;
 	};
 
 	struct JobArgs
 	{
-		uint32_t m_jobIndex;	
-		uint32_t m_groupID;	
-		uint32_t m_groupIndex;
+		uint32_t m_jobIndex = ~0;
+		uint32_t m_groupID = ~0;
+		uint32_t m_groupIndex = ~0;
 	};
 
 	struct Job {
-		std::function<void(JobArgs)> m_function;
-		Context* m_ctx;
-		uint32_t m_groupID;
-		uint32_t m_groupJobOffset;
-		uint32_t m_groupJobEnd;
+		std::function<void(JobArgs)> m_function = nullptr;
+		Context* m_ctx = nullptr;
+		uint32_t m_groupID = ~0;
+		uint32_t m_groupJobOffset = ~0;
+		uint32_t m_groupJobEnd = ~0;
 	};
 
 	class JobSystem {
@@ -46,14 +52,10 @@ namespace emerald {
 		static uint32_t getThreadCount();
 
 		static void execute(Context& ctx, const std::function<void(JobArgs)>& function);
-
-		static void dispatch(Context& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobArgs)>& function);
-
-		static uint32_t dispatchGroupCount(uint32_t jobCount, uint32_t groupSize);
-		static bool isBusy(const Context& ctx);
-		static void wait(const Context& ctx);
+		static void execute(Context& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobArgs)>& function);
 
 	private:
-	
+		static void work(uint32_t startingQueue, Priority priority);
+		friend class Context;
 	};
 }

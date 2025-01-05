@@ -35,7 +35,7 @@ namespace emerald {
 	};
 
 	inline void to_json(nlohmann::json& j, const UUID& uuid) {
-		j = nlohmann::json{ uuid.toString()};
+		j = uuid.toString();
 	}
 	inline void from_json(const nlohmann::json& j, UUID& uuid) {
 		uuid.fromString(j.get<std::string>());

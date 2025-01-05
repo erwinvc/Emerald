@@ -39,6 +39,7 @@ namespace emerald {
 		static Ref<Asset> getAsset(AssetMetadata* metadata);
 		static AssetMetadata* getAssetMetadata(const UUID& uuid);
 		static AssetMetadata* getAssetMetadata(const std::filesystem::path& path);
+		static bool executeWhenAssetStreamed(AssetMetadata* metadata, std::function<void(const Ref<Asset>&)> callback);
 
 		static void clear();
 		static void update();

@@ -259,22 +259,23 @@ namespace emerald {
 			ImGui::PopStyleColor(4);
 
 
-			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID | ImGuiDragDropFlags_SourceNoPreviewTooltip)) {
-				Vector<UUID> selectedAssets;
-				for (const auto& selectedAsset : getSelectedAssets()) {
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoPreviewTooltip)) {
+				auto& selectedAssets = getSelectedAssets();
+				Vector<UUID> selectedAssetUUIDs;
+				selectedAssetUUIDs.reserve(selectedAssets.size() + 1);
+				for (const auto& selectedAsset : selectedAssets) {
 					AssetMetadata* selectedAssetMetadata = AssetRegistry::getAssetMetadata(selectedAsset);
-					if (selectedAssetMetadata && selectedAssetMetadata->getType() != AssetType::FOLDER) {
-						AssetRegistry::streamAsset(selectedAssetMetadata);
-					}
-					selectedAssets.pushBack(selectedAssetMetadata->getUUID());
-				}
-				
-				if (!selectedAssets.contains(file.m_metadata->getUUID())) {
-					selectedAssets.pushBack(file.m_metadata->getUUID());
+					AssetRegistry::streamAsset(selectedAssetMetadata);
+					selectedAssetUUIDs.pushBack(selectedAssetMetadata->getUUID());
 				}
 
-				const size_t payloadSize = selectedAssets.size() * sizeof(UUID);
-				ImGui::SetDragDropPayload(DRAG_DROP_ASSET, selectedAssets.data(), payloadSize);
+				if (!selectedAssetUUIDs.contains(file.m_metadata->getUUID())) {
+					selectedAssetUUIDs.pushBack(file.m_metadata->getUUID());
+					AssetRegistry::streamAsset(file.m_metadata);
+				}
+
+				const size_t payloadSize = selectedAssetUUIDs.size() * sizeof(UUID);
+				ImGui::SetDragDropPayload(DRAG_DROP_ASSET, selectedAssetUUIDs.data(), payloadSize);
 
 				ImGui::EndDragDropSource();
 			}
@@ -475,18 +476,25 @@ namespace emerald {
 
 					ImGui::BeginChild("##AssetGrid", ImVec2(0, -1), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 					ImGuiMultiSelectFlags flags = ImGuiMultiSelectFlags_ClearOnClickVoid | ImGuiMultiSelectFlags_SelectOnClickRelease;
+
 					ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(flags, m_imGuiSelection.Size, (uint32_t)getFilteredDirectoryContents().size());
+					bool shouldUpdateSelected = ms_io->Requests.size() > 0;
+
 					m_imGuiSelection.ApplyRequests(ms_io);
 
 					if (Project::isProjectOpen()) renderAssetGrid();
 
 					ms_io = ImGui::EndMultiSelect();
 
+					shouldUpdateSelected |= ms_io->Requests.size() > 0;
+
 					m_imGuiSelection.ApplyRequests(ms_io);
-					if (ms_io->Requests.size() > 0) {
+
+					ImGui::EndChild();
+
+					if (shouldUpdateSelected) {
 						updateSelectedAssets();
 					}
-					ImGui::EndChild();
 				}
 
 				ImGui::EndChild();
@@ -499,6 +507,13 @@ namespace emerald {
 
 	void AssetBrowserPanel::updateSelectedAssets() {
 		m_selectedAssets.clear();
+		auto files = getFilteredDirectoryContents();
+
+		//for (auto& file : files) {
+		//	if (m_imGuiSelection.Contains(file.m_imGuiID)) {
+		//		m_selectedAssets.push_back(file.m_path);
+		//	}
+		//}
 		void* iter = nullptr;
 		ImGuiID selectedId = 0;
 		while (m_imGuiSelection.GetNextSelectedItem(&iter, &selectedId)) {

@@ -47,8 +47,8 @@ namespace emerald {
 
 		// Shadow
 		FramebufferDesc shadowFbDesc;
-		shadowFbDesc.width = 2048 * 8;
-		shadowFbDesc.height = 2048 * 8;
+		shadowFbDesc.width = 2048;
+		shadowFbDesc.height = 2048;
 		shadowFbDesc.scale = FBOScale::STATIC;
 		shadowFbDesc.samples = MSAA::NONE;
 		shadowFbDesc.attachments = {
@@ -209,7 +209,7 @@ namespace emerald {
 			glFrontFace(GL_CCW);
 			GL(glEnable(GL_DEPTH_TEST));
 		});
-
+		//multithread this
 		auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>(&SceneManager::getActiveScene()->getECS());
 		for (auto [meshRenderer, transform] : view) {
 			Ref<Material> mat = meshRenderer->m_mesh->getMaterial();

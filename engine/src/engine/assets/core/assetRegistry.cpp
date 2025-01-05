@@ -1,6 +1,5 @@
 #include "eepch.h"
 #include "assetRegistry.h"
-#include "../texture/textureAsset.h"
 #include "../../editor/src/project.h"
 #include "utils/uuid/uuidGenerator.h"
 #include "../metadata/textureMetadata.h"
@@ -12,7 +11,7 @@
 namespace emerald {
 	void AssetRegistry::initialize() {
 		m_assetTypeRegistry.registerType<TextureMetadata>(AssetType::TEXTURE, { ".png", ".bmp", ".jpg", ".jpeg" });
-		m_assetTypeRegistry.registerType<ModelMetadata>(AssetType::MODEL, { ".fbx", ".obj" });
+		m_assetTypeRegistry.registerType<ModelMetadata>(AssetType::MODEL, { ".fbx", ".obj", ".gltf"});
 	}
 
 	void AssetRegistry::parseCurrentProject() {
@@ -89,11 +88,11 @@ namespace emerald {
 
 		StreamingTask& task = m_streamingQueue.back();
 		JobSystem::execute(task.m_ctx, [&task](JobArgs args) {
-			Log::info("Loading asset from metadata: {}", task.m_metadata->getPath().string());
+			//Log::info("Loading asset from metadata: {}", task.m_metadata->getPath().string());
 
 			Ref<AssetLoader> loader = task.m_metadata->createAssetLoader();
 			if (!loader) {
-				Log::error("Failed to create asset loader instance for {}", task.m_metadata->getPath().string());
+				//Log::error("Failed to create asset loader instance for {}", task.m_metadata->getPath().string());
 				m_streamingState[task.m_metadata] = AssetStreamingState::CANNOTLOAD;
 				return;
 			}
@@ -149,6 +148,22 @@ namespace emerald {
 		return nullptr;
 	}
 
+	bool AssetRegistry::executeWhenAssetStreamed(AssetMetadata* metadata, std::function<void(const Ref<Asset>&)> callback) {
+		if (isAssetStreamed(metadata)) {
+			callback(getAsset(metadata));
+			return true;
+		} else {
+			streamAsset(metadata);
+			EventSystem::subscribeOnce<AssetStreamedEvent>([metadata, callback](AssetStreamedEvent& e) {
+				if (e.getMetadata() == metadata) {
+					callback(e.getAsset());
+					e.setHandled();
+				}
+				});
+			return false;
+		}
+	}
+
 	void AssetRegistry::clear() {
 		std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -162,7 +177,7 @@ namespace emerald {
 
 		for (auto it = m_streamingQueue.begin(); it != m_streamingQueue.end();) {
 			StreamingTask& task = *it;
-			if (!JobSystem::isBusy(task.m_ctx)) {
+			if (!task.m_ctx.isBusy()) {
 				finalizeLoading(task.m_metadata, task.m_loader);
 				it = m_streamingQueue.erase(it);
 			} else {

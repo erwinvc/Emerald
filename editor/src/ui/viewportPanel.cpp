@@ -73,10 +73,8 @@ namespace emerald {
 
 						} else if (metadata->getType() == AssetType::MODEL) {
 
-							auto createAsset = [metadata] {
-								Ref<Model> asset = AssetRegistry::getAsset(metadata);
+							auto createAsset = [metadata](const Ref<Model>& asset) {
 								auto& ecs = SceneManager::getActiveScene()->getECS();
-
 
 								Entity baseEntity = ecs.createEntity(asset->getName());
 								SceneGraphComponent* sponzaParent = ecs.getComponent<SceneGraphComponent>(baseEntity);
@@ -87,19 +85,9 @@ namespace emerald {
 									ecs.addComponent<MeshRendererComponent>(e, mesh);
 									sponzaParent->addChild(r);
 								}
-								};
+							};
 
-							if (AssetRegistry::isAssetStreamed(metadata)) {
-								createAsset();
-							} else {
-								AssetRegistry::streamAsset(metadata);
-								EventSystem::subscribeOnce<AssetStreamedEvent>([createAsset, metadata](AssetStreamedEvent& e) {
-									if (e.getMetadata() == metadata) {
-										createAsset();
-										e.setHandled();
-									}
-									});
-							}
+							AssetRegistry::executeWhenAssetStreamed(metadata, createAsset);
 						} else if (metadata->getType() == AssetType::MATERIAL) {
 
 						} else if (metadata->getType() == AssetType::SHADER) {
