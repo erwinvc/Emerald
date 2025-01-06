@@ -20,6 +20,7 @@
 #include "../../events/eventSystem.h"
 #include "core/application/application.h"
 #include "assimp/cimport.h"
+#include "utils/math/color.h"
 
 namespace emerald {
 	static const uint32_t ImportFlags =
@@ -101,7 +102,6 @@ namespace emerald {
 		return false;
 	}
 
-	// Helper to get a float factor from material
 	static float getMaterialFloat(aiMaterial* mat, const char* key, unsigned int type, unsigned int idx, float defaultValue = 1.0f) {
 		float value;
 		if (mat->Get(key, type, idx, value) == AI_SUCCESS)
@@ -109,23 +109,14 @@ namespace emerald {
 		return defaultValue;
 	}
 
-	// Helper to get a color (glm::vec3) from material
-	static glm::vec4 getMaterialColor(aiMaterial* mat, const char* key, unsigned int type, unsigned int idx, glm::vec4 defaultColor = glm::vec4(1.0f)) {
+	static bool getMaterialColor(aiMaterial* mat, const char* key, unsigned int type, unsigned int idx, glm::vec4& out) {
 		aiColor4D color;
-		if (mat->Get(key, type, idx, color) == AI_SUCCESS)
-			return glm::vec4(color.r, color.g, color.b, color.a);
-		return defaultColor;
-	}
-
-	void myCallback(const char* msg, char* userData) {
-		Log::info("{}", msg);
+		if (mat->Get(key, type, idx, color) != AI_SUCCESS) return false;
+		out = glm::vec4(color.r, color.g, color.b, color.a);
+		return true;
 	}
 
 	bool ModelLoader::onBeginLoad() {
-		struct aiLogStream stream;
-		stream.callback = myCallback;
-		aiAttachLogStream(&stream);
-
 		if (!std::filesystem::exists(m_path.string())) {
 			Log::error("[Model] File at {} does not exist!", m_path.string().c_str());
 			return false;
@@ -160,12 +151,19 @@ namespace emerald {
 
 			Log::info("[Model] Loading material {}", material->getName());
 
-			material->set("_BaseColor", getMaterialColor(aiMat, AI_MATKEY_BASE_COLOR, glm::vec4(1.0f)));
+			glm::vec4 baseColor = Color::white();
+			if (!getMaterialColor(aiMat, AI_MATKEY_BASE_COLOR, baseColor)) {
+				getMaterialColor(aiMat, AI_MATKEY_COLOR_DIFFUSE, baseColor);
+			}
+			Log::info("Base color: {} {} {} {}", baseColor.r, baseColor.g, baseColor.b, baseColor.a);
+			material->set("_BaseColor", baseColor);
 			material->set("_Metallic", getMaterialFloat(aiMat, AI_MATKEY_METALLIC_FACTOR, 1.0f));
 			material->set("_Roughness", getMaterialFloat(aiMat, AI_MATKEY_ROUGHNESS_FACTOR, 1.0f));
 
 			loadMaterialTexture("_Albedo", material, aiMat, aiTextureType_DIFFUSE, m_path, FallbackTextures::null());
-			loadMaterialTexture("_Normal", material, aiMat, aiTextureType_HEIGHT, m_path, FallbackTextures::normal());
+			if (!loadMaterialTexture("_Normal", material, aiMat, aiTextureType_HEIGHT, m_path, FallbackTextures::normal())) {
+				loadMaterialTexture("_Normal", material, aiMat, aiTextureType_NORMALS, m_path, FallbackTextures::normal());
+			}
 			if (!loadMaterialTexture("_RoughnessMetalic", material, aiMat, aiTextureType_METALNESS, m_path, FallbackTextures::white())) {
 				loadMaterialTexture("_RoughnessMetalic", material, aiMat, aiTextureType_DIFFUSE_ROUGHNESS, m_path, FallbackTextures::white());
 			}

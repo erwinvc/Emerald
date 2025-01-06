@@ -24,6 +24,9 @@ uniform float _Roughness;
 
 vec3 lightColor = vec3(1.0, 1.0, 1.0); 
 float ambientStrength = 0.1;
+uniform float _SSSIntensity = 1.0;
+uniform float _SSSScale = 0.8;
+uniform float _SSSPower = 12.0;
 
 float chebyshevShadow(vec4 lightSpacePos)
 {
@@ -52,25 +55,40 @@ float chebyshevShadow(vec4 lightSpacePos)
     return clamp(p_max, 0.0, 1.0);
 }
 
+float subsurfaceScattering(vec3 N, vec3 L, vec3 V) {
+    // Calculate light falloff using dot product between normal and light direction
+    float NL = max(dot(N, L), 0.0);
+    
+    // View-dependent scattering: light entering the surface
+    float NV = max(dot(N, V), 0.0);
+    
+    // Simulate light diffusion under the surface
+    float scatter = exp(-pow(1.0 - NV, _SSSPower) / _SSSScale);
+    
+    return mix(NL, scatter, _SSSIntensity);
+}
+
 void main() {
 	// Ambient lighting
     vec3 ambient = ambientStrength * lightColor;
     
-    // Sample normal map and transform to tangent space [-1,1]
+    // Sample normal map and transform to tangent space
     vec3 normalMap = texture(_Normal, vsData.uv).rgb * 2.0 - 1.0;
-
-    // Transform normal from tangent space to world space
     vec3 norm = normalize(vsData.TBN * normalMap);
 
+    // Light and view directions
+    vec3 L = normalize(_LightPosition - vsData.pos.xyz); 
+    vec3 V = normalize(_ViewPosition - vsData.pos.xyz);
+
 	// Diffuse lighting
+    //float sss = subsurfaceScattering(norm, L, V);
     float diff = max(dot(norm, _LightDirection), 0.0);
-    vec3 diffuse = diff * lightColor;
-	
+    vec3 diffuse = diff * lightColor;// * sss; 
+    
 	// Specular lighting (Blinn-Phong)
-    vec3 viewDir = normalize(_ViewPosition - vsData.pos.xyz);
-    vec3 halfDir = normalize(_LightDirection + viewDir);
+    vec3 halfDir = normalize(L + V);
     float spec = pow(max(dot(norm, halfDir), 0.0), 32.0);
-    vec3 specular = spec * lightColor; 
+    vec3 specular = spec * lightColor;
 	
     // Shadow mapping
     vec4 lightSpacePos = _LightSpaceMatrix * vec4(vsData.pos.xyz, 1.0);
@@ -84,4 +102,5 @@ void main() {
 	if (albedo.a < 0.2) discard;
 
     FragColor = _BaseColor * albedo * vec4(lighting, 1.0);
+    FragColor = _BaseColor;
 }

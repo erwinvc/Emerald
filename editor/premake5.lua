@@ -16,11 +16,11 @@ project "Editor"
 		"*.rc",
 		'*.ico',
 		"*.aps",
-		"*.vert",
-		"*.frag",
-		"*.geom",
-		"*.tese",
-		"*.tesc"
+		"**.vert",
+		"**.frag",
+		"**.geom",
+		"**.tese",
+		"**.tesc"
 	}
 		
 	includedirs
