@@ -29,8 +29,7 @@ namespace emerald {
 		aiProcess_SortByPType |
 		aiProcess_GenNormals |
 		aiProcess_OptimizeGraph |
-		//aiProcess_OptimizeMeshes |
-		//aiProcess_Debone |
+		aiProcess_OptimizeMeshes |
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_ImproveCacheLocality |
 		aiProcess_RemoveRedundantMaterials |
@@ -134,10 +133,11 @@ namespace emerald {
 		m_modelName = m_path.stem().string();
 
 		uint32_t index = 0;
-		processNode(m_preloadedMeshes, m_modelName, scene->mRootNode, scene, index);
 
-
+		m_preloadedMeshes.reserve(scene->mNumMeshes);
 		m_materials.reserve(scene->mNumMaterials);
+
+		processNode(m_preloadedMeshes, m_modelName, scene->mRootNode, scene, index);
 
 		for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
 			aiMaterial* aiMat = scene->mMaterials[i];
@@ -152,10 +152,9 @@ namespace emerald {
 			Log::info("[Model] Loading material {}", material->getName());
 
 			glm::vec4 baseColor = Color::white();
-			if (!getMaterialColor(aiMat, AI_MATKEY_BASE_COLOR, baseColor)) {
-				getMaterialColor(aiMat, AI_MATKEY_COLOR_DIFFUSE, baseColor);
-			}
-			Log::info("Base color: {} {} {} {}", baseColor.r, baseColor.g, baseColor.b, baseColor.a);
+			//if (!getMaterialColor(aiMat, AI_MATKEY_BASE_COLOR, baseColor)) {
+			//	getMaterialColor(aiMat, AI_MATKEY_COLOR_DIFFUSE, baseColor);
+			//}
 			material->set("_BaseColor", baseColor);
 			material->set("_Metallic", getMaterialFloat(aiMat, AI_MATKEY_METALLIC_FACTOR, 1.0f));
 			material->set("_Roughness", getMaterialFloat(aiMat, AI_MATKEY_ROUGHNESS_FACTOR, 1.0f));

@@ -102,5 +102,4 @@ void main() {
 	if (albedo.a < 0.2) discard;
 
     FragColor = _BaseColor * albedo * vec4(lighting, 1.0);
-    FragColor = _BaseColor;
 }

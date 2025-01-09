@@ -96,13 +96,13 @@ namespace emerald {
 	void Texture::bind(uint32_t slot /*= 0*/) const {
 		//ASSERT(!m_dirty, "Texture is dirty, call invalidate() before binding");
 		Renderer::submit([instance = Ref<const Texture>(this), slot] {
-			GL(glBindTextureUnit(slot, instance->m_handle)); // Use DSA function to bind texture
+			GL(glBindTextureUnit(slot, instance->m_handle));
 		});
 	}
 
 	void Texture::unbind(uint32_t slot /*= 0*/) const {
 		Renderer::submit([slot] {
-			GL(glBindTextureUnit(slot, 0)); // Use DSA function to unbind texture
+			GL(glBindTextureUnit(slot, 0));
 		});
 	}
 

@@ -28,7 +28,7 @@ namespace emerald {
 		m_imGuiSelection.UserData = this;
 		m_imGuiSelection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, int idx) {
 			AssetBrowserPanel& panel = *(AssetBrowserPanel*)self->UserData;
-			return panel.filteredContents[idx].m_imGuiID;
+			return panel.m_filteredContent[idx]->m_imGuiId;
 		};
 
 		EventSystem::subscribe<EditorProjectOpenedEvent>(&AssetBrowserPanel::onProjectOpened, this);
@@ -54,6 +54,7 @@ namespace emerald {
 		if (e.isValid()) {
 			m_currentPath = Project::GetAssetsPath();
 			std::stack<std::filesystem::path>().swap(m_forwardStack);
+			updateDirectoryContents();
 		}
 	}
 
@@ -76,6 +77,8 @@ namespace emerald {
 				m_currentPath = Project::GetAssetsPath();
 			}
 		}
+		memset(m_searchBuffer, 0, sizeof(m_searchBuffer));
+		updateFilter();
 	}
 
 	void AssetBrowserPanel::navigateForward() {
@@ -83,6 +86,8 @@ namespace emerald {
 			m_currentPath = m_forwardStack.top();
 			m_forwardStack.pop();
 		}
+		memset(m_searchBuffer, 0, sizeof(m_searchBuffer));
+		updateFilter();
 	}
 
 	void AssetBrowserPanel::setCurrentPath(const std::filesystem::path& newPath) {
@@ -93,68 +98,98 @@ namespace emerald {
 			}
 			m_currentPath = newPath;
 		}
+		memset(m_searchBuffer, 0, sizeof(m_searchBuffer));
+		updateFilter();
 	}
 
-	std::vector<AssetBrowserPanel::AssetEntry> AssetBrowserPanel::getFilteredDirectoryContents() {
-		filteredContents.clear();
-		if (!Project::isProjectOpen() || !std::filesystem::is_directory(m_currentPath)) return filteredContents;
+	void AssetBrowserPanel::collectDirectoryContents(const std::filesystem::path& directoryPath) {
+		std::vector<DirectoryContent> contentList;
+
+		for (const auto& entry : std::filesystem::directory_iterator(directoryPath)) {
+			if (entry.path().filename().string().starts_with('.'))
+				continue;
+
+			if (entry.path().extension() == ".meta") {
+				continue;
+			}
+
+			AssetMetadata* metadata = AssetRegistry::getAssetMetadata(entry.path());
+			if (!metadata)
+				continue;
+
+			contentList.emplace_back(entry.path(), ImGui::ptrToImGuiID(metadata), entry.is_directory(), metadata);
+
+			if (entry.is_directory()) {
+				collectDirectoryContents(entry.path());
+			}
+		}
+
+		m_directoryMap[directoryPath] = std::move(contentList);
+	}
+
+	void AssetBrowserPanel::updateDirectoryContents() {
+		if (!Project::isProjectOpen()) return;
+
+		m_directoryMap.clear();
+
+		collectDirectoryContents(m_currentPath);
+		updateFilter();
+	}
+
+	void AssetBrowserPanel::updateFilter() {
+		m_filteredContent.clear();
+
+		if (!Project::isProjectOpen()) return;
 
 		bool isTypeSearch = std::string(m_searchBuffer).starts_with("type:");
 		bool all = std::string(m_searchBuffer) == "*";
 		if (strlen(m_searchBuffer) > 0) {
-			for (const auto& entry : std::filesystem::recursive_directory_iterator(m_currentPath)) {
-				if (entry.path().filename().string().starts_with('.'))
-					continue;
-
-				AssetMetadata* metadata = AssetRegistry::getAssetMetadata(entry.path());
-				if (!metadata) continue;
-
-				if (all) {
-					filteredContents.emplace_back(entry.path(), ImGui::ptrToImGuiID(metadata), entry.is_directory(), metadata);
-					continue;
+			if (all) {
+				for (auto& [path, contents] : m_directoryMap) {
+					for (auto& content : contents) {
+						m_filteredContent.push_back(&content);
+					}
 				}
+			} else if (isTypeSearch) {
+				std::string searchType = std::string(m_searchBuffer).substr(5);
+				std::transform(searchType.begin(), searchType.end(), searchType.begin(), ::tolower);
 
-				if (isTypeSearch) {
-					std::string searchType = std::string(m_searchBuffer).substr(5);
-					std::transform(searchType.begin(), searchType.end(), searchType.begin(), ::tolower);
+				for (auto& [path, contents] : m_directoryMap) {
+					for (auto& content : contents) {
+						std::string assetType = assetTypeToString(content.m_metadata->getType(), false);
+						std::transform(assetType.begin(), assetType.end(), assetType.begin(), ::tolower);
 
-					std::string assetType = assetTypeToString(metadata->getType(), false);
-					std::transform(assetType.begin(), assetType.end(), assetType.begin(), ::tolower);
+						if (assetType.find(searchType) != std::string::npos) {
+							m_filteredContent.push_back(&content);
+						}
+					}
+				}
+			} else {
+				std::string lowercaseSearch = m_searchBuffer;
+				std::transform(lowercaseSearch.begin(), lowercaseSearch.end(), lowercaseSearch.begin(), ::tolower);
 
-					if (assetType.find(searchType) == std::string::npos)
-						continue;
-				} else {
-					std::string lowercaseSearch = m_searchBuffer;
-					std::transform(lowercaseSearch.begin(), lowercaseSearch.end(), lowercaseSearch.begin(), ::tolower);
-					std::string lowercaseFilename = entry.path().filename().string();
+				for (auto& content : m_directoryMap[m_currentPath]) {
+					std::string lowercaseFilename = content.m_path.filename().string();
 					std::transform(lowercaseFilename.begin(), lowercaseFilename.end(), lowercaseFilename.begin(), ::tolower);
 
-					if (lowercaseFilename.find(lowercaseSearch) == std::string::npos)
-						continue;
+					if (lowercaseFilename.find(lowercaseSearch) != std::string::npos) {
+						m_filteredContent.push_back(&content);
+					}
 				}
-				filteredContents.emplace_back(entry.path(), ImGui::ptrToImGuiID(metadata), entry.is_directory(), metadata);
 			}
 		} else {
-			for (const auto& entry : std::filesystem::directory_iterator(m_currentPath)) {
-				if (entry.path().filename().string().starts_with('.'))
-					continue;
-
-				AssetMetadata* metadata = AssetRegistry::getAssetMetadata(entry);
-				if (!metadata) continue;
-
-				filteredContents.emplace_back(entry.path(), ImGui::ptrToImGuiID(metadata), entry.is_directory(), metadata);
+			m_filteredContent.reserve(m_directoryMap[m_currentPath].size());
+			for (auto& content : m_directoryMap[m_currentPath]) {
+				m_filteredContent.push_back(&content);
 			}
 		}
 
-		// Sort: directories first, then alphabetically
-		std::sort(filteredContents.begin(), filteredContents.end(),
-			[](const AssetEntry& a, const AssetEntry& b) {
-			if (a.m_isDirectory && !b.m_isDirectory) return true;
-			if (!a.m_isDirectory && b.m_isDirectory) return false;
-			return a.m_path.filename() < a.m_path.filename();
+		std::sort(m_filteredContent.begin(), m_filteredContent.end(),
+			[](const DirectoryContent* a, const DirectoryContent* b) {
+			if (a->m_isDirectory && !b->m_isDirectory) return true;
+			if (!a->m_isDirectory && b->m_isDirectory) return false;
+			return a->m_path.filename() < a->m_path.filename();
 		});
-
-		return filteredContents;
 	}
 
 	void AssetBrowserPanel::renderDirectoryTree(const std::filesystem::path& path) {
@@ -202,21 +237,21 @@ namespace emerald {
 	}
 
 	void AssetBrowserPanel::renderAssetGrid() {
-		auto directoryContents = getFilteredDirectoryContents();
-
-		const float padding = 10.0f;
-		int columnsCount = std::max(1, static_cast<int>(ImGui::GetContentRegionAvail().x / (m_cellSize + padding)));
+		float padding =  DPI::getScale(10.0f);
+		float cellSize = DPI::getScale(m_cellSize);
+		int columnsCount = std::max(1, static_cast<int>(ImGui::GetContentRegionAvail().x / (cellSize + padding)));
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(padding, padding));
 		ImGui::Columns(columnsCount, "AssetColumns", false);
 
 		uint32_t fileIndex = 0;
-		for (const auto& file : directoryContents) {
+		for(int i = 0; i < m_filteredContent.size(); i++){
+			auto* file = m_filteredContent[i];
 			const int maxNameLines = 2;
-			const float nameAssetTypePadding = 5.0f;
-			const float bottomPadding = 5.0f;
+			float nameAssetTypePadding = DPI::getScale(5.0f);
+			float bottomPadding = DPI::getScale(5.0f);
 
-			ImGui::PushID(file.m_path.string().c_str());
+			ImGui::PushID(file->m_path.string().c_str());
 			ImGui::BeginGroup();
 			ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
 			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
@@ -224,7 +259,7 @@ namespace emerald {
 			ImDrawList* drawList = ImGui::GetWindowDrawList();
 			ImVec2 pos = ImGui::GetCursorScreenPos();
 
-			ImVec2 cardSize = ImVec2(m_cellSize, m_cellSize + ImGui::GetTextLineHeight() * (maxNameLines + 1) + nameAssetTypePadding + bottomPadding);
+			ImVec2 cardSize = ImVec2(cellSize, cellSize + ImGui::GetTextLineHeight() * (maxNameLines + 1) + nameAssetTypePadding + bottomPadding);
 
 			// Background
 			drawList->AddRectFilled(
@@ -244,7 +279,7 @@ namespace emerald {
 				ImDrawFlags_RoundCornersBottom
 			);
 
-			m_idToPath[file.m_imGuiID] = file.m_path;
+			m_idToPath[file->m_imGuiId] = file->m_path;
 
 			ImGui::SetNextItemSelectionUserData(fileIndex);
 
@@ -253,7 +288,7 @@ namespace emerald {
 			ImGui::PushStyleColor(ImGuiCol_Header, Color::transparent());
 			ImGui::PushStyleColor(ImGuiCol_NavHighlight, Color::transparent());
 
-			bool isSelected = m_imGuiSelection.Contains(file.m_imGuiID);
+			bool isSelected = m_imGuiSelection.Contains(file->m_imGuiId);
 			ImGui::Selectable("##AssetCard", isSelected, 0, cardSize);
 
 			ImGui::PopStyleColor(4);
@@ -269,9 +304,9 @@ namespace emerald {
 					selectedAssetUUIDs.pushBack(selectedAssetMetadata->getUUID());
 				}
 
-				if (!selectedAssetUUIDs.contains(file.m_metadata->getUUID())) {
-					selectedAssetUUIDs.pushBack(file.m_metadata->getUUID());
-					AssetRegistry::streamAsset(file.m_metadata);
+				if (!selectedAssetUUIDs.contains(file->m_metadata->getUUID())) {
+					selectedAssetUUIDs.pushBack(file->m_metadata->getUUID());
+					AssetRegistry::streamAsset(file->m_metadata);
 				}
 
 				const size_t payloadSize = selectedAssetUUIDs.size() * sizeof(UUID);
@@ -282,23 +317,21 @@ namespace emerald {
 
 			if (ImGui::BeginPopupContextItem()) {
 				if (ImGui::MenuItem("Open in Explorer")) {
-					FileSystem::openFolderAndSelectItem(file.m_path);
+					FileSystem::openFolderAndSelectItem(file->m_path);
 				}
 				ImGui::EndPopup();
 			}
 
 			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-				if (file.m_isDirectory) {
-					setCurrentPath(file.m_path);
+				if (file->m_isDirectory) {
+					setCurrentPath(file->m_path);
 				}
 			}
 
-			ImVec2 thumbnailSize = ImVec2(m_cellSize, m_cellSize);
-
 			ImGui::SetCursorScreenPos(pos);
 
-			uint32_t icon = file.m_isDirectory ? std::filesystem::is_empty(file.m_path) ? m_folderEmptyIcon->handle() : m_folderIcon->handle() : s_assetTypeIcons[file.m_metadata->getType()]->handle();
-			ImGui::Image((void*)(uint64_t)icon, DPI::getScale(thumbnailSize));
+			uint32_t icon = file->m_isDirectory ? std::filesystem::is_empty(file->m_path) ? m_folderEmptyIcon->handle() : m_folderIcon->handle() : s_assetTypeIcons[file->m_metadata->getType()]->handle();
+			ImGui::Image((void*)(uint64_t)icon, ImVec2(cellSize, cellSize));
 
 			if (isSelected) {
 				drawList->AddRect(
@@ -312,7 +345,7 @@ namespace emerald {
 			}
 
 			// Text rendering
-			ImGui::SetCursorScreenPos(ImVec2(pos.x + 4, pos.y + thumbnailSize.y));
+			ImGui::SetCursorScreenPos(ImVec2(pos.x + 4, pos.y + cellSize));
 
 			// Filename
 			float lineHeight = ImGui::GetTextLineHeight();
@@ -322,14 +355,14 @@ namespace emerald {
 
 			ImGuiManager::pushFont(INTER_BOLD);
 			ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + cardSize.x - 8);
-			ImGui::Text("%s", file.m_path.stem().string().c_str());
+			ImGui::Text("%s", file->m_path.stem().string().c_str());
 			ImGui::PopTextWrapPos();
 			ImGuiManager::popFont();
 
 			ImGui::EndChild();
 
 			// Asset type
-			const char* assetTypeText = assetTypeToString(file.m_metadata->getType(), true);
+			const char* assetTypeText = assetTypeToString(file->m_metadata->getType(), true);
 			ImVec2 textSize = ImGui::CalcTextSize(assetTypeText);
 
 			ImVec2 cellMin = pos;
@@ -339,7 +372,7 @@ namespace emerald {
 			);
 
 			ImVec2 assetTypePos = ImVec2(
-				pos.x + cardSize.x - textSize.x - 10, // 10px padding from right
+				pos.x + cardSize.x - textSize.x - DPI::getScale(10.0f),
 				pos.y + cardSize.y - textSize.y - bottomPadding
 			);
 
@@ -463,11 +496,14 @@ namespace emerald {
 						ImGui::TableSetColumnIndex(2);
 
 						ImGui::SetNextItemWidth(-FLT_MIN);
-						ImGui::InputTextWithHint(UNIQUE_IMGUI_LABEL(), ICON_FA_SEARCH " Search...", m_searchBuffer, 256, ImGuiInputTextFlags_EscapeClearsAll);
+						if (ImGui::InputTextWithHint(UNIQUE_IMGUI_LABEL(), ICON_FA_SEARCH " Search...", m_searchBuffer, 256, ImGuiInputTextFlags_EscapeClearsAll)) {
+							updateFilter();
+						}
 
 						ImGui::TableSetColumnIndex(3);
 						if (ImGui::Button(ICON_FA_TIMES)) {
 							memset(m_searchBuffer, 0, sizeof(m_searchBuffer));
+							updateFilter();
 						}
 
 						ImGui::EndTable();
@@ -477,7 +513,7 @@ namespace emerald {
 					ImGui::BeginChild("##AssetGrid", ImVec2(0, -1), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 					ImGuiMultiSelectFlags flags = ImGuiMultiSelectFlags_ClearOnClickVoid | ImGuiMultiSelectFlags_SelectOnClickRelease;
 
-					ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(flags, m_imGuiSelection.Size, (uint32_t)getFilteredDirectoryContents().size());
+					ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(flags, m_imGuiSelection.Size, (uint32_t)m_filteredContent.size());
 					bool shouldUpdateSelected = ms_io->Requests.size() > 0;
 
 					m_imGuiSelection.ApplyRequests(ms_io);
@@ -507,13 +543,7 @@ namespace emerald {
 
 	void AssetBrowserPanel::updateSelectedAssets() {
 		m_selectedAssets.clear();
-		auto files = getFilteredDirectoryContents();
 
-		//for (auto& file : files) {
-		//	if (m_imGuiSelection.Contains(file.m_imGuiID)) {
-		//		m_selectedAssets.push_back(file.m_path);
-		//	}
-		//}
 		void* iter = nullptr;
 		ImGuiID selectedId = 0;
 		while (m_imGuiSelection.GetNextSelectedItem(&iter, &selectedId)) {

@@ -3,13 +3,12 @@
 #include <stack>
 #include "engine/input/mouse.h"
 #include "imgui/imgui.h"
-#include <unordered_set>
 #include "graphics/textures/texture.h"
+#include "ui/imguiManager.h"
 
 namespace emerald {
 	class AssetBrowserPanel {
 	public:
-
 		AssetBrowserPanel();
 		void draw();
 
@@ -17,16 +16,21 @@ namespace emerald {
 			return m_selectedAssets;
 		}
 
-		struct AssetEntry {
+		struct DirectoryContent {
 			std::filesystem::path m_path;
-			ImGuiID m_imGuiID;
+			ImGuiID m_imGuiId;
 			bool m_isDirectory;
 			AssetMetadata* m_metadata;
-		};;
+
+			DirectoryContent(const std::filesystem::path& path, ImGuiID imGuiId, bool isDirectory, AssetMetadata* metadata)
+				: m_path(path), m_imGuiId(imGuiId), m_isDirectory(isDirectory), m_metadata(metadata)
+			{}
+		};
 
 	private:
 		std::filesystem::path m_lastSelectedAsset;
-		std::vector<AssetEntry> filteredContents;
+		std::unordered_map<std::filesystem::path, std::vector<DirectoryContent>> m_directoryMap;
+		std::vector<DirectoryContent*> m_filteredContent;
 		ImGuiSelectionBasicStorage m_imGuiSelection;
 		bool m_windowHovered;
 		bool m_assetGridHovered;
@@ -51,7 +55,10 @@ namespace emerald {
 		void onProjectOpened(EditorProjectOpenedEvent& e);
 		void onMouseButtonEvent(MouseButtonEvent& e);
 
-		std::vector<AssetEntry> getFilteredDirectoryContents();
+		void collectDirectoryContents(const std::filesystem::path& directoryPath);
+		void updateDirectoryContents();
+		void updateFilter();
+
 		void drawBreadcrumbPart(const std::string& label, uint32_t index, const std::filesystem::path& breadcrumbPath, bool isLast);
 		void renderAssetGrid();
 		void renderDirectoryTree(const std::filesystem::path& rootPath);
