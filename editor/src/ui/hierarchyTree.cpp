@@ -1,9 +1,7 @@
 #include "eepch.h"
-#include "editor.h"
 #include "hierarchyTree.h"
 #include "ui/imguiManager.h"
 #include "ui/iconsFontAwesome.h"
-#include "undoRedo.h"
 #include "imguiProfiler/IconsFontAwesome4.h"
 #include "ui/iconsFontSegoeMDL2.h"
 #include "graphics/misc/DPI.h"
@@ -13,7 +11,8 @@
 #include "utils/misc/utils.h"
 #include "engine/scene/sceneManager.h"
 #include "utils/uuid/uuid.h"
-#include "project.h"
+#include "core/project.h"
+#include "utils/undoRedo.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {

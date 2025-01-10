@@ -42,7 +42,8 @@ namespace emerald {
 		}
 
 		// Standard vector operations
-		void pushBack(const T& value) { vec.push_back(value); }
+		void pushBack(T&& value) { vec.push_back(std::forward<T>(value)); }
+		void pushBack(T& value) { vec.push_back(std::forward<T>(value)); }
 		void popBack() { vec.pop_back(); }
 
 		// Capacity Management
@@ -75,6 +76,11 @@ namespace emerald {
 		auto end() const { return vec.end(); }
 		auto rbegin() { return vec.rbegin(); }
 		auto rend() { return vec.rend(); }
+
+		const_iterator erase(const_iterator position) { return vec.erase(position); }
+		const_iterator erase(const_iterator first, const_iterator last) { return vec.erase(first, last); }
+		iterator erase(iterator position) { return vec.erase(position); }
+		iterator erase(iterator first, iterator last) { return vec.erase(first, last); }
 
 		// Enhanced functionality
 		bool contains(const T& value) const {

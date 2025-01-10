@@ -1,19 +1,16 @@
 #include "eepch.h"
 #include "viewportPanel.h"
 #include "ui/imguiManager.h"
-#include "editor.h"
 #include "input/dragDrop.h"
 #include "engine/assets/core/assetRegistry.h"
 #include "engine/assets/model/model.h"
 #include "engine/scene/sceneManager.h"
 #include "engine/ecs/components/meshRendererComponent.h"
 #include "engine/ecs/components/sceneGraphComponent.h"
-#include "engine/events/events.h"
-#include "engine/events/eventSystem.h"
+#include "core/editor.h"
 
 namespace emerald {
-	ViewportPanel::ViewportPanel() {
-	}
+	ViewportPanel::ViewportPanel() {}
 
 	void ViewportPanel::draw() {
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoNav;

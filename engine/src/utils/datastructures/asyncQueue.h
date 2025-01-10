@@ -99,6 +99,19 @@ namespace emerald {
 			return true;
 		}
 
+		void swap(AsyncQueue& other) noexcept {
+			if (this == &other) return;
+
+			std::scoped_lock lock(m_mutex, other.m_mutex);
+
+			m_queue.swap(other.m_queue);
+			std::swap(m_released, other.m_released);
+		}
+
+		friend void swap(AsyncQueue& lhs, AsyncQueue& rhs) noexcept {
+			lhs.swap(rhs);
+		}
+
 		void clear() {
 			std::lock_guard<std::mutex> lock(m_mutex);
 

@@ -17,7 +17,7 @@ namespace emerald {
 
 	class MouseButtonEvent : public Event {
 	public:
-		RTTI_DERIVED_CLASS_DECL(MouseButtonEvent, Event);
+		RTTI_DERIVED_CLASS_DECL(MouseButtonEvent, Event)
 
 		MouseButtonEvent(MouseButton button, uint32_t action, uint32_t mods)
 			: m_button(button), m_action(action)/*, m_mods(mods)*/ {
@@ -35,7 +35,7 @@ namespace emerald {
 
 	class MousePositionEvent : public Event {
 	public:
-		RTTI_DERIVED_CLASS_DECL(MousePositionEvent, Event);
+		RTTI_DERIVED_CLASS_DECL(MousePositionEvent, Event)
 
 		MousePositionEvent(float x, float y)
 			: m_x(x), m_y(y) {
@@ -51,7 +51,7 @@ namespace emerald {
 
 	class MouseScrollEvent : public Event {
 	public:
-		RTTI_DERIVED_CLASS_DECL(MouseScrollEvent, Event);
+		RTTI_DERIVED_CLASS_DECL(MouseScrollEvent, Event)
 
 		MouseScrollEvent(float xOffset, float yOffset)
 			: m_xOffset(xOffset), m_yOffset(yOffset) {

@@ -1,35 +1,55 @@
 #include "eepch.h"
 #include "assetRegistry.h"
-#include "../../editor/src/project.h"
-#include "utils/uuid/uuidGenerator.h"
-#include "../metadata/textureMetadata.h"
-#include "../model/modelMetadata.h"
-#include <future>
 #include "utils/threading/jobSystem.h"
+#include "engine/assets/metadata/textureMetadata.h"
+#include "engine/assets/model/modelMetadata.h"
+#include "../../editor/src/core/project.h"
 #include "../../events/eventSystem.h"
+#include "../../events/fileChangedEvent.h"
+#include "core/application/application.h"
 
 namespace emerald {
 	void AssetRegistry::initialize() {
 		m_assetTypeRegistry.registerType<TextureMetadata>(AssetType::TEXTURE, { ".png", ".bmp", ".jpg", ".jpeg" });
-		m_assetTypeRegistry.registerType<ModelMetadata>(AssetType::MODEL, { ".fbx", ".obj", ".gltf"});
+		m_assetTypeRegistry.registerType<ModelMetadata>(AssetType::MODEL, { ".fbx", ".obj", ".gltf" });
+
+		EventSystem::subscribe<FileChangedEvent>(onFileChangedEvent);
 	}
 
 	void AssetRegistry::parseCurrentProject() {
 		clear();
 		auto a = Project::GetAssetsPath();
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(a)) {
-			if (entry.path().extension() != ".meta") {
-				processAssetFile(entry.path());
-			}
+			processAssetFile(entry.path());
 		}
 	}
 
 	void AssetRegistry::processAssetFile(const std::filesystem::path& path) {
 		if (!std::filesystem::exists(path)) {
+			removeOrphanedMetaFile(path);
 			return;
 		}
 
 		if (path.extension() == ".meta") {
+			// Check if the associated asset file exists
+			std::filesystem::path assetPath = path;
+			std::string metaExt = ".meta";
+			std::string pathStr = assetPath.string();
+			if (pathStr.length() > metaExt.length()) {
+				// Remove .meta extension
+				pathStr.erase(pathStr.length() - metaExt.length());
+				assetPath = pathStr;
+
+				if (!std::filesystem::exists(assetPath)) {
+					// The asset file doesn't exist, so this is an orphaned .meta file
+					try {
+						std::filesystem::remove(path);
+						Log::info("Removed orphaned meta file: {}", path.string());
+					} catch (const std::exception& e) {
+						Log::warn("Failed to remove orphaned meta file {}: {}", path.string(), e.what());
+					}
+				}
+			}
 			return;
 		}
 
@@ -62,7 +82,7 @@ namespace emerald {
 
 		AssetMetadata* rawPtr = metadata.raw();
 
-		m_assetMetadata.push_back(std::move(metadata));
+		m_assetMetadata.pushBack(std::move(metadata));
 
 		m_uuidAssetMap[rawPtr->getUUID()] = rawPtr;
 		m_pathAssetMap[path] = rawPtr;
@@ -71,6 +91,47 @@ namespace emerald {
 		m_streamingState[rawPtr] = AssetStreamingState::NOTLOADED;
 	}
 
+	void AssetRegistry::removeAsset(const std::filesystem::path& path) {
+		if (path.extension() == ".meta") {
+			auto realAssetPath = path.parent_path() / path.stem();
+			if (std::filesystem::exists(realAssetPath)) {
+				AssetType type = m_assetTypeRegistry.getAssetType(realAssetPath);
+
+				std::filesystem::path metaFilePath = realAssetPath;
+				metaFilePath.replace_extension(path.extension().string());
+				auto metadata = m_assetTypeRegistry.createMetadata(path, type);
+				if (metadata) {
+					jsonUtils::saveToFile(metadata->toJson(), metaFilePath);
+				}
+			}
+			return;
+		}
+
+		removeOrphanedMetaFile(path);
+
+		AssetMetadata* metadata = getAssetMetadata(path);
+		if (!metadata) {
+			return;
+		}
+
+		m_assetMetadata.removeIf([metadata](const auto& a) {return a.raw() == metadata; });
+
+		m_uuidAssetMap[metadata->getUUID()] = nullptr;
+		m_pathAssetMap[path] = nullptr;
+	}
+
+	void AssetRegistry::removeOrphanedMetaFile(const std::filesystem::path& path) {
+		std::filesystem::path possibleMetaPath = path;
+		possibleMetaPath.replace_extension(path.extension().string() + ".meta");
+		if (std::filesystem::exists(possibleMetaPath)) {
+			try {
+				std::filesystem::remove(possibleMetaPath);
+				Log::info("Removed orphaned meta file: {}", possibleMetaPath.string());
+			} catch (const std::exception& e) {
+				Log::warn("Failed to remove orphaned meta file {}: {}", possibleMetaPath.string(), e.what());
+			}
+		}
+	}
 	void AssetRegistry::streamAsset(AssetMetadata* metadata) {
 		AssetStreamingState state = getAssetStreamingState(metadata);
 		if (state == AssetStreamingState::LOADED || state == AssetStreamingState::LOADING || state == AssetStreamingState::CANNOTLOAD) {
@@ -104,7 +165,7 @@ namespace emerald {
 
 			task.m_loader = loader;
 			Log::info("Finished async loading {}", task.m_metadata->getPath().string());
-			});
+		});
 
 	}
 
@@ -159,7 +220,7 @@ namespace emerald {
 					callback(e.getAsset());
 					e.setHandled();
 				}
-				});
+			});
 			return false;
 		}
 	}
@@ -203,5 +264,19 @@ namespace emerald {
 		}
 		EventSystem::dispatch<AssetStreamedEvent>(metadata, m_assets[metadata]);
 		Log::info("Asset {} is loaded", metadata->getPath().string());
+	}
+
+	void AssetRegistry::onFileChangedEvent(FileChangedEvent& e) {
+		switch (e.getType()) {
+			case FileChangedEventType::DELETED:
+				removeAsset(e.getPath());
+				break;
+			case FileChangedEventType::CREATED:
+			case FileChangedEventType::MODIFIED:
+				processAssetFile(e.getPath());
+				break;
+		}
+
+		Log::info("File changed: {} {} {}", e.getPath().string(), (uint32_t)e.getType(), App->getFrameCount());
 	}
 }

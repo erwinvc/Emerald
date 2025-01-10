@@ -4,7 +4,7 @@
 
 namespace emerald {
 	class TransformComponent : public Component {
-		RTTI_DERIVED_CLASS_DECL(TransformComponent, Component);
+		RTTI_DERIVED_CLASS_DECL(TransformComponent, Component)
 	public:
 		void setPosition(const glm::vec3& position) { m_position = position; markDirty(); }
 		void setRotation(const glm::vec3& rotation) { m_rotation = rotation; markDirty(); }

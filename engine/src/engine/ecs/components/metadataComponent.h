@@ -7,7 +7,7 @@ namespace emerald {
 	static constexpr size_t NAME_MAX_LENGTH = 64;
 
 	class MetadataComponent : public Component {
-		RTTI_DERIVED_CLASS_DECL(MetadataComponent, Component);
+		RTTI_DERIVED_CLASS_DECL(MetadataComponent, Component)
 	public:
 		enum MetadataFlags {
 			ENTITY_STATIC = BIT(0)

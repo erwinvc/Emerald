@@ -1,8 +1,8 @@
 #pragma once
 #include <typeindex>
+#include <string_view>
 
-namespace emerald {
-	using RTTIType = std::type_index;
+using RTTIType = std::type_index;
 
 #define RTTI_BASE_CLASS_DECL(_thisclass)                                                            \
 private:                                                                                            \
@@ -44,4 +44,3 @@ public:                                                                         
 const RTTIType _thisclass::type_##_thisclass  = RTTIType(typeid(_thisclass));                       \
 template<>                                                                                          \
 bool _thisclass::checkRTTI<_thisclass>() { return true; }
-}

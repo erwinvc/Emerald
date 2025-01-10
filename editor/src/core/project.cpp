@@ -4,9 +4,7 @@
 #include "ui/imguiManager.h"
 #include "core/common/engineError.h"
 #include "utils/system/fileSystem.h"
-#include "editor.h"
-#include "engine/events/eventSystem.h"
-#include "editorProjectOpenedEvent.h"
+#include "editor/events/editorProjectOpenedEvent.h"
 #include "utils/misc/utils.h"
 
 namespace nlohmann {
@@ -61,7 +59,7 @@ namespace emerald {
 			s_projectPath = path;
 			addToRecentProjects(path);
 
-			EventSystem::dispatch<EditorProjectOpenedEvent>(true);
+			EventSystem::dispatch<EditorProjectOpenedEvent>(s_projectPath, true);
 		} catch (const std::filesystem::filesystem_error& e) {
 			EngineError::raise(Severity::WARN, "Failed creating project", std::format("Filesystem error: {}", e.what()));
 		}
@@ -75,7 +73,7 @@ namespace emerald {
 
 		s_projectPath = path.parent_path();
 
-		EventSystem::dispatch<EditorProjectOpenedEvent>(true);
+		EventSystem::dispatch<EditorProjectOpenedEvent>(s_projectPath, true);
 
 		addToRecentProjects(path);
 	}

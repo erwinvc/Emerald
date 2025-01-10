@@ -1,9 +1,9 @@
 #include "eepch.h"
 #include "profilerWindow.h"
-#include "editor.h"
 #include "ui/imguiManager.h"
 #include "imguiProfiler/Profiler.h"
 
+#include "core/editor.h"
 namespace emerald{
 	void ProfilerWindow::draw(){
 		if (EditorWindows.profiler) {

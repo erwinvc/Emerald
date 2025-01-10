@@ -3,7 +3,7 @@
 
 namespace emerald {
 	class Event {
-		RTTI_BASE_CLASS_DECL(Event);
+		RTTI_BASE_CLASS_DECL(Event)
 	public:
 		virtual ~Event() = default;
 
@@ -15,7 +15,7 @@ namespace emerald {
 	};
 
 	class WindowResizeEvent : public Event {
-		RTTI_DERIVED_CLASS_DECL(WindowResizeEvent, Event);
+		RTTI_DERIVED_CLASS_DECL(WindowResizeEvent, Event)
 
 	public:
 		WindowResizeEvent(unsigned int width, unsigned int height)
@@ -29,7 +29,7 @@ namespace emerald {
 	};
 
 	class ErrorEvent : public Event {
-		RTTI_DERIVED_CLASS_DECL(ErrorEvent, Event);
+		RTTI_DERIVED_CLASS_DECL(ErrorEvent, Event)
 
 	public:
 		ErrorEvent(const std::string& message, const std::string subMessage = "")
@@ -45,10 +45,10 @@ namespace emerald {
 	};
 
 	class AssetStreamedEvent : public Event {
-		RTTI_DERIVED_CLASS_DECL(AssetStreamedEvent, Event);
+		RTTI_DERIVED_CLASS_DECL(AssetStreamedEvent, Event)
 
 	public:
-		AssetStreamedEvent(AssetMetadata* metadata, const Ref<Asset>& asset) 
+		AssetStreamedEvent(AssetMetadata* metadata, const Ref<Asset>& asset)
 			: m_metadata(metadata), m_asset(asset) {
 		}
 

@@ -5,7 +5,7 @@
 
 namespace emerald {
 	class MeshRendererComponent : public Component {
-		RTTI_DERIVED_CLASS_DECL(MeshRendererComponent, Component);
+		RTTI_DERIVED_CLASS_DECL(MeshRendererComponent, Component)
 	public:
 		Ref<Mesh> m_mesh;
 

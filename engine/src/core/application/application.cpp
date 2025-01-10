@@ -148,7 +148,7 @@ namespace emerald {
 
 		Renderer::waitForBufferAvailability();
 		FallbackTextures::initialize();
-	
+
 		onInitialize();
 		Renderer::submitBufferForRendering();
 
@@ -274,4 +274,6 @@ namespace emerald {
 			func();
 		}
 	}
+
+	bool Application::isFocused() const { return m_mainWindow->isFocussed(); }
 }

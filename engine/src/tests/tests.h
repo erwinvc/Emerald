@@ -4,15 +4,15 @@
 #include "core/common/rtti.h"
 namespace emerald::tests {
 	class Test {
-		RTTI_BASE_CLASS_DECL(Test);
+		RTTI_BASE_CLASS_DECL(Test)
 	};
 
 	class Test2 : public Test {
-		RTTI_DERIVED_CLASS_DECL(Test2, Test);
+		RTTI_DERIVED_CLASS_DECL(Test2, Test)
 	};
 
 	class Test3 : public Test2 {
-		RTTI_DERIVED_CLASS_DECL(Test3, Test2);
+		RTTI_DERIVED_CLASS_DECL(Test3, Test2)
 	};
 
 	RTTI_CLASS_DEF(Test);

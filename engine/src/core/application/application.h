@@ -40,6 +40,7 @@ namespace emerald {
 		uint32_t getHeight() const;
 		float getTime() const;
 		const Ref<Window>& getWindow() { return m_mainWindow; }
+		bool isFocused() const;
 
 		template<typename F>
 		void QueueEvent(F&& function) {

@@ -1,5 +1,4 @@
 #include "eepch.h"
-#include "../../editor/src/editor.h"
 #include "core/application/application.h"
 #include "engine/assets/loaders/modelLoader.h"
 #include "engine/ecs/components/meshRendererComponent.h"
@@ -17,6 +16,7 @@
 #include "renderPipeline.h"
 #include "engine/assets/loaders/textureLoader.h"
 #include "utils/system/timer.h"
+#include "../../editor/src/core/editor.h"
 
 namespace emerald {
 	RenderPipeline::RenderPipeline() {

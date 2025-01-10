@@ -1,21 +1,17 @@
 #include "eepch.h"
 #include "assetBrowserPanel.h"
 #include "ui/imguiManager.h"
-#include "project.h"
 #include "engine/events/eventSystem.h"
 #include "ui/iconsFontAwesome.h"
 #include "engine/assets/core/assetRegistry.h"
-#include "editor.h"
 #include "utils/system/fileSystem.h"
 #include "graphics/textures/texture.h"
 #include "graphics/misc/DPI.h"
-#include "graphics/core/renderer.h"
-#include "engine/input/keyboard.h"
 #include "input/dragDrop.h"
 #include "engine/assets/loaders/textureLoader.h"
-#include "utils/system/timer.h"
 #include "utils/math/color.h"
 #include "utils/datastructures/vector.h"
+#include "core/project.h"
 
 namespace emerald {
 	static constexpr float MIN_CELL_SIZE = 50.0f;
@@ -33,6 +29,7 @@ namespace emerald {
 
 		EventSystem::subscribe<EditorProjectOpenedEvent>(&AssetBrowserPanel::onProjectOpened, this);
 		EventSystem::subscribe<MouseButtonEvent>(&AssetBrowserPanel::onMouseButtonEvent, this);
+		EventSystem::subscribe<FileChangedEvent>(&AssetBrowserPanel::onFileChangedEvent, this);
 
 		TextureDesc desc;
 		desc.name = "AssetBrowserPanelIcon";
@@ -54,7 +51,7 @@ namespace emerald {
 		if (e.isValid()) {
 			m_currentPath = Project::GetAssetsPath();
 			std::stack<std::filesystem::path>().swap(m_forwardStack);
-			updateDirectoryContents();
+			m_updateDirectoryContentsNextFrame = true;
 		}
 	}
 
@@ -68,6 +65,13 @@ namespace emerald {
 			}
 		}
 	}
+
+	void AssetBrowserPanel::onFileChangedEvent(FileChangedEvent& e) {
+		if (e.getType() != FileChangedEventType::MODIFIED) {
+			m_updateDirectoryContentsNextFrame = true;
+		}
+	}
+
 
 	void AssetBrowserPanel::navigateBack() {
 		if (m_currentPath != Project::GetAssetsPath()) {
@@ -106,6 +110,8 @@ namespace emerald {
 		std::vector<DirectoryContent> contentList;
 
 		for (const auto& entry : std::filesystem::directory_iterator(directoryPath)) {
+			std::error_code ec;
+
 			if (entry.path().filename().string().starts_with('.'))
 				continue;
 
@@ -117,11 +123,18 @@ namespace emerald {
 			if (!metadata)
 				continue;
 
-			contentList.emplace_back(entry.path(), ImGui::ptrToImGuiID(metadata), entry.is_directory(), metadata);
+			bool isDir = std::filesystem::is_directory(entry.path(), ec);
 
-			if (entry.is_directory()) {
+			if (ec) {
+				// Something went wrong (file might be gone, permissions, etc.)
+				continue;
+			}
+
+			if (isDir) {
 				collectDirectoryContents(entry.path());
 			}
+
+			contentList.emplace_back(entry.path(), ImGui::ptrToImGuiID(metadata), entry.is_directory(), metadata);
 		}
 
 		m_directoryMap[directoryPath] = std::move(contentList);
@@ -237,7 +250,7 @@ namespace emerald {
 	}
 
 	void AssetBrowserPanel::renderAssetGrid() {
-		float padding =  DPI::getScale(10.0f);
+		float padding = DPI::getScale(10.0f);
 		float cellSize = DPI::getScale(m_cellSize);
 		int columnsCount = std::max(1, static_cast<int>(ImGui::GetContentRegionAvail().x / (cellSize + padding)));
 
@@ -245,7 +258,7 @@ namespace emerald {
 		ImGui::Columns(columnsCount, "AssetColumns", false);
 
 		uint32_t fileIndex = 0;
-		for(int i = 0; i < m_filteredContent.size(); i++){
+		for (int i = 0; i < m_filteredContent.size(); i++) {
 			auto* file = m_filteredContent[i];
 			const int maxNameLines = 2;
 			float nameAssetTypePadding = DPI::getScale(5.0f);
@@ -330,7 +343,7 @@ namespace emerald {
 
 			ImGui::SetCursorScreenPos(pos);
 
-			uint32_t icon = file->m_isDirectory ? std::filesystem::is_empty(file->m_path) ? m_folderEmptyIcon->handle() : m_folderIcon->handle() : s_assetTypeIcons[file->m_metadata->getType()]->handle();
+			uint32_t icon = file->m_isDirectory ? file->m_isEmpty ? m_folderEmptyIcon->handle() : m_folderIcon->handle() : s_assetTypeIcons[file->m_metadata->getType()]->handle();
 			ImGui::Image((void*)(uint64_t)icon, ImVec2(cellSize, cellSize));
 
 			if (isSelected) {
@@ -424,6 +437,11 @@ namespace emerald {
 	}
 
 	void AssetBrowserPanel::draw() {
+		//if (m_updateDirectoryContentsNextFrame) {
+		updateDirectoryContents();
+		m_updateDirectoryContentsNextFrame = false;
+		//}
+
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		if (ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoNav)) {
 			static float splitRatio = 0.25f;

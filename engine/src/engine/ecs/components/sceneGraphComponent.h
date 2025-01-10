@@ -4,7 +4,7 @@
 
 namespace emerald {
 	class SceneGraphComponent : public Component {
-		RTTI_DERIVED_CLASS_DECL(SceneGraphComponent, Component);
+		RTTI_DERIVED_CLASS_DECL(SceneGraphComponent, Component)
 	public:
 		SceneGraphComponent() : Component(), m_parent(nullptr) {}
 		SceneGraphComponent(SceneGraphComponent* parent)

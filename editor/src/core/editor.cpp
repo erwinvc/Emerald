@@ -1,22 +1,23 @@
 #include "eepch.h"
-#include "graphics/core/camera.h"
+#include "core/common/engineError.h"
+#include "core/common/engineLoading.h"
 #include "editor.h"
+#include "editor/events/editorProjectOpenedEvent.h"
+#include "engine/assets/core/assetRegistry.h"
+#include "engine/events/eventSystem.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/mouse.h"
 #include "engine/scene/sceneManager.h"
+#include "assets/fileWatcher.h"
 #include "graphics/buffers/framebuffer.h"
+#include "graphics/core/camera.h"
+#include "graphics/core/renderer.h"
 #include "graphics/render/renderPipeline.h"
 #include "imguiProfiler/Profiler.h"
-#include "ui/editorWindow.h"
-#include "undoRedo.h"
-#include "graphics/core/renderer.h"
-#include "core/common/engineError.h"
-#include "core/common/engineLoading.h"
-#include "engine/events/eventSystem.h"
-#include "editorProjectOpenedEvent.h"
-#include "engine/assets/core/assetRegistry.h"
-#include "project.h"
 #include "input/dragDrop.h"
+#include "project.h"
+#include "ui/editorWindow.h"
+#include "utils/undoRedo.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
@@ -40,9 +41,12 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::onInitialize() {
+		FileWatcher::initialize();
+
 		s_editorWindow = UniqueRef<EditorWindow>::create();
 		s_renderPipeline = UniqueRef<RenderPipeline>::create();
 		s_editorCamera = Ref<EditorCamera>::create(70.0f, 0.05f, 500.0f);
+
 
 		Project::loadRecentProjects();
 
@@ -50,6 +54,7 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::onShutdown() {
+		FileWatcher::shutdown();
 		SceneManager::clearScenes();
 		s_editorWindow.reset();
 		s_renderPipeline.reset();
@@ -62,14 +67,11 @@ namespace emerald {
 		s_editorWindow->update(ts);
 		PROFILE_LOGIC_END();
 
+		PROFILE_LOGIC_BEGIN("File Watcher process events");
+		FileWatcher::processEvents();
+		PROFILE_LOGIC_END();
+		
 		//Undo redo
-
-		if (Keyboard::keyJustDown(Key::H)) {
-			Ref<Shader>::create("Geometry", "res/shaders/geometry");
-			Renderer::submitBufferForRendering();
-			Renderer::waitForBufferAvailability();
-		}
-
 		if (Keyboard::keyMod(KeyMod::CONTROL)) {
 			if (Keyboard::keyJustDown(Key::Z) || Keyboard::keyRepeat(Key::Z)) {
 				if (Keyboard::keyMod(KeyMod::SHIFT)) {

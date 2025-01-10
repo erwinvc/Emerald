@@ -3,12 +3,11 @@
 #include "ui/imguiManager.h"
 #include "hierarchyPanel.h"
 #include <unordered_set>
-#include "inspectorRegistry.h"
-#include "utils/math/color.h"
 #include "inspector/propertyDrawer.h"
 #include "engine/ecs/components/metadataComponent.h"
 #include "engine/ecs/components/component.h"
 #include "engine/scene/sceneManager.h"
+#include "inspector/inspectorRegistry.h"
 
 namespace emerald {
 	static constexpr float MIN_FIRST_COLUMN_WIDTH = 50.0f;

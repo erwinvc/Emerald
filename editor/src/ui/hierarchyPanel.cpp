@@ -4,8 +4,7 @@
 #include "engine/ecs/core/entity.h"
 #include "engine/scene/sceneManager.h"
 #include "ui/iconsFontAwesome.h"
-#include "undoRedo.h"
-#include "graphics/misc/DPI.h"
+#include "utils/undoRedo.h"
 
 namespace emerald {
 	void HierarchyPanel::draw() {

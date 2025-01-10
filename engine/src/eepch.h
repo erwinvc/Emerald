@@ -37,6 +37,7 @@
 
 typedef unsigned char byte;
 
+#include "core/common/staticClass.h"
 #include "core/common/ref.h"
 #include "core/common/rtti.h"
 

@@ -4,8 +4,9 @@
 #include "engine/assets/metadata/assetMetadata.h"
 #include "utils/uuid/uuid.h"
 #include "../loaders/assetLoader.h"
-#include <future>
 #include "utils/threading/jobSystem.h"
+#include "../../events/fileChangedEvent.h"
+#include "utils/datastructures/vector.h"
 
 namespace emerald {
 	class AssetRegistry {
@@ -24,7 +25,8 @@ namespace emerald {
 		static void initialize();
 		static void parseCurrentProject();
 		static void processAssetFile(const std::filesystem::path& assetPath);
-
+		static void removeAsset(const std::filesystem::path& assetPath);
+		static void removeOrphanedMetaFile(const std::filesystem::path& path);
 		static void streamAsset(AssetMetadata* metadata);
 
 		static bool isAssetStreamed(AssetMetadata* metadata) {
@@ -44,9 +46,10 @@ namespace emerald {
 		static void clear();
 		static void update();
 
-	private:
+		private:
 		static void startLoading(AssetMetadata* metadata);
 		static void finalizeLoading(AssetMetadata* metadata, const Ref<AssetLoader>& loader);
+		static void onFileChangedEvent(FileChangedEvent& e);
 
 		struct StreamingTask {
 			Context m_ctx;
@@ -58,7 +61,7 @@ namespace emerald {
 		};
 
 		static inline AssetTypeRegistry m_assetTypeRegistry;
-		static inline std::vector<UniqueRef<AssetMetadata>> m_assetMetadata;
+		static inline Vector<UniqueRef<AssetMetadata>> m_assetMetadata;
 		static inline std::unordered_map<UUID, AssetMetadata*> m_uuidAssetMap;
 		static inline std::unordered_map<std::filesystem::path, AssetMetadata*> m_pathAssetMap;
 

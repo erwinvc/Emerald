@@ -1,10 +1,10 @@
 #pragma once
-#include "editorProjectOpenedEvent.h"
+#include "editor/events/editorProjectOpenedEvent.h"
 #include <stack>
 #include "engine/input/mouse.h"
 #include "imgui/imgui.h"
 #include "graphics/textures/texture.h"
-#include "ui/imguiManager.h"
+#include "engine/events/fileChangedEvent.h"
 
 namespace emerald {
 	class AssetBrowserPanel {
@@ -20,14 +20,16 @@ namespace emerald {
 			std::filesystem::path m_path;
 			ImGuiID m_imGuiId;
 			bool m_isDirectory;
+			bool m_isEmpty; // Only used for directories
 			AssetMetadata* m_metadata;
 
 			DirectoryContent(const std::filesystem::path& path, ImGuiID imGuiId, bool isDirectory, AssetMetadata* metadata)
-				: m_path(path), m_imGuiId(imGuiId), m_isDirectory(isDirectory), m_metadata(metadata)
+				: m_path(path), m_imGuiId(imGuiId), m_isDirectory(isDirectory), m_isEmpty(isDirectory ? std::filesystem::is_empty(path) : true), m_metadata(metadata)
 			{}
 		};
 
 	private:
+		bool m_updateDirectoryContentsNextFrame = true;
 		std::filesystem::path m_lastSelectedAsset;
 		std::unordered_map<std::filesystem::path, std::vector<DirectoryContent>> m_directoryMap;
 		std::vector<DirectoryContent*> m_filteredContent;
@@ -54,6 +56,7 @@ namespace emerald {
 
 		void onProjectOpened(EditorProjectOpenedEvent& e);
 		void onMouseButtonEvent(MouseButtonEvent& e);
+		void onFileChangedEvent(FileChangedEvent& e);
 
 		void collectDirectoryContents(const std::filesystem::path& directoryPath);
 		void updateDirectoryContents();
