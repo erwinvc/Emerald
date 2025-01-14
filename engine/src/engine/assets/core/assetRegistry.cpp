@@ -98,8 +98,8 @@ namespace emerald {
 				AssetType type = m_assetTypeRegistry.getAssetType(realAssetPath);
 
 				std::filesystem::path metaFilePath = realAssetPath;
-				metaFilePath.replace_extension(path.extension().string());
-				auto metadata = m_assetTypeRegistry.createMetadata(path, type);
+				metaFilePath.replace_extension(metaFilePath.extension().string() + ".meta");
+				auto metadata = m_assetTypeRegistry.createMetadata(realAssetPath, type);
 				if (metadata) {
 					jsonUtils::saveToFile(metadata->toJson(), metaFilePath);
 				}
