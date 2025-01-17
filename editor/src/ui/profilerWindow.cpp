@@ -11,7 +11,7 @@ namespace emerald{
 			ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 			if (ImGui::Begin("Profiler", &EditorWindows.profiler)) {
 				ImGuiManager::pushFont(ImGUIFont::INTER);
-				DrawProfilerHUD();
+				ImGuiProfiler::DrawProfilerHUD();
 				ImGuiManager::popFont();
 			}
 			ImGui::PopStyleVar();

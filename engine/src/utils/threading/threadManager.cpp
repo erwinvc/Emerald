@@ -3,6 +3,7 @@
 #include <mutex>
 #include <vector>
 #include <condition_variable>
+#include "imguiProfiler/Profiler.h"
 
 namespace emerald {
 	static std::vector<std::unique_ptr<Thread>> m_threads;
@@ -45,6 +46,7 @@ namespace emerald {
 
 	void Thread::run() {
 		setAffinity();
+		PROFILE_REGISTER_LOGIC_THREAD(m_name.c_str());
 
 		//try {
 			m_function();

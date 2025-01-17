@@ -19,6 +19,7 @@
 #include "utils/system/timestep.h"
 #include "utils/threading/jobSystem.h"
 #include "utils/threading/threadManager.h"
+#include "utils/system/timer.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -51,7 +52,6 @@ namespace emerald {
 		icon::loadIcon(m_mainWindow->handle());
 
 		Mouse::initialize();
-		JobSystem::initialize();
 
 		// #TODO: remove callbacks and move to 
 		m_mainWindow->getCallbacks().addOnResizeCallback(this, &Application::onResize);
@@ -75,6 +75,7 @@ namespace emerald {
 
 		Metrics::initialize();
 		AssetRegistry::initialize();
+		JobSystem::initialize(4);
 
 		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, ThreadPriority::NORMAL, "Logic", [this]() { initializeLogic(); });
 
@@ -99,7 +100,7 @@ namespace emerald {
 
 		while (g_running) {
 			PROFILE_RENDER_FRAME();
-
+			PROFILE_OPENGL_FRAME();
 			if (m_mainWindow->shouldClose()) {
 				g_running = false;
 			}
@@ -144,7 +145,7 @@ namespace emerald {
 	}
 
 	void Application::initializeLogic() {
-		PROFILE_REGISTER_LOGIC_THREAD("Logic");
+		//PROFILE_REGISTER_LOGIC_THREAD("Logic");
 
 		Renderer::waitForBufferAvailability();
 		FallbackTextures::initialize();
@@ -152,7 +153,7 @@ namespace emerald {
 		onInitialize();
 		Renderer::submitBufferForRendering();
 
-		//We need to show the window after the first frame has been rendered
+		//We want to render the first frame before showing the window
 		logicLoop();
 
 		Renderer::submit([window = Ref<Window>(m_mainWindow)] { window->show(); });

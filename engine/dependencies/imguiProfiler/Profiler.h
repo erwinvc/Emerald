@@ -1,31 +1,5 @@
 #pragma once
-
-#include <algorithm>
-#include <atomic>
-#include <vector>
-#include <mutex>
-#include <span>
-#include <assert.h>
-
-#define check(op, ...) assert(op)
-#define checkf(op, ...) assert(op)
-#define VERIFY_HR(op) assert(SUCCEEDED(op))
-
-#define _STRINGIFY(a) #a
-#define STRINGIFY(a) _STRINGIFY(a)
-#define CONCAT_IMPL( x, y ) x##y
-#define MACRO_CONCAT( x, y ) CONCAT_IMPL( x, y )
-
-using uint64 = uint64_t;
-using uint32 = uint32_t;
-using uint16 = uint16_t;
-template<typename T>
-using Span = std::span<T>;
-
-struct URange {
-	uint32 Begin;
-	uint32 End;
-};
+#include "OpenGLProfiler.h"
 
 #ifndef WITH_PROFILING
 #define WITH_PROFILING 1
@@ -40,13 +14,14 @@ struct URange {
 // Usage:
 //		PROFILE_REGISTER_THREAD(const char* pName)
 //		PROFILE_REGISTER_THREAD()
-#define PROFILE_REGISTER_LOGIC_THREAD(...) gCPUProfiler.RegisterThread(__VA_ARGS__)
-#define PROFILE_REGISTER_RENDER_THREAD(...) gGPUProfiler.RegisterThread("Render")
+#define PROFILE_REGISTER_LOGIC_THREAD(...) ImGuiProfiler::gCPUProfiler.RegisterThread(__VA_ARGS__)
+#define PROFILE_REGISTER_RENDER_THREAD(...) ImGuiProfiler::gGPUProfiler.RegisterThread("Render")
 
 /// Usage:
 //		PROFILE_FRAME()
-#define PROFILE_LOGIC_FRAME() gCPUProfiler.Tick()
-#define PROFILE_RENDER_FRAME() gGPUProfiler.Tick()
+#define PROFILE_LOGIC_FRAME() ImGuiProfiler::gCPUProfiler.Tick()
+#define PROFILE_RENDER_FRAME() ImGuiProfiler::gGPUProfiler.Tick()
+#define PROFILE_OPENGL_FRAME() ImGuiProfiler::gOpenGLProfiler.Tick()
 
 /*
 	CPU Profiling
@@ -55,291 +30,107 @@ struct URange {
 // Usage:
 //		PROFILE_CPU_SCOPE(const char* pName)
 //		PROFILE_CPU_SCOPE()
-#define PROFILE_LOGIC_SCOPE(...)							CPUProfileScope MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
-#define PROFILE_RENDER_SCOPE(...)							CPUProfileScope2 MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
+#define PROFILE_LOGIC_SCOPE(...)							ImGuiProfiler::CPUProfileScope MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
+#define PROFILE_RENDER_SCOPE(...)							ImGuiProfiler::GPUProfileScope MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
+#define PROFILE_OPENGL_SCOPE(...)							ImGuiProfiler::OpenGLProfileScope MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
 
 // Usage:
 //		PROFILE_CPU_BEGIN(const char* pName)
 //		PROFILE_CPU_BEGIN()
-#define PROFILE_LOGIC_BEGIN(...)							gCPUProfiler.BeginEvent(__VA_ARGS__)
-#define PROFILE_RENDER_BEGIN(...)							gGPUProfiler.BeginEvent(__VA_ARGS__)
+#define PROFILE_LOGIC_BEGIN(...)							ImGuiProfiler::gCPUProfiler.BeginEvent(__VA_ARGS__)
+#define PROFILE_RENDER_BEGIN(...)							ImGuiProfiler::gGPUProfiler.BeginEvent(__VA_ARGS__); PROFILE_OPENGL_BEGIN(__VA_ARGS__)
+#define PROFILE_OPENGL_BEGIN(...)							ImGuiProfiler::gOpenGLProfiler.BeginEvent(__VA_ARGS__)
 // Usage:
 //		PROFILE_CPU_END()
-#define PROFILE_LOGIC_END()									gCPUProfiler.EndEvent()
-#define PROFILE_RENDER_END()								gGPUProfiler.EndEvent()
+#define PROFILE_LOGIC_END()									ImGuiProfiler::gCPUProfiler.EndEvent()
+#define PROFILE_RENDER_END()								ImGuiProfiler::gGPUProfiler.EndEvent(); PROFILE_OPENGL_END();
+#define PROFILE_OPENGL_END(...)								ImGuiProfiler::gOpenGLProfiler.EndEvent()
 
-#define PROFILE_INITIALIZE() gCPUProfiler.Initialize("CPU", 8, 1024 * 4); gGPUProfiler.Initialize("GPU", 8, 1024 * 4);
+#define PROFILE_INITIALIZE() ImGuiProfiler::gCPUProfiler.Initialize("CPU", 8, 1024 * 4); ImGuiProfiler::gGPUProfiler.Initialize("GPU", 8, 1024 * 4); ImGuiProfiler::gOpenGLProfiler.Initialize("GPU", 8, 1024 * 4);
 
-#define PROFILE_DISABLE() gCPUProfiler.SetPaused(true); gGPUProfiler.SetPaused(true);
+#define PROFILE_DISABLE() ImGuiProfiler::gCPUProfiler.SetPaused(true); ImGuiProfiler::gGPUProfiler.SetPaused(true); ImGuiProfiler::gOpenGLProfiler.SetPaused(true);
 #else
 
 #define PROFILE_REGISTER_LOGIC_THREAD(...)
 #define PROFILE_REGISTER_RENDER_THREAD(...)
 #define PROFILE_LOGIC_FRAME()
 #define PROFILE_RENDER_FRAME()
+#define PROFILE_OPENGL_FRAME()
 
 #define PROFILE_LOGIC_SCOPE(...)
 #define PROFILE_RENDER_SCOPE(...)
+#define PROFILE_OPENGL_SCOPE(...)
+
 #define PROFILE_LOGIC_BEGIN(...)
 #define PROFILE_RENDER_BEGIN(...)
+#define PROFILE_OPENGL_BEGIN(...)
+
 #define PROFILE_LOGIC_END()
 #define PROFILE_RENDER_END()
+#define PROFILE_OPENGL_END()
 
 #define PROFILE_INITIALIZE()
 #define PROFILE_DISABLE()
 
 #endif
 
-// Simple Linear Allocator
-class LinearAllocator {
-public:
-	explicit LinearAllocator(uint32 size)
-		: m_pData(new char[size]), m_Size(size), m_Offset(0) {
-	}
+namespace ImGuiProfiler {
+	void DrawProfilerHUD();
 
-	~LinearAllocator() {
-		delete[] m_pData;
-	}
+	// Global CPU Profiler
+	extern class CPUProfiler gCPUProfiler;
+	extern class CPUProfiler gGPUProfiler;
+	extern class GPUProfiler gOpenGLProfiler;
 
-	LinearAllocator(LinearAllocator&) = delete;
-	LinearAllocator& operator=(LinearAllocator&) = delete;
-
-	void Reset() {
-		m_Offset = 0;
-	}
-
-	template<typename T, typename... Args>
-	T* Allocate(Args... args) {
-		void* pData = Allocate(sizeof(T));
-		T* pValue = new (pData) T(std::forward<Args>(args)...);
-		return pValue;
-	}
-
-	void* Allocate(uint32 size) {
-		uint32 offset = m_Offset.fetch_add(size);
-		check(offset + size <= m_Size);
-		return m_pData + offset;
-	}
-
-	const char* String(const char* pStr) {
-		uint32 len = (uint32)strlen(pStr) + 1;
-		char* pData = (char*)Allocate(len);
-		strcpy_s(pData, len, pStr);
-		return pData;
-	}
-
-private:
-	char* m_pData;
-	uint32 m_Size;
-	std::atomic<uint32> m_Offset;
-};
-
-void DrawProfilerHUD();
-
-//-----------------------------------------------------------------------------
-// [SECTION] CPU Profiler
-//-----------------------------------------------------------------------------
-
-// Global CPU Profiler
-extern class CPUProfiler gCPUProfiler;
-extern class CPUProfiler gGPUProfiler;
-
-struct CPUProfilerCallbacks {
-	using EventBeginFn = void(*)(const char* /*pName*/, void* /*pUserData*/);
-	using EventEndFn = void(*)(void* /*pUserData*/);
-
-	EventBeginFn	OnEventBegin = nullptr;
-	EventEndFn		OnEventEnd = nullptr;
-	void* pUserData = nullptr;
-};
-
-// CPU Profiler
-// Also responsible for updating GPU profiler
-// Also responsible for drawing HUD
-class CPUProfiler {
-public:
-	void Initialize(std::string name, uint32 historySize, uint32 maxEvents);
-	void Shutdown();
-
-	// Start and push an event on the current thread
-	void BeginEvent(const char* pName, const char* pFilePath = nullptr, uint32 lineNumber = 0);
-
-	// End and pop the last pushed event on the current thread
-	void EndEvent();
-
-	// Resolve the last frame and advance to the next frame.
-	// Call at the START of the frame.
-	void Tick();
-
-	// Initialize a thread with an optional name
-	void RegisterThread(const char* pName = nullptr);
-
-	// Struct containing all sampling data of a single frame
-	struct EventData {
-		static constexpr uint32 ALLOCATOR_SIZE = 1 << 14;
-
-		EventData()
-			: Allocator(ALLOCATOR_SIZE) {
+	// Helper RAII-style structure to push and pop a CPU sample region
+	struct CPUProfileScope {
+		CPUProfileScope(const char* pFunctionName, const char* pFilePath, uint32 lineNumber, const char* pName) {
+			gCPUProfiler.BeginEvent(pName, pFilePath, lineNumber);
 		}
 
-		// Structure representating a single event
-		struct Event {
-			const char* pName = "";		// Name of the event
-			const char* pFilePath = nullptr;	// File path of file in which this event is recorded
-			uint64		TicksBegin = 0;		// The ticks at the start of this event
-			uint64		TicksEnd = 0;		// The ticks at the end of this event
-			uint32		LineNumber : 16;		// Line number of file in which this event is recorded
-			uint32		ThreadIndex : 11;		// Thread Index of the thread that recorderd this event
-			uint32		Depth : 5;		// Depth of the event
-		};
+		CPUProfileScope(const char* pFunctionName, const char* pFilePath, uint32 lineNumber) {
+			gCPUProfiler.BeginEvent(pFunctionName, pFilePath, lineNumber);
+		}
 
-		std::vector<Span<const Event>>	EventsPerThread;	// Events per thread of the frame
-		std::vector<Event>				Events;				// All events of the frame
-		LinearAllocator					Allocator;			// Scratch allocator storing all dynamic allocations of the frame
-		std::atomic<uint32>				NumEvents = 0;		// The number of events
+		~CPUProfileScope() {
+			gCPUProfiler.EndEvent();
+		}
+
+		CPUProfileScope(const CPUProfileScope&) = delete;
+		CPUProfileScope& operator=(const CPUProfileScope&) = delete;
 	};
 
-#define _NUMOF(x) (uint32_t)(((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x]))))))
+	struct GPUProfileScope {
+		GPUProfileScope(const char* pFunctionName, const char* pFilePath, uint32 lineNumber, const char* pName) {
+			gGPUProfiler.BeginEvent(pName, pFilePath, lineNumber);
+		}
 
-	// Thread-local storage to keep track of current depth and event stack
-	struct TLS {
-		static constexpr int MAX_STACK_DEPTH = 32;
+		GPUProfileScope(const char* pFunctionName, const char* pFilePath, uint32 lineNumber) {
+			gGPUProfiler.BeginEvent(pFunctionName, pFilePath, lineNumber);
+		}
 
-		template<typename T, uint32 N>
-		struct FixedStack {
-		public:
-			T& Pop() {
-				check(Depth > 0);
-				--Depth;
-				return StackData[Depth];
-			}
+		~GPUProfileScope() {
+			gGPUProfiler.EndEvent();
+		}
 
-			T& Push() {
-				Depth++;
-				check(Depth < _NUMOF(StackData));
-				return StackData[Depth - 1];
-			}
-
-			T& Top() {
-				check(Depth > 0);
-				return StackData[Depth - 1];
-			}
-
-			uint32 GetSize() const { return Depth; }
-
-		private:
-			uint32 Depth = 0;
-			T StackData[N]{};
-		};
-
-
-		FixedStack<uint32, MAX_STACK_DEPTH> EventStack;
-		uint32								ThreadIndex = 0;
-		bool								IsInitialized = false;
+		GPUProfileScope(const GPUProfileScope&) = delete;
+		GPUProfileScope& operator=(const GPUProfileScope&) = delete;
 	};
 
-	// Structure describing a registered thread
-	struct ThreadData {
-		char		Name[128]{};
-		uint32		ThreadID = 0;
-		uint32		Index = 0;
-		const TLS* pTLS = nullptr;
+	struct OpenGLProfileScope {
+		OpenGLProfileScope(const char* pFunctionName, const char* pFilePath, uint32 lineNumber, const char* pName) {
+			gOpenGLProfiler.BeginEvent(pName, pFilePath, lineNumber);
+		}
+
+		OpenGLProfileScope(const char* pFunctionName, const char* pFilePath, uint32 lineNumber) {
+			gOpenGLProfiler.BeginEvent(pFunctionName, pFilePath, lineNumber);
+		}
+
+		~OpenGLProfileScope() {
+			gOpenGLProfiler.EndEvent();
+		}
+
+		OpenGLProfileScope(const OpenGLProfileScope&) = delete;
+		OpenGLProfileScope& operator=(const OpenGLProfileScope&) = delete;
 	};
-
-#define min(a,b) (((a) < (b)) ? (a) : (b))
-
-	URange GetFrameRange() const {
-		uint32 begin = m_FrameIndex - min(m_FrameIndex, m_HistorySize) + 1;
-		uint32 end = m_FrameIndex;
-		return URange(begin, end);
-	}
-
-	Span<const EventData::Event> GetEventsForThread(const ThreadData& thread, uint32 frame) const {
-		//check(frame >= GetFrameRange().Begin && frame < GetFrameRange().End);
-		const EventData& data = m_pEventData[frame % m_HistorySize];
-		if (thread.Index < data.EventsPerThread.size())
-			return data.EventsPerThread[thread.Index];
-		return {};
-	}
-
-	// Get the ticks range of the history
-	void GetHistoryRange(uint64& ticksMin, uint64& ticksMax) const {
-		URange range = GetFrameRange();
-		ticksMin = GetData(range.Begin).Events[0].TicksBegin;
-		ticksMax = GetData(range.End).Events[0].TicksEnd;
-	}
-
-	Span<const ThreadData> GetThreads() const { return m_ThreadData; }
-
-	void SetEventCallback(const CPUProfilerCallbacks& inCallbacks) { m_EventCallback = inCallbacks; }
-	void SetPaused(bool paused) { m_QueuedPaused = paused; }
-	bool IsPaused() const { return m_Paused; }
-
-private:
-	// Retrieve thread-local storage without initialization
-	static TLS& GetTLSUnsafe() {
-		static thread_local TLS tls;
-		return tls;
-	}
-
-	// Retrieve the thread-local storage
-	TLS& GetTLS() {
-		TLS& tls = GetTLSUnsafe();
-		if (!tls.IsInitialized)
-			RegisterThread();
-		return tls;
-	}
-
-	// Return the sample data of the current frame
-	EventData& GetData() { return GetData(m_FrameIndex); }
-	EventData& GetData(uint32 frameIndex) { return m_pEventData[frameIndex % m_HistorySize]; }
-	const EventData& GetData(uint32 frameIndex)	const { return m_pEventData[frameIndex % m_HistorySize]; }
-
-	CPUProfilerCallbacks m_EventCallback;
-
-	std::mutex				m_ThreadDataLock;				// Mutex for accesing thread data
-	std::vector<ThreadData> m_ThreadData;					// Data describing each registered thread
-
-	EventData* m_pEventData = nullptr;	// Per-frame data
-	uint32					m_HistorySize = 0;		// History size
-	uint32					m_FrameIndex = 0;		// The current frame index
-	bool					m_Paused = false;	// The current pause state
-	bool					m_QueuedPaused = false;	// The queued pause state
-	std::string				m_Name = "";
-};
-
-
-// Helper RAII-style structure to push and pop a CPU sample region
-struct CPUProfileScope {
-	CPUProfileScope(const char* pFunctionName, const char* pFilePath, uint32 lineNumber, const char* pName) {
-		gCPUProfiler.BeginEvent(pName, pFilePath, lineNumber);
-	}
-
-	CPUProfileScope(const char* pFunctionName, const char* pFilePath, uint32 lineNumber) {
-		gCPUProfiler.BeginEvent(pFunctionName, pFilePath, lineNumber);
-	}
-
-	~CPUProfileScope() {
-		gCPUProfiler.EndEvent();
-	}
-
-	CPUProfileScope(const CPUProfileScope&) = delete;
-	CPUProfileScope& operator=(const CPUProfileScope&) = delete;
-};
-
-struct CPUProfileScope2 {
-	CPUProfileScope2(const char* pFunctionName, const char* pFilePath, uint32 lineNumber, const char* pName) {
-		gGPUProfiler.BeginEvent(pName, pFilePath, lineNumber);
-	}
-
-	CPUProfileScope2(const char* pFunctionName, const char* pFilePath, uint32 lineNumber) {
-		gGPUProfiler.BeginEvent(pFunctionName, pFilePath, lineNumber);
-	}
-
-	~CPUProfileScope2() {
-		gGPUProfiler.EndEvent();
-	}
-
-	CPUProfileScope2(const CPUProfileScope2&) = delete;
-	CPUProfileScope2& operator=(const CPUProfileScope2&) = delete;
-};
+}

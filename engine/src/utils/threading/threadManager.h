@@ -18,6 +18,7 @@ namespace emerald {
 		RENDER,
 		CONSOLE_OUTPUT,
 		FILEWATCHER,
+		JOBSYSTEM,
 		_COUNT
 	};
 

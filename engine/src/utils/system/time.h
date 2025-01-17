@@ -1,4 +1,5 @@
 #pragma once
+#include "core/common/assrt.h"
 
 namespace emerald {
 	// Provides time information in two different accuracies: based on Ticks (expensive) and based on system time (cheap)
@@ -41,16 +42,25 @@ namespace emerald {
 		static bool hasElapsedMs(float startTime, float duration);
 		static bool hasTickTimeElapsedMs(float startTime, float duration);
 
-	private:
 		static double getTicksToSeconds();
 		static double getTicksToMilliseconds();
 		static double getTicksToMicroseconds();
 		static double getTicksToNanoseconds();
+		static double getSecondsToTicks();
+		static double getMillisecondsToTicks();
+		static double getMicrosecondsToTicks();
+		static double getNanosecondsToTicks();
 
+	private:
 		static inline int64_t s_start = 0;
-		static inline double s_ticksToSeconds = 0.0f;
-		static inline double s_ticksToMilliseconds = 0.0f;
-		static inline double s_ticksToMicroseconds = 0.0f;
-		static inline double s_ticksToNanoseconds = 0.0f;
+		static inline double s_ticksToSeconds = 0.0;
+		static inline double s_ticksToMilliseconds = 0.0;
+		static inline double s_ticksToMicroseconds = 0.0;
+		static inline double s_ticksToNanoseconds = 0.0;
+
+		static inline double s_secondsToTicks = 0.0;
+		static inline double s_millisecondsToTicks = 0.0;
+		static inline double s_microsecondsToTicks = 0.0;
+		static inline double s_nanosecondsToTicks = 0.0;
 	};
 }

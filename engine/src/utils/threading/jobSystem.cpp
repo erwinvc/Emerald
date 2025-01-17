@@ -109,7 +109,7 @@ namespace emerald {
 			return;
 		}
 
-		uint32_t maxThreadCount = std::max(1u, maxThreadCount);
+		uint32_t maxThreadCount = std::max(1u, threadCount);
 
 		jobSystemState.m_coreCount = std::thread::hardware_concurrency();
 
