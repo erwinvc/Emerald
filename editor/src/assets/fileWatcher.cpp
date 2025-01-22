@@ -29,7 +29,7 @@ namespace emerald {
 		m_overlapped->hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 		m_shutdownEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
-		ThreadManager::createAndRegisterThread(ThreadType::FILEWATCHER, ThreadPriority::NORMAL, "File watcher", watchThread);
+		ThreadManager::createAndRegisterThread(ThreadType::FILEWATCHER, ProfilerThreadType::IGNORED, ThreadPriority::NORMAL, "File watcher", watchThread);
 
 		EventSystem::subscribe<EditorProjectOpenedEvent>(onEditorProjectOpenedEvent);
 	}

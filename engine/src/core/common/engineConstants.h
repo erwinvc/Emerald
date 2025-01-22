@@ -2,5 +2,5 @@
 #include "stdint.h"
 
 namespace emerald::editorConstants {
-	constexpr uint32_t VERSION = 1;
+	constexpr uint32_t SERIALIZATIONVERSION = 1;
 }

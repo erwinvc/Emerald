@@ -24,6 +24,7 @@ namespace emerald {
 		}
 
 		static void stop() {
+
 		}
 
 		static bool isPlaying() {

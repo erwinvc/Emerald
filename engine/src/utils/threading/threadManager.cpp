@@ -11,8 +11,8 @@ namespace emerald {
 	static std::condition_variable m_condVar;
 	static std::array<std::thread::id, (uint32_t)ThreadType::_COUNT> s_threadIDs;
 
-	Thread::Thread(const std::string& name, std::function<void()> func, uint32_t affinity, ThreadPriority priority, bool background)
-		: m_name(name), m_priority(priority), m_function(std::move(func)), m_affinity(affinity), m_background(background), m_shutDown(false), m_finished(false) {
+	Thread::Thread(const std::string& name, std::function<void()> func, uint32_t affinity, ThreadPriority priority, ProfilerThreadType profilerType, bool background)
+		: m_name(name), m_priority(priority), m_profilerType(profilerType), m_function(std::move(func)), m_affinity(affinity), m_background(background), m_shutDown(false), m_finished(false) {
 	}
 
 	Thread::~Thread() {
@@ -46,7 +46,7 @@ namespace emerald {
 
 	void Thread::run() {
 		setAffinity();
-		PROFILE_REGISTER_LOGIC_THREAD(m_name.c_str());
+		PROFILE_REGISTER_LOGIC_THREAD(m_name.c_str(), m_profilerType);
 
 		//try {
 			m_function();
@@ -66,14 +66,14 @@ namespace emerald {
 		}
 	}
 
-	Thread* ThreadManager::createAndRegisterThread(ThreadType type, ThreadPriority priority, const std::string& name, std::function<void()> func, bool background) {
+	Thread* ThreadManager::createAndRegisterThread(ThreadType type, ProfilerThreadType profilerType, ThreadPriority priority, const std::string& name, std::function<void()> func, bool background) {
 		std::lock_guard<std::mutex> lock(m_lock);
 		initializeAffinitySystem();
 
 		uint32_t affinity = s_nextAffinity.fetch_add(1);
 		affinity %= s_maxAffinity;
 
-		m_threads.emplace_back(std::make_unique<Thread>(name, func, affinity, priority, background));
+		m_threads.emplace_back(std::make_unique<Thread>(name, func, affinity, priority, profilerType, background));
 		Thread* thread = m_threads.back().get();
 		thread->start();
 		s_threadIDs[(uint32_t)type] = thread->getID();

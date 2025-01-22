@@ -37,10 +37,10 @@ namespace emerald {
 		}
 
 		Renderer::submit([buffer = m_uniformStorageBuffer, shader = Ref<Shader>(m_shader)] {
+			PROFILE_RENDER_BEGIN("Material update for rendering");
 			const auto& uniformBuffers = shader->getUniformBuffers();
 			for (auto& [name, uniform] : uniformBuffers) {
 				uint32_t count = uniform.m_isArray ? uniform.m_count : 1;
-
 				if (count == 1) {
 					switch (uniform.m_type) {
 						case ShaderUniformType::BOOL:
@@ -147,6 +147,7 @@ namespace emerald {
 					}
 				}
 			}
+			PROFILE_RENDER_END();
 		});
 		PROFILE_LOGIC_END();
 	}

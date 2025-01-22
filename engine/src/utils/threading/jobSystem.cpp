@@ -12,8 +12,7 @@ namespace emerald {
 
 		bool popFront(Job& item) {
 			std::scoped_lock lock(m_mutex);
-			if (m_queue.empty())
-			{
+			if (m_queue.empty()) {
 				return false;
 			}
 			item = std::move(m_queue.front());
@@ -43,19 +42,16 @@ namespace emerald {
 		std::atomic<uint32_t> m_nextQueue{ 0 };
 		Vector<Thread*> m_threads[int(Priority::_COUNT)];
 
-		void shutDown()
-		{
+		void shutDown() {
 			m_shutdown.store(true);
 			bool running = true;
 			std::thread waker([&] {
-				while (running)
-				{
-					for (auto& cVar : m_wakeConditions)
-					{
+				while (running) {
+					for (auto& cVar : m_wakeConditions) {
 						cVar.notify_all();
 					}
 				}
-				});
+			});
 
 			for (int priorityIndex = 0; priorityIndex < (uint32_t)Priority::_COUNT; priorityIndex++) {
 				for (auto& thread : m_threads[priorityIndex]) {
@@ -73,25 +69,20 @@ namespace emerald {
 			m_coreCount = 0;
 			m_threadCount = 0;
 		}
-		~InternalState()
-		{
+		~InternalState() {
 			shutDown();
 		}
 	} static jobSystemState;
 
-	void JobSystem::work(uint32_t startingQueue, Priority priority)
-	{
+	void JobSystem::work(uint32_t startingQueue, Priority priority) {
 		Job job;
-		for (uint32_t i = 0; i < jobSystemState.m_threadCount; ++i)
-		{
+		for (uint32_t i = 0; i < jobSystemState.m_threadCount; ++i) {
 			JobQueue& job_queue = jobSystemState.m_jobQueuePerThread[int(priority)][startingQueue % jobSystemState.m_threadCount];
-			while (job_queue.popFront(job))
-			{
+			while (job_queue.popFront(job)) {
 				JobArgs args;
 				args.m_groupID = job.m_groupID;
 
-				for (uint32_t j = job.m_groupJobOffset; j < job.m_groupJobEnd; ++j)
-				{
+				for (uint32_t j = job.m_groupJobOffset; j < job.m_groupJobEnd; ++j) {
 					args.m_jobIndex = j;
 					args.m_groupIndex = j - job.m_groupJobOffset;
 					job.m_function(args);
@@ -104,12 +95,14 @@ namespace emerald {
 	}
 
 	void JobSystem::initialize(uint32_t threadCount) {
+
 		if (jobSystemState.m_threadCount > 0) {
 			throw std::runtime_error("Job system already initialized");
 			return;
 		}
 
 		uint32_t maxThreadCount = std::max(1u, threadCount);
+		maxThreadCount = std::min(maxThreadCount, 32u);
 
 		jobSystemState.m_coreCount = std::thread::hardware_concurrency();
 
@@ -119,31 +112,30 @@ namespace emerald {
 			jobSystemState.m_threads[priorityIndex].reserve(jobSystemState.m_threadCount);
 
 			const Priority priority = (Priority)priorityIndex;
+			const ProfilerThreadType profilerType = priority == Priority::LOW ? ProfilerThreadType::JOBSYSTEMLOW0 : ProfilerThreadType::JOBSYSTEMHIGH0;
 			for (uint32_t threadID = 0; threadID < jobSystemState.m_threadCount; ++threadID) {
 				ThreadPriority threadPriority = priority == Priority::HIGH ? ThreadPriority::NORMAL : ThreadPriority::LOWEST;
 
 				std::string name = std::format("JobSystem_{}_{}", threadPriorityToString(threadPriority, false), threadID);
-				Thread* thread = ThreadManager::createAndRegisterThread(ThreadType::LOGIC, threadPriority, name, [threadID, priority]() {
-					while (!jobSystemState.m_shutdown.load())
-					{
+				ProfilerThreadType type = (ProfilerThreadType)(((uint16_t)profilerType) + threadID);
+				Thread* thread = ThreadManager::createAndRegisterThread(ThreadType::LOGIC, type, threadPriority, name, [threadID, priority]() {
+					while (!jobSystemState.m_shutdown.load()) {
 						work(threadID, priority);
 
 						std::unique_lock<std::mutex> lock(jobSystemState.m_wakeMutexes[int(priority)]);
 						jobSystemState.m_wakeConditions[int(priority)].wait(lock);
 					}
-					});
+				});
 				jobSystemState.m_threads[priorityIndex].pushBack(thread);
 			}
 		}
 	}
 
-	void JobSystem::shutDown()
-	{
+	void JobSystem::shutDown() {
 		jobSystemState.shutDown();
 	}
 
-	uint32_t JobSystem::getThreadCount()
-	{
+	uint32_t JobSystem::getThreadCount() {
 		return jobSystemState.m_threadCount;
 	}
 
@@ -174,8 +166,7 @@ namespace emerald {
 		job.m_ctx = &ctx;
 		job.m_function = function;
 
-		for (uint32_t groupID = 0; groupID < groupCount; ++groupID)
-		{
+		for (uint32_t groupID = 0; groupID < groupCount; ++groupID) {
 			// For each group, generate one real job:
 			job.m_groupID = groupID;
 			job.m_groupJobOffset = groupID * groupSize;
@@ -187,21 +178,17 @@ namespace emerald {
 		jobSystemState.m_wakeConditions[int(ctx.priority)].notify_all();
 	}
 
-	bool Context::isBusy() const
-	{
+	bool Context::isBusy() const {
 		return counter.load() > 0;
 	}
 
-	void Context::wait()
-	{
-		if (isBusy())
-		{
+	void Context::wait() {
+		if (isBusy()) {
 			jobSystemState.m_wakeConditions[int(priority)].notify_all();
 
 			JobSystem::work(jobSystemState.m_nextQueue.fetch_add(1) % jobSystemState.m_threadCount, priority);
 
-			while (isBusy())
-			{
+			while (isBusy()) {
 				std::this_thread::yield();
 			}
 		}

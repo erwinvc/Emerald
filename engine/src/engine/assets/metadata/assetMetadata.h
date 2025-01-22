@@ -35,15 +35,15 @@ namespace emerald {
 
 		nlohmann::json toJson() const {
 			nlohmann::json j;
-			j["version"] = editorConstants::VERSION;
+			j["version"] = editorConstants::SERIALIZATIONVERSION;
 			j["uuid"] = m_uuid;
 			return j;
 		}
 
 		void fromJson(const nlohmann::json& j) {
 			int version = jsonUtils::deserializeRequiredValue<int>(j, "version");
-			if (version != editorConstants::VERSION) {
-				throw jsonUtils::VersionMismatchError(editorConstants::VERSION, version);
+			if (version != editorConstants::SERIALIZATIONVERSION) {
+				throw jsonUtils::VersionMismatchError(editorConstants::SERIALIZATIONVERSION, version);
 			}
 
 			m_uuid = jsonUtils::deserializeRequiredValue<std::string>(j, "uuid");

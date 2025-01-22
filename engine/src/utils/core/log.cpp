@@ -58,7 +58,7 @@ namespace emerald {
 			Log::error("[Console] failed to set console mode");
 		}
 
-		s_outputThread = ThreadManager::createAndRegisterThread(ThreadType::CONSOLE_OUTPUT, ThreadPriority::NORMAL, "Console output", handleQueue);
+		s_outputThread = ThreadManager::createAndRegisterThread(ThreadType::CONSOLE_OUTPUT, ProfilerThreadType::IGNORED, ThreadPriority::NORMAL, "Console output", handleQueue);
 
 		std::ofstream ofs;
 		ofs.open(s_logPath, std::ofstream::out | std::ofstream::trunc);

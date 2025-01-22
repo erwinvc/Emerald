@@ -7,15 +7,11 @@
 #include "engine/scene/sceneManager.h"
 #include "graphics/buffers/framebuffer.h"
 #include "graphics/buffers/indexBuffer.h"
-#include "graphics/buffers/vertexArray.h"
 #include "graphics/core/renderer.h"
-#include "graphics/misc/engineIcon.h"
 #include "graphics/shaders/shader.h"
 #include "imguiProfiler/Profiler.h"
 #include "renderPass.h"
 #include "renderPipeline.h"
-#include "engine/assets/loaders/textureLoader.h"
-#include "utils/system/timer.h"
 #include "../../editor/src/core/editor.h"
 
 namespace emerald {
@@ -209,6 +205,7 @@ namespace emerald {
 			glFrontFace(GL_CCW);
 			GL(glEnable(GL_DEPTH_TEST));
 		});
+
 		//multithread this
 		auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>(&SceneManager::getActiveScene()->getECS());
 		for (auto [meshRenderer, transform] : view) {
@@ -229,7 +226,9 @@ namespace emerald {
 
 		Renderer::endRenderPass();
 
+		Renderer::submit([] {PROFILE_RENDER_BEGIN("Blit"); });
 		m_mainPass->descriptor().frameBuffer->blitColorOnly(m_resolveFramebuffer);
+		Renderer::submit([] {PROFILE_RENDER_END(); });
 
 		FrameBufferManager::bindDefaultFBO();
 		Renderer::submit([] {PROFILE_RENDER_END(); });

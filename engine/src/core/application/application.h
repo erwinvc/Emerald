@@ -1,6 +1,5 @@
 #pragma once
 #include "engine/events/events.h"
-#include "graphics/textures/texture.h"
 #include "utils/datastructures/asyncQueue.h"
 #include "utils/system/timestep.h"
 #include <functional>

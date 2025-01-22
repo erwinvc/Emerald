@@ -55,12 +55,12 @@ namespace emerald {
 		}
 
 		nlohmann::json j;
-		j["version"] = editorConstants::VERSION;
-		j["uuid"] = serializedScene;
+		j["1version"] = editorConstants::SERIALIZATIONVERSION;
+		j["2scene"] = serializedScene;
 
 		Log::info("{}", j.dump());
 	}
 	Ref<Scene> SceneSerialization::deserializeScene(const std::filesystem::path& path) {
-		return nullptr;
+		
 	}
 }

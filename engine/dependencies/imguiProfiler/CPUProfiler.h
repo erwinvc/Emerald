@@ -5,6 +5,7 @@
 #include <mutex>
 #include <span>
 #include <assert.h>
+#include "utils/threading/profilerThreadType.h"
 
 
 namespace ImGuiProfiler {
@@ -17,7 +18,6 @@ namespace ImGuiProfiler {
 #define CONCAT_IMPL( x, y ) x##y
 #define MACRO_CONCAT( x, y ) CONCAT_IMPL( x, y )
 #define _NUMOF(x) (uint32_t)(((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x]))))))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
 
 	using uint64 = uint64_t;
 	using uint32 = uint32_t;
@@ -30,7 +30,6 @@ namespace ImGuiProfiler {
 		uint32 End;
 	};
 
-	// Simple Linear Allocator
 	class LinearAllocator {
 	public:
 		explicit LinearAllocator(uint32 size)
@@ -93,7 +92,7 @@ namespace ImGuiProfiler {
 		void Tick();
 
 		// Initialize a thread with an optional name
-		void RegisterThread(const char* pName = nullptr);
+		void RegisterThread(const char* pName = nullptr, emerald::ProfilerThreadType type = emerald::ProfilerThreadType::IGNORED);
 
 		// Struct containing all sampling data of a single frame
 		struct EventData {
@@ -110,8 +109,9 @@ namespace ImGuiProfiler {
 				uint64		TicksBegin = 0;		// The ticks at the start of this event
 				uint64		TicksEnd = 0;		// The ticks at the end of this event
 				uint32		LineNumber : 16;		// Line number of file in which this event is recorded
-				uint32		ThreadIndex : 11;		// Thread Index of the thread that recorderd this event
+				//uint32		ThreadIndex : 11;		// Thread Index of the thread that recorderd this event
 				uint32		Depth : 5;		// Depth of the event
+				emerald::ProfilerThreadType Type;
 			};
 
 			std::vector<Span<const Event>>	EventsPerThread;	// Events per thread of the frame
@@ -152,9 +152,9 @@ namespace ImGuiProfiler {
 				T StackData[N]{};
 			};
 
-
 			FixedStack<uint32, MAX_STACK_DEPTH> EventStack;
 			uint32								ThreadIndex = 0;
+			emerald::ProfilerThreadType					Type = emerald::ProfilerThreadType::IGNORED;
 			bool								IsInitialized = false;
 		};
 
@@ -162,12 +162,14 @@ namespace ImGuiProfiler {
 		struct ThreadData {
 			char		Name[128]{};
 			uint32		ThreadID = 0;
-			uint32		Index = 0;
+			//uint32		Index = 0;
 			const TLS* pTLS = nullptr;
+			emerald::ProfilerThreadType Type;
 		};
 
+
 		URange GetFrameRange() const {
-			uint32 begin = m_FrameIndex - min(m_FrameIndex, m_HistorySize) + 1;
+			uint32 begin = m_FrameIndex - std::min(m_FrameIndex, m_HistorySize) + 1;
 			uint32 end = m_FrameIndex;
 			return URange(begin, end);
 		}
@@ -175,8 +177,8 @@ namespace ImGuiProfiler {
 		Span<const EventData::Event> GetEventsForThread(const ThreadData& thread, uint32 frame) const {
 			//check(frame >= GetFrameRange().Begin && frame < GetFrameRange().End);
 			const EventData& data = m_pEventData[frame % m_HistorySize];
-			if (thread.Index < data.EventsPerThread.size())
-				return data.EventsPerThread[thread.Index];
+			//if (thread.Index < data.EventsPerThread.size())
+				return data.EventsPerThread[(uint8_t)thread.Type];
 			return {};
 		}
 

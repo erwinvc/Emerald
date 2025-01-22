@@ -15,7 +15,7 @@
 //		PROFILE_REGISTER_THREAD(const char* pName)
 //		PROFILE_REGISTER_THREAD()
 #define PROFILE_REGISTER_LOGIC_THREAD(...) ImGuiProfiler::gCPUProfiler.RegisterThread(__VA_ARGS__)
-#define PROFILE_REGISTER_RENDER_THREAD(...) ImGuiProfiler::gGPUProfiler.RegisterThread("Render")
+#define PROFILE_REGISTER_RENDER_THREAD(...) ImGuiProfiler::gGPUProfiler.RegisterThread("Render", emerald::ProfilerThreadType::RENDER)
 
 /// Usage:
 //		PROFILE_FRAME()

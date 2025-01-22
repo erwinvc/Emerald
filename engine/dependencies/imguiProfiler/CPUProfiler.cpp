@@ -14,6 +14,9 @@ namespace ImGuiProfiler {
 
 		for (uint32 i = 0; i < historySize; ++i)
 			m_pEventData[i].Events.resize(maxEvents);
+
+		for (uint32 i = 0; i < m_HistorySize; ++i)
+			m_pEventData[i].EventsPerThread.resize((uint8_t)emerald::ProfilerThreadType::_COUNT);
 	}
 
 
@@ -34,7 +37,7 @@ namespace ImGuiProfiler {
 
 		EventData::Event& newEvent = data.Events[newIndex];
 		newEvent.Depth = tls.EventStack.GetSize();
-		newEvent.ThreadIndex = tls.ThreadIndex;
+		newEvent.Type = tls.Type;
 		newEvent.pName = data.Allocator.String(pName);
 		newEvent.pFilePath = pFilePath;
 		newEvent.LineNumber = lineNumber;
@@ -70,28 +73,31 @@ namespace ImGuiProfiler {
 		EventData& frame = GetData();
 		std::vector<EventData::Event>& events = frame.Events;
 		std::sort(events.begin(), events.begin() + frame.NumEvents, [](const EventData::Event& a, const EventData::Event& b) {
-			return a.ThreadIndex < b.ThreadIndex;
+			return (uint16_t)a.Type < (uint16_t)b.Type;
 		});
 
 		URange eventRange(0, 0);
-		for (uint32 threadIndex = 0; threadIndex < (uint32)m_ThreadData.size(); ++threadIndex) {
-			// Reset event range for this thread
+		for (uint16_t i = 0; i < (uint16_t)emerald::ProfilerThreadType::_COUNT; i++) {
+			emerald::ProfilerThreadType type = (emerald::ProfilerThreadType)i;
+
+			//for (uint32 threadIndex = 0; threadIndex < (uint32)m_ThreadData.size(); ++threadIndex) {
+				// Reset event range for this thread
 			eventRange.End = eventRange.Begin;
 
 			// If we've processed all events or this thread has no events
 			if (eventRange.Begin >= frame.NumEvents ||
-				events[eventRange.Begin].ThreadIndex != threadIndex) {
+				events[eventRange.Begin].Type != type) {
 				// Set empty span for this thread
-				frame.EventsPerThread[threadIndex] = Span<const EventData::Event>();
+				frame.EventsPerThread[(uint16_t)type] = Span<const EventData::Event>();
 				continue;
 			}
 
 			// Process events for this thread
 			while (eventRange.End < frame.NumEvents &&
-				events[eventRange.End].ThreadIndex == threadIndex)
+				events[eventRange.End].Type == type)
 				++eventRange.End;
 
-			frame.EventsPerThread[threadIndex] = Span<const EventData::Event>(
+			frame.EventsPerThread[(uint16_t)type] = Span<const EventData::Event>(
 				&events[eventRange.Begin],
 				eventRange.End - eventRange.Begin
 			);
@@ -108,12 +114,15 @@ namespace ImGuiProfiler {
 	}
 
 
-	void CPUProfiler::RegisterThread(const char* pName) {
+	void CPUProfiler::RegisterThread(const char* pName, emerald::ProfilerThreadType type) {
+		if (type == emerald::ProfilerThreadType::IGNORED) return;
+
 		TLS& tls = GetTLSUnsafe();
 		check(!tls.IsInitialized);
 		tls.IsInitialized = true;
 		std::scoped_lock lock(m_ThreadDataLock);
 		tls.ThreadIndex = (uint32)m_ThreadData.size();
+		tls.Type = type;
 		ThreadData& data = m_ThreadData.emplace_back();
 
 		// If the name is not provided, retrieve it using GetThreadDescription()
@@ -127,9 +136,11 @@ namespace ImGuiProfiler {
 		}
 		data.ThreadID = GetCurrentThreadId();
 		data.pTLS = &tls;
-		data.Index = (uint32)m_ThreadData.size() - 1;
+		//data.Index = (uint32)m_ThreadData.size() - 1;
+		data.Type = type;
 
-		for (uint32 i = 0; i < m_HistorySize; ++i)
-			m_pEventData[i].EventsPerThread.resize(m_ThreadData.size());
+		std::sort(m_ThreadData.begin(), m_ThreadData.end(), [](const ThreadData& a, const ThreadData& b) {
+			return (uint16_t)a.Type < (uint16_t)b.Type;
+		});
 	}
 }

@@ -86,16 +86,16 @@ namespace ImGuiProfiler {
 	}
 
 	// Generate a color from a string. Used to color bars
-	static ImColor ColorFromString(const char* pName) {
+	static ImColor ColorFromString(const char* pName, float offset) {
 		uint32 hash = HashString(pName);
 		float hashF = (float)hash / UINT32_MAX;
 		hashF /= 3.0f; // Scale to 0-0.5
-		hashF += 0.33f; // Offset to 0.225-0.475 for Emerald color scheme
+		hashF += offset; // Offset to 0.225-0.475 for Emerald color scheme
 		return ImColor(HSVtoRGB(hashF, 0.5f, 0.5f));
 	}
 
 
-	static void DrawBar(uint32 id, uint64 beginTicks, uint64 endTicks, uint32 depth, ImVec2& cursor, float timelineWidth, float TicksToPixels, float TicksToMs, float ticksInTimeline, ImRect timelineRect, uint64 beginAnchor, bool& anyHovered, const char* pName, bool* pOutHovered = nullptr) {
+	static void DrawBar(uint32 id, float colorOffset, uint64 beginTicks, uint64 endTicks, uint32 depth, ImVec2& cursor, float timelineWidth, float TicksToPixels, float TicksToMs, float ticksInTimeline, ImRect timelineRect, uint64 beginAnchor, bool& anyHovered, const char* pName, bool* pOutHovered = nullptr) {
 		HUDContext& context = Context();
 		StyleOptions& style = context.Style;
 		ImDrawList* pDraw = ImGui::GetWindowDrawList();
@@ -112,7 +112,7 @@ namespace ImGuiProfiler {
 			if (ImGui::ItemAdd(itemRect, id, 0)) {
 				float ms = TicksToMs * (float)(endTicks - beginTicks);
 
-				ImColor color = ColorFromString(pName) * style.BarColorMultiplier;
+				ImColor color = ColorFromString(pName, colorOffset) * style.BarColorMultiplier;
 				ImColor textColor = style.FGTextColor;
 				// Fade out the bars that don't match the filter
 				if (context.SearchString[0] != 0 && !StrStrIA(pName, context.SearchString)) {
@@ -311,9 +311,9 @@ namespace ImGuiProfiler {
 				for (uint32 threadIndex = 0; threadIndex < (uint32)threads.size(); ++threadIndex) {
 					// Add thread name for track
 					const CPUProfiler::ThreadData& thread = threads[threadIndex];
-					const char* pHeaderText;
-					ImFormatStringToTempBuffer(&pHeaderText, nullptr, "%s [%d]", thread.Name, thread.ThreadID);
-					bool isOpen = TrackHeader(pHeaderText, ImGui::GetID(&thread));
+					//const char* pHeaderText;
+					//ImFormatStringToTempBuffer(&pHeaderText, nullptr, "%s [%d]", thread.Name, thread.ThreadID);
+					bool isOpen = TrackHeader(thread.Name, ImGui::GetID(&thread));
 
 					uint32 maxDepth = isOpen ? style.MaxDepth : 1;
 					uint32 trackDepth = 1;
@@ -334,7 +334,7 @@ namespace ImGuiProfiler {
 							trackDepth = ImMax(trackDepth, (uint32)event.Depth + 1);
 
 							bool hovered;
-							DrawBar(ImGui::GetID(&event), event.TicksBegin, event.TicksEnd, event.Depth, cursor, timelineWidth, TicksToPixels, TicksToMs, ticksInTimeline, timelineRect, beginAnchor, anyHovered, event.pName, &hovered);
+							DrawBar(ImGui::GetID(&event), 0.33f, event.TicksBegin, event.TicksEnd, event.Depth, cursor, timelineWidth, TicksToPixels, TicksToMs, ticksInTimeline, timelineRect, beginAnchor, anyHovered, event.pName, &hovered);
 							if (hovered) {
 								if (ImGui::BeginTooltip()) {
 									ImGui::Text("%s | %.3f ms", event.pName, TicksToMs * (float)(event.TicksEnd - event.TicksBegin));
@@ -365,7 +365,7 @@ namespace ImGuiProfiler {
 				// range.Begin..range.End
 
 				// Let’s define a track header:
-				const char* trackName = "Custom GPU Profiler";
+				const char* trackName = "GPU";
 				bool isOpen = true; // or make it collapsible with the same "TrackHeader" logic
 				{
 					// Draw a bar at the top
@@ -379,50 +379,37 @@ namespace ImGuiProfiler {
 					cursor.y += style.BarHeight;
 				}
 
-				// If user has collapsed the track, skip drawing:
 				if (!isOpen)
 					return;
 
-				// We’ll keep track of how many "rows" we used (if you want nested events, you can do more).
 				uint32_t trackDepth = 1;
 
-				// For each frame in [Begin..End)
 				auto frameRange = gOpenGLProfiler.GetFrameRange();
 
-				// For each frame
 				for (uint32_t frameIndex = frameRange.Begin; frameIndex < frameRange.End; ++frameIndex) {
-					// Retrieve the events from that frame
 					const auto& frameData = gOpenGLProfiler.GetFrameData(frameIndex);
 
 					for (size_t i = 0; i < frameData.Events.size(); i++) {
 						const auto& evt = frameData.Events[i];
-						// Possibly skip empty or invalid events
 						if (evt.TicksEnd <= evt.TicksBegin)
 							continue;
 
-						// Now call DrawBar:
 						bool hovered;
 
 						trackDepth = ImMax(trackDepth, (uint32)evt.Depth + 1);
 
 						DrawBar(
-							// ID:
 							ImGui::GetID(&evt),
-							// beginTicks/endTicks:
+							0.77f,
 							evt.TicksBegin, evt.TicksEnd,
-							// depth:
 							evt.Depth,
-							// cursor:
 							cursor,
-							// timelineWidth, TicksToPixels, TicksToMs, etc:
 							timelineWidth, TicksToPixels, TicksToMs,
 							ticksInTimeline,
 							timelineRect,
 							beginAnchor,
 							anyHovered,
-							// pName:
 							evt.pName,
-							// pOutHovered:
 							&hovered);
 
 						// If hovered, add tooltip
@@ -461,9 +448,9 @@ namespace ImGuiProfiler {
 				for (uint32 threadIndex = 0; threadIndex < (uint32)threads.size(); ++threadIndex) {
 					// Add thread name for track
 					const CPUProfiler::ThreadData& thread = threads[threadIndex];
-					const char* pHeaderText;
-					ImFormatStringToTempBuffer(&pHeaderText, nullptr, "%s [%d]", thread.Name, thread.ThreadID);
-					bool isOpen = TrackHeader(pHeaderText, ImGui::GetID(&thread));
+					//const char* pHeaderText;
+					//ImFormatStringToTempBuffer(&pHeaderText, nullptr, "%s [%d]", thread.Name, thread.ThreadID);
+					bool isOpen = TrackHeader(thread.Name, ImGui::GetID(&thread));
 
 					uint32 maxDepth = isOpen ? style.MaxDepth : 1;
 					uint32 trackDepth = 1;
@@ -484,7 +471,7 @@ namespace ImGuiProfiler {
 							trackDepth = ImMax(trackDepth, (uint32)event.Depth + 1);
 
 							bool hovered;
-							DrawBar(ImGui::GetID(&event), event.TicksBegin, event.TicksEnd, event.Depth, cursor, timelineWidth, TicksToPixels, TicksToMs, ticksInTimeline, timelineRect, beginAnchor, anyHovered, event.pName, &hovered);
+							DrawBar(ImGui::GetID(&event), 0.33f, event.TicksBegin, event.TicksEnd, event.Depth, cursor, timelineWidth, TicksToPixels, TicksToMs, ticksInTimeline, timelineRect, beginAnchor, anyHovered, event.pName, &hovered);
 							if (hovered) {
 								if (ImGui::BeginTooltip()) {
 									ImGui::Text("%s | %.3f ms", event.pName, TicksToMs * (float)(event.TicksEnd - event.TicksBegin));

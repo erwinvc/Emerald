@@ -19,7 +19,6 @@
 #include "utils/system/timestep.h"
 #include "utils/threading/jobSystem.h"
 #include "utils/threading/threadManager.h"
-#include "utils/system/timer.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -59,7 +58,7 @@ namespace emerald {
 		//m_mainWindow->getCallbacks().addOnMouseButtonCallback(Mouse::mouseButtonCallback);
 		//m_mainWindow->getCallbacks().addOnMousePosCallback(Mouse::mousePosCallback);
 		//m_mainWindow->getCallbacks().addOnScrollCallback(Mouse::mouseScrollCallback);
-		m_mainWindow->setVSync(true);
+		m_mainWindow->setVSync(false);
 		m_mainWindow->setLimits(200, 60, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 		//LOG("[~cGPU~x] %-26s %s", "GPU~1", glGetString(GL_RENDERER));
@@ -77,7 +76,7 @@ namespace emerald {
 		AssetRegistry::initialize();
 		JobSystem::initialize(4);
 
-		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, ThreadPriority::NORMAL, "Logic", [this]() { initializeLogic(); });
+		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, ProfilerThreadType::LOGIC, ThreadPriority::NORMAL, "Logic", [this]() { initializeLogic(); });
 
 		renderLoop();
 
@@ -231,7 +230,6 @@ namespace emerald {
 
 	void Application::handleResize() {
 		if (g_resizeData.m_shouldResize) {
-			//FrameBufferManager::onResize(g_resizeData.m_width, g_resizeData.m_height); //We use the editor panel in the editor
 			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 			GL(glViewport(0, 0, g_resizeData.m_width, g_resizeData.m_height));
 			EventSystem::dispatch<WindowResizeEvent>(g_resizeData.m_width, g_resizeData.m_height);

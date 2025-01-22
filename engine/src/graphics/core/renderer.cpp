@@ -6,6 +6,7 @@
 #include "renderSyncManager.h"
 #include "utils/threading/threadManager.h"
 #include "utils/misc/GLUtils.h"
+#include "imguiProfiler/Profiler.h"
 
 namespace emerald {
 	static Ref<RenderPass> s_activeRenderPass;
@@ -58,7 +59,9 @@ namespace emerald {
 
 	void Renderer::drawIndexed(uint32_t count, PrimitiveType type) {
 		Renderer::submit([count, type] {
+			PROFILE_RENDER_BEGIN("Draw Indexed");
 			GL(glDrawElements((uint32_t)type, count, GL_UNSIGNED_INT, nullptr));
+			PROFILE_RENDER_END();
 		});
 	}
 }
