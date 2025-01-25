@@ -2,6 +2,7 @@
 #include "sceneGraphComponent.h"
 #include "engine/scene/sceneManager.h"
 #include "utils/misc/utils.h"
+#include "../core/ECSManager.h"
 
 namespace emerald {
 	RTTI_CLASS_DEF(SceneGraphComponent);
@@ -24,7 +25,7 @@ namespace emerald {
 	}
 
 	void SceneGraphComponent::setParent(Entity parent) {
-		setParent(SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(parent));
+		setParent(ECSManager::ECS().getComponent<SceneGraphComponent>(parent));
 	}
 
 	void SceneGraphComponent::addChild(SceneGraphComponent* child) {
@@ -40,7 +41,7 @@ namespace emerald {
 	}
 
 	void SceneGraphComponent::addChild(Entity child) {
-		addChild(SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(child));
+		addChild(ECSManager::ECS().getComponent<SceneGraphComponent>(child));
 	}
 
 	void SceneGraphComponent::removeChild(SceneGraphComponent* child) {
@@ -54,7 +55,7 @@ namespace emerald {
 	}
 
 	void SceneGraphComponent::setEnabledRecursive(bool enabled) {
-		SceneManager::getActiveScene()->getECS().setEntityEnabled(m_entity, enabled);
+		ECSManager::ECS().setEntityEnabled(m_entity, enabled);
 		for (auto child : m_children) {
 			child->setEnabledRecursive(enabled);
 		}
@@ -71,8 +72,7 @@ namespace emerald {
 	}
 
 	SceneGraphComponent* SceneGraphComponent::deserialize(const nlohmann::json& json, Entity entity) {
-		EntityComponentSystem& ecs = SceneManager::getActiveScene()->getECS();
-		SceneGraphComponent* comp = ecs.addComponent<SceneGraphComponent>(entity);
+		SceneGraphComponent* comp = ECSManager::ECS().addComponent<SceneGraphComponent>(entity);
 
 		comp->setParent((Entity)json["parent"]);
 		for (auto child : json["children"]) {

@@ -8,6 +8,7 @@
 #include "engine/ecs/components/component.h"
 #include "engine/scene/sceneManager.h"
 #include "inspector/inspectorRegistry.h"
+#include "engine/ecs/core/ECSManager.h"
 
 namespace emerald {
 	static constexpr float MIN_FIRST_COLUMN_WIDTH = 50.0f;
@@ -39,12 +40,10 @@ namespace emerald {
 	}
 
 	void InspectorPanel::drawInspectorHeader(std::vector<Entity>& selectedEntities) {
-		Ref<Scene>& scene = SceneManager::getActiveScene();
-
 		bool changed = false;
 		static const char* xyzSymbols[3] = { "X", "Y", "Z" };
 
-		std::vector<MetadataComponent*> nameComponents = scene->getECS().getComponentsInEntities<MetadataComponent>((std::vector<UUID>&)selectedEntities);
+		std::vector<MetadataComponent*> nameComponents = ECSManager::ECS().getComponentsInEntities<MetadataComponent>((std::vector<UUID>&)selectedEntities);
 
 		ImGui::Spacing();
 		PropertyDrawer::drawLabel("Name", nameComponents, &MetadataComponent::m_name, FixedString<64>("~"), DividerType::SINGLELINE);
@@ -66,7 +65,7 @@ namespace emerald {
 			bool firstEntity = true;
 			for (UUID entity : selectedEntities) {
 				std::unordered_set<RTTIType> entityComponents;
-				for (auto& [type, componentArrayBase] : scene->getECS().getComponentArrays()) {
+				for (auto& [type, componentArrayBase] : ECSManager::ECS().getComponentArrays()) {
 					for (auto* component : componentArrayBase->getComponentsAsBase(entity)) {
 						if (component->getComponentTypeInfo().category == ComponentCategory::INTERNAL) continue;
 						componentInfo[type] = &component->getComponentTypeInfo();
@@ -121,7 +120,7 @@ namespace emerald {
 					std::vector<Component*> components;
 					components.reserve(selectedEntities.size());
 					for (UUID entity : selectedEntities) {
-						for (auto* component : scene->getECS().getComponentArray(selectedComponentType).getComponentsAsBase(entity)) {
+						for (auto* component : ECSManager::ECS().getComponentArray(selectedComponentType).getComponentsAsBase(entity)) {
 							components.push_back(component);
 						}
 					}

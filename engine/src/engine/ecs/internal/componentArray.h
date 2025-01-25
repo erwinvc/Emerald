@@ -18,6 +18,8 @@ namespace emerald {
 		virtual std::vector<Component*> getComponentsAsBase(UUID entity) = 0;
 
 		virtual RTTIType getComponentType() const = 0;
+
+		virtual void clear() = 0;
 	};
 
 	template<typename T, size_t ChunkSize = 256>
@@ -163,7 +165,7 @@ namespace emerald {
 			return m_chunks[chunkIndex].raw();
 		}
 
-		void clear() {
+		virtual void clear() override {
 			for (auto& chunk : m_chunks) {
 				T* chunkArray = chunk->getComponentsArray();
 				for (size_t i = 0; i < chunk->getCount(); ++i) {

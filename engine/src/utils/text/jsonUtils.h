@@ -21,17 +21,16 @@ namespace emerald::jsonUtils {
 
 	class VersionMismatchError : public DeserializationError {
 	public:
-		VersionMismatchError(int expected, int actual)
-			: DeserializationError("Version mismatch: expected " + std::to_string(expected) +
-				", got " + std::to_string(actual)) {
+		VersionMismatchError(uint32_t expected, uint32_t actual)
+			: DeserializationError(std::format("Version mismatch: expected {}, got {}", expected, actual)) {
 		}
 	};
 
-	static nlohmann::json deserialize(const std::string& str) {
+	static nlohmann::json deserialize(const std::string_view& str) {
 		try {
 			return nlohmann::json::parse(str);
 		} catch (const nlohmann::json::parse_error& e) {
-			throw DeserializationError(std::string("Failed to parse JSON: ") + e.what());
+			throw DeserializationError(std::format("Failed to parse JSON: {}", e.what()));
 		}
 	}
 
@@ -66,26 +65,26 @@ namespace emerald::jsonUtils {
 	}
 
 	template<typename T>
-	static T deserializeRequiredValue(const nlohmann::json& j, const std::string& key) {
+	static T deserializeRequiredValue(const nlohmann::json& j, const std::string_view& key) {
 		try {
 			if (!j.contains(key)) {
-				throw DeserializationError("Missing required field: " + key);
+				throw DeserializationError(std::format("Missing required field: {}", key));
 			}
 			return j.at(key).get<T>();
 		} catch (const nlohmann::json::exception& e) {
-			throw DeserializationError("Invalid value for field '" + key + "': " + e.what());
+			throw DeserializationError(std::format("Invalid value for field '{}':{}", key, e.what()));
 		}
 	}
 
 	template<typename T>
-	static std::optional<T> deserializeOptionalValue(const nlohmann::json& j, const std::string& key) {
+	static std::optional<T> deserializeOptionalValue(const nlohmann::json& j, const std::string_view& key) {
 		if (!j.contains(key)) {
 			return std::nullopt;
 		}
 		try {
 			return j.at(key).get<T>();
 		} catch (const nlohmann::json::exception& e) {
-			throw DeserializationError("Invalid value for optional field '" + key + "': " + e.what());
+			throw DeserializationError(std::format("Invalid value for optional field '{}': {}", key, e.what()));
 		}
 	}
 }

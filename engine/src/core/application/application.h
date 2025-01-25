@@ -2,7 +2,6 @@
 #include "engine/events/events.h"
 #include "utils/datastructures/asyncQueue.h"
 #include "utils/system/timestep.h"
-#include <functional>
 #include <string>
 
 namespace emerald {

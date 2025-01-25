@@ -18,6 +18,7 @@
 #include "project.h"
 #include "ui/editorWindow.h"
 #include "utils/undoRedo.h"
+#include "engine/ecs/core/ECSManager.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
@@ -41,6 +42,7 @@ namespace emerald {
 	}
 
 	void EmeraldEditorApplication::onInitialize() {
+		ECSManager::Initialize(true);
 		FileWatcher::initialize();
 
 		s_editorWindow = UniqueRef<EditorWindow>::create();

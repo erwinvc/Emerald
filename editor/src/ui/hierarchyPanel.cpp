@@ -31,9 +31,9 @@ namespace emerald {
 
 			if (ImGui::EmeraldButton("Add Entity", ImVec2(-FLT_MIN, 0))) {
 				auto action = UndoRedo::createAction<Entity>("Add Entity");
-				UUID entityID = SceneManager::getActiveScene()->getECS().getNewEntityID();
-				action->addDoAction([entityID](Entity& entity) {entity = SceneManager::getActiveScene()->getECS().createEntity(entityID, "Entity"); });
-				action->addUndoAction([](Entity& entity) {SceneManager::getActiveScene()->getECS().destroyEntity(entity); });
+				UUID entityID = ECSManager::ECS().getNewEntityID();
+				action->addDoAction([entityID](Entity& entity) {entity = ECSManager::ECS().createEntity(entityID, "Entity"); });
+				action->addUndoAction([](Entity& entity) {ECSManager::ECS().destroyEntity(entity); });
 				UndoRedo::commitAction(action);
 			}
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));

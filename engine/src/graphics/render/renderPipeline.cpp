@@ -13,6 +13,7 @@
 #include "renderPass.h"
 #include "renderPipeline.h"
 #include "../../editor/src/core/editor.h"
+#include "engine/ecs/core/ECSManager.h"
 
 namespace emerald {
 	RenderPipeline::RenderPipeline() {
@@ -181,7 +182,7 @@ namespace emerald {
 			glm::mat4 lightSpaceMatrix = m_lightProjection * m_lightView;
 			m_shadowMaterial->set("_LightSpaceMatrix", lightSpaceMatrix);
 
-			auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>(&SceneManager::getActiveScene()->getECS());
+			auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>();
 			for (auto [meshRenderer, transform] : view) {
 				glm::mat4 model = transform->getGlobalTransform();
 				m_shadowMaterial->set("_ModelMatrix", model);
@@ -206,8 +207,8 @@ namespace emerald {
 			GL(glEnable(GL_DEPTH_TEST));
 		});
 
-		//multithread this
-		auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>(&SceneManager::getActiveScene()->getECS());
+		//multithread this?
+		auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>();
 		for (auto [meshRenderer, transform] : view) {
 			Ref<Material> mat = meshRenderer->m_mesh->getMaterial();
 			mat->set("_ViewMatrix", Editor->getEditorCamera()->getViewMatrix());

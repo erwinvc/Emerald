@@ -1,6 +1,7 @@
 #include "eepch.h"
 #include "metadataComponent.h"
 #include "engine/scene/sceneManager.h"
+#include "../core/ECSManager.h"
 
 namespace emerald {
 	RTTI_CLASS_DEF(MetadataComponent);
@@ -15,8 +16,7 @@ namespace emerald {
 	}
 
 	MetadataComponent* MetadataComponent::deserialize(const nlohmann::json& json, Entity entity) {
-		EntityComponentSystem& ecs = SceneManager::getActiveScene()->getECS();
-		MetadataComponent* comp = ecs.addComponent<MetadataComponent>(entity, json["name"]);
+		MetadataComponent* comp = ECSManager::ECS().addComponent<MetadataComponent>(entity, json["name"]);
 		comp->m_flags = json["flags"];
 		return comp;
 	}

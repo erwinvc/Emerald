@@ -2,6 +2,7 @@
 #include "meshRendererComponent.h"
 #include "../core/entityComponentSystem.h"
 #include "../../scene/sceneManager.h"
+#include "../core/ECSManager.h"
 
 namespace emerald {
 	RTTI_CLASS_DEF(MeshRendererComponent);
@@ -13,8 +14,7 @@ namespace emerald {
 	}
 
 	MeshRendererComponent* MeshRendererComponent::deserialize(const nlohmann::json& json, Entity entity) {
-		EntityComponentSystem& ecs = SceneManager::getActiveScene()->getECS();
-		MeshRendererComponent* comp = ecs.addComponent<MeshRendererComponent>(entity);
+		MeshRendererComponent* comp = ECSManager::ECS().addComponent<MeshRendererComponent>(entity);
 
 		return comp;
 	}

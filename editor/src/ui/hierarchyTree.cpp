@@ -67,7 +67,7 @@ namespace emerald {
 			// Begin multi-selection and render nodes
 			auto* multiSelectIO = ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_None, (int)m_imGuiSelection.Size, (int)m_nodes.size());
 			m_imGuiSelection.ApplyRequests(multiSelectIO);
-			renderNode(scene.raw(), scene->getRootNode(), searchString);
+			renderNode(scene->getRootNode(), searchString);
 
 			if (ImGui::BeginDragDropTarget()) {
 				onDrop(scene->getRootNode(), true, scene->getRootNode(), true);
@@ -148,10 +148,10 @@ namespace emerald {
 		_collectNodes(node);
 	}
 
-	ImRect HierarchyTree::renderNode(Scene* scene, SceneGraphComponent* node, const char* searchString, int depth) {
+	ImRect HierarchyTree::renderNode(SceneGraphComponent* node, const char* searchString, int depth) {
 		if (!node) return ImRect(ImVec4(0, 0, 0, 0));
 		bool isRootNode = depth == 0;
-		MetadataComponent* metadata = scene->getECS().getComponent<MetadataComponent>(node->m_entity);
+		MetadataComponent* metadata = ECSManager::ECS().getComponent<MetadataComponent>(node->m_entity);
 
 		ImGuiTreeNodeFlags flags = prepareTreeNodeFlags(node, isRootNode);
 		ImGui::SetNextItemOpen(node->m_isOpenInHierarchy || isRootNode);
@@ -206,17 +206,17 @@ namespace emerald {
 			ImGui::TableNextColumn();
 			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
 			ImGuiManager::pushFont(ImGUIFont::AWESOME_R);
-			bool entityEnabled = scene->getECS().isEntityEnabled(node->m_entity);
+			bool entityEnabled = ECSManager::ECS().isEntityEnabled(node->m_entity);
 			if (ImGui::ToggleButton("", &entityEnabled, ImVec2(0, ImGui::GetTextLineHeight() + 2), P_ICON_FA_EYE, P_ICON_FA_EYE_SLASH)) {
 				auto& selectedEntities = getSelectedEntities();
 				auto it = std::find(selectedEntities.begin(), selectedEntities.end(), node->m_entity);
 				if (it != selectedEntities.end()) {
 					for (auto& selectedEntity : getSelectedEntities()) {
-						SceneGraphComponent* sgc = scene->getECS().getComponent<SceneGraphComponent>(selectedEntity);
+						SceneGraphComponent* sgc = ECSManager::ECS().getComponent<SceneGraphComponent>(selectedEntity);
 						sgc->setEnabledRecursive(entityEnabled);
 					}
 				} else {
-					SceneGraphComponent* sgc = scene->getECS().getComponent<SceneGraphComponent>(node->m_entity);
+					SceneGraphComponent* sgc = ECSManager::ECS().getComponent<SceneGraphComponent>(node->m_entity);
 					sgc->setEnabledRecursive(entityEnabled);
 				}
 
@@ -241,7 +241,7 @@ namespace emerald {
 			if (!skip) {
 				for (auto* child : node->m_children) {
 					const float HorizontalTreeLineSize = 8.0f; //chosen arbitrarily
-					ImRect childRect = renderNode(scene, child, searchString, depth + 1);
+					ImRect childRect = renderNode(child, searchString, depth + 1);
 					const float midpoint = (childRect.Min.y + childRect.Max.y) / 2.0f;
 					drawList->AddLine(ImVec2(verticalLineStart.x, midpoint), ImVec2(verticalLineStart.x + HorizontalTreeLineSize, midpoint), TreeLineColor);
 					verticalLineEnd.y = midpoint;
@@ -314,7 +314,7 @@ namespace emerald {
 			std::string name;
 			ImVector<SceneGraphComponent*> selectedNodes = getSelectedNodes();
 			for (int i = 0; i < selectedNodes.size(); i++) {
-				auto* metadata = SceneManager::getActiveScene()->getECS().getComponent<MetadataComponent>(selectedNodes[i]->m_entity);
+				auto* metadata = ECSManager::ECS().getComponent<MetadataComponent>(selectedNodes[i]->m_entity);
 				name += metadata->getName();
 				if (i < selectedNodes.size() - 1) name += "\n";
 			}
@@ -346,8 +346,8 @@ namespace emerald {
 						UUID beforeNodeEntity = beforeNode ? beforeNode->m_entity : Entity();
 
 						action->addUndoAction([droppedNodeEntity = droppedNode->m_entity, originalParentEntity = originalParent->m_entity, originalPrevSibling, originalNextSibling]() {
-							SceneGraphComponent* droppedNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
-							SceneGraphComponent* originalParent1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(originalParentEntity);
+							SceneGraphComponent* droppedNode1 = ECSManager::ECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
+							SceneGraphComponent* originalParent1 = ECSManager::ECS().getComponent<SceneGraphComponent>(originalParentEntity);
 
 							droppedNode1->setParent(nullptr);
 
@@ -364,9 +364,9 @@ namespace emerald {
 						});
 
 						action->addDoAction([droppedNodeEntity = droppedNode->m_entity, nodeEntity = node->m_entity, insertBefore, beforeNodeEntity]() {
-							SceneGraphComponent* droppedNode1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
-							SceneGraphComponent* node1 = SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(nodeEntity);
-							SceneGraphComponent* beforeNode1 = beforeNodeEntity != 0 ? SceneManager::getActiveScene()->getECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
+							SceneGraphComponent* droppedNode1 = ECSManager::ECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
+							SceneGraphComponent* node1 = ECSManager::ECS().getComponent<SceneGraphComponent>(nodeEntity);
+							SceneGraphComponent* beforeNode1 = beforeNodeEntity != 0 ? ECSManager::ECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
 							addNodeToParent(droppedNode1, node1, insertBefore, beforeNode1);
 						});
 

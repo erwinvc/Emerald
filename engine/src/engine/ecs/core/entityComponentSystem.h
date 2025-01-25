@@ -1,12 +1,12 @@
 #pragma once
-#include "entity.h"
-#include <unordered_map>
-#include <typeindex>
-#include <memory>
-#include "../internal/componentArray.h"
+#include "ECSManager.h"
+#include "engine/ecs/components/component.h"
+#include "engine/ecs/internal/componentArray.h"
 #include "utils/misc/flags.h"
 #include "utils/uuid/uuid.h"
-#include "../components/component.h"
+#include <memory>
+#include <typeindex>
+#include <unordered_map>
 
 namespace emerald {
 	enum EntityFlags {
@@ -20,7 +20,7 @@ namespace emerald {
 		template<typename MainComponent, typename... OtherComponents>
 		class View {
 		public:
-			View(EntityComponentSystem* ecs)
+			View(EntityComponentSystem* ecs = &ECSManager::ECS())
 				: m_ecs(ecs) {
 				m_componentArray = ecs->getComponentArray<MainComponent>();
 			}
@@ -222,6 +222,16 @@ namespace emerald {
 
 		bool isEntityEnabled(UUID entity) {
 			return m_entityFlags[entity].isFlagSet(ENTITY_ENABLED);
+		}
+
+		void clear() {
+			for (auto& [typeIndex, componentArray] : m_componentArrays) {
+				componentArray->clear();
+			}
+
+			m_componentArrays.clear();
+			m_entityFlags.clear();
+			m_entities.clear();
 		}
 
 	private:

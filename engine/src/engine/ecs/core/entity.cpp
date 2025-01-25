@@ -4,6 +4,6 @@
 
 namespace emerald {
 	Entity Entity::create(const std::string& name) {
-		return SceneManager::getActiveScene()->getECS().createEntity(name);
+		return ECSManager::ECS().createEntity(name);
 	}
 }

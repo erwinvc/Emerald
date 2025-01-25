@@ -8,6 +8,7 @@
 #include "engine/ecs/components/meshRendererComponent.h"
 #include "engine/ecs/components/sceneGraphComponent.h"
 #include "core/editor.h"
+#include "engine/ecs/core/ECSManager.h"
 
 namespace emerald {
 	ViewportPanel::ViewportPanel() {}
@@ -71,15 +72,14 @@ namespace emerald {
 						} else if (metadata->getType() == AssetType::MODEL) {
 
 							auto createAsset = [metadata](const Ref<Model>& asset) {
-								auto& ecs = SceneManager::getActiveScene()->getECS();
 
-								Entity baseEntity = ecs.createEntity(asset->getName());
-								SceneGraphComponent* sponzaParent = ecs.getComponent<SceneGraphComponent>(baseEntity);
+								Entity baseEntity = ECSManager::ECS().createEntity(asset->getName());
+								SceneGraphComponent* sponzaParent = ECSManager::ECS().getComponent<SceneGraphComponent>(baseEntity);
 
 								for (auto& mesh : asset->getSubMeshes()) {
-									Entity e = ecs.createEntity(mesh->getName());
-									SceneGraphComponent* r = ecs.getComponent<SceneGraphComponent>(e);
-									ecs.addComponent<MeshRendererComponent>(e, mesh);
+									Entity e = ECSManager::ECS().createEntity(mesh->getName());
+									SceneGraphComponent* r = ECSManager::ECS().getComponent<SceneGraphComponent>(e);
+									ECSManager::ECS().addComponent<MeshRendererComponent>(e, mesh);
 									sponzaParent->addChild(r);
 								}
 							};
