@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <array>
+#include "utils/core/hash.h"
 
 namespace emerald {
 	class UUID {
@@ -17,13 +19,13 @@ namespace emerald {
 		std::string toString() const;
 		bool fromString(const std::string& str);
 
-		operator bool() const { return isValid(); }
+		explicit operator bool() const { return isValid(); }
 		bool operator==(const UUID& other) const {	return m_data64[0] == other.m_data64[0] && m_data64[1] == other.m_data64[1]; }
 		bool operator!=(const UUID& other) const { return !(*this == other); }
 		operator std::string() const { return toString(); }
 
 	private:
-		friend struct std::hash<UUID>; // Grant access to std::hash
+		friend struct std::hash<UUID>;
 		friend class UUIDGenerator;
 
 		union {
@@ -44,12 +46,22 @@ namespace emerald {
 
 namespace std {
 	template <>
+	struct formatter<emerald::UUID> : formatter<std::string> {
+		constexpr auto parse(format_parse_context& ctx) {
+			return ctx.begin();
+		}
+
+		template <typename FormatContext>
+		auto format(const emerald::UUID& uuid, FormatContext& ctx) {
+			return formatter<std::string>::format(uuid.toString(), ctx);
+		}
+	};
+
+	template <>
 	struct hash<emerald::UUID> {
 		std::size_t operator()(const emerald::UUID& uuid) const noexcept {
-			std::size_t h1 = std::hash<uint64_t>{}(uuid.m_data64[0]);
-			std::size_t h2 = std::hash<uint64_t>{}(uuid.m_data64[1]);
-
-			return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+			auto hash64 = emerald::Hash::hash64(uuid.m_data8.data(), 16);
+			return static_cast<std::size_t>(hash64);
 		}
 	};
 }

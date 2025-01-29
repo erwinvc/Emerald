@@ -2,10 +2,11 @@
 #include "component.h"
 #include "engine/ecs/core/entity.h"
 #include "engine/assets/model/mesh.h"
+#include "componentRegistry.h"
 
 namespace emerald {
 	class MeshRendererComponent : public Component {
-		RTTI_DERIVED_CLASS_DECL(MeshRendererComponent, Component)
+		COMPONENT_DECL(MeshRendererComponent)
 	public:
 		Ref<Mesh> m_mesh;
 
@@ -17,7 +18,7 @@ namespace emerald {
 		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
 
 		virtual nlohmann::json serialize() override;
-		static MeshRendererComponent* deserialize(const nlohmann::json& json, Entity entity);
+		virtual void deserialize(const nlohmann::json& j) override;
 
 	private:
 		static inline ComponentTypeInfo s_componentTypeInfo = { "Mesh Renderer", ComponentCategory::GRAPHICS, true };

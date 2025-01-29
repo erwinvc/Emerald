@@ -41,7 +41,7 @@ namespace emerald::jsonUtils {
 			if (!file) {
 				throw FileError("Failed to open file for writing: " + path.string());
 			}
-			file << std::setw(4) << j;
+			file << std::setw(2) << j;
 
 			if (!file) {
 				throw FileError("Failed to write to file: " + path.string());
@@ -57,11 +57,19 @@ namespace emerald::jsonUtils {
 		}
 
 		std::ifstream file(path);
-		if (!file.is_open()) {
+		if (!file.is_open() || !file.good()) {
 			throw FileError("Failed to open file: " + path.string());
 		}
+		
+		nlohmann::json j;
+		try {
+			j = nlohmann::json::parse(file);
+		} catch (std::exception ex) {
+			Log::error("Error reading json file: {}", ex.what());
+		}
+		file.close();
 
-		return nlohmann::json::parse(file);
+		return j;
 	}
 
 	template<typename T>

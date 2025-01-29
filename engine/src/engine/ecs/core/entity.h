@@ -1,5 +1,6 @@
 #pragma once
 #include "utils/uuid/uuid.h"
+#include "ECSManager.h"
 
 namespace emerald {
 	class SceneManager;
@@ -20,22 +21,22 @@ namespace emerald {
 
 		template <typename T>
 		void addComponent(const T& component) {
-			SceneManager::getActiveScene()->getECS().addComponent<T>(*this, component);
+			ECSManager::ECS().addComponent<T>(*this, component);
 		}
 
 		template <typename T>
 		void removeComponent() {
-			SceneManager::getActiveScene()->getECS().removeComponent<T>(*this);
+			ECSManager::ECS().removeComponent<T>(*this);
 		}
 
 		template <typename T>
-		T& getComponent() {
-			return SceneManager::getActiveScene()->getECS().getComponent<T>(*this);
+		T* getComponent() {
+			return ECSManager::ECS().getComponent<T>(*this);
 		}
 
 		template <typename T>
 		bool hasComponent() {
-			return SceneManager::getActiveScene()->getECS().hasComponent<T>(*this);
+			return ECSManager::ECS().hasComponent<T>(*this);
 		}
 
 	private:

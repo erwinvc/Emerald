@@ -5,7 +5,7 @@
 #include "../core/ECSManager.h"
 
 namespace emerald {
-	RTTI_CLASS_DEF(TransformComponent);
+	COMPONENT_DEF(TransformComponent);
 
 	void TransformComponent::updateLocalTransform() {
 		m_localTransform = glm::mat4(1.0f);
@@ -34,13 +34,9 @@ namespace emerald {
 		return json;
 	}
 
-	TransformComponent* TransformComponent::deserialize(const nlohmann::json& json, Entity entity) {
-		TransformComponent* comp = ECSManager::ECS().addComponent<TransformComponent>(entity);
-		
-		comp->m_position = { json["position"][0], json["position"][1], json["position"][2] };
-		comp->m_rotation = { json["rotation"][0], json["rotation"][1], json["rotation"][2] };
-		comp->m_scale = { json["scale"][0], json["scale"][1], json["scale"][2] };
-
-		return comp;
+	void TransformComponent::deserialize(const nlohmann::json& json) {
+		m_position = { json["position"][0], json["position"][1], json["position"][2] };
+		m_rotation = { json["rotation"][0], json["rotation"][1], json["rotation"][2] };
+		m_scale = { json["scale"][0], json["scale"][1], json["scale"][2] };
 	}
 }

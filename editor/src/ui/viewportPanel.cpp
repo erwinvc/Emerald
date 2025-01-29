@@ -9,6 +9,7 @@
 #include "engine/ecs/components/sceneGraphComponent.h"
 #include "core/editor.h"
 #include "engine/ecs/core/ECSManager.h"
+#include "engine/scene/sceneSerialization.h"
 
 namespace emerald {
 	ViewportPanel::ViewportPanel() {}
@@ -89,6 +90,10 @@ namespace emerald {
 
 						} else if (metadata->getType() == AssetType::SHADER) {
 
+						} else if (metadata->getType() == AssetType::SCENE) {
+							SceneSerialization::deserializeScene(metadata->getPath());
+						} else {
+							Log::warn("Asset type not supported for drag and drop");
 						}
 					}
 				}

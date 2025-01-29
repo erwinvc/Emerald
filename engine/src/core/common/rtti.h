@@ -1,7 +1,7 @@
 #pragma once
 #include <typeindex>
 #include <string_view>
-#include "reflectionRegistry.h"
+#include "reflection.h"
 
 using RTTIType = std::type_index;
 
@@ -22,8 +22,8 @@ public:                                                                         
     static const RTTIType getStaticParentClassType() { return RTTIType(typeid(void)); }             \
     static const std::string_view getStaticClassName() { return #_thisclass; }                      \
     virtual const std::string_view getClassName() const { return getStaticClassName(); }            \
-    static bool isClassType(const RTTIType classType) {                                             \
-        return classType == getStaticClassType();                                                   \
+    bool isClassType(const RTTIType classType) {                                                    \
+        return classType == getClassType();                                                         \
     }                                                                                               \
     template<typename T>                                                                            \
     static bool checkRTTI();                                                                        \
@@ -45,8 +45,8 @@ public:                                                                         
     static const RTTIType getStaticParentClassType() { return _parentclass::getStaticClassType(); } \
     static const std::string_view getStaticClassName() { return #_thisclass; }                      \
     virtual const std::string_view getClassName() const { return getStaticClassName(); }            \
-    static bool isClassType(const RTTIType classType) {                                             \
-        if (classType == getStaticClassType()) return true;                                         \
+    bool isClassType(const RTTIType classType) {                                                    \
+        if (classType == getClassType()) return true;                                               \
         return _parentclass::isClassType(classType);                                                \
     }                                                                                               \
     template<typename T>                                                                            \

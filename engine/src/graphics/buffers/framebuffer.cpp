@@ -55,7 +55,6 @@ namespace emerald {
 
 	void FrameBuffer::invalidateTextures() {
 		ASSERT(ThreadManager::isThread(ThreadType::RENDER), "framebuffers should be invalidated on the render thread");
-
 		m_textures.clear();
 		m_depthTexture = nullptr;
 		for (auto& attachmentDesc : m_desc.attachments) {
@@ -71,7 +70,7 @@ namespace emerald {
 			const Ref<Texture>& texture = Ref<Texture>::create(desc, m_desc.width, m_desc.height);
 			texture->invalidate();
 
-			Log::info("Creating texture for framebuffer: {} {} {}", m_desc.name.c_str(), m_desc.width, m_desc.height);
+			Log::info("Creating {} texture for framebuffer: {} at {}x{}", attachmentDesc.name, m_desc.name, m_desc.width, m_desc.height);
 			if (!GLUtils::isDepthFormat(attachmentDesc.format)) m_textures.emplace_back(texture);
 			else m_depthTexture = texture;
 		}

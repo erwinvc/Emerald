@@ -3,23 +3,25 @@
 #include "utils/threading/jobSystem.h"
 #include "engine/assets/metadata/textureMetadata.h"
 #include "engine/assets/model/modelMetadata.h"
-#include "../../editor/src/core/project.h"
 #include "../../events/eventSystem.h"
 #include "../../events/fileChangedEvent.h"
 #include "core/application/application.h"
+#include "../metadata/sceneMetadata.h"
+#include "../../editor/src/core/projectManager.h"
 
 namespace emerald {
 	void AssetRegistry::initialize() {
 		m_assetTypeRegistry.registerType<TextureMetadata>(AssetType::TEXTURE, { ".png", ".bmp", ".jpg", ".jpeg" });
 		m_assetTypeRegistry.registerType<ModelMetadata>(AssetType::MODEL, { ".fbx", ".obj", ".gltf" });
+		m_assetTypeRegistry.registerType<SceneMetadata>(AssetType::SCENE, { ".scene" });
 
 		EventSystem::subscribe<FileChangedEvent>(onFileChangedEvent);
 	}
 
 	void AssetRegistry::parseCurrentProject() {
 		clear();
-		auto a = Project::GetAssetsPath();
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(a)) {
+		auto assetsPath = ProjectManager::getCurrentProject().getAssetsFolder();
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(assetsPath)) {
 			processAssetFile(entry.path());
 		}
 	}

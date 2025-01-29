@@ -5,6 +5,7 @@
 #include "utils/misc/utils.h"
 #include "propertyDrawerUtils.h"
 #include "graphics/misc/DPI.h"
+#include "engine/scene/sceneManager.h"
 
 namespace emerald {
 
@@ -127,6 +128,9 @@ namespace emerald {
 			if (!commonValue) ImGui::PopItemFlag();
 			ImGui::PopID();
 
+			if (toRet) {
+				SceneManager::getActiveScene()->setDirty();
+			}
 			return toRet;
 		}
 	};

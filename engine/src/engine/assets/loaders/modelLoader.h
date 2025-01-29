@@ -25,6 +25,7 @@ namespace emerald {
 		std::vector<GLuint> m_indices;
 		uint32_t m_subMeshIndex;
 		uint32_t m_materialIndex;
+		bool m_valid = false;
 
 		PreloadedMesh(const std::string& name, aiMesh* mesh, const aiScene* scene, uint32_t subMeshIndex);
 	};

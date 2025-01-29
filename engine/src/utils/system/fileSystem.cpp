@@ -48,7 +48,7 @@ namespace emerald {
 		return filePath;
 	}
 
-	std::filesystem::path FileSystem::saveFileDialog(const std::vector<FilterSpec>& filters) {
+	std::filesystem::path FileSystem::saveFileDialog(FilterSpec filter) {
 		std::filesystem::path filePath;
 
 		// Initialize COM library
@@ -61,10 +61,10 @@ namespace emerald {
 			if (SUCCEEDED(hr)) {
 				// Set the file type filter
 				std::vector<COMDLG_FILTERSPEC> fileTypes;
-				for (const auto& filter : filters) {
-					fileTypes.push_back({ filter.name, filter.spec });
-				}
+				fileTypes.push_back({ filter.name, filter.spec });
 				pFileDialog->SetFileTypes(static_cast<UINT>(fileTypes.size()), fileTypes.data());
+				pFileDialog->SetDefaultExtension(filter.spec);
+				pFileDialog->SetFileTypeIndex(1);
 
 				// Show the dialog
 				hr = pFileDialog->Show(NULL);
@@ -91,45 +91,45 @@ namespace emerald {
 	}
 
 	std::filesystem::path FileSystem::openFolderDialog(LPCWSTR title) {
-			std::filesystem::path folderPath;
+		std::filesystem::path folderPath;
 
-			// Initialize COM library
-			HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+		// Initialize COM library
+		HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+		if (SUCCEEDED(hr)) {
+			IFileDialog* pFileDialog = NULL;
+
+			// Create the file open dialog object
+			hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileDialog, reinterpret_cast<void**>(&pFileDialog));
 			if (SUCCEEDED(hr)) {
-				IFileDialog* pFileDialog = NULL;
-
-				// Create the file open dialog object
-				hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileDialog, reinterpret_cast<void**>(&pFileDialog));
+				// Set the dialog to pick folders
+				DWORD dwOptions;
+				pFileDialog->GetOptions(&dwOptions);
+				pFileDialog->SetOptions(dwOptions | FOS_PICKFOLDERS);
+				pFileDialog->SetTitle(title);
+				// Show the dialog
+				hr = pFileDialog->Show(NULL);
 				if (SUCCEEDED(hr)) {
-					// Set the dialog to pick folders
-					DWORD dwOptions;
-					pFileDialog->GetOptions(&dwOptions);
-					pFileDialog->SetOptions(dwOptions | FOS_PICKFOLDERS);
-					pFileDialog->SetTitle(title);
-					// Show the dialog
-					hr = pFileDialog->Show(NULL);
+					// Get the folder the user selected
+					IShellItem* pItem;
+					hr = pFileDialog->GetResult(&pItem);
 					if (SUCCEEDED(hr)) {
-						// Get the folder the user selected
-						IShellItem* pItem;
-						hr = pFileDialog->GetResult(&pItem);
+						// Convert the folder path to a string
+						PWSTR pszFolderPath;
+						hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFolderPath);
 						if (SUCCEEDED(hr)) {
-							// Convert the folder path to a string
-							PWSTR pszFolderPath;
-							hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFolderPath);
-							if (SUCCEEDED(hr)) {
-								folderPath = std::filesystem::path(pszFolderPath);
-								Log::info("{}", folderPath.string().c_str());
-								CoTaskMemFree(pszFolderPath);
-							}
-							pItem->Release();
+							folderPath = std::filesystem::path(pszFolderPath);
+							Log::info("{}", folderPath.string().c_str());
+							CoTaskMemFree(pszFolderPath);
 						}
+						pItem->Release();
 					}
-					pFileDialog->Release();
 				}
-				CoUninitialize();
+				pFileDialog->Release();
 			}
-			return folderPath;
+			CoUninitialize();
 		}
+		return folderPath;
+	}
 
 	std::string FileSystem::readFile(const std::string& path) {
 		std::ifstream stream(path);
@@ -208,7 +208,7 @@ namespace emerald {
 		}
 	}
 
-	void FileSystem::openFolderAndSelectItem(const std::filesystem::path &path) {
+	void FileSystem::openFolderAndSelectItem(const std::filesystem::path& path) {
 		std::wstring argument = L"/select,\"" + path.wstring() + L"\"";
 		ShellExecuteW(NULL, L"open", L"explorer.exe", argument.c_str(), NULL, SW_SHOWNORMAL);
 	}

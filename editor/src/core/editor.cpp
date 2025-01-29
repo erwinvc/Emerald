@@ -19,6 +19,8 @@
 #include "ui/editorWindow.h"
 #include "utils/undoRedo.h"
 #include "engine/ecs/core/ECSManager.h"
+#include "engine/scene/sceneSerialization.h"
+#include "projectManager.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
@@ -50,7 +52,8 @@ namespace emerald {
 		s_editorCamera = Ref<EditorCamera>::create(70.0f, 0.05f, 500.0f);
 
 
-		Project::loadRecentProjects();
+		ProjectManager::loadRecentProjects();
+		ProjectManager::openLastProject();
 
 		updateTitlebar(0, 0, 0, true);
 	}
@@ -72,7 +75,7 @@ namespace emerald {
 		PROFILE_LOGIC_BEGIN("File Watcher process events");
 		FileWatcher::processEvents();
 		PROFILE_LOGIC_END();
-		
+
 		//Undo redo
 		if (Keyboard::keyMod(KeyMod::CONTROL)) {
 			if (Keyboard::keyJustDown(Key::Z) || Keyboard::keyRepeat(Key::Z)) {
@@ -96,9 +99,11 @@ namespace emerald {
 		} else mouseActiveInViewport = false;
 		if (mouseActiveInViewport) s_editorCamera->update(ts);
 
-		Renderer::submit([viewportSize] {
-			FrameBufferManager::onResize(viewportSize.x, viewportSize.y);
-		});
+		if (viewportSize.x > 1 && viewportSize.y > 1) {
+			Renderer::submit([viewportSize] {
+				FrameBufferManager::onResize(viewportSize.x, viewportSize.y);
+			});
+		}
 
 		if (SceneManager::getActiveScene()) {
 			SceneManager::getActiveScene()->update(ts);
@@ -133,7 +138,12 @@ namespace emerald {
 	void EmeraldEditorApplication::onProjectOpened(EditorProjectOpenedEvent& e) {
 		if (e.isValid()) {
 			AssetRegistry::parseCurrentProject();
-			SceneManager::setActiveScene(Ref<Scene>::create("New Scene", ""));
+			if (!e.getLastScene().empty()) {
+				//#TODO: load scene from actual asset instead of path
+				SceneSerialization::deserializeScene(e.getLastScene());
+			} else {
+				SceneManager::newScene();
+			}
 		} else {
 			AssetRegistry::clear();
 			SceneManager::clearScenes();

@@ -32,7 +32,7 @@ namespace emerald {
 			if (ImGui::EmeraldButton("Add Entity", ImVec2(-FLT_MIN, 0))) {
 				auto action = UndoRedo::createAction<Entity>("Add Entity");
 				UUID entityID = ECSManager::ECS().getNewEntityID();
-				action->addDoAction([entityID](Entity& entity) {entity = ECSManager::ECS().createEntity(entityID, "Entity"); });
+				action->addDoAction([entityID](Entity& entity) {entity = ECSManager::ECS().createEntityFromID(entityID, "Entity"); });
 				action->addUndoAction([](Entity& entity) {ECSManager::ECS().destroyEntity(entity); });
 				UndoRedo::commitAction(action);
 			}

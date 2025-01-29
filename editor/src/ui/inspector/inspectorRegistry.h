@@ -18,23 +18,18 @@ namespace emerald {
 		using InspectorFactory = std::function<ComponentInspector* ()>;
 
 		static void registerInspector(RTTIType componentType, InspectorFunction inspector) {
-			getInstance().m_registry[componentType] = std::move(inspector);
+			s_registry[componentType] = std::move(inspector);
 		}
 
 		static InspectorFunction getInspector(RTTIType componentType) {
-			auto it = getInstance().m_registry.find(componentType);
-			if (it != getInstance().m_registry.end()) {
+			auto it = s_registry.find(componentType);
+			if (it != s_registry.end()) {
 				return it->second;
 			}
 			return DefaultComponentInspector::draw;
 		}
 
 	private:
-		std::unordered_map<RTTIType, InspectorFunction> m_registry;
-
-		static InspectorRegistry& getInstance() {
-			static InspectorRegistry instance;
-			return instance;
-		}
+		static inline std::unordered_map<RTTIType, InspectorFunction> s_registry;
 	};
 }

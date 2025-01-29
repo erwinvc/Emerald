@@ -45,35 +45,48 @@ namespace emerald {
 	};
 
 	PreloadedMesh::PreloadedMesh(const std::string& name, aiMesh* mesh, const aiScene* scene, uint32_t subMeshIndex) : m_name(name), m_subMeshIndex(subMeshIndex), m_materialIndex(mesh->mMaterialIndex) {
-		m_vertices.reserve(mesh->mNumVertices);
-		m_indices.reserve((size_t)(mesh->mNumFaces) * 3);
+		try {
+			m_vertices.reserve(mesh->mNumVertices);
+			m_indices.reserve((size_t)(mesh->mNumFaces) * 3);
 
-		for (uint32_t i = 0; i < mesh->mNumVertices; i++) {
-			Vertex vertex;
-			vertex.m_position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
-			vertex.m_normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-			vertex.m_uv = mesh->mTextureCoords[0] ? glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y) : glm::vec2(0.0f, 0.0f);
-			vertex.m_tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
-			vertex.m_biTangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
-			m_vertices.push_back(vertex);
-		}
+			if (!mesh->mVertices) return;
+			if (!mesh->mNormals) return;
+			if (!mesh->mTextureCoords) return;
+			if (!mesh->mTangents) return;
+			if (!mesh->mBitangents) return;
 
-		for (uint32_t i = 0; i < mesh->mNumFaces; i++) {
-			aiFace face = mesh->mFaces[i];
-			if (face.mNumIndices == 3) {
-				m_indices.push_back(face.mIndices[0]);
-				m_indices.push_back(face.mIndices[1]);
-				m_indices.push_back(face.mIndices[2]);
-			} else {
-				Log::error("[Model] Unexpected number of indices ({}) in a face", face.mNumIndices);
+			for (uint32_t i = 0; i < mesh->mNumVertices; i++) {
+				Vertex vertex;
+				vertex.m_position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+				vertex.m_normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+				vertex.m_uv = mesh->mTextureCoords[0] ? glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y) : glm::vec2(0.0f, 0.0f);
+				vertex.m_tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+				vertex.m_biTangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
+				m_vertices.push_back(vertex);
 			}
-		}
+
+			for (uint32_t i = 0; i < mesh->mNumFaces; i++) {
+				aiFace face = mesh->mFaces[i];
+				if (face.mNumIndices == 3) {
+					m_indices.push_back(face.mIndices[0]);
+					m_indices.push_back(face.mIndices[1]);
+					m_indices.push_back(face.mIndices[2]);
+				} else {
+					Log::error("[Model] Unexpected number of indices ({}) in a face", face.mNumIndices);
+				}
+			}
+
+			m_valid = true;
+		} catch (std::exception) {}
 	}
 
 	static void processNode(std::vector<PreloadedMesh>& meshes, const std::string& meshName, aiNode* node, const aiScene* scene, uint32_t& index) {
 		for (GLuint i = 0; i < node->mNumMeshes; i++) {
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			meshes.push_back(PreloadedMesh(meshName, mesh, scene, index));
+			PreloadedMesh preloadedMesh = PreloadedMesh(meshName, mesh, scene, index);
+			if (preloadedMesh.m_valid) {
+				meshes.push_back(std::move(preloadedMesh));
+			}
 			index++;
 		}
 

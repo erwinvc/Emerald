@@ -4,6 +4,15 @@
 namespace emerald {
 	class SceneManager {
 	public:
+		static void newScene() {
+			m_activeScene = Ref<Scene>::create("", UUID());
+			m_activeScene->setDirty();
+		}
+
+		static void markSceneDirty() {
+			if (m_activeScene) m_activeScene->setDirty();
+		}
+
 		static void setActiveScene(const Ref<Scene>& scene) {
 			m_activeScene = scene;
 		}
@@ -38,7 +47,7 @@ namespace emerald {
 		}
 
 	private:
-		static inline Ref<Scene> m_activeScene = nullptr; 
+		static inline Ref<Scene> m_activeScene = nullptr;
 		static inline Ref<Scene> m_runtimeScene = nullptr;
 		static inline Ref<Scene> m_editorScene = nullptr;
 	};

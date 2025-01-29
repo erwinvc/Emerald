@@ -11,7 +11,7 @@ namespace emerald {
 		uint32_t m_handle = 0;
 		uint32_t m_width = 0;
 		uint32_t m_height = 0;
-		uint32_t m_channelCount = 0;
+		//uint32_t m_channelCount = 0;
 		uint8_t m_mipmapCount = 0;
 		bool m_dirty = true;
 		void cleanup() const;

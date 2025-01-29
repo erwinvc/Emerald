@@ -2,6 +2,7 @@
 #include "utils/uuid/uuid.h"
 #include <vector>
 #include "componentChunk.h"
+#include "utils/core/hash.h"
 
 namespace emerald {
 	class Component;
@@ -31,16 +32,26 @@ namespace emerald {
 		}
 
 		template<typename... Args>
-		T* addComponent(UUID entity, Args&&... args) {
+		T* addComponentWithID(UUID entity, UUID componentID, Args&&... args) {
 			ComponentIndex index = findFreeSlot();
+
 			T* componentPtr = new (&m_chunks[index.chunkIndex]->getComponentsArray()[index.componentIndex]) T(std::forward<Args>(args)...);
+			componentPtr->m_uuid = componentID;
+
 			m_chunks[index.chunkIndex]->setEntityEnabled(index.componentIndex, true);
 			m_chunks[index.chunkIndex]->setEnabled(index.componentIndex, true);
 			m_chunks[index.chunkIndex]->count++;
 			m_entityToComponentIndices[entity].push_back(index);
-			m_componentToEntity[ComponentKey{ index.chunkIndex, index.componentIndex }] = entity;
+
 			componentPtr->m_entity = entity;
+			m_componentIDToComponentIndices[componentPtr->getUUID()] = index;
+			m_componentToEntity[ComponentKey{ index.chunkIndex, index.componentIndex }] = entity;
 			return componentPtr;
+		}
+
+		template<typename... Args>
+		T* addComponent(UUID entity, Args&&... args) {
+			return addComponentWithID(entity, UUIDGenerator::create(), std::forward<Args>(args)...);
 		}
 
 		void removeComponent(UUID entity, T* componentPtr) {
@@ -52,6 +63,8 @@ namespace emerald {
 				T* storedComponentPtr = m_chunks[indexIt->chunkIndex]->getComponent(indexIt->componentIndex);
 				if (storedComponentPtr == componentPtr) {
 					m_chunks[indexIt->chunkIndex]->removeComponent(indexIt->componentIndex);
+					m_componentIDToComponentIndices.erase(componentPtr->m_id);
+					m_componentToEntity.erase(ComponentKey{ indexIt->chunkIndex, indexIt->componentIndex });
 					indices.erase(indexIt);
 					if (indices.empty()) {
 						m_entityToComponentIndices.erase(it);
@@ -71,11 +84,13 @@ namespace emerald {
 				componentPtr->~T();
 				m_freeSlots.push_back(index);
 				m_chunks[index.chunkIndex]->count--;
+				m_componentIDToComponentIndices.erase(componentPtr->getUUID());
 				m_componentToEntity.erase(ComponentKey{ index.chunkIndex, index.componentIndex });
 			}
 			m_entityToComponentIndices.erase(it);
 		}
 
+		// Returns all components of type T belonging to entity
 		std::vector<T*> getComponents(UUID entity) {
 			std::vector<T*> components;
 			auto it = m_entityToComponentIndices.find(entity);
@@ -88,6 +103,7 @@ namespace emerald {
 			return components;
 		}
 
+		// Returns one component of type T belonging to entity
 		T* getComponent(UUID entity) {
 			auto a = std::type_index(typeid(T));
 			auto it = m_entityToComponentIndices.find(entity);
@@ -97,6 +113,16 @@ namespace emerald {
 				}
 			}
 			return nullptr;
+		}
+
+		// Return T associated with a componentID
+		T* getComponentByID(UUID componentID) {
+			auto it = m_componentIDToComponentIndices.find(componentID);
+			if (it == m_componentIDToComponentIndices.end()) {
+				return nullptr;
+			}
+			const ComponentIndex& index = it->second;
+			return m_chunks[index.chunkIndex]->getComponent(index.componentIndex);
 		}
 
 		std::vector<T*> getAllComponents() {
@@ -154,7 +180,7 @@ namespace emerald {
 			if (it != m_componentToEntity.end()) {
 				return it->second;
 			}
-			return UUID(); // Return an invalid UUID if not found
+			return UUID();
 		}
 
 		size_t getChunkCount() const {
@@ -174,6 +200,8 @@ namespace emerald {
 			}
 			m_chunks.clear();
 			m_entityToComponentIndices.clear();
+			m_componentToEntity.clear();
+			m_componentIDToComponentIndices.clear();
 			m_freeSlots.clear();
 		}
 
@@ -194,7 +222,11 @@ namespace emerald {
 
 		struct ComponentKeyHash {
 			std::size_t operator()(const ComponentKey& key) const {
-				return std::hash<size_t>()(key.chunkIndex) ^ (std::hash<size_t>()(key.componentIndex) << 1);
+				uint64_t data[2];
+				data[0] = static_cast<uint64_t>(key.chunkIndex);
+				data[1] = static_cast<uint64_t>(key.componentIndex);
+
+				return Hash::hash64(data, sizeof(data));
 			}
 		};
 
@@ -213,10 +245,19 @@ namespace emerald {
 			}
 		}
 
+		// Array of chunk pointers
 		std::vector<UniqueRef<ComponentChunk<T, ChunkSize>>> m_chunks;
+
+		// Maps entity -> all components belonging to that entity (as chunk indices)
 		std::unordered_map<UUID, std::vector<ComponentIndex>> m_entityToComponentIndices;
+
+		// Maps (chunkIndex, componentIndex) -> entity (for reverse lookup)
 		std::unordered_map<ComponentKey, UUID, ComponentKeyHash> m_componentToEntity;
 
+		// Maps (componentID) -> (chunkIndex, componentIndex), so we can get a component by ID
+		std::unordered_map<UUID, ComponentIndex> m_componentIDToComponentIndices;
+
+		// Recycled slots for destroyed components
 		std::vector<ComponentIndex> m_freeSlots;
 	};
 

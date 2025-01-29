@@ -2,6 +2,7 @@
 #include "engine/ecs/core/entity.h"
 #include "utils/text/fixedString.h"
 #include "utils/text/stringUtils.h"
+#include "utils/uuid/uuidGenerator.h"
 
 namespace emerald {
 	enum class ComponentCategory {
@@ -31,24 +32,33 @@ namespace emerald {
 				return 0;
 			}
 
-			uint32_t hash = StringUtils::hash32(componentName);
+			uint32_t hash = Hash::hash32(componentName);
 
 			return hash != 0 ? hash : 1;
 		}
 	};
 
 	class Component : public RefCounted {
-		RTTI_BASE_CLASS_DECL(Component);
+		RTTI_BASE_CLASS_DECL(Component)
 	public:
-		Component() = default;
-		//virtual ~Component() = default;
+		Component() : m_uuid(UUID()) {}
+		Component(UUID uuid) : m_uuid(uuid) {}
+		virtual ~Component() = default;
 
 		Entity m_entity = Entity();
 		virtual const ComponentTypeInfo& getComponentTypeInfo() = 0;
 		virtual nlohmann::json serialize() = 0;
+		virtual void deserialize(const nlohmann::json& j) = 0;
 
-		uint64_t getHash();
+		UUID getUUID() const { return m_uuid; }
 
+		template<typename T, size_t>
+		friend class ComponentArray;
+
+		friend class EntityComponentSystem;
 		friend class InspectorPanel;
+
+	private:
+		UUID m_uuid;
 	};
 }

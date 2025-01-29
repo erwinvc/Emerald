@@ -9,7 +9,7 @@ namespace emerald {
 		};
 
 		static std::filesystem::path openFileDialog(const std::vector<FilterSpec>& filters);
-		static std::filesystem::path saveFileDialog(const std::vector<FilterSpec>& filters);
+		static std::filesystem::path saveFileDialog(FilterSpec filter);
 		static std::filesystem::path openFolderDialog(LPCWSTR title);
 
 		static std::string readFile(const std::string& path);

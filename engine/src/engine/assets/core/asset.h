@@ -24,6 +24,7 @@ namespace emerald {
 			case AssetType::MATERIAL:return capitalizeFirstLetter ? "Material" : "material";
 			case AssetType::SHADER:  return capitalizeFirstLetter ? "Shader" : "shader";
 			case AssetType::TEXTURE: return capitalizeFirstLetter ? "Texture" : "texture";
+			case AssetType::SCENE:   return capitalizeFirstLetter ? "Scene" : "scene";
 			case AssetType::MODEL:   return capitalizeFirstLetter ? "Model" : "model";
 			case AssetType::AUDIO:   return capitalizeFirstLetter ? "Audio" : "audio";
 			case AssetType::SCRIPT:  return capitalizeFirstLetter ? "Script" : "script";

@@ -5,7 +5,7 @@
 #include "../core/ECSManager.h"
 
 namespace emerald {
-	RTTI_CLASS_DEF(SceneGraphComponent);
+	COMPONENT_DEF(SceneGraphComponent);
 	SceneGraphComponent::~SceneGraphComponent() {
 		if (m_parent) m_parent->removeChild(this);
 		for (auto child : m_children) {
@@ -63,22 +63,19 @@ namespace emerald {
 
 	nlohmann::json SceneGraphComponent::serialize() {
 		nlohmann::json json;
-		json["parent"] = m_parent ? m_parent->m_entity : 0;
+		json["parent"] = m_parent ? m_parent->getUUID() : UUID();
 		json["children"] = nlohmann::json::array();
 		for (auto child : m_children) {
-			json["children"].push_back(child->m_entity);
+			json["children"].push_back(child->getUUID());
 		}
 		return json;
 	}
 
-	SceneGraphComponent* SceneGraphComponent::deserialize(const nlohmann::json& json, Entity entity) {
-		SceneGraphComponent* comp = ECSManager::ECS().addComponent<SceneGraphComponent>(entity);
-
-		comp->setParent((Entity)json["parent"]);
+	void SceneGraphComponent::deserialize(const nlohmann::json& json) {
+		SceneGraphComponent* parent = ECSManager::ECS().getComponentByID<SceneGraphComponent>(json["parent"].get<UUID>());
+		m_parent = parent;
 		for (auto child : json["children"]) {
-			comp->addChild((Entity)child);
+			m_children.push_back(ECSManager::ECS().getComponentByID<SceneGraphComponent>(child.get<UUID>()));
 		}
-
-		return comp;
 	}
 }

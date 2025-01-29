@@ -41,7 +41,7 @@ namespace emerald {
 		}
 
 	private:
-		alignas(T) char rawData[ChunkSize * sizeof(T)];
+		alignas(T) char rawData[ChunkSize * sizeof(T)] = { 0 };
 		Flags<ChunkSize> m_enabledFlags;
 		Flags<ChunkSize> m_entityEnabledFlags;
 	};

@@ -1,10 +1,11 @@
 #pragma once
 #include "component.h"
 #include "engine/ecs/core/entity.h"
+#include "componentRegistry.h"
 
 namespace emerald {
 	class SceneGraphComponent : public Component {
-		RTTI_DERIVED_CLASS_DECL(SceneGraphComponent, Component)
+		COMPONENT_DECL(SceneGraphComponent)
 	public:
 		SceneGraphComponent() : Component(), m_parent(nullptr) {}
 		SceneGraphComponent(SceneGraphComponent* parent)
@@ -25,7 +26,8 @@ namespace emerald {
 		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
 
 		virtual nlohmann::json serialize() override;
-		static SceneGraphComponent* deserialize(const nlohmann::json& json, Entity entity);
+		virtual void deserialize(const nlohmann::json& j) override;
+		//static SceneGraphComponent* deserialize(const nlohmann::json& json, Entity entity);
 
 	private:
 		friend class HierarchyTree;

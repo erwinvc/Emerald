@@ -1,13 +1,9 @@
 #include "eepch.h"
 #include "application/application.h"
 #include "graphics/misc/DPI.h"
-#include "ui/imguiManager.h"
 #include "utils/core/log.h"
 #include "utils/debug/debug.h"
 #include "utils/system/time.h"
-#include <shellapi.h>
-#include "utils/threading/threadManager.h"
-#include "common/reflectionRegistry.h"
 
 extern emerald::Application* emerald::createApplication();
 

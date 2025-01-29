@@ -2,12 +2,13 @@
 #include "component.h"
 #include "engine/ecs/core/entity.h"
 #include "utils/misc/flags.h"
+#include "componentRegistry.h"
 
 namespace emerald {
 	static constexpr size_t NAME_MAX_LENGTH = 64;
 
 	class MetadataComponent : public Component {
-		RTTI_DERIVED_CLASS_DECL(MetadataComponent, Component)
+		COMPONENT_DECL(MetadataComponent)
 	public:
 		enum MetadataFlags {
 			ENTITY_STATIC = BIT(0)
@@ -23,6 +24,10 @@ namespace emerald {
 			: Component(), m_name(name) {
 		}
 
+		MetadataComponent()
+			: Component(), m_name("NULL") {
+		}
+
 		const FixedString<NAME_MAX_LENGTH>& getName() const { return m_name; }
 		void setName(const FixedString<NAME_MAX_LENGTH>& name) { m_name = name; }
 		void setName(const std::string& name) { m_name = name.c_str(); }
@@ -34,7 +39,8 @@ namespace emerald {
 		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
 
 		virtual nlohmann::json serialize() override;
-		static MetadataComponent* deserialize(const nlohmann::json& json, Entity entity);
+		virtual void deserialize(const nlohmann::json& j) override;
+		//static MetadataComponent* deserialize(const nlohmann::json& json, Entity entity);
 
 		friend class InspectorPanel;
 

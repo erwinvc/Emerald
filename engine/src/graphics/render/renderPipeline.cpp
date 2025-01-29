@@ -107,44 +107,46 @@ namespace emerald {
 	}
 	void RenderPipeline::onImGuiRender() {
 
-		ImGui::Begin("Debug ShadowMap", nullptr);
-		ImGui::End();
-
-		ImGui::Begin("Light Controls");
-
-		if (ImGui::DragFloat3("Light Position", &m_lightPosition[0], 0.1f)) {
-			updateLightMatrices();
-		}
-		if (ImGui::DragFloat3("Light Target", &m_lightTarget[0], 0.1f)) {
-			updateLightMatrices();
-		}
-		if (ImGui::DragFloat("Shadow Area Size", &m_orthoSize, 0.5f, 1.0f, 500.0f)) {
-			updateLightMatrices();
-		}
-		if (ImGui::DragFloat("zNear", &m_zNear, 0.1f, 0.001f, 100.0f, "%.3f", ImGuiSliderFlags_Logarithmic)) {
-			updateLightMatrices();
-		}
-		if (ImGui::DragFloat("zFar", &m_zFar, 0.1f, 1.0f, 1000.0f, "%.3f", ImGuiSliderFlags_Logarithmic)) {
-			updateLightMatrices();
-		}
-		if (ImGui::TreeNode("Debug Info")) {
-			glm::vec3 lightDir = glm::normalize(m_lightTarget - m_lightPosition);
-			ImGui::Text("Light Direction: %.2f, %.2f, %.2f", lightDir.x, lightDir.y, lightDir.z);
-			ImGui::TreePop();
-		}
-
-		ImGui::End();
-
-		if (ImGui::Begin("Debug ShadowMap", nullptr)) {
-			float sizeX = 512;
-			float sizeY = 512;
-
-			ImTextureID texID = (ImTextureID)(intptr_t)m_shadowFramebuffer->getTextures()[0]->handle();
-			ImGui::Image(texID, ImVec2(sizeX, sizeY), ImVec2(0, 1), ImVec2(1, 0));
-		}
-		ImGui::End();
+		//ImGui::Begin("Debug ShadowMap", nullptr);
+		//ImGui::End();
+		//
+		//ImGui::Begin("Light Controls");
+		//
+		//if (ImGui::DragFloat3("Light Position", &m_lightPosition[0], 0.1f)) {
+		//	updateLightMatrices();
+		//}
+		//if (ImGui::DragFloat3("Light Target", &m_lightTarget[0], 0.1f)) {
+		//	updateLightMatrices();
+		//}
+		//if (ImGui::DragFloat("Shadow Area Size", &m_orthoSize, 0.5f, 1.0f, 500.0f)) {
+		//	updateLightMatrices();
+		//}
+		//if (ImGui::DragFloat("zNear", &m_zNear, 0.1f, 0.001f, 100.0f, "%.3f", ImGuiSliderFlags_Logarithmic)) {
+		//	updateLightMatrices();
+		//}
+		//if (ImGui::DragFloat("zFar", &m_zFar, 0.1f, 1.0f, 1000.0f, "%.3f", ImGuiSliderFlags_Logarithmic)) {
+		//	updateLightMatrices();
+		//}
+		//if (ImGui::TreeNode("Debug Info")) {
+		//	glm::vec3 lightDir = glm::normalize(m_lightTarget - m_lightPosition);
+		//	ImGui::Text("Light Direction: %.2f, %.2f, %.2f", lightDir.x, lightDir.y, lightDir.z);
+		//	ImGui::TreePop();
+		//}
+		//
+		//ImGui::End();
+		//
+		//if (ImGui::Begin("Debug ShadowMap", nullptr)) {
+		//	float sizeX = 512;
+		//	float sizeY = 512;
+		//
+		//	ImTextureID texID = (ImTextureID)(intptr_t)m_shadowFramebuffer->getTextures()[0]->handle();
+		//	ImGui::Image(texID, ImVec2(sizeX, sizeY), ImVec2(0, 1), ImVec2(1, 0));
+		//}
+		//ImGui::End();
 	}
 	void RenderPipeline::render() {
+		//return;
+
 		if (Keyboard::keyJustDown(Key::KEY_1)) {
 			m_mainPass->descriptor().frameBuffer->setMSAA(MSAA::NONE);
 		}
@@ -184,7 +186,8 @@ namespace emerald {
 
 			auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>();
 			for (auto [meshRenderer, transform] : view) {
-				glm::mat4 model = transform->getGlobalTransform();
+				if (!meshRenderer->m_mesh) continue;
+  				glm::mat4 model = transform->getGlobalTransform();
 				m_shadowMaterial->set("_ModelMatrix", model);
 
 				meshRenderer->m_mesh->bind();
@@ -210,6 +213,8 @@ namespace emerald {
 		//multithread this?
 		auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>();
 		for (auto [meshRenderer, transform] : view) {
+			if (!meshRenderer->m_mesh) continue;
+
 			Ref<Material> mat = meshRenderer->m_mesh->getMaterial();
 			mat->set("_ViewMatrix", Editor->getEditorCamera()->getViewMatrix());
 			mat->set("_ProjectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());

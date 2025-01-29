@@ -13,6 +13,7 @@
 #include "utils/uuid/uuid.h"
 #include "core/project.h"
 #include "utils/undoRedo.h"
+#include "core/projectManager.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {
@@ -62,7 +63,7 @@ namespace emerald {
 
 			// Collect nodes
 			m_nodes.clear();
-			if(Project::isProjectOpen()) collectNodes(scene->getRootNode());
+			if (ProjectManager::hasOpenProject()) collectNodes(scene->getRootNode());
 
 			// Begin multi-selection and render nodes
 			auto* multiSelectIO = ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_None, (int)m_imGuiSelection.Size, (int)m_nodes.size());
@@ -73,24 +74,27 @@ namespace emerald {
 				onDrop(scene->getRootNode(), true, scene->getRootNode(), true);
 				ImGui::EndDragDropTarget();
 			}
-
 			multiSelectIO = ImGui::EndMultiSelect();
 			m_imGuiSelection.ApplyRequests(multiSelectIO);
+			m_isFocused = ImGui::IsWindowFocused();
 			ImGui::EndTable();
 		}
 
 		// Restore ImGui style settings
 		ImGui::PopStyleVar(3);
 		ImGui::PopStyleColor();
-
-		m_isFocused = ImGui::IsWindowFocused();
 	}
 
 	void HierarchyTree::handleDelete() {
 		if (m_isFocused && Keyboard::keyJustDown(Key::DEL)) {
 			auto selectedNodes = getSelectedNodes();
-			auto action = UndoRedo::createAction<void>("Delete entities");
-
+			//auto action = UndoRedo::createAction<void>("Delete entities");
+			for (auto& node : selectedNodes) {
+				if (!node) continue;
+				if (node->m_entity != SceneManager::getActiveScene()->getRootNode()->m_entity) {
+					ECSManager::ECS().destroyEntity(node->m_entity);
+				}
+			}
 			// Capture the state of the entities before deleting them
 			//for (auto& node : selectedNodes) {
 			//	if (!node) continue;
@@ -129,7 +133,7 @@ namespace emerald {
 			//}
 
 			// Commit the action to the undo/redo stack
-			UndoRedo::commitAction(action);
+			//UndoRedo::commitAction(action);
 		}
 	}
 
@@ -177,7 +181,7 @@ namespace emerald {
 			ImGui::PushStyleColor(ImGuiCol_Header, Color(0.07f, 0.07f, 0.07f, 1.0f));
 		}
 
-		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, metadata->getName().c_str());
+		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, metadata ? metadata->getName().c_str() : "NULL");
 		const ImRect nodeRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 		ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
 
@@ -366,7 +370,7 @@ namespace emerald {
 						action->addDoAction([droppedNodeEntity = droppedNode->m_entity, nodeEntity = node->m_entity, insertBefore, beforeNodeEntity]() {
 							SceneGraphComponent* droppedNode1 = ECSManager::ECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
 							SceneGraphComponent* node1 = ECSManager::ECS().getComponent<SceneGraphComponent>(nodeEntity);
-							SceneGraphComponent* beforeNode1 = beforeNodeEntity != 0 ? ECSManager::ECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
+							SceneGraphComponent* beforeNode1 = beforeNodeEntity.isValid() ? ECSManager::ECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
 							addNodeToParent(droppedNode1, node1, insertBefore, beforeNode1);
 						});
 
@@ -430,6 +434,7 @@ namespace emerald {
 		m_selectedEntities.clear();
 
 		for (auto& node : getSelectedNodes()) {
+			if (node->m_entity == SceneManager::getActiveScene()->getRootNode()->m_entity) continue;
 			m_selectedEntities.push_back(node->m_entity);
 		}
 		return m_selectedEntities;

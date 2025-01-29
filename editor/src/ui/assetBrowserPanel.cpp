@@ -12,6 +12,7 @@
 #include "utils/math/color.h"
 #include "utils/datastructures/vector.h"
 #include "core/project.h"
+#include "core/projectManager.h"
 
 namespace emerald {
 	static constexpr float MIN_CELL_SIZE = 50.0f;
@@ -33,23 +34,23 @@ namespace emerald {
 
 		TextureDesc desc;
 		desc.name = "AssetBrowserPanelIcon";
-		s_assetTypeIcons[AssetType::DEFAULT] = TextureLoader(desc, "res/textures/default.png", false).loadAndInvalidate();
-		s_assetTypeIcons[AssetType::FOLDER] = TextureLoader(desc, "res/textures/folder.png", false).loadAndInvalidate();
-		s_assetTypeIcons[AssetType::PREFAB] = TextureLoader(desc, "res/textures/prefab.png", false).loadAndInvalidate();
-		s_assetTypeIcons[AssetType::MATERIAL] = TextureLoader(desc, "res/textures/material.png", false).loadAndInvalidate();
-		s_assetTypeIcons[AssetType::SHADER] = TextureLoader(desc, "res/textures/shader.png", false).loadAndInvalidate();
-		s_assetTypeIcons[AssetType::TEXTURE] = TextureLoader(desc, "res/textures/texture.png", false).loadAndInvalidate();
-		s_assetTypeIcons[AssetType::SCENE] = TextureLoader(desc, "res/textures/scene.png", false).loadAndInvalidate();
-		s_assetTypeIcons[AssetType::MODEL] = TextureLoader(desc, "res/textures/model.png", false).loadAndInvalidate();
-		s_assetTypeIcons[AssetType::AUDIO] = TextureLoader(desc, "res/textures/audio.png", false).loadAndInvalidate();
+		s_assetTypeIcons[AssetType::DEFAULT] = TextureLoader(desc, "res/textures/default.png", false).load();
+		s_assetTypeIcons[AssetType::FOLDER] = TextureLoader(desc, "res/textures/folder.png", false).load();
+		s_assetTypeIcons[AssetType::PREFAB] = TextureLoader(desc, "res/textures/prefab.png", false).load();
+		s_assetTypeIcons[AssetType::MATERIAL] = TextureLoader(desc, "res/textures/material.png", false).load();
+		s_assetTypeIcons[AssetType::SHADER] = TextureLoader(desc, "res/textures/shader.png", false).load();
+		s_assetTypeIcons[AssetType::TEXTURE] = TextureLoader(desc, "res/textures/texture.png", false).load();
+		s_assetTypeIcons[AssetType::SCENE] = TextureLoader(desc, "res/textures/scene.png", false).load();
+		s_assetTypeIcons[AssetType::MODEL] = TextureLoader(desc, "res/textures/model.png", false).load();
+		s_assetTypeIcons[AssetType::AUDIO] = TextureLoader(desc, "res/textures/audio.png", false).load();
 
-		m_folderIcon = TextureLoader(desc, "res/textures/folder.png", false).loadAndInvalidate();
-		m_folderEmptyIcon = TextureLoader(desc, "res/textures/folderEmpty.png", false).loadAndInvalidate();
+		m_folderIcon = TextureLoader(desc, "res/textures/folder.png", false).load();
+		m_folderEmptyIcon = TextureLoader(desc, "res/textures/folderEmpty.png", false).load();
 	}
 
 	void AssetBrowserPanel::onProjectOpened(EditorProjectOpenedEvent& e) {
 		if (e.isValid()) {
-			m_currentPath = Project::GetAssetsPath();
+			m_currentPath = ProjectManager::getCurrentProject().getAssetsFolder();
 			std::stack<std::filesystem::path>().swap(m_forwardStack);
 			m_updateDirectoryContentsNextFrame = true;
 		}
@@ -74,11 +75,11 @@ namespace emerald {
 
 
 	void AssetBrowserPanel::navigateBack() {
-		if (m_currentPath != Project::GetAssetsPath()) {
+		if (m_currentPath != ProjectManager::getCurrentProject().getAssetsFolder()) {
 			m_forwardStack.push(m_currentPath);
 			m_currentPath = m_currentPath.parent_path();
-			if (m_currentPath < Project::GetAssetsPath()) {
-				m_currentPath = Project::GetAssetsPath();
+			if (m_currentPath < ProjectManager::getCurrentProject().getAssetsFolder()) {
+				m_currentPath = ProjectManager::getCurrentProject().getAssetsFolder();
 			}
 		}
 		memset(m_searchBuffer, 0, sizeof(m_searchBuffer));
@@ -141,18 +142,18 @@ namespace emerald {
 	}
 
 	void AssetBrowserPanel::updateDirectoryContents() {
-		if (!Project::isProjectOpen()) return;
+		if (!ProjectManager::hasOpenProject()) return;
 
 		m_directoryMap.clear();
 
-		collectDirectoryContents(m_currentPath);
+		collectDirectoryContents(ProjectManager::getCurrentProject().getAssetsFolder());
 		updateFilter();
 	}
 
 	void AssetBrowserPanel::updateFilter() {
 		m_filteredContent.clear();
 
-		if (!Project::isProjectOpen()) return;
+		if (!ProjectManager::hasOpenProject()) return;
 
 		bool isTypeSearch = std::string(m_searchBuffer).starts_with("type:");
 		bool all = std::string(m_searchBuffer) == "*";
@@ -213,7 +214,7 @@ namespace emerald {
 			ImGuiTreeNodeFlags_SpanAllColumns |
 			ImGuiTreeNodeFlags_FramePadding;
 
-		if (path == Project::GetAssetsPath()) {
+		if (path == ProjectManager::getCurrentProject().getAssetsFolder()) {
 			rootFlags |= ImGuiTreeNodeFlags_DefaultOpen;
 		}
 
@@ -453,7 +454,7 @@ namespace emerald {
 
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-				if (Project::isProjectOpen()) renderDirectoryTree(Project::GetAssetsPath());
+				if (ProjectManager::hasOpenProject()) renderDirectoryTree(ProjectManager::getCurrentProject().getAssetsFolder());
 				ImGui::PopStyleVar(2);
 				ImGui::EndChild();
 
@@ -481,10 +482,10 @@ namespace emerald {
 
 						ImGui::BeginGroup();
 
-						std::filesystem::path displayPath = m_currentPath.lexically_relative(Project::GetProjectPath());
+						std::filesystem::path displayPath = m_currentPath.lexically_relative(ProjectManager::getCurrentProject().getProjectFolder());
 						displayPath = displayPath.lexically_normal();
 
-						std::filesystem::path currentBreadcrumb = Project::GetProjectPath();
+						std::filesystem::path currentBreadcrumb = ProjectManager::getCurrentProject().getProjectFolder();
 
 						uint32_t index = 0;
 						size_t breadcrumbCount = std::distance(displayPath.begin(), displayPath.end());
@@ -536,7 +537,7 @@ namespace emerald {
 
 					m_imGuiSelection.ApplyRequests(ms_io);
 
-					if (Project::isProjectOpen()) renderAssetGrid();
+					if (ProjectManager::hasOpenProject()) renderAssetGrid();
 
 					ms_io = ImGui::EndMultiSelect();
 

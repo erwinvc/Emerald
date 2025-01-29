@@ -1,10 +1,11 @@
 #pragma once
 #include "component.h"
 #include "engine/ecs/core/entity.h"
+#include "componentRegistry.h"
 
 namespace emerald {
 	class TransformComponent : public Component {
-		RTTI_DERIVED_CLASS_DECL(TransformComponent, Component)
+		COMPONENT_DECL(TransformComponent)
 	public:
 		void setPosition(const glm::vec3& position) { m_position = position; markDirty(); }
 		void setRotation(const glm::vec3& rotation) { m_rotation = rotation; markDirty(); }
@@ -21,7 +22,8 @@ namespace emerald {
 		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
 
 		virtual nlohmann::json serialize() override;
-		static TransformComponent* deserialize(const nlohmann::json& json, Entity entity);
+		virtual void deserialize(const nlohmann::json& j) override;
+		//static TransformComponent* deserialize(const nlohmann::json& json, Entity entity);
 
 	private:
 		friend class TransformComponentInspector;

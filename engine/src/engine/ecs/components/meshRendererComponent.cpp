@@ -5,7 +5,7 @@
 #include "../core/ECSManager.h"
 
 namespace emerald {
-	RTTI_CLASS_DEF(MeshRendererComponent);
+	COMPONENT_DEF(MeshRendererComponent);
 
 	nlohmann::json MeshRendererComponent::serialize() {
 		nlohmann::json json;
@@ -13,9 +13,6 @@ namespace emerald {
 		return json;
 	}
 
-	MeshRendererComponent* MeshRendererComponent::deserialize(const nlohmann::json& json, Entity entity) {
-		MeshRendererComponent* comp = ECSManager::ECS().addComponent<MeshRendererComponent>(entity);
-
-		return comp;
+	void MeshRendererComponent::deserialize(const nlohmann::json& json) {
 	}
 }

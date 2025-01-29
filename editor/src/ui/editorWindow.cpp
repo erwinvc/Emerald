@@ -16,6 +16,7 @@
 #include "engine/assets/loaders/textureLoader.h"
 #include "core/project.h"
 #include "core/editor.h"
+#include "core/projectManager.h"
 
 namespace emerald {
 	static bool s_TitleBarHovered = false;
@@ -27,12 +28,10 @@ namespace emerald {
 		});
 
 		TextureDesc desc;
+		desc.name = "Icon32";
 		desc.format = TextureFormat::RGBA8;
 		desc.filter = TextureFilter::NEAREST;
-
-		TextureLoader loader(desc, icon::icon32_map, NUMOF(icon::icon32_map), false);
-		m_icon = loader.load();
-		m_icon->submitInvalidate();
+		m_icon = TextureLoader(desc, icon::icon32_map, NUMOF(icon::icon32_map), false).load();
 	}
 
 	EditorWindow::~EditorWindow() {
@@ -42,26 +41,34 @@ namespace emerald {
 	void drawMenuBar() {
 		if (ImGui::BeginMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
+				ImGui::BeginDisabled(!ProjectManager::hasOpenProject());
+				if (ImGui::MenuItem("New scene")) {
+					SceneManager::newScene();
+				}
+				if (ImGui::MenuItem("Save scene", "Ctrl+S")) {
+					SceneManager::getActiveScene()->save();
+				}
+				ImGui::EndDisabled();
 				if (ImGui::MenuItem("New project", "Ctrl+N")) {
-					Project::newProjectDialog();
+					ProjectManager::newProjectDialog();
 				}
 				if (ImGui::MenuItem("Open project", "Ctrl+O")) {
-					Project::openProjectDialog();
+					ProjectManager::openProjectDialog();
 				}
 				if (ImGui::BeginMenu("Recent projects")) {
-					auto& recentProjects = Project::getRecentProjects();
+					auto& recentProjects = ProjectManager::getRecentProjects();
 					if (recentProjects.empty()) {
 						ImGui::MenuItem("Empty", "", nullptr, false);
 					}
 					uint8_t index = 1;
-					for (const auto& project : Project::getRecentProjects()) {
-						if (ImGui::Button((std::to_string(index++) + " " + project.stem().string()).c_str())) {
-							Project::openProject(project);
+					for (const auto& project : ProjectManager::getRecentProjects()) {
+						if (ImGui::MenuItem((std::to_string(index++) + " " + project.stem().string()).c_str())) {
+							ProjectManager::openProject(project);
 						}
 					}
 					ImGui::Separator();
 					if (ImGui::MenuItem("Clear")) {
-						Project::clearRecentProjects();
+						ProjectManager::clearRecentProjects();
 					}
 					ImGui::EndMenu();
 				}
@@ -129,7 +136,8 @@ namespace emerald {
 		ImGui::BeginVertical("TitlebarTitle", ImVec2(0, titleBarButtonSize), 0.0f);
 		ImGui::Spring();
 
-		ImGui::Text(std::format("{} - {}", EditorHeader.title, Project::GetProjectPath().stem().string()).c_str());
+		char diryMark = SceneManager::getActiveScene()->isDirty() ? '*' : ' ';
+		ImGui::Text(std::format("{} - {}{}", EditorHeader.title, ProjectManager::getCurrentProject().getProjectFolder().stem().string(), diryMark).c_str());
 		ImGui::BeginDisabled(true);
 		ImGui::Text(EditorHeader.subTitle.c_str());
 		ImGui::EndDisabled();
@@ -224,7 +232,6 @@ namespace emerald {
 		Ref<Scene>& activeScene = SceneManager::getActiveScene();
 		bool sceneOpen = activeScene != nullptr;
 
-
 		ImGui::BeginDisabled(!sceneOpen);
 
 		m_viewportPanel.draw();
@@ -262,15 +269,16 @@ namespace emerald {
 
 		if (!s_isPopupOpen) {
 			if (Keyboard::keyJustDown(Key::O) && Keyboard::keyMod(KeyMod::CONTROL)) {
-				Project::openProjectDialog();
+				ProjectManager::openProjectDialog();
 			}
 
 			if (Keyboard::keyJustDown(Key::N) && Keyboard::keyMod(KeyMod::CONTROL)) {
-				Project::newProjectDialog();
+				ProjectManager::newProjectDialog();
 			}
 
 			if (Keyboard::keyJustDown(Key::S) && Keyboard::keyMod(KeyMod::CONTROL)) {
-				SceneManager::getActiveScene()->save();
+				if (ProjectManager::hasOpenProject())
+					SceneManager::getActiveScene()->save();
 			}
 		}
 		//if (Keyboard::keyDown(Key::N)) {

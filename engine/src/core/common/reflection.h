@@ -6,25 +6,34 @@
 #include <string_view>
 #include "rtti.h"
 
-template<typename, typename = std::void_t<>>
-struct has_rtti_marker : std::false_type {};
-
-template<typename T>
-struct has_rtti_marker<T, std::void_t<typename T::rtti_marker>> : std::true_type {};
-
 namespace emerald {
-	struct ReflectionData {
-		std::string_view m_className;
-		std::type_index m_parentType;
-		std::vector<std::type_index> m_children;
+	using RTTIType = std::type_index;
 
-		ReflectionData() : m_className(""), m_parentType(typeid(void)) {}
+	template<typename, typename = std::void_t<>>
+	struct has_rtti_marker : std::false_type {};
+
+	template<typename T>
+	struct has_rtti_marker<T, std::void_t<typename T::rtti_marker>> : std::true_type {};
+
+	template<typename T>
+	struct TypeTraits {
+		static constexpr bool isReflectable = has_rtti_marker<T>::value;
+		static constexpr bool isAbstract = std::is_abstract_v<T>;
+		static constexpr bool isPolymorphic = std::is_polymorphic_v<T>;
 	};
 
-	class ReflectionRegistry {
-		STATIC_CLASS(ReflectionRegistry)
+	struct ReflectionData {
+		std::string_view m_className;
+		RTTIType m_type;
+		RTTIType m_parentType;
+		std::vector<std::type_index> m_children;
+
+		ReflectionData() : m_className(""), m_type(typeid(void)), m_parentType(typeid(void)) {}
+	};
+
+	class Reflection {
+		STATIC_CLASS(Reflection)
 	public:
-		using RTTIType = std::type_index;
 
 		static const ReflectionData* findByType(RTTIType t) {
 			auto it = s_registryByType.find(t);
@@ -43,7 +52,7 @@ namespace emerald {
 
 		template<typename T>
 		static const ReflectionData* findByType() {
-			static_assert(has_rtti_marker<T>::value, "T is not an RTTI type.");
+			static_assert(TypeTraits<T>::isReflectable, "T is not an RTTI type.");
 			return findByType(T::getStaticClassType());
 		}
 
@@ -55,7 +64,7 @@ namespace emerald {
 			return out;
 		}
 
-		private:
+	private:
 		static inline std::unordered_map<RTTIType, ReflectionData> s_registryByType;
 		static inline std::unordered_map<std::string_view, RTTIType> s_registryByName;
 		friend class ReflectionRegistrar;
@@ -64,17 +73,16 @@ namespace emerald {
 	class ReflectionRegistrar
 	{
 	public:
-		using RTTIType = std::type_index;
-
 		ReflectionRegistrar(RTTIType thisIdx, RTTIType parentIdx, std::string_view className) {
-			ReflectionData& data = ReflectionRegistry::s_registryByType[thisIdx];
+			ReflectionData& data = Reflection::s_registryByType[thisIdx];
 			data.m_className = className;
+			data.m_type = thisIdx;
 			data.m_parentType = parentIdx;
 
-			ReflectionRegistry::s_registryByName.insert({ className, thisIdx });
+			Reflection::s_registryByName.insert({ className, thisIdx });
 
 			if (parentIdx != typeid(void)) {
-				ReflectionData& parentData = ReflectionRegistry::s_registryByType[parentIdx];
+				ReflectionData& parentData = Reflection::s_registryByType[parentIdx];
 				parentData.m_children.push_back(thisIdx);
 			}
 		}

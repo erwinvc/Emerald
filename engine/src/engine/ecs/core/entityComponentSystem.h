@@ -103,11 +103,11 @@ namespace emerald {
 		};
 
 
-		EntityComponentSystem() : m_nextEntityID(1) {}
-
 		UUID getNewEntityID();
+		UUID createEntityFromID(UUID ID);
 		UUID createEntityFromID(UUID ID, const std::string& name, bool isRootEntity = false);
 		UUID createEntity(const std::string& name, bool isRootEntity = false);
+		UUID createEntity();
 
 		void destroyEntity(UUID entity) {
 			auto it = m_entities.begin();
@@ -126,13 +126,22 @@ namespace emerald {
 
 		template<typename T, typename... Args>
 		T* addComponent(UUID entity, Args&&... args) {
+			markSceneDirty();
 			if (!entity.isValid()) return nullptr;
 			auto& componentArray = getOrCreateComponentArray<T>();
 			return componentArray.addComponent(entity, std::forward<Args>(args)...);
 		}
 
+		template<typename T, typename... Args>
+		T* addComponentWithID(UUID entity, UUID componentID, Args&&... args) {
+			if (!entity.isValid()) return nullptr;
+			auto& componentArray = getOrCreateComponentArray<T>();
+			return componentArray.addComponentWithID(entity, componentID, std::forward<Args>(args)...);
+		}
+
 		template<typename T>
 		void removeComponent(UUID entity, T* componentPtr) {
+			markSceneDirty();
 			if (!entity.isValid()) return;
 			auto componentArray = getComponentArray<T>();
 			if (componentArray) {
@@ -147,6 +156,16 @@ namespace emerald {
 				return componentArray->getComponents(entity);
 			}
 			return {};
+		}
+
+		template<typename T>
+		T* getComponentByID(UUID componentID) {
+			if(!componentID.isValid()) return nullptr;
+			auto componentArray = getComponentArray<T>();
+			if (componentArray) {
+				return componentArray->getComponentByID(componentID);
+			}
+			return nullptr;
 		}
 
 		std::vector<Component*> getAllComponents(UUID entity) {
@@ -257,9 +276,11 @@ namespace emerald {
 			return nullptr;
 		}
 
+		void markSceneDirty();
+
 		std::unordered_map<std::type_index, std::shared_ptr<ComponentArrayBase>> m_componentArrays;
 		std::unordered_map<UUID, Flags8> m_entityFlags;
 		std::vector<UUID> m_entities;
-		uint64_t m_nextEntityID;
+		//uint64_t m_nextEntityID;
 	};
 }

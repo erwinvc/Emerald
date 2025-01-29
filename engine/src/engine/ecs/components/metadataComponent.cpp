@@ -4,7 +4,7 @@
 #include "../core/ECSManager.h"
 
 namespace emerald {
-	RTTI_CLASS_DEF(MetadataComponent);
+	COMPONENT_DEF(MetadataComponent);
 
 	nlohmann::json MetadataComponent::serialize() {
 		nlohmann::json json;
@@ -15,9 +15,9 @@ namespace emerald {
 		return json;
 	}
 
-	MetadataComponent* MetadataComponent::deserialize(const nlohmann::json& json, Entity entity) {
-		MetadataComponent* comp = ECSManager::ECS().addComponent<MetadataComponent>(entity, json["name"]);
-		comp->m_flags = json["flags"];
-		return comp;
+	void MetadataComponent::deserialize(const nlohmann::json& json) {
+		std::string name = json["name"];
+		m_name = FixedString<NAME_MAX_LENGTH>(name.c_str());
+		m_flags = json["flags"];
 	}
 }

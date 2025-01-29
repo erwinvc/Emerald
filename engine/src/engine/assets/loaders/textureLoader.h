@@ -22,8 +22,6 @@ namespace emerald {
 			m_loadFromMemory(true), m_data(data), m_dataSize(dataSize) {
 		}
 
-		Ref<Asset> loadAndInvalidate();
-
 	protected:
 
 		virtual bool onBeginLoad() override;

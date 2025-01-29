@@ -54,11 +54,4 @@ namespace emerald {
 		Renderer::submit([instance = Ref<Texture>(texture)] {instance->invalidate(); });
 		return texture;
 	}
-
-	Ref<Asset> TextureLoader::loadAndInvalidate() {
-		if (!beginLoad()) {
-			return nullptr;
-		}
-		return onFinishLoad();
-	}
 }

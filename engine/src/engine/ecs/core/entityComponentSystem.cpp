@@ -13,19 +13,34 @@ namespace emerald {
 		return newID;
 	}
 
+	UUID EntityComponentSystem::createEntityFromID(UUID ID) {
+		m_entities.push_back(ID);
+		setEntityEnabled(ID, true);
+		return Entity(ID);
+	}
+
 	UUID EntityComponentSystem::createEntityFromID(UUID ID, const std::string& name, bool isRootEntity) {
 		m_entities.push_back(ID);
 
 		addComponent<TransformComponent>(ID);
 		addComponent<MetadataComponent>(ID, name);
-		//const WeakRef<SceneGraphComponent>& sgc = addComponent<SceneGraphComponent>(ID);
 		SceneGraphComponent* sgc = addComponent<SceneGraphComponent>(ID);
 		if (!isRootEntity) SceneManager::getActiveScene()->getRootNode()->addChild(sgc);
 		setEntityEnabled(ID, true);
+
+		markSceneDirty();
 		return Entity(ID);
 	}
 
 	UUID EntityComponentSystem::createEntity(const std::string& name, bool isRootEntity) {
 		return createEntityFromID(getNewEntityID(), name, isRootEntity);
+	}
+
+	UUID EntityComponentSystem::createEntity() {
+		return createEntityFromID(getNewEntityID());
+	}
+
+	void EntityComponentSystem::markSceneDirty() {
+		SceneManager::markSceneDirty();
 	}
 }
