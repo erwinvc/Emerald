@@ -136,7 +136,7 @@ namespace emerald {
 		ImGui::BeginVertical("TitlebarTitle", ImVec2(0, titleBarButtonSize), 0.0f);
 		ImGui::Spring();
 
-		char diryMark = SceneManager::getActiveScene()->isDirty() ? '*' : ' ';
+		char diryMark = SceneManager::getActiveScene() ? SceneManager::getActiveScene()->isDirty() ? '*' : ' ' : ' ';
 		ImGui::Text(std::format("{} - {}{}", EditorHeader.title, ProjectManager::getCurrentProject().getProjectFolder().stem().string(), diryMark).c_str());
 		ImGui::BeginDisabled(true);
 		ImGui::Text(EditorHeader.subTitle.c_str());

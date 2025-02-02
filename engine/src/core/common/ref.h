@@ -426,6 +426,12 @@ namespace emerald {
 			return *this;
 		}
 
+		void reset() {
+			decrementRef();
+			m_reference = nullptr;
+			m_controlBlock = nullptr;
+		}
+
 		bool expired() const {
 			return m_controlBlock == nullptr || m_controlBlock->strongCount == 0 || m_reference == nullptr;
 		}

@@ -1,18 +1,18 @@
 #pragma once
 #include "component.h"
-#include "engine/ecs/core/entity.h"
-#include "engine/assets/model/mesh.h"
 #include "componentRegistry.h"
+#include "core/common/assetRef.h"
+#include "../../assets/model/model.h"
 
 namespace emerald {
 	class MeshRendererComponent : public Component {
 		COMPONENT_DECL(MeshRendererComponent)
 	public:
-		Ref<Mesh> m_mesh;
-
+		AssetRef<Model> m_model;
+		uint32_t m_submeshIndex = 0;
 		MeshRendererComponent() = default;
-		MeshRendererComponent(const Ref<Mesh>& mesh)
-			: m_mesh(mesh) {
+		MeshRendererComponent(const AssetRef<Model>& model, uint32_t submeshIndex)
+			: m_model(model), m_submeshIndex(submeshIndex) {
 		}
 
 		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }

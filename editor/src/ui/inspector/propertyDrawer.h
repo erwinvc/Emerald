@@ -20,23 +20,31 @@ namespace emerald {
 	class PropertyDrawer {
 	public:
 		template<typename PropertyType, typename T, typename Q>
+		static bool drawInt(std::string_view name, const std::vector<Q*>& elements, PropertyType T::* member, PropertyType defaultValue, DividerType dividerType) {
+			return drawMultiProperty<PropertyType, T, Q>(name, elements, member, defaultValue, dividerType, [&](PropertyType& value) -> bool {
+				ImGui::SetNextItemWidth(-FLT_MIN);
+				return propertyDrawerUtils::DragInt(&value, 1);
+			});
+		}
+
+		template<typename PropertyType, typename T, typename Q>
 		static bool drawFloat(std::string_view name, const std::vector<Q*>& elements, PropertyType T::* member, PropertyType defaultValue, const char** symbols, DividerType dividerType) {
 			return drawMultiProperty<PropertyType, T, Q>(name, elements, member, defaultValue, dividerType, [&](PropertyType& value) -> bool {
-				return propertyDrawerUtils::DragFloat("", glm::value_ptr(value), symbols, 0.1f);
+				return propertyDrawerUtils::DragFloat(glm::value_ptr(value), symbols, 0.1f);
 			});
 		}
 
 		template<typename PropertyType, typename T, typename Q>
 		static bool drawFloat2(std::string_view name, const std::vector<Q*>& elements, PropertyType T::* member, PropertyType defaultValue, const char** symbols, DividerType dividerType) {
 			return drawMultiProperty<PropertyType, T, Q>(name, elements, member, defaultValue, dividerType, [&](PropertyType& value) -> bool {
-				return propertyDrawerUtils::DragFloat2("", glm::value_ptr(value), symbols, 0.1f);
+				return propertyDrawerUtils::DragFloat2(glm::value_ptr(value), symbols, 0.1f);
 			});
 		}
 
 		template<typename PropertyType, typename T, typename Q>
 		static bool drawFloat3(std::string_view name, const std::vector<Q*>& elements, PropertyType T::* member, PropertyType defaultValue, const char** symbols, DividerType dividerType) {
 			return drawMultiProperty<PropertyType, T, Q>(name, elements, member, defaultValue, dividerType, [&](PropertyType& value) -> bool {
-				return propertyDrawerUtils::DragFloat3("", glm::value_ptr(value), symbols, 0.1f);
+				return propertyDrawerUtils::DragFloat3(glm::value_ptr(value), symbols, 0.1f);
 			});
 		}
 

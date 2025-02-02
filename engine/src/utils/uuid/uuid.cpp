@@ -24,8 +24,10 @@ namespace emerald {
 
 		static const int dashPositions[] = { 8, 13, 18, 23 };
 		int dashIndex = 0;
+		int hexIndex = 0;     
+		int byteIndex = 0;
 
-		for (int i = 0, byteIndex = 0; i < 36; ++i) {
+		for (int i = 0; i < 36; ++i) {
 			char c = str[i];
 			if (dashIndex < 4 && i == dashPositions[dashIndex]) {
 				if (c != '-') return false;
@@ -35,15 +37,19 @@ namespace emerald {
 
 			if (!std::isxdigit(c)) return false;
 
-			uint8_t nibble = (c >= '0' && c <= '9') ? c - '0'
-				: (c >= 'a' && c <= 'f') ? c - 'a' + 10
-				: c - 'A' + 10;
+			uint8_t nibble =
+				(c >= '0' && c <= '9') ? (c - '0')
+				: (c >= 'a' && c <= 'f') ? (c - 'a' + 10)
+				: (c - 'A' + 10);
 
-			if (i % 2 == 0) {
-				m_data8[byteIndex] = nibble << 4;
+			if ((hexIndex % 2) == 0) {
+				m_data8[byteIndex] = static_cast<uint8_t>(nibble << 4);
 			} else {
-				m_data8[byteIndex++] |= nibble; 
+				m_data8[byteIndex] |= nibble;
+				++byteIndex;
 			}
+
+			++hexIndex;
 		}
 
 		return true;

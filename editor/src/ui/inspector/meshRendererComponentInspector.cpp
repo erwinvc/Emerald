@@ -3,6 +3,7 @@
 #include "inspectorRegistry.h"
 #include "ui/imguiManager.h"
 #include "engine/ecs/components/meshRendererComponent.h"
+#include "propertyDrawer.h"
 
 namespace emerald {
 	class MeshRendererComponentInspector : public ComponentInspector {
@@ -12,6 +13,9 @@ namespace emerald {
 
 			ImGui::Text("Mesh:" "");
 			ImGui::Button("Mesh");
+
+			PropertyDrawer::drawInt("SubMesh index", components, &MeshRendererComponent::m_submeshIndex, 0u, DividerType::SINGLELINE);
+
 		}
 	};
 

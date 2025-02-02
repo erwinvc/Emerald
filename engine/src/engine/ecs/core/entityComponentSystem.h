@@ -168,6 +168,14 @@ namespace emerald {
 			return nullptr;
 		}
 
+		template<typename T>
+		bool validateComponentID(UUID componentID) {
+			auto componentArray = getComponentArray<T>();
+			if (componentArray) {
+				return componentArray->validateComponentID(componentID);
+			}
+		}
+
 		std::vector<Component*> getAllComponents(UUID entity) {
 			std::vector<Component*> components;
 			for (auto& [typeIndex, componentArray] : m_componentArrays) {
@@ -256,11 +264,10 @@ namespace emerald {
 	private:
 		template<typename T>
 		ComponentArray<T>& getOrCreateComponentArray() {
-			std::type_index typeIndex(typeid(T));
-			auto it = m_componentArrays.find(typeIndex);
+			auto it = m_componentArrays.find(T::getStaticClassType());
 			if (it == m_componentArrays.end()) {
 				auto componentArray = std::make_shared<ComponentArray<T>>();
-				m_componentArrays[typeIndex] = componentArray;
+				m_componentArrays[T::getStaticClassType()] = componentArray;
 				return *componentArray;
 			}
 			return *std::static_pointer_cast<ComponentArray<T>>(it->second);
@@ -268,8 +275,7 @@ namespace emerald {
 
 		template<typename T>
 		ComponentArray<T>* getComponentArray() {
-			std::type_index typeIndex(typeid(T));
-			auto it = m_componentArrays.find(typeIndex);
+			auto it = m_componentArrays.find(T::getStaticClassType());
 			if (it != m_componentArrays.end()) {
 				return std::static_pointer_cast<ComponentArray<T>>(it->second).get();
 			}

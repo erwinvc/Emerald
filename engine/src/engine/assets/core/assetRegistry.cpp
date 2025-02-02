@@ -135,6 +135,7 @@ namespace emerald {
 		}
 	}
 	void AssetRegistry::streamAsset(AssetMetadata* metadata) {
+		ASSERT(metadata, "Cannot stream null metadata")
 		AssetStreamingState state = getAssetStreamingState(metadata);
 		if (state == AssetStreamingState::LOADED || state == AssetStreamingState::LOADING || state == AssetStreamingState::CANNOTLOAD) {
 			return;

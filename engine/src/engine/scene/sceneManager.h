@@ -5,6 +5,7 @@ namespace emerald {
 	class SceneManager {
 	public:
 		static void newScene() {
+			ECSManager::ECS().clear();
 			m_activeScene = Ref<Scene>::create("", UUID());
 			m_activeScene->setDirty();
 		}

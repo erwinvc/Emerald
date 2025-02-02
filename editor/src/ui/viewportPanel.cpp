@@ -77,10 +77,11 @@ namespace emerald {
 								Entity baseEntity = ECSManager::ECS().createEntity(asset->getName());
 								SceneGraphComponent* sponzaParent = ECSManager::ECS().getComponent<SceneGraphComponent>(baseEntity);
 
-								for (auto& mesh : asset->getSubMeshes()) {
+								for (int i = 0; i < asset->getSubMeshCount(); i++) {
+									Ref<Mesh> mesh = asset->getSubMesh(i);
 									Entity e = ECSManager::ECS().createEntity(mesh->getName());
 									SceneGraphComponent* r = ECSManager::ECS().getComponent<SceneGraphComponent>(e);
-									ECSManager::ECS().addComponent<MeshRendererComponent>(e, mesh);
+									ECSManager::ECS().addComponent<MeshRendererComponent>(e, AssetRef<Model>(metadata->getUUID()), i);
 									sponzaParent->addChild(r);
 								}
 							};

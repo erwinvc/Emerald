@@ -42,19 +42,23 @@ namespace emerald::propertyDrawerUtils {
 		return value_changed;
 	}
 
-	static bool DragFloat(const char* label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
-		return ImGui::DragScalar(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, flags);
+	static bool DragInt(uint32_t* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%d", ImGuiSliderFlags flags = 0) {
+		return ImGui::DragScalar("", ImGuiDataType_U32, v, v_speed, &v_min, &v_max, format, flags);
 	}
 
-	static bool DragFloat2(const char* label, float v[2], const char** symbols, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
-		return DragScalarN(label, ImGuiDataType_Float, v, 2, v_speed, &v_min, &v_max, format, flags, symbols);
+	static bool DragFloat(float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
+		return ImGui::DragScalar("", ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, flags);
 	}
 
-	static bool DragFloat3(const char* label, float v[3], const char** symbols, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
-		return DragScalarN(label, ImGuiDataType_Float, v, 3, v_speed, &v_min, &v_max, format, flags, symbols);
+	static bool DragFloat2(float v[2], const char** symbols, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
+		return DragScalarN("", ImGuiDataType_Float, v, 2, v_speed, &v_min, &v_max, format, flags, symbols);
 	}
 
-	static bool DragFloat4(const char* label, float v[4], const char** symbols, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
-		return DragScalarN(label, ImGuiDataType_Float, v, 4, v_speed, &v_min, &v_max, format, flags, symbols);
+	static bool DragFloat3(float v[3], const char** symbols, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
+		return DragScalarN("", ImGuiDataType_Float, v, 3, v_speed, &v_min, &v_max, format, flags, symbols);
+	}
+
+	static bool DragFloat4(float v[4], const char** symbols, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
+		return DragScalarN("", ImGuiDataType_Float, v, 4, v_speed, &v_min, &v_max, format, flags, symbols);
 	}
 }

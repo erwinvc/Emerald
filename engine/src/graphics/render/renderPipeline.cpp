@@ -186,12 +186,15 @@ namespace emerald {
 
 			auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>();
 			for (auto [meshRenderer, transform] : view) {
-				if (!meshRenderer->m_mesh) continue;
-  				glm::mat4 model = transform->getGlobalTransform();
-				m_shadowMaterial->set("_ModelMatrix", model);
+				Ref<Model> model = meshRenderer->m_model.get();
+				if (!model) continue;
+				Ref<Mesh> submesh = model->getSubMesh(meshRenderer->m_submeshIndex);
 
-				meshRenderer->m_mesh->bind();
-				Renderer::drawIndexed(meshRenderer->m_mesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
+  				glm::mat4 modelTransform = transform->getGlobalTransform();
+				m_shadowMaterial->set("_ModelMatrix", modelTransform);
+
+				submesh->bind();
+				Renderer::drawIndexed(submesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
 			}
 
 			Renderer::endRenderPass();
@@ -213,9 +216,12 @@ namespace emerald {
 		//multithread this?
 		auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>();
 		for (auto [meshRenderer, transform] : view) {
-			if (!meshRenderer->m_mesh) continue;
+			Ref<Model> model = meshRenderer->m_model.get();
+			if (!model) continue;
+			Ref<Mesh> submesh = model->getSubMesh(meshRenderer->m_submeshIndex);
 
-			Ref<Material> mat = meshRenderer->m_mesh->getMaterial();
+
+			Ref<Material> mat = submesh->getMaterial();
 			mat->set("_ViewMatrix", Editor->getEditorCamera()->getViewMatrix());
 			mat->set("_ProjectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
 			mat->set("_ModelMatrix", transform->getGlobalTransform());
@@ -226,8 +232,8 @@ namespace emerald {
 			mat->set("_LightDirection", lightDir);
 			mat->setTexture("_VSM", m_shadowFramebuffer->getTextures()[0]);
 			mat->updateForRendering();
-			meshRenderer->m_mesh->bind();
-			Renderer::drawIndexed(meshRenderer->m_mesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
+			submesh->bind();
+			Renderer::drawIndexed(submesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
 		}
 
 		Renderer::endRenderPass();

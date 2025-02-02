@@ -22,6 +22,18 @@ namespace emerald {
 			return m_subMeshes;
 		}
 
+		const std::vector<Ref<Material>>& getMaterials() const {
+			return m_materials;
+		}
+
+		Ref<Mesh> getSubMesh(uint32_t index) {
+			return m_subMeshes[index];
+		}
+
+		size_t getSubMeshCount() const {
+			return m_subMeshes.size();
+		}
+
 		const std::string& getName() const { return m_name; }
 
 	private:

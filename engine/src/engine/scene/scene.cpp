@@ -8,7 +8,7 @@
 
 namespace emerald {
 	Scene::Scene(const std::filesystem::path& path, UUID sceneRootID) : m_name(path.stem().string()), m_path(path) {
-		if(m_name.empty()) m_name = "Untitled scene";
+		if (m_name.empty()) m_name = "Untitled scene";
 
 		if (sceneRootID) {
 			m_sceneRoot = ECSManager::ECS().getComponentByID<SceneGraphComponent>(sceneRootID);
@@ -18,21 +18,24 @@ namespace emerald {
 		}
 
 		auto& currentProject = ProjectManager::getCurrentProject();
-		auto& data = currentProject.getData(); 
-		data.lastScenePath = m_path;         
-		currentProject.save();                  
+		auto& data = currentProject.getData();
+		data.lastScenePath = m_path;
+		currentProject.save();
 	}
 
 	void Scene::load() {
-	
+
 	}
 	void Scene::save() {
 		if (!m_isDirty) return;
 		if (m_path.empty()) {
-			m_path = FileSystem::saveFileDialog({L"Emerald Scene Files", L"*.scene"});
+			m_path = FileSystem::saveFileDialog({ L"Emerald Scene Files", L"*.scene" });
 		}
-		SceneSerialization::serializeScene(m_path, Ref<Scene>(this));
-		m_isDirty = false;
+		if (!m_path.empty()) {
+			m_name = m_path.stem().string();
+			SceneSerialization::serializeScene(m_path, Ref<Scene>(this));
+			m_isDirty = false;
+		}
 	}
 
 	void Scene::update(Timestep ts) {}

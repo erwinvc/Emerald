@@ -94,7 +94,7 @@ namespace emerald {
 	}
 
 	void Texture::bind(uint32_t slot /*= 0*/) const {
-		ASSERT(!m_dirty, "Texture is dirty, call invalidate() before binding");
+		//ASSERT(!m_dirty, "Texture is dirty, call invalidate() before binding");
 		Renderer::submit([instance = Ref<const Texture>(this), slot] {
 			GL(glBindTextureUnit(slot, instance->m_handle));
 		});

@@ -125,6 +125,10 @@ namespace emerald {
 			return m_chunks[index.chunkIndex]->getComponent(index.componentIndex);
 		}
 
+		bool validateComponentID(UUID componentID) {
+			return m_componentIDToComponentIndices.find(componentID) != m_componentIDToComponentIndices.end();
+		}
+
 		std::vector<T*> getAllComponents() {
 			std::vector<T*> components;
 			for (auto& chunk : m_chunks) {

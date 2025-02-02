@@ -19,6 +19,7 @@
 #include "utils/system/timestep.h"
 #include "utils/threading/jobSystem.h"
 #include "utils/threading/threadManager.h"
+#include "utils/uuid/uuidGenerator.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
