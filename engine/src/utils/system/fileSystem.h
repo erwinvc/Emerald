@@ -31,5 +31,10 @@ namespace emerald {
 		static std::filesystem::path getAppDataPath();
 
 		static void openFolderAndSelectItem(const std::filesystem::path& path);
+
+		static inline std::string pathToString(const std::filesystem::path& p) {
+			auto u8str = p.u8string();
+			return std::string(u8str.begin(), u8str.end());
+		}
 	};
 }

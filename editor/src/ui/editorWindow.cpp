@@ -17,6 +17,7 @@
 #include "core/project.h"
 #include "core/editor.h"
 #include "core/projectManager.h"
+#include "utils/system/fileSystem.h"
 
 namespace emerald {
 	static bool s_TitleBarHovered = false;
@@ -62,7 +63,7 @@ namespace emerald {
 					}
 					uint8_t index = 1;
 					for (const auto& project : ProjectManager::getRecentProjects()) {
-						if (ImGui::MenuItem((std::to_string(index++) + " " + project.stem().string()).c_str())) {
+						if (ImGui::MenuItem((std::to_string(index++) + " " + FileSystem::pathToString(project.stem())).c_str())) {
 							ProjectManager::openProject(project);
 						}
 					}
@@ -137,7 +138,7 @@ namespace emerald {
 		ImGui::Spring();
 
 		char diryMark = SceneManager::getActiveScene() ? SceneManager::getActiveScene()->isDirty() ? '*' : ' ' : ' ';
-		ImGui::Text(std::format("{} - {}{}", EditorHeader.title, ProjectManager::getCurrentProject().getProjectFolder().stem().string(), diryMark).c_str());
+		ImGui::Text(std::format("{} - {}{}", EditorHeader.title, ProjectManager::getCurrentProject().getProjectFolder().stem().u8string(), diryMark).c_str());
 		ImGui::BeginDisabled(true);
 		ImGui::Text(EditorHeader.subTitle.c_str());
 		ImGui::EndDisabled();

@@ -110,7 +110,9 @@ namespace emerald {
 			ImGui::Separator();
 			ImGui::Text("Recent Projects:");
 			for (const auto& proj : s_recentProjects) {
-				if (ImGui::Button(proj.string().c_str())) {
+				auto u8str = proj.u8string();
+				std::string label(u8str.begin(), u8str.end());
+				if (ImGui::Button(label.c_str())) {
 					openProject(proj);
 					ImGui::CloseCurrentPopup();
 				}

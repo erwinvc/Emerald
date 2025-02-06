@@ -94,7 +94,7 @@ namespace emerald {
 						} else if (metadata->getType() == AssetType::SCENE) {
 							SceneSerialization::deserializeScene(metadata->getPath());
 						} else {
-							Log::warn("Asset type not supported for drag and drop");
+							Log::warn("Asset type not supported for drag and drop: {}", assetTypeToString(metadata->getType()));
 						}
 					}
 				}

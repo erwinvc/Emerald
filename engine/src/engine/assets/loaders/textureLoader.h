@@ -39,5 +39,7 @@ namespace emerald {
 		bool m_loadFromMemory;
 		const byte* m_data;
 		size_t m_dataSize;
+
+		bool loadDataFromFile(std::vector<byte>& rawData);
 	};
 }

@@ -60,7 +60,8 @@ namespace emerald {
 			jsonUtils::saveToFile(m_data, m_projectFile);
 			return true;
 		} catch (std::exception& ex) {
-			EngineError::raise(Severity::WARN, "Failed saving project", std::format("Could not write: {} because {}", m_projectFile.string(), ex.what()));
+			std::u8string s = m_projectFile.u8string();
+			EngineError::raise(Severity::WARN, "Failed saving project", std::format("Could not write: {} because {}", s, ex.what()));
 			return false;
 		}
 	}
@@ -73,7 +74,8 @@ namespace emerald {
 			m_data = jsonUtils::readFromFile(m_projectFile);
 			return true;
 		} catch (std::exception& ex) {
-			EngineError::raise(Severity::WARN, "Failed loading project", std::format("Could not read: {} because {}", m_projectFile.string(), ex.what()));
+			std::u8string s = m_projectFile.u8string();
+			EngineError::raise(Severity::WARN, "Failed loading project", std::format("Could not read: {} because {}", s, ex.what()));
 			return false;
 		}
 	}

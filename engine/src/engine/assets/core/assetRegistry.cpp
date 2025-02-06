@@ -8,6 +8,7 @@
 #include "core/application/application.h"
 #include "../metadata/sceneMetadata.h"
 #include "../../editor/src/core/projectManager.h"
+#include "utils/system/fileSystem.h"
 
 namespace emerald {
 	void AssetRegistry::initialize() {
@@ -36,7 +37,7 @@ namespace emerald {
 			// Check if the associated asset file exists
 			std::filesystem::path assetPath = path;
 			std::string metaExt = ".meta";
-			std::string pathStr = assetPath.string();
+			std::string pathStr = FileSystem::pathToString(assetPath);
 			if (pathStr.length() > metaExt.length()) {
 				// Remove .meta extension
 				pathStr.erase(pathStr.length() - metaExt.length());
@@ -46,9 +47,9 @@ namespace emerald {
 					// The asset file doesn't exist, so this is an orphaned .meta file
 					try {
 						std::filesystem::remove(path);
-						Log::info("Removed orphaned meta file: {}", path.string());
+						Log::info("Removed orphaned meta file: {}", path.u8string());
 					} catch (const std::exception& e) {
-						Log::warn("Failed to remove orphaned meta file {}: {}", path.string(), e.what());
+						Log::warn("Failed to remove orphaned meta file {}: {}", path.u8string(), e.what());
 					}
 				}
 			}
@@ -58,11 +59,11 @@ namespace emerald {
 		AssetType type = m_assetTypeRegistry.getAssetType(path);
 
 		std::filesystem::path metaFilePath = path;
-		metaFilePath.replace_extension(path.extension().string() + ".meta");
+		metaFilePath.replace_extension(path.extension().wstring() + L".meta");
 
 		auto metadata = m_assetTypeRegistry.createMetadata(path, type);
 		if (!metadata) {
-			Log::fatal("Failed to create metadata for asset: {}", path.string());
+			Log::fatal("Failed to create metadata for asset: {}", path.u8string());
 			return;
 		}
 
@@ -71,14 +72,14 @@ namespace emerald {
 				auto j = jsonUtils::readFromFile(metaFilePath);
 				metadata->fromJson(j);
 			} catch (const std::exception& e) {
-				Log::warn("Error parsing .meta file {}: {}", metaFilePath.string(), e.what());
+				Log::warn("Error parsing .meta file {}: {}", metaFilePath.u8string(), e.what());
 				jsonUtils::saveToFile(metadata->toJson(), metaFilePath);
 			}
 		} else {
 			try {
 				jsonUtils::saveToFile(metadata->toJson(), metaFilePath);
 			} catch (const std::exception& e) {
-				Log::warn("Could not save .meta file for {}: {}", path.string(), e.what());
+				Log::warn("Could not save .meta file for {}: {}", path.u8string(), e.what());
 			}
 		}
 
@@ -94,13 +95,13 @@ namespace emerald {
 	}
 
 	void AssetRegistry::removeAsset(const std::filesystem::path& path) {
-		if (path.extension() == ".meta") {
+		if (path.extension() == L".meta") {
 			auto realAssetPath = path.parent_path() / path.stem();
 			if (std::filesystem::exists(realAssetPath)) {
 				AssetType type = m_assetTypeRegistry.getAssetType(realAssetPath);
 
 				std::filesystem::path metaFilePath = realAssetPath;
-				metaFilePath.replace_extension(metaFilePath.extension().string() + ".meta");
+				metaFilePath.replace_extension(metaFilePath.extension().wstring() + L".meta");
 				auto metadata = m_assetTypeRegistry.createMetadata(realAssetPath, type);
 				if (metadata) {
 					jsonUtils::saveToFile(metadata->toJson(), metaFilePath);
@@ -124,13 +125,13 @@ namespace emerald {
 
 	void AssetRegistry::removeOrphanedMetaFile(const std::filesystem::path& path) {
 		std::filesystem::path possibleMetaPath = path;
-		possibleMetaPath.replace_extension(path.extension().string() + ".meta");
+		possibleMetaPath.replace_extension(path.extension().wstring() + L".meta");
 		if (std::filesystem::exists(possibleMetaPath)) {
 			try {
 				std::filesystem::remove(possibleMetaPath);
-				Log::info("Removed orphaned meta file: {}", possibleMetaPath.string());
+				Log::info("Removed orphaned meta file: {}", possibleMetaPath.u8string());
 			} catch (const std::exception& e) {
-				Log::warn("Failed to remove orphaned meta file {}: {}", possibleMetaPath.string(), e.what());
+				Log::warn("Failed to remove orphaned meta file {}: {}", possibleMetaPath.u8string(), e.what());
 			}
 		}
 	}
@@ -152,22 +153,22 @@ namespace emerald {
 
 		StreamingTask& task = m_streamingQueue.back();
 		JobSystem::execute(task.m_ctx, [&task](JobArgs args) {
-			//Log::info("Loading asset from metadata: {}", task.m_metadata->getPath().string());
+			//Log::info("Loading asset from metadata: {}", task.m_metadata->getPath().u8string());
 
 			Ref<AssetLoader> loader = task.m_metadata->createAssetLoader();
 			if (!loader) {
-				//Log::error("Failed to create asset loader instance for {}", task.m_metadata->getPath().string());
+				//Log::error("Failed to create asset loader instance for {}", task.m_metadata->getPath().u8string());
 				m_streamingState[task.m_metadata] = AssetStreamingState::CANNOTLOAD;
 				return;
 			}
 
 			if (!loader->beginLoad()) {
-				Log::error("Failed async loading {}", task.m_metadata->getPath().string());
+				Log::error("Failed async loading {}", task.m_metadata->getPath().u8string());
 				return;
 			}
 
 			task.m_loader = loader;
-			Log::info("Finished async loading {}", task.m_metadata->getPath().string());
+			Log::info("Finished async loading {}", task.m_metadata->getPath().u8string());
 		});
 
 	}
@@ -253,7 +254,7 @@ namespace emerald {
 	void AssetRegistry::finalizeLoading(AssetMetadata* metadata, const Ref<AssetLoader>& loader) {
 		if (m_streamingState[metadata] == AssetStreamingState::CANNOTLOAD) return;
 		if (!loader) {
-			Log::warn("Asset {} failed to load", metadata->getPath().string());
+			Log::warn("Asset {} failed to load", metadata->getPath().u8string());
 			m_streamingState[metadata] = AssetStreamingState::NOTLOADED;
 			return;
 		}
@@ -266,7 +267,7 @@ namespace emerald {
 			m_streamingState[metadata] = AssetStreamingState::NOTLOADED;
 		}
 		EventSystem::dispatch<AssetStreamedEvent>(metadata, m_assets[metadata]);
-		Log::info("Asset {} is loaded", metadata->getPath().string());
+		Log::info("Asset {} is loaded", metadata->getPath().u8string());
 	}
 
 	void AssetRegistry::onFileChangedEvent(FileChangedEvent& e) {
@@ -280,6 +281,6 @@ namespace emerald {
 				break;
 		}
 
-		Log::info("File changed: {} {} {}", e.getPath().string(), (uint32_t)e.getType(), App->getFrameCount());
+		Log::info("File changed: {} {} {}", e.getPath().u8string(), (uint32_t)e.getType(), App->getFrameCount());
 	}
 }

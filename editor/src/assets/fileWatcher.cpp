@@ -57,7 +57,7 @@ namespace emerald {
 		m_currentDir = dir;
 
 		if (!std::filesystem::exists(m_currentDir)) {
-			Log::error("[FileWatcher] Watch path does not exist: {}", m_currentDir.string());
+			Log::error("[FileWatcher] Watch path does not exist: {}", m_currentDir.u8string());
 		}
 
 		if (m_directoryHandle != INVALID_HANDLE_VALUE) {
@@ -75,7 +75,7 @@ namespace emerald {
 		);
 
 		if (m_directoryHandle == INVALID_HANDLE_VALUE) {
-			Log::error("[FileWatcher] Failed to create directory handle: {}", m_currentDir.string());
+			Log::error("[FileWatcher] Failed to create directory handle: {}", m_currentDir.u8string());
 		}
 
 		m_handleCondition.notify_all();

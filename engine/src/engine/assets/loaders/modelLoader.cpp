@@ -21,6 +21,7 @@
 #include "core/application/application.h"
 #include "assimp/cimport.h"
 #include "utils/math/color.h"
+#include "utils/system/fileSystem.h"
 
 namespace emerald {
 	static const uint32_t ImportFlags =
@@ -129,21 +130,21 @@ namespace emerald {
 	}
 
 	bool ModelLoader::onBeginLoad() {
-		if (!std::filesystem::exists(m_path.string())) {
-			Log::error("[Model] File at {} does not exist!", m_path.string().c_str());
+		if (!std::filesystem::exists(m_path)) {
+			Log::error("[Model] File at {} does not exist!", m_path.u8string());
 			return false;
 		}
 
 		Timer timer;
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(m_path.string(), ImportFlags);
+		const aiScene* scene = importer.ReadFile(FileSystem::pathToString(m_path), ImportFlags);
 
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-			Log::error("[Model] Failed to load model from {}", m_path.string().c_str());
+			Log::error("[Model] Failed to load model from {}", m_path.u8string());
 			return false;
 		}
 
-		m_modelName = m_path.stem().string();
+		m_modelName = FileSystem::pathToString(m_path.stem());
 
 		uint32_t index = 0;
 
@@ -207,7 +208,7 @@ namespace emerald {
 			model->addSubmesh(subMesh);
 		}
 
-		Log::info("[Model] Loaded {} in {:.2f} ms", m_path.string().c_str(), asyncLoadTime + timer.get());
+		Log::info("[Model] Loaded {} in {:.2f} ms", m_path.u8string(), asyncLoadTime + timer.get());
 		return model;
 	}
 }

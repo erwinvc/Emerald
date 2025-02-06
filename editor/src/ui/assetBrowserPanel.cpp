@@ -35,7 +35,7 @@ namespace emerald {
 		TextureDesc desc;
 		desc.name = "AssetBrowserPanelIcon";
 		s_assetTypeIcons[AssetType::DEFAULT] = TextureLoader(desc, "res/textures/default.png", false).load();
-		s_assetTypeIcons[AssetType::FOLDER] = TextureLoader(desc, "res/textures/folder.png", false).load();
+		//s_assetTypeIcons[AssetType::FOLDER] = TextureLoader(desc, "res/textures/folder.png", false).load();
 		s_assetTypeIcons[AssetType::PREFAB] = TextureLoader(desc, "res/textures/prefab.png", false).load();
 		s_assetTypeIcons[AssetType::MATERIAL] = TextureLoader(desc, "res/textures/material.png", false).load();
 		s_assetTypeIcons[AssetType::SHADER] = TextureLoader(desc, "res/textures/shader.png", false).load();
@@ -44,7 +44,7 @@ namespace emerald {
 		s_assetTypeIcons[AssetType::MODEL] = TextureLoader(desc, "res/textures/model.png", false).load();
 		s_assetTypeIcons[AssetType::AUDIO] = TextureLoader(desc, "res/textures/audio.png", false).load();
 
-		m_folderIcon = TextureLoader(desc, "res/textures/folder.png", false).load();
+		m_folderIcon = TextureLoader(desc, L"res/textures/folder.png", false).load();
 		m_folderEmptyIcon = TextureLoader(desc, "res/textures/folderEmpty.png", false).load();
 	}
 
@@ -113,7 +113,7 @@ namespace emerald {
 		for (const auto& entry : std::filesystem::directory_iterator(directoryPath)) {
 			std::error_code ec;
 
-			if (entry.path().filename().string().starts_with('.'))
+			if (entry.path().filename().u8string().starts_with('.'))
 				continue;
 
 			if (entry.path().extension() == ".meta") {
@@ -183,7 +183,7 @@ namespace emerald {
 				std::transform(lowercaseSearch.begin(), lowercaseSearch.end(), lowercaseSearch.begin(), ::tolower);
 
 				for (auto& content : m_directoryMap[m_currentPath]) {
-					std::string lowercaseFilename = content.m_path.filename().string();
+					std::string lowercaseFilename = FileSystem::pathToString(content.m_path.filename());
 					std::transform(lowercaseFilename.begin(), lowercaseFilename.end(), lowercaseFilename.begin(), ::tolower);
 
 					if (lowercaseFilename.find(lowercaseSearch) != std::string::npos) {
@@ -231,7 +231,7 @@ namespace emerald {
 
 		if (!hasSubdirectories) rootFlags |= ImGuiTreeNodeFlags_Leaf;
 
-		bool rootNodeOpen = ImGui::TreeNodeEx(path.filename().string().c_str(), rootFlags);
+		bool rootNodeOpen = ImGui::TreeNodeEx(FileSystem::pathToString(path.filename()).c_str(), rootFlags);
 
 		if ((ImGui::IsItemClicked()) && m_currentPath != path) {
 			setCurrentPath(path);
@@ -265,7 +265,7 @@ namespace emerald {
 			float nameAssetTypePadding = DPI::getScale(5.0f);
 			float bottomPadding = DPI::getScale(5.0f);
 
-			ImGui::PushID(file->m_path.string().c_str());
+			ImGui::PushID(file);
 			ImGui::BeginGroup();
 			ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
 			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
@@ -369,7 +369,7 @@ namespace emerald {
 
 			ImGuiManager::pushFont(INTER_BOLD);
 			ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + cardSize.x - 8);
-			ImGui::Text("%s", file->m_path.stem().string().c_str());
+			ImGui::Text("%s", file->m_path.stem().u8string().c_str());
 			ImGui::PopTextWrapPos();
 			ImGuiManager::popFont();
 
@@ -497,7 +497,7 @@ namespace emerald {
 							}
 
 							currentBreadcrumb /= part;
-							std::string partString = part.string();
+							std::string partString = FileSystem::pathToString(part);
 							drawBreadcrumbPart(partString, index++, currentBreadcrumb, index == breadcrumbCount - 1);
 
 							ImGui::SameLine(0, 2.0f);

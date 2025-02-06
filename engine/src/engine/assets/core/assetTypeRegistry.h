@@ -3,6 +3,7 @@
 #include "engine/assets/metadata/assetMetadata.h"
 #include "../metadata/folderMetadata.h"
 #include "../metadata/defaultMetadata.h"
+#include "utils/system/fileSystem.h"
 
 namespace emerald {
 	class Asset;
@@ -40,7 +41,7 @@ namespace emerald {
 
 		AssetType getAssetType(const std::filesystem::path& path) const {
 			if (std::filesystem::is_directory(path)) return AssetType::FOLDER;
-			std::string extension = path.extension().string();
+			std::string extension = FileSystem::pathToString(path.extension());
 			auto it = m_extensionMap.find(extension);
 			if (it != m_extensionMap.end()) {
 				return it->second;

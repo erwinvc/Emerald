@@ -105,3 +105,16 @@ namespace emerald {
 		static void processMessage(const QueuedMessage& message);
 	};
 }
+
+namespace std {
+	template<>
+	struct formatter<u8string> {
+		constexpr auto parse(format_parse_context& ctx) {
+			return ctx.begin();
+		}
+
+		auto format(const u8string& value, format_context& ctx) const {
+			return std::format_to(ctx.out(), "{}", std::string(reinterpret_cast<const char*>(value.c_str())));
+		}
+	};
+}
