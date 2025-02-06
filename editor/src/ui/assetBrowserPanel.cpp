@@ -265,7 +265,7 @@ namespace emerald {
 			float nameAssetTypePadding = DPI::getScale(5.0f);
 			float bottomPadding = DPI::getScale(5.0f);
 
-			ImGui::PushID(file);
+			ImGui::PushID(file->m_imGuiId);
 			ImGui::BeginGroup();
 			ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
 			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
