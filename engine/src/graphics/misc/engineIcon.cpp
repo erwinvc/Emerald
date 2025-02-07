@@ -9,7 +9,7 @@ namespace emerald::icon {
 		TextureDesc desc;
 		desc.readWrite = true;
 		TextureLoader loader(desc, icon32_map, NUMOF(icon32_map), false);
-		Ref<Texture> tex = loader.load();
+		Ref<Texture> tex = loader.load().value();
 
 		GLFWimage icon[1] = {};
 		icon[0].width = 32;

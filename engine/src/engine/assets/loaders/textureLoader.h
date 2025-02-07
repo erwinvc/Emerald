@@ -3,6 +3,7 @@
 #include "../metadata/assetMetadata.h"
 #include "graphics/textures/textureDesc.h"
 #include "utils/datastructures/buffer.h"
+#include "../src/core/common/assrt.h"
 
 namespace emerald {
 	class TextureLoader : public AssetLoader {
@@ -20,12 +21,13 @@ namespace emerald {
 		TextureLoader(TextureDesc desc, const byte* data, size_t dataSize, bool flip)
 			: m_desc(desc), m_path(""), m_channelCount(0), m_width(0), m_height(0), m_buffer(), m_flip(flip),
 			m_loadFromMemory(true), m_data(data), m_dataSize(dataSize) {
+			ASSERT(data != nullptr, "Data is null");
+			ASSERT(dataSize > 0, "Data size is zero");
 		}
 
 	protected:
-
-		virtual bool onBeginLoad() override;
-		virtual Ref<Asset> onFinishLoad() override;
+		Expected<Empty> onBeginLoad() override;
+		Expected<Ref<Asset>> onFinishLoad() override;
 
 	private:
 		std::filesystem::path m_path;
@@ -40,6 +42,7 @@ namespace emerald {
 		const byte* m_data;
 		size_t m_dataSize;
 
+		bool decodeImageData(const std::vector<byte>& rawData);
 		bool loadDataFromFile(std::vector<byte>& rawData);
 	};
 }

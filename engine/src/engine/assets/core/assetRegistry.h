@@ -47,18 +47,19 @@ namespace emerald {
 		static void update();
 
 		private:
+			struct StreamingTask {
+				Context m_ctx;
+				AssetMetadata* m_metadata;
+				Ref<AssetLoader> m_loader;
+				Expected<Empty> m_beginLoadResult;
+
+				StreamingTask(AssetMetadata* metadata, Ref<AssetLoader>&& loader)
+					: m_ctx(), m_metadata(metadata), m_loader(loader) {}
+			};
+
 		static void startLoading(AssetMetadata* metadata);
-		static void finalizeLoading(AssetMetadata* metadata, const Ref<AssetLoader>& loader);
+		static void finalizeLoading(StreamingTask& task);
 		static void onFileChangedEvent(FileChangedEvent& e);
-
-		struct StreamingTask {
-			Context m_ctx;
-			AssetMetadata* m_metadata;
-			Ref<AssetLoader> m_loader;
-
-			StreamingTask(AssetMetadata* metadata, Ref<AssetLoader>&& loader)
-				: m_ctx(), m_metadata(metadata), m_loader(loader) {}
-		};
 
 		static inline AssetTypeRegistry m_assetTypeRegistry;
 		static inline Vector<UniqueRef<AssetMetadata>> m_assetMetadata;

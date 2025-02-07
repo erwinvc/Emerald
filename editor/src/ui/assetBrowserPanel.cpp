@@ -13,6 +13,7 @@
 #include "utils/datastructures/vector.h"
 #include "core/project.h"
 #include "core/projectManager.h"
+#include "graphics/textures/fallbackTextures.h"
 
 namespace emerald {
 	static constexpr float MIN_CELL_SIZE = 50.0f;
@@ -32,20 +33,31 @@ namespace emerald {
 		EventSystem::subscribe<MouseButtonEvent>(&AssetBrowserPanel::onMouseButtonEvent, this);
 		EventSystem::subscribe<FileChangedEvent>(&AssetBrowserPanel::onFileChangedEvent, this);
 
+		static const struct IconInfo {
+			AssetType type;
+			const char* path;
+		} s_iconInfos[] = {
+			{ AssetType::DEFAULT,  "res/textures/default.png"  },
+			{ AssetType::FOLDER,   "res/textures/folder.png"   },
+			{ AssetType::PREFAB,   "res/textures/prefab.png"   },
+			{ AssetType::MATERIAL, "res/textures/material.png" },
+			{ AssetType::SHADER,   "res/textures/shader.png"   },
+			{ AssetType::TEXTURE,  "res/textures/texture.png"  },
+			{ AssetType::SCENE,    "res/textures/scene.png"    },
+			{ AssetType::MODEL,    "res/textures/model.png"    },
+			{ AssetType::AUDIO,    "res/textures/audio.png"    },
+		};
+
 		TextureDesc desc;
 		desc.name = "AssetBrowserPanelIcon";
-		s_assetTypeIcons[AssetType::DEFAULT] = TextureLoader(desc, "res/textures/default.png", false).load();
-		//s_assetTypeIcons[AssetType::FOLDER] = TextureLoader(desc, "res/textures/folder.png", false).load();
-		s_assetTypeIcons[AssetType::PREFAB] = TextureLoader(desc, "res/textures/prefab.png", false).load();
-		s_assetTypeIcons[AssetType::MATERIAL] = TextureLoader(desc, "res/textures/material.png", false).load();
-		s_assetTypeIcons[AssetType::SHADER] = TextureLoader(desc, "res/textures/shader.png", false).load();
-		s_assetTypeIcons[AssetType::TEXTURE] = TextureLoader(desc, "res/textures/texture.png", false).load();
-		s_assetTypeIcons[AssetType::SCENE] = TextureLoader(desc, "res/textures/scene.png", false).load();
-		s_assetTypeIcons[AssetType::MODEL] = TextureLoader(desc, "res/textures/model.png", false).load();
-		s_assetTypeIcons[AssetType::AUDIO] = TextureLoader(desc, "res/textures/audio.png", false).load();
 
-		m_folderIcon = TextureLoader(desc, L"res/textures/folder.png", false).load();
-		m_folderEmptyIcon = TextureLoader(desc, "res/textures/folderEmpty.png", false).load();
+		for (auto& icon : s_iconInfos) {
+			auto result = TextureLoader(desc, icon.path, false).load();
+			s_assetTypeIcons[icon.type] = result.valueOr(FallbackTextures::null());
+		}
+
+		m_folderIcon = TextureLoader(desc, L"res/textures/folder.png", false).load().valueOr(FallbackTextures::null());
+		m_folderEmptyIcon = TextureLoader(desc, "res/textures/folderEmpty.png", false).load().valueOr(FallbackTextures::null());
 	}
 
 	void AssetBrowserPanel::onProjectOpened(EditorProjectOpenedEvent& e) {

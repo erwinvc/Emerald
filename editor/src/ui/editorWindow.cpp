@@ -32,7 +32,7 @@ namespace emerald {
 		desc.name = "Icon32";
 		desc.format = TextureFormat::RGBA8;
 		desc.filter = TextureFilter::NEAREST;
-		m_icon = TextureLoader(desc, icon::icon32_map, NUMOF(icon::icon32_map), false).load();
+		m_icon = TextureLoader(desc, icon::icon32_map, NUMOF(icon::icon32_map), false).load().value();
 	}
 
 	EditorWindow::~EditorWindow() {

@@ -129,10 +129,9 @@ namespace emerald {
 		return true;
 	}
 
-	bool ModelLoader::onBeginLoad() {
+	Expected<Empty> ModelLoader::onBeginLoad() {
 		if (!std::filesystem::exists(m_path)) {
-			Log::error("[Model] File at {} does not exist!", m_path.u8string());
-			return false;
+			return Unexpected("[Model] File at {} does not exist!", m_path.u8string());
 		}
 
 		Timer timer;
@@ -140,8 +139,7 @@ namespace emerald {
 		const aiScene* scene = importer.ReadFile(FileSystem::pathToString(m_path), ImportFlags);
 
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-			Log::error("[Model] Failed to load model from {}", m_path.u8string());
-			return false;
+			return Unexpected("[Model] Failed to load model from {}", m_path.u8string());
 		}
 
 		m_modelName = FileSystem::pathToString(m_path.stem());
@@ -184,11 +182,14 @@ namespace emerald {
 		}
 
 		asyncLoadTime = timer.get();
-		return true;
+
+		return Expected<Empty>();
 	}
 
-	Ref<Asset> ModelLoader::onFinishLoad() {
-		if (m_preloadedMeshes.empty()) return nullptr;
+	Expected<Ref<Asset>> ModelLoader::onFinishLoad() {
+		if (m_preloadedMeshes.empty()) {
+			return Unexpected("No meshes found in model " + FileSystem::pathToString(m_path));
+		}
 		Timer timer;
 
 		Ref<Model> model = Ref<Model>::create(m_modelName);
@@ -209,6 +210,6 @@ namespace emerald {
 		}
 
 		Log::info("[Model] Loaded {} in {:.2f} ms", m_path.u8string(), asyncLoadTime + timer.get());
-		return model;
+		return model.as<Asset>();
 	}
 }

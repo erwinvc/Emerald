@@ -34,8 +34,8 @@ namespace emerald {
 	public:
 		ModelLoader(const std::filesystem::path& path, bool loadMaterials = false) : m_loadMaterials(loadMaterials), m_path(path) {}
 
-		bool onBeginLoad() override;
-		Ref<Asset> onFinishLoad() override;
+		Expected<Empty> onBeginLoad() override;
+		Expected<Ref<Asset>> onFinishLoad() override;
 
 	private:
 		std::vector<PreloadedMesh> m_preloadedMeshes;

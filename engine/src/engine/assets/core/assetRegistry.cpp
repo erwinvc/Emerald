@@ -47,9 +47,9 @@ namespace emerald {
 					// The asset file doesn't exist, so this is an orphaned .meta file
 					try {
 						std::filesystem::remove(path);
-						Log::info("Removed orphaned meta file: {}", path.u8string());
+						Log::info("[Assets] Removed orphaned meta file: {}", path.u8string());
 					} catch (const std::exception& e) {
-						Log::warn("Failed to remove orphaned meta file {}: {}", path.u8string(), e.what());
+						Log::warn("[Assets] Failed to remove orphaned meta file {}: {}", path.u8string(), e.what());
 					}
 				}
 			}
@@ -63,7 +63,7 @@ namespace emerald {
 
 		auto metadata = m_assetTypeRegistry.createMetadata(path, type);
 		if (!metadata) {
-			Log::fatal("Failed to create metadata for asset: {}", path.u8string());
+			Log::fatal("[Assets] Failed to create metadata for asset: {}", path.u8string());
 			return;
 		}
 
@@ -72,14 +72,14 @@ namespace emerald {
 				auto j = jsonUtils::readFromFile(metaFilePath);
 				metadata->fromJson(j);
 			} catch (const std::exception& e) {
-				Log::warn("Error parsing .meta file {}: {}", metaFilePath.u8string(), e.what());
+				Log::warn("[Assets] Error parsing .meta file {}: {}", metaFilePath.u8string(), e.what());
 				jsonUtils::saveToFile(metadata->toJson(), metaFilePath);
 			}
 		} else {
 			try {
 				jsonUtils::saveToFile(metadata->toJson(), metaFilePath);
 			} catch (const std::exception& e) {
-				Log::warn("Could not save .meta file for {}: {}", path.u8string(), e.what());
+				Log::warn("[Assets] Could not save .meta file for {}: {}", path.u8string(), e.what());
 			}
 		}
 
@@ -129,15 +129,15 @@ namespace emerald {
 		if (std::filesystem::exists(possibleMetaPath)) {
 			try {
 				std::filesystem::remove(possibleMetaPath);
-				Log::info("Removed orphaned meta file: {}", possibleMetaPath.u8string());
+				Log::info("[Assets] Removed orphaned meta file: {}", possibleMetaPath.u8string());
 			} catch (const std::exception& e) {
-				Log::warn("Failed to remove orphaned meta file {}: {}", possibleMetaPath.u8string(), e.what());
+				Log::warn("[Assets] Failed to remove orphaned meta file {}: {}", possibleMetaPath.u8string(), e.what());
 			}
 		}
 	}
 	void AssetRegistry::streamAsset(AssetMetadata* metadata) {
-		ASSERT(metadata, "Cannot stream null metadata")
-		AssetStreamingState state = getAssetStreamingState(metadata);
+		ASSERT(metadata, "[Assets] Cannot stream null metadata")
+			AssetStreamingState state = getAssetStreamingState(metadata);
 		if (state == AssetStreamingState::LOADED || state == AssetStreamingState::LOADING || state == AssetStreamingState::CANNOTLOAD) {
 			return;
 		}
@@ -151,26 +151,23 @@ namespace emerald {
 	void AssetRegistry::startLoading(AssetMetadata* metadata) {
 		m_streamingQueue.emplace_back(metadata, Ref<AssetLoader>());
 
+		Ref<AssetLoader> assetLoader = metadata->createAssetLoader();
+		if (!assetLoader) {
+			//Log::error("Failed to create asset loader instance for {}", task.m_metadata->getPath().u8string());
+			m_streamingState[metadata] = AssetStreamingState::CANNOTLOAD;
+			return;
+		}
 		StreamingTask& task = m_streamingQueue.back();
+		task.m_loader = assetLoader;
+
 		JobSystem::execute(task.m_ctx, [&task](JobArgs args) {
-			//Log::info("Loading asset from metadata: {}", task.m_metadata->getPath().u8string());
-
-			Ref<AssetLoader> loader = task.m_metadata->createAssetLoader();
-			if (!loader) {
-				//Log::error("Failed to create asset loader instance for {}", task.m_metadata->getPath().u8string());
-				m_streamingState[task.m_metadata] = AssetStreamingState::CANNOTLOAD;
-				return;
+			auto result = task.m_loader->beginLoad();
+			if (result) {
+				task.m_beginLoadResult = Expected<Empty>();
+			} else {
+				task.m_beginLoadResult = Unexpected(result.error());
 			}
-
-			if (!loader->beginLoad()) {
-				Log::error("Failed async loading {}", task.m_metadata->getPath().u8string());
-				return;
-			}
-
-			task.m_loader = loader;
-			Log::info("Finished async loading {}", task.m_metadata->getPath().u8string());
 		});
-
 	}
 
 	AssetRegistry::AssetStreamingState AssetRegistry::getAssetStreamingState(AssetMetadata* metadata) {
@@ -243,7 +240,7 @@ namespace emerald {
 		for (auto it = m_streamingQueue.begin(); it != m_streamingQueue.end();) {
 			StreamingTask& task = *it;
 			if (!task.m_ctx.isBusy()) {
-				finalizeLoading(task.m_metadata, task.m_loader);
+				finalizeLoading(task);
 				it = m_streamingQueue.erase(it);
 			} else {
 				++it;
@@ -251,23 +248,24 @@ namespace emerald {
 		}
 	}
 
-	void AssetRegistry::finalizeLoading(AssetMetadata* metadata, const Ref<AssetLoader>& loader) {
-		if (m_streamingState[metadata] == AssetStreamingState::CANNOTLOAD) return;
-		if (!loader) {
-			Log::warn("Asset {} failed to load", metadata->getPath().u8string());
-			m_streamingState[metadata] = AssetStreamingState::NOTLOADED;
-			return;
-		}
+	void AssetRegistry::finalizeLoading(StreamingTask& task) {
+		//if (m_streamingState[metadata] == AssetStreamingState::CANNOTLOAD) return;
 
-		Ref<Asset> asset = loader->finishLoad();
-		if (asset) {
-			m_assets[metadata] = asset;
-			m_streamingState[metadata] = AssetStreamingState::LOADED;
+		if (task.m_beginLoadResult.hasValue()) {
+			auto result = task.m_loader->finishLoad();
+
+			if (result.hasValue()) {
+				m_assets[task.m_metadata] = result.value();
+				m_streamingState[task.m_metadata] = AssetStreamingState::LOADED;
+			} else {
+				m_streamingState[task.m_metadata] = AssetStreamingState::NOTLOADED;
+			}
+			EventSystem::dispatch<AssetStreamedEvent>(task.m_metadata, m_assets[task.m_metadata]);
+			Log::info("[Assets] loaded Asset: {}", task.m_metadata->getPath().u8string());
 		} else {
-			m_streamingState[metadata] = AssetStreamingState::NOTLOADED;
+			Log::error("[Assets] Failed to load asset: {}", task.m_beginLoadResult.error());
+			m_streamingState[task.m_metadata] = AssetStreamingState::CANNOTLOAD;
 		}
-		EventSystem::dispatch<AssetStreamedEvent>(metadata, m_assets[metadata]);
-		Log::info("Asset {} is loaded", metadata->getPath().u8string());
 	}
 
 	void AssetRegistry::onFileChangedEvent(FileChangedEvent& e) {
@@ -281,6 +279,6 @@ namespace emerald {
 				break;
 		}
 
-		Log::info("File changed: {} {} {}", e.getPath().u8string(), (uint32_t)e.getType(), App->getFrameCount());
+		Log::info("[Assets] File changed: {} {} {}", e.getPath().u8string(), (uint32_t)e.getType(), App->getFrameCount());
 	}
 }
