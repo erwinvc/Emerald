@@ -30,7 +30,6 @@ namespace emerald {
 	void Renderer::beginRenderPass(const Ref<RenderPass>& renderPass) {
 		s_activeRenderPass = renderPass;
 		s_activeRenderPass->bind();
-		s_activeRenderPass->clear();
 	}
 
 	void Renderer::endRenderPass() {

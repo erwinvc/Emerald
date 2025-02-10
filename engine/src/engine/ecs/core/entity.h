@@ -30,6 +30,11 @@ namespace emerald {
 		}
 
 		template <typename T>
+		std::vector<T*> getComponents() {
+			return ECSManager::ECS().getComponents<T>(*this);
+		}
+
+		template <typename T>
 		T* getComponent() {
 			return ECSManager::ECS().getComponent<T>(*this);
 		}

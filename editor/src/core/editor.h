@@ -2,6 +2,7 @@
 #include "core/application/application.h"
 #include "editorCamera.h"
 #include "../editor/events/editorProjectOpenedEvent.h"
+#include "engine/ecs/core/entity.h"
 
 namespace emerald {
 	class RenderPipeline;

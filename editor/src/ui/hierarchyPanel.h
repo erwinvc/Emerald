@@ -6,7 +6,6 @@ namespace emerald {
 	public:
 		void draw();
 		void update(Timestep ts);
-		std::vector<Entity>& getSelectedEntities();
 	private:
 		HierarchyTree m_hierarchyTree;
 	};

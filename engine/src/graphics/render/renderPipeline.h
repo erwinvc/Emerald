@@ -22,6 +22,10 @@ namespace emerald {
 		Ref<FrameBuffer> m_blurFBOHorizontal;
 		Ref<FrameBuffer> m_blurFBOVertical;
 		
+		Ref<Shader> m_outlineShader;
+		Ref<Material> m_outlineMaterial;
+		Ref<RenderPass> m_outlinePass;
+
 		glm::mat4 m_lightView;
 		glm::mat4 m_lightProjection;
 
@@ -39,6 +43,6 @@ namespace emerald {
 		void onImGuiRender();
 		void render();
 		const Ref<Texture>& getFinalTexture();
-		static inline Ref<Shader> shader;
+		static inline Ref<Shader> m_geometryShader;
 	};
 }

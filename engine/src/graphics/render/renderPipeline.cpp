@@ -14,9 +14,16 @@
 #include "renderPipeline.h"
 #include "../../editor/src/core/editor.h"
 #include "engine/ecs/core/ECSManager.h"
+#include "../../editor/src/core/selection.h"
 
 namespace emerald {
 	RenderPipeline::RenderPipeline() {
+		m_geometryShader = Ref<Shader>::create("Geometry", "res/shaders/geometry");
+		m_shadowShader = Ref<Shader>::create("Shadow", "res/shaders/shadow");
+		m_outlineShader = Ref<Shader>::create("Outline", "res/shaders/outline");
+
+		Renderer::flushRenderCommands();
+
 		FramebufferDesc mainfbDesc;
 		mainfbDesc.width = App->getWidth() / 8;
 		mainfbDesc.height = App->getHeight() / 8;
@@ -38,8 +45,7 @@ namespace emerald {
 		// Main
 		RenderPassDesc mainPassDesc;
 		mainPassDesc.frameBuffer = FrameBuffer::create(mainfbDesc);
-		shader = Ref<Shader>::create("Geometry", "res/shaders/geometry");
-		mainPassDesc.shader = shader;
+		mainPassDesc.shader = m_geometryShader;
 		m_mainPass = Ref<RenderPass>::create(mainPassDesc);
 
 		// Shadow
@@ -57,14 +63,10 @@ namespace emerald {
 
 		m_shadowFramebuffer = FrameBuffer::create(shadowFbDesc);
 
-		m_shadowShader = Ref<Shader>::create("Shadow", "res/shaders/shadow");
-
 		RenderPassDesc shadowPassDesc;
 		shadowPassDesc.frameBuffer = m_shadowFramebuffer;
 		shadowPassDesc.shader = m_shadowShader;
 		m_shadowPass = Ref<RenderPass>::create(shadowPassDesc);
-
-		Renderer::flushRenderCommands();
 
 		m_shadowMaterial = Ref<Material>::create("Shadow", m_shadowShader);
 
@@ -83,6 +85,15 @@ namespace emerald {
 
 		blurFbDesc.name = "BlurFB_Vertical";
 		m_blurFBOVertical = FrameBuffer::create(blurFbDesc);
+
+		//Outline
+
+		RenderPassDesc outlinePassDesc;
+		outlinePassDesc.frameBuffer = m_mainPass->descriptor().frameBuffer;
+		// or a similar FB that shares the same depth-stencil
+		outlinePassDesc.shader = m_outlineShader; // a special outline shader if needed
+		m_outlineMaterial = Ref<Material>::create("Outline", m_outlineShader);
+		m_outlinePass = Ref<RenderPass>::create(outlinePassDesc);
 
 		updateLightMatrices();
 	}
@@ -170,6 +181,7 @@ namespace emerald {
 				PROFILE_RENDER_BEGIN("ShadowPass");
 			});
 			Renderer::beginRenderPass(m_shadowPass);
+			m_shadowPass->clear();
 
 			Renderer::submit([] {
 				glEnable(GL_DEPTH_TEST);
@@ -190,7 +202,7 @@ namespace emerald {
 				if (!model) continue;
 				Ref<Mesh> submesh = model->getSubMesh(meshRenderer->m_submeshIndex);
 
-  				glm::mat4 modelTransform = transform->getGlobalTransform();
+				glm::mat4 modelTransform = transform->getGlobalTransform();
 				m_shadowMaterial->set("_ModelMatrix", modelTransform);
 
 				submesh->bind();
@@ -205,6 +217,7 @@ namespace emerald {
 
 		Renderer::submit([] {PROFILE_RENDER_BEGIN("Pipeline"); });
 		Renderer::beginRenderPass(m_mainPass);
+		m_mainPass->clear();
 
 		Renderer::submit([] {
 			glEnable(GL_CULL_FACE);
@@ -219,7 +232,6 @@ namespace emerald {
 			Ref<Model> model = meshRenderer->m_model.get();
 			if (!model) continue;
 			Ref<Mesh> submesh = model->getSubMesh(meshRenderer->m_submeshIndex);
-
 
 			Ref<Material> mat = submesh->getMaterial();
 			mat->set("_ViewMatrix", Editor->getEditorCamera()->getViewMatrix());
@@ -236,6 +248,49 @@ namespace emerald {
 			Renderer::drawIndexed(submesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
 		}
 
+		Renderer::endRenderPass();
+
+		//Outline
+		Renderer::beginRenderPass(m_outlinePass);
+		Renderer::submit([] {
+			glEnable(GL_STENCIL_TEST);
+			glStencilMask(0xFF);
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			//Disable color writes(optional)
+			//glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		});
+
+		m_outlineMaterial->set("_ViewMatrix", Editor->getEditorCamera()->getViewMatrix());
+		m_outlineMaterial->set("_ProjectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
+
+		// Draw all selected objects
+		for (auto selectedEntity : Selection::getSelectedEntities()) {
+			auto meshRenderers = selectedEntity.getComponents<MeshRendererComponent>();
+			for (auto* meshRenderer : meshRenderers) {
+				TransformComponent* transform = selectedEntity.getComponent<TransformComponent>();
+				Ref<Model> model = meshRenderer->m_model.get();
+				if (!model) continue;
+				Ref<Mesh> submesh = model->getSubMesh(meshRenderer->m_submeshIndex);
+		
+				m_outlineMaterial->set("_ModelMatrix", transform->getGlobalTransform());
+				m_outlineMaterial->updateForRendering();
+		
+				submesh->bind();
+				Renderer::drawIndexed(submesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
+			}
+		}
+
+		// Then re-enable color writes so we can draw the outline color
+		Renderer::submit([] {
+			glDisable(GL_BLEND);
+			glDisable(GL_STENCIL_TEST);
+			//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		});
+		//
+		//// We can end or keep going, depending on how we want to do the outline
 		Renderer::endRenderPass();
 
 		Renderer::submit([] {PROFILE_RENDER_BEGIN("Blit"); });

@@ -14,6 +14,7 @@
 #include "core/project.h"
 #include "utils/undoRedo.h"
 #include "core/projectManager.h"
+#include "core/selection.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {
@@ -29,7 +30,8 @@ namespace emerald {
 		std::string_view name;
 		ImGUIFont font;
 	};
-	void HierarchyTree::render(const Ref<Scene>& scene, const char* searchString) {
+
+	void HierarchyTree::draw(const Ref<Scene>& scene, const char* searchString) {
 		// Apply ImGui style settings
 		ImGui::PushStyleColor(ImGuiCol_NavHighlight, Color(0, 0, 0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
@@ -83,6 +85,8 @@ namespace emerald {
 		// Restore ImGui style settings
 		ImGui::PopStyleVar(3);
 		ImGui::PopStyleColor();
+
+		updateSelectedEntities();
 	}
 
 	void HierarchyTree::handleDelete() {
@@ -212,10 +216,9 @@ namespace emerald {
 			ImGuiManager::pushFont(ImGUIFont::AWESOME_R);
 			bool entityEnabled = ECSManager::ECS().isEntityEnabled(node->m_entity);
 			if (ImGui::ToggleButton("", &entityEnabled, ImVec2(0, ImGui::GetTextLineHeight() + 2), P_ICON_FA_EYE, P_ICON_FA_EYE_SLASH)) {
-				auto& selectedEntities = getSelectedEntities();
-				auto it = std::find(selectedEntities.begin(), selectedEntities.end(), node->m_entity);
-				if (it != selectedEntities.end()) {
-					for (auto& selectedEntity : getSelectedEntities()) {
+				auto it = std::find(m_selectedEntities.begin(), m_selectedEntities.end(), node->m_entity);
+				if (it != m_selectedEntities.end()) {
+					for (auto& selectedEntity : m_selectedEntities) {
 						SceneGraphComponent* sgc = ECSManager::ECS().getComponent<SceneGraphComponent>(selectedEntity);
 						sgc->setEnabledRecursive(entityEnabled);
 					}
@@ -430,13 +433,14 @@ namespace emerald {
 		return false;
 	}
 
-	std::vector<Entity>& HierarchyTree::getSelectedEntities() {
+	void HierarchyTree::updateSelectedEntities() {
+		Selection::clearSelection();
 		m_selectedEntities.clear();
 
 		for (auto& node : getSelectedNodes()) {
 			if (node->m_entity == SceneManager::getActiveScene()->getRootNode()->m_entity) continue;
 			m_selectedEntities.push_back(node->m_entity);
+			Selection::selectEntity(node->m_entity);
 		}
-		return m_selectedEntities;
 	}
 }

@@ -9,6 +9,7 @@
 #include "engine/scene/sceneManager.h"
 #include "inspector/inspectorRegistry.h"
 #include "engine/ecs/core/ECSManager.h"
+#include "core/selection.h"
 
 namespace emerald {
 	static constexpr float MIN_FIRST_COLUMN_WIDTH = 50.0f;
@@ -39,7 +40,7 @@ namespace emerald {
 		ImGui::PopStyleVar();
 	}
 
-	void InspectorPanel::drawInspectorHeader(std::vector<Entity>& selectedEntities) {
+	void InspectorPanel::drawInspectorHeader(Vector<Entity>& selectedEntities) {
 		bool changed = false;
 		static const char* xyzSymbols[3] = { "X", "Y", "Z" };
 
@@ -59,7 +60,7 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		if (ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoNav)) {
 			std::unordered_map<RTTIType, const ComponentTypeInfo*> componentInfo;
-			std::vector<Entity>& selectedEntities = hierarchyPanel->getSelectedEntities();
+			Vector<Entity> selectedEntities = Selection::getSelectedEntities();
 			std::unordered_set<RTTIType> commonComponents;
 
 			bool firstEntity = true;

@@ -38,7 +38,7 @@ namespace emerald {
 			}
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 			ImGui::BorderSeparator(4);
-			if (SceneManager::isSceneOpen()) m_hierarchyTree.render(SceneManager::getActiveScene(), searchString);
+			if (SceneManager::isSceneOpen()) m_hierarchyTree.draw(SceneManager::getActiveScene(), searchString);
 			ImGui::PopStyleVar();
 		}
 		ImGui::End();
@@ -46,9 +46,5 @@ namespace emerald {
 
 	void HierarchyPanel::update(Timestep ts) {
 		if (SceneManager::isSceneOpen()) m_hierarchyTree.handleDelete();
-	}
-
-	std::vector<Entity>& HierarchyPanel::getSelectedEntities() {
-		return m_hierarchyTree.getSelectedEntities();
 	}
 }

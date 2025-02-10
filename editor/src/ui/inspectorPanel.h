@@ -1,5 +1,6 @@
 #pragma once
 #include "inspectorTree.h"
+#include "utils\datastructures\vector.h"
 
 namespace emerald {
 	class HierarchyPanel;
@@ -13,7 +14,7 @@ namespace emerald {
 		float m_splitterWidth = 4.0f;
 		InspectorTree m_inspectorTree;
 
-		void drawInspectorHeader(std::vector<Entity>& selectedEntities);
+		void drawInspectorHeader(Vector<Entity>& selectedEntities);
 		void drawSplitter(uint32_t totalWidth);
 	};
 }

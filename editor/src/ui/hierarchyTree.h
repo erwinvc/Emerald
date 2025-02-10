@@ -9,16 +9,16 @@ namespace emerald {
 	public:
 		HierarchyTree();
 
-		void render(const Ref<Scene>& scene, const char* searchString);
+		void draw(const Ref<Scene>& scene, const char* searchString);
 		void handleDelete();
-		std::vector<Entity>& getSelectedEntities();
+		//std::vector<Entity>& getSelectedEntities();
 
 	private:
 		bool m_isFocused = false;
-		std::vector<Entity> m_selectedEntities;
 		std::vector<SceneGraphComponent*> m_nodes;
 		SceneGraphComponent* m_lastSelectedNode = nullptr;
 		ImGuiSelectionBasicStorage m_imGuiSelection;
+		std::vector<Entity> m_selectedEntities;
 
 		void collectNodes(SceneGraphComponent* node);
 		ImRect renderNode(SceneGraphComponent* node, const char* searchString, int depth = 0);
@@ -33,5 +33,7 @@ namespace emerald {
 		void onDrag(SceneGraphComponent* node);
 		bool onDrop(SceneGraphComponent* node, bool insertBefore, SceneGraphComponent* beforeNode, bool open);
 		void onRightClick(SceneGraphComponent* node);
+
+		void updateSelectedEntities();
 	};
 }
