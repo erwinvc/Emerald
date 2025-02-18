@@ -100,7 +100,7 @@ namespace emerald {
 	}
 
 	void LogPanel::draw() {
-		PROFILE_RENDER_SCOPE("LogPanel");
+		PROFILE_GPU_SCOPE("LogPanel");
 
 		ImGui::ApplyNodeFlagsToNextWindow(ImGuiDockNodeFlags_NoWindowMenuButton);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));

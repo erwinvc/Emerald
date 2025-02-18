@@ -11,7 +11,6 @@ namespace emerald {
 	class AssetTypeRegistry {
 	public:
 		using MetadataCreator = std::function<UniqueRef<AssetMetadata>(const std::filesystem::path&)>;
-		using ExtensionMap = std::unordered_map<std::string, AssetType>;
 		std::unordered_map<AssetType, MetadataCreator> m_creators;
 
 		template<typename T>
@@ -50,7 +49,7 @@ namespace emerald {
 		}
 
 	private:
-		ExtensionMap m_extensionMap;
+		std::unordered_map<std::string, AssetType> m_extensionMap;
 
 		template<typename T>
 		static UniqueRef<AssetMetadata> createMetadataFromType(const std::filesystem::path& path, AssetType type) {

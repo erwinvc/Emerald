@@ -46,15 +46,9 @@ namespace emerald {
 
 	void Thread::run() {
 		setAffinity();
-		PROFILE_REGISTER_LOGIC_THREAD(m_name.c_str(), m_profilerType);
+		PROFILE_REGISTER_THREAD(m_name.c_str(), m_profilerType);
 
-		//try {
-			m_function();
-		//} catch (const std::exception& e) {
-		//	Log::fatal("Exception in thread {}: {}", m_name.c_str(), e.what());
-		//} catch (...) {
-		//	Log::fatal("Unknown exception in thread {}", m_name.c_str());
-		//}
+		m_function();
 		m_finished = true;
 	}
 

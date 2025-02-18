@@ -15,13 +15,13 @@ namespace emerald {
 	static std::array<TimerData, (uint32_t)Metric::_COUNT> s_timers;
 
 	void Metrics::initialize() {
-		ASSERT(ThreadManager::isThread(ThreadType::RENDER), "Metrics::initialize must be called on the render thread");
+		//ASSERT(ThreadManager::isThread(ThreadType::RENDER), "Metrics::initialize must be called on the render thread");
 		GL(glGenQueries(1, &s_queryID));
 	}
 
 	void Metrics::startTimer(Metric timer) {
 		if (timer == Metric::GPU) {
-			ASSERT(ThreadManager::isThread(ThreadType::RENDER), "startTimer(Metric::GPU) must be called on the render thread");
+			//ASSERT(ThreadManager::isThread(ThreadType::RENDER), "startTimer(Metric::GPU) must be called on the render thread");
 
 			GL(glBeginQuery(GL_TIME_ELAPSED, s_queryID));
 		} else {
@@ -32,7 +32,7 @@ namespace emerald {
 	void Metrics::endTimer(Metric timer) {
 		s_timers[(uint32_t)timer].m_frame = (uint32_t)App->getFrameCount();
 		if (timer == Metric::GPU) {
-			ASSERT(ThreadManager::isThread(ThreadType::RENDER), "endTimer(Metric::GPU) must be called on the render thread");
+			//ASSERT(ThreadManager::isThread(ThreadType::RENDER), "endTimer(Metric::GPU) must be called on the render thread");
 
 			GL(glEndQuery(GL_TIME_ELAPSED));
 			GLuint64 gpuTimeElapsed;
@@ -53,7 +53,7 @@ namespace emerald {
 	}
 
 	void Metrics::shutdown() {
-		ASSERT(ThreadManager::isThread(ThreadType::RENDER), "Metrics::shutdown must be called on the render thread");
+		//ASSERT(ThreadManager::isThread(ThreadType::RENDER), "Metrics::shutdown must be called on the render thread");
 		GL(glDeleteQueries(1, &s_queryID));
 	}
 }

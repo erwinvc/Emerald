@@ -1,73 +1,49 @@
 #pragma once
 #include "OpenGLProfiler.h"
 
+/*
+ * This code is adapted from an ImGui-based C++ profiling library originally found on GitHub.
+ * Unfortunately, the author's name and the original repository URL are no longer available.
+ * All credit for the initial implementation goes to the unknown creator.
+ * If you are the author or know who they are, please contact me so I can update the attribution.
+ */
+
 #ifndef WITH_PROFILING
 #define WITH_PROFILING 1
 #endif
 
 #if WITH_PROFILING
 
-/*
-	General
-*/
+#define PROFILE_REGISTER_THREAD(...) ImGuiProfiler::gCPUProfiler.RegisterThread(__VA_ARGS__)
 
-// Usage:
-//		PROFILE_REGISTER_THREAD(const char* pName)
-//		PROFILE_REGISTER_THREAD()
-#define PROFILE_REGISTER_LOGIC_THREAD(...) ImGuiProfiler::gCPUProfiler.RegisterThread(__VA_ARGS__)
-#define PROFILE_REGISTER_RENDER_THREAD(...) ImGuiProfiler::gGPUProfiler.RegisterThread("Render", emerald::ProfilerThreadType::RENDER)
+#define PROFILE_FRAME() ImGuiProfiler::gCPUProfiler.Tick(); ImGuiProfiler::gOpenGLProfiler.Tick()
 
-/// Usage:
-//		PROFILE_FRAME()
-#define PROFILE_LOGIC_FRAME() ImGuiProfiler::gCPUProfiler.Tick()
-#define PROFILE_RENDER_FRAME() ImGuiProfiler::gGPUProfiler.Tick()
-#define PROFILE_OPENGL_FRAME() ImGuiProfiler::gOpenGLProfiler.Tick()
+#define PROFILE_SCOPE(...)		ImGuiProfiler::CPUProfileScope MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
+#define PROFILE_GPU_SCOPE(...)	ImGuiProfiler::CPUProfileScope MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__); \
+								ImGuiProfiler::OpenGLProfileScope MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__) 
 
-/*
-	CPU Profiling
-*/
+#define PROFILE_BEGIN(...)		ImGuiProfiler::gCPUProfiler.BeginEvent(__VA_ARGS__)
+#define PROFILE_GPU_BEGIN(...)	ImGuiProfiler::gCPUProfiler.BeginEvent(__VA_ARGS__); ImGuiProfiler::gOpenGLProfiler.BeginEvent(__VA_ARGS__)
 
-// Usage:
-//		PROFILE_CPU_SCOPE(const char* pName)
-//		PROFILE_CPU_SCOPE()
-#define PROFILE_LOGIC_SCOPE(...)							ImGuiProfiler::CPUProfileScope MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
-#define PROFILE_RENDER_SCOPE(...)							ImGuiProfiler::GPUProfileScope MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
-#define PROFILE_OPENGL_SCOPE(...)							ImGuiProfiler::OpenGLProfileScope MACRO_CONCAT(profiler, __COUNTER__)(__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
+#define PROFILE_END()			ImGuiProfiler::gCPUProfiler.EndEvent()
+#define PROFILE_GPU_END()		ImGuiProfiler::gCPUProfiler.EndEvent(); ImGuiProfiler::gOpenGLProfiler.EndEvent()
 
-// Usage:
-//		PROFILE_CPU_BEGIN(const char* pName)
-//		PROFILE_CPU_BEGIN()
-#define PROFILE_LOGIC_BEGIN(...)							ImGuiProfiler::gCPUProfiler.BeginEvent(__VA_ARGS__)
-#define PROFILE_RENDER_BEGIN(...)							ImGuiProfiler::gGPUProfiler.BeginEvent(__VA_ARGS__); PROFILE_OPENGL_BEGIN(__VA_ARGS__)
-#define PROFILE_OPENGL_BEGIN(...)							ImGuiProfiler::gOpenGLProfiler.BeginEvent(__VA_ARGS__)
-// Usage:
-//		PROFILE_CPU_END()
-#define PROFILE_LOGIC_END()									ImGuiProfiler::gCPUProfiler.EndEvent()
-#define PROFILE_RENDER_END()								ImGuiProfiler::gGPUProfiler.EndEvent(); PROFILE_OPENGL_END();
-#define PROFILE_OPENGL_END(...)								ImGuiProfiler::gOpenGLProfiler.EndEvent()
+#define PROFILE_INITIALIZE() ImGuiProfiler::gCPUProfiler.Initialize("CPU", 8, 1024); ImGuiProfiler::gOpenGLProfiler.Initialize("GPU", 8, 1024);
 
-#define PROFILE_INITIALIZE() ImGuiProfiler::gCPUProfiler.Initialize("CPU", 8, 1024 * 4); ImGuiProfiler::gGPUProfiler.Initialize("GPU", 8, 1024 * 4); ImGuiProfiler::gOpenGLProfiler.Initialize("GPU", 8, 1024 * 4);
-
-#define PROFILE_DISABLE() ImGuiProfiler::gCPUProfiler.SetPaused(true); ImGuiProfiler::gGPUProfiler.SetPaused(true); ImGuiProfiler::gOpenGLProfiler.SetPaused(true);
+#define PROFILE_DISABLE() ImGuiProfiler::gCPUProfiler.SetPaused(true); ImGuiProfiler::gOpenGLProfiler.SetPaused(true);
 #else
 
-#define PROFILE_REGISTER_LOGIC_THREAD(...)
-#define PROFILE_REGISTER_RENDER_THREAD(...)
-#define PROFILE_LOGIC_FRAME()
-#define PROFILE_RENDER_FRAME()
-#define PROFILE_OPENGL_FRAME()
+#define PROFILE_REGISTER_THREAD(...)
+#define PROFILE_FRAME()
 
-#define PROFILE_LOGIC_SCOPE(...)
-#define PROFILE_RENDER_SCOPE(...)
-#define PROFILE_OPENGL_SCOPE(...)
+#define PROFILE_SCOPE(...)
+#define PROFILE_GPU_SCOPE(...)
 
-#define PROFILE_LOGIC_BEGIN(...)
-#define PROFILE_RENDER_BEGIN(...)
-#define PROFILE_OPENGL_BEGIN(...)
+#define PROFILE_BEGIN(...)
+#define PROFILE_GPU_BEGIN(...)
 
-#define PROFILE_LOGIC_END()
-#define PROFILE_RENDER_END()
-#define PROFILE_OPENGL_END()
+#define PROFILE_END()
+#define PROFILE_GPU_END()
 
 #define PROFILE_INITIALIZE()
 #define PROFILE_DISABLE()
@@ -98,23 +74,6 @@ namespace ImGuiProfiler {
 
 		CPUProfileScope(const CPUProfileScope&) = delete;
 		CPUProfileScope& operator=(const CPUProfileScope&) = delete;
-	};
-
-	struct GPUProfileScope {
-		GPUProfileScope(const char* pFunctionName, const char* pFilePath, uint32 lineNumber, const char* pName) {
-			gGPUProfiler.BeginEvent(pName, pFilePath, lineNumber);
-		}
-
-		GPUProfileScope(const char* pFunctionName, const char* pFilePath, uint32 lineNumber) {
-			gGPUProfiler.BeginEvent(pFunctionName, pFilePath, lineNumber);
-		}
-
-		~GPUProfileScope() {
-			gGPUProfiler.EndEvent();
-		}
-
-		GPUProfileScope(const GPUProfileScope&) = delete;
-		GPUProfileScope& operator=(const GPUProfileScope&) = delete;
 	};
 
 	struct OpenGLProfileScope {

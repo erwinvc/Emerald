@@ -87,7 +87,6 @@ namespace emerald {
 		template<typename FuncT>
 		void submit(FuncT&& func) {
 			static_assert(std::is_invocable_v<FuncT>, "FuncT must be callable!");
-			ASSERT(!ThreadManager::isThread(ThreadType::RENDER), "The render thread is not supposed to queue render commands");
 
 			m_backBuffer->push(std::forward<FuncT>(func));
 		}

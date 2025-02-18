@@ -26,25 +26,23 @@ namespace emerald {
 	};
 
 	FrameBuffer::FrameBuffer(FramebufferDesc desc) : m_desc(desc) {
-		Renderer::submit([instance = Ref<FrameBuffer>(this)]() mutable {
-			uint32_t width = instance->m_desc.width;
-			uint32_t height = instance->m_desc.height;
-			if (width == 0) {
-				width = App->getWidth();
-				height = App->getHeight();
-			}
+		uint32_t width = m_desc.width;
+		uint32_t height = m_desc.height;
+		if (width == 0) {
+			width = App->getWidth();
+			height = App->getHeight();
+		}
 
-			GL(glGenFramebuffers(1, &instance->m_handle));
-			GL(glBindFramebuffer(GL_FRAMEBUFFER, instance->m_handle));
+		GL(glGenFramebuffers(1, &m_handle));
+		GL(glBindFramebuffer(GL_FRAMEBUFFER, m_handle));
 
-			GLUtils::glClearColor(instance->m_desc.clearColor);
+		GLUtils::glClearColor(m_desc.clearColor);
 
-			instance->invalidateTextures();
-			instance->attachTextures();
-			//	instance->resize(width, height, true);
+		invalidateTextures();
+		attachTextures();
+		//	resize(width, height, true);
 
-			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		});
+		GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	}
 
 	Ref<FrameBuffer> FrameBuffer::create(FramebufferDesc desc) {
@@ -54,7 +52,7 @@ namespace emerald {
 	}
 
 	void FrameBuffer::invalidateTextures() {
-		ASSERT(ThreadManager::isThread(ThreadType::RENDER), "framebuffers should be invalidated on the render thread");
+		//ASSERT(ThreadManager::isThread(ThreadType::RENDER), "framebuffers should be invalidated on the render thread");
 		m_textures.clear();
 		m_depthTexture = nullptr;
 		for (auto& attachmentDesc : m_desc.attachments) {
@@ -114,9 +112,7 @@ namespace emerald {
 	}
 
 	FrameBuffer::~FrameBuffer() {
-		Renderer::submitFromAnyThread([handle = m_handle] {
-			GL(glDeleteFramebuffers(1, &handle));
-		});
+		GL(glDeleteFramebuffers(1, &m_handle));
 	}
 
 	void FrameBuffer::resize(uint32_t width, uint32_t height, bool forceRecreate) {
@@ -145,18 +141,14 @@ namespace emerald {
 		if (m_desc.scale == scale) return;
 		m_desc.scale = scale;
 
-		Renderer::submit([instance = Ref<FrameBuffer>(this)]() mutable {
-			instance->resize(instance->m_desc.width, instance->m_desc.height, true);
-		});
+		resize(m_desc.width, m_desc.height, true);
 	}
 
 	void FrameBuffer::setMSAA(MSAA msaa) {
 		if (m_desc.samples != msaa) {
 			m_desc.samples = msaa;
-			Renderer::submit([instance = Ref<FrameBuffer>(this)]() mutable {
-				instance->invalidateTextures();
-				instance->attachTextures();
-			});
+			invalidateTextures();
+			attachTextures();
 		}
 	}
 
@@ -180,71 +172,51 @@ namespace emerald {
 
 
 	void FrameBuffer::blit(const Ref<FrameBuffer>& targetFBO) const {
-		Renderer::submit([instance = Ref<const FrameBuffer>(this), targetFBO = Ref<FrameBuffer>(targetFBO)] {
-			uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
-			uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
-			glBlitNamedFramebuffer(instance->m_handle, targetFBO ? targetFBO->handle() : 0, 0, 0, instance->m_desc.width, instance->m_desc.height, 0, 0, w, h, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-		});
+		uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
+		uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
+		glBlitNamedFramebuffer(m_handle, targetFBO ? targetFBO->handle() : 0, 0, 0, m_desc.width, m_desc.height, 0, 0, w, h, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	}
 
 	void FrameBuffer::blitColorOnly(const Ref<FrameBuffer>& targetFBO) const {
-		Renderer::submit([instance = Ref<const FrameBuffer>(this), targetFBO = Ref<FrameBuffer>(targetFBO)] {
-			uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
-			uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
-			glBlitNamedFramebuffer(instance->m_handle, targetFBO ? targetFBO->handle() : 0, 0, 0, instance->m_desc.width, instance->m_desc.height, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		});
+		uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
+		uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
+		glBlitNamedFramebuffer(m_handle, targetFBO ? targetFBO->handle() : 0, 0, 0, m_desc.width, m_desc.height, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	}
 
 	void FrameBuffer::blitDepthOnly(const Ref<FrameBuffer>& targetFBO) const {
-		Renderer::submit([instance = Ref<const FrameBuffer>(this), targetFBO = Ref<FrameBuffer>(targetFBO)] {
-			uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
-			uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
-			glBlitNamedFramebuffer(instance->m_handle, targetFBO ? targetFBO->handle() : 0, 0, 0, instance->m_desc.width, instance->m_desc.height, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-		});
+		uint32_t w = targetFBO ? targetFBO->getWidth() : App->getWidth();
+		uint32_t h = targetFBO ? targetFBO->getHeight() : App->getHeight();
+		glBlitNamedFramebuffer(m_handle, targetFBO ? targetFBO->handle() : 0, 0, 0, m_desc.width, m_desc.height, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	}
 
 	void FrameBuffer::bind() const {
-		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
-			GL(glBindFramebuffer(GL_FRAMEBUFFER, instance->m_handle));
-			GL(glViewport(0, 0, instance->m_desc.width, instance->m_desc.height));
-		});
+		GL(glBindFramebuffer(GL_FRAMEBUFFER, m_handle));
+		GL(glViewport(0, 0, m_desc.width, m_desc.height));
 	}
 	void FrameBuffer::unbind() const {
-		Renderer::submit([] {
-			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		});
+		GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	}
 	void FrameBuffer::clear() const {
-		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
-			GLUtils::glClearColor(instance->m_desc.clearColor);
-			GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-		});
+		GLUtils::glClearColor(m_desc.clearColor);
+		GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 	}
 
 	void FrameBuffer::clearDepthOnly() const {
-		Renderer::submit([] {
-			GL(glClear(GL_DEPTH_BUFFER_BIT));
-		});
+		GL(glClear(GL_DEPTH_BUFFER_BIT));
 	}
 
 	void FrameBuffer::clearColorOnly() const {
-		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
-			GLUtils::glClearColor(instance->m_desc.clearColor);
-			GL(glClear(GL_COLOR_BUFFER_BIT));
-		});
+		GLUtils::glClearColor(m_desc.clearColor);
+		GL(glClear(GL_COLOR_BUFFER_BIT));
 	}
 
 	void FrameBuffer::clearStencilOnly() const {
-		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
-			GL(glClear(GL_STENCIL_BUFFER_BIT));
-		});
+		GL(glClear(GL_STENCIL_BUFFER_BIT));
 	}
 
 	void FrameBuffer::setDrawAndReadBuffersToNone() const {
-		Renderer::submit([instance = Ref<const FrameBuffer>(this)] {
-			GL(glDrawBuffer(GL_NONE));
-			GL(glReadBuffer(GL_NONE));
-		});
+		GL(glDrawBuffer(GL_NONE));
+		GL(glReadBuffer(GL_NONE));
 	}
 
 	namespace FrameBufferManager {
@@ -253,10 +225,8 @@ namespace emerald {
 		}
 
 		void bindDefaultFBO() {
-			Renderer::submit([width = App->getWidth(), height = App->getHeight()] {
-				GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-				GL(glViewport(0, 0, width, height));
-			});
+			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+			GL(glViewport(0, 0, App->getWidth(), App->getHeight()));
 		}
 
 		void onResize(uint32_t width, uint32_t height) {

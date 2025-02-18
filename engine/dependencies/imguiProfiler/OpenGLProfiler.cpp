@@ -105,6 +105,9 @@ namespace ImGuiProfiler {
 		if (!m_pFrameData || m_Paused)
 			return;
 
+		if (m_FrameIndex)
+			EndEvent();
+
 		synchronizeGPUAndCPUTimestamps();
 
 		// We finalize the frame that just ended: "m_FrameIndex"
@@ -161,6 +164,8 @@ namespace ImGuiProfiler {
 		FrameData& newFrame = GetFrameData(m_FrameIndex);
 		newFrame.NumEvents.store(0);
 		// The actual Event structs remain allocated, but we'll overwrite them as we go.
+
+		BeginEvent(m_Name.c_str());
 	}
 
 	void GPUProfiler::synchronizeGPUAndCPUTimestamps() {

@@ -19,8 +19,6 @@ namespace emerald {
 	static constexpr float MIN_CELL_SIZE = 50.0f;
 	static constexpr float MAX_CELL_SIZE = 300.0f;
 
-	static std::unordered_map<AssetType, Ref<Texture>> s_assetTypeIcons;
-
 	AssetBrowserPanel::AssetBrowserPanel() {
 		m_imGuiSelection.PreserveOrder = false;
 		m_imGuiSelection.UserData = this;
@@ -53,7 +51,7 @@ namespace emerald {
 
 		for (auto& icon : s_iconInfos) {
 			auto result = TextureLoader(desc, icon.path, false).load();
-			s_assetTypeIcons[icon.type] = result.valueOr(FallbackTextures::null());
+			m_assetTypeIcons[icon.type] = result.valueOr(FallbackTextures::null());
 		}
 
 		m_folderIcon = TextureLoader(desc, L"res/textures/folder.png", false).load().valueOr(FallbackTextures::null());
@@ -356,7 +354,7 @@ namespace emerald {
 
 			ImGui::SetCursorScreenPos(pos);
 
-			uint32_t icon = file->m_isDirectory ? file->m_isEmpty ? m_folderEmptyIcon->handle() : m_folderIcon->handle() : s_assetTypeIcons[file->m_metadata->getType()]->handle();
+			uint32_t icon = file->m_isDirectory ? file->m_isEmpty ? m_folderEmptyIcon->handle() : m_folderIcon->handle() : m_assetTypeIcons[file->m_metadata->getType()]->handle();
 			ImGui::Image((void*)(uint64_t)icon, ImVec2(cellSize, cellSize));
 
 			if (isSelected) {

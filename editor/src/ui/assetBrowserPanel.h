@@ -44,6 +44,7 @@ namespace emerald {
 		char m_searchBuffer[256] = { 0 };
 		float m_cellSize = 120.0f;
 
+		std::unordered_map<AssetType, Ref<Texture>> m_assetTypeIcons;
 		Ref<Texture> m_meshIcon;
 		Ref<Texture> m_folderIcon;
 		Ref<Texture> m_folderEmptyIcon;

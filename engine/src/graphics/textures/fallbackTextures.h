@@ -5,6 +5,8 @@ namespace emerald {
 	class FallbackTextures {
 	public:
 		static void initialize();
+		static void shutdown();
+
 		static inline Ref<Texture> null() { return s_null; }
 		static inline Ref<Texture> white() { return s_white; }
 		static inline Ref<Texture> black() { return s_black; }

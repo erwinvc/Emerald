@@ -12,22 +12,22 @@ namespace emerald {
 		desc.name = "Fallback_white";
 		uint32_t white = Color::white().toRGBA8();
 		s_white = Ref<Texture>::create(desc, 1, 1, (byte*)&white, (uint32_t)sizeof(uint32_t));
-		s_white->submitInvalidate();
+		s_white->invalidate();
 
 		desc.name = "Fallback_black";
 		uint32_t black = Color::black().toRGBA8();
 		s_black = Ref<Texture>::create(desc, 1, 1, (byte*)&black, (uint32_t)sizeof(uint32_t));
-		s_black->submitInvalidate();
+		s_black->invalidate();
 
 		desc.name = "Fallback_normal";
 		uint32_t normal = Color::normalMap().toRGBA8();
 		s_normal = Ref<Texture>::create(desc, 1, 1, (byte*)&normal, (uint32_t)sizeof(uint32_t));
-		s_normal->submitInvalidate();
+		s_normal->invalidate();
 
 		desc.name = "Fallback_transparent";
 		uint32_t transparent = Color::transparent().toRGBA8();
 		s_transparent = Ref<Texture>::create(desc, 1, 1, (byte*)&transparent, (uint32_t)sizeof(uint32_t));
-		s_transparent->submitInvalidate();
+		s_transparent->invalidate();
 
 		uint32_t nullColors[] = {
 			Color::black().toRGBA8(),
@@ -38,6 +38,14 @@ namespace emerald {
 
 		desc.name = "Fallback_null";
 		s_null = Ref<Texture>::create(desc, 2, 2, (byte*)&nullColors, (uint32_t)sizeof(uint32_t) * 4);
-		s_null->submitInvalidate();
+		s_null->invalidate();
+	}
+
+	void FallbackTextures::shutdown() {
+		s_null.reset();
+		s_white.reset();
+		s_black.reset();
+		s_normal.reset();
+		s_transparent.reset();
 	}
 }

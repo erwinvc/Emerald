@@ -118,7 +118,7 @@ namespace emerald {
 
 				std::string name = std::format("JobSystem_{}_{}", threadPriorityToString(threadPriority, false), threadID);
 				ProfilerThreadType type = (ProfilerThreadType)(((uint16_t)profilerType) + threadID);
-				Thread* thread = ThreadManager::createAndRegisterThread(ThreadType::LOGIC, type, threadPriority, name, [threadID, priority]() {
+				Thread* thread = ThreadManager::createAndRegisterThread(ThreadType::MAIN, type, threadPriority, name, [threadID, priority]() {
 					while (!jobSystemState.m_shutdown.load()) {
 						work(threadID, priority);
 

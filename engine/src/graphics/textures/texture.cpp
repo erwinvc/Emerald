@@ -28,15 +28,12 @@ namespace emerald {
 
 	void Texture::cleanup() const {
 		if (m_handle) {
-			auto id = m_handle;
-			Renderer::submitFromAnyThread([id] {
-				GL(glDeleteTextures(1, &id));
-			});
+			GL(glDeleteTextures(1, &m_handle));
 		}
 	}
 
 	void Texture::invalidate() {
-		ASSERT(ThreadManager::isThread(ThreadType::RENDER), "textures should be invalidated on the render thread");
+		//ASSERT(ThreadManager::isThread(ThreadType::RENDER), "textures should be invalidated on the render thread");
 		ASSERT(m_dirty, "Texture is not dirty, call invalidate() only on dirty textures");
 		if (m_handle) cleanup();
 
@@ -87,23 +84,13 @@ namespace emerald {
 		}
 	}
 
-	void Texture::submitInvalidate() {
-		Renderer::submit([instance = Ref<Texture>(this)] {
-			instance->invalidate();
-		});
-	}
-
 	void Texture::bind(uint32_t slot /*= 0*/) const {
 		//ASSERT(!m_dirty, "Texture is dirty, call invalidate() before binding");
-		Renderer::submit([instance = Ref<const Texture>(this), slot] {
-			GL(glBindTextureUnit(slot, instance->m_handle));
-		});
+		GL(glBindTextureUnit(slot, m_handle));
 	}
 
 	void Texture::unbind(uint32_t slot /*= 0*/) const {
-		Renderer::submit([slot] {
-			GL(glBindTextureUnit(slot, 0));
-		});
+		GL(glBindTextureUnit(slot, 0));
 	}
 
 	void Texture::resize(uint32_t width, uint32_t height) {

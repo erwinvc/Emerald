@@ -20,8 +20,6 @@ namespace emerald {
 
 		shader = Ref<Shader>::create("Gizmo", "res/shaders/gizmo");
 
-		Renderer::flushRenderCommands();
-
 		material = Ref<Material>::create("Gizmo", shader);
 	}
 	void Gizmo::updateGeometry() {
@@ -83,26 +81,24 @@ namespace emerald {
 		material->updateForRendering();
 
 
-		Renderer::submit([this] {
-			// Enable line smoothing for better looking gizmos
-			glEnable(GL_LINE_SMOOTH);
-			glLineWidth(10.0f);  // Thicker lines for better visibility
+		// Enable line smoothing for better looking gizmos
+		glEnable(GL_LINE_SMOOTH);
+		glLineWidth(10.0f);  // Thicker lines for better visibility
 
-			// Disable depth testing to always draw gizmos on top
-			glDepthFunc(GL_ALWAYS);
+		// Disable depth testing to always draw gizmos on top
+		glDepthFunc(GL_ALWAYS);
 
-			// Draw lines
-			glDrawArrays(GL_LINES, 0, (uint32_t)vertices.size());
-			Log::info	("Drawing gizmo with {} vertices", vertices.size());
-			// Draw arrow heads and other triangles
-			// You might want to keep track of where triangle vertices start in your vertex buffer
-			// glDrawArrays(GL_TRIANGLES, triangleStartIndex, triangleCount);
+		// Draw lines
+		glDrawArrays(GL_LINES, 0, (uint32_t)vertices.size());
+		Log::info("Drawing gizmo with {} vertices", vertices.size());
+		// Draw arrow heads and other triangles
+		// You might want to keep track of where triangle vertices start in your vertex buffer
+		// glDrawArrays(GL_TRIANGLES, triangleStartIndex, triangleCount);
 
-			// Restore depth testing
-			glDepthFunc(GL_LESS);
+		// Restore depth testing
+		glDepthFunc(GL_LESS);
 
-			// Reset line width
-			glLineWidth(1.0f);
-		});
+		// Reset line width
+		glLineWidth(1.0f);
 	}
 }

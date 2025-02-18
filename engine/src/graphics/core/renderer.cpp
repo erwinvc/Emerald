@@ -7,10 +7,10 @@
 #include "utils/threading/threadManager.h"
 #include "utils/misc/GLUtils.h"
 #include "imguiProfiler/Profiler.h"
-
 namespace emerald {
 	static Ref<RenderPass> s_activeRenderPass;
 
+	/*
 	void Renderer::acquireRenderBuffer() {
 		ASSERT(ThreadManager::isThread(ThreadType::RENDER), "Renderer::acquireRenderBuffer should be called on the render thread");
 		s_renderSyncManager.acquireRenderBuffer();
@@ -26,6 +26,14 @@ namespace emerald {
 		s_renderSyncManager.submitBufferForRendering();
 	}
 
+	void Renderer::flushRenderCommands() {
+		//Twice, because we use three buffers
+		submitBufferForRendering();
+		waitForBufferAvailability();
+		submitBufferForRendering();
+		waitForBufferAvailability();
+	}
+	*/
 	void Renderer::beginRenderPass(const Ref<RenderPass>& renderPass) {
 		s_activeRenderPass = renderPass;
 		s_activeRenderPass->bind();
@@ -39,19 +47,9 @@ namespace emerald {
 		s_renderSyncManager.executeRenderBuffer();
 	}
 
-	void Renderer::flushRenderCommands() {
-		//Twice, because we use three buffers
-		submitBufferForRendering();
-		waitForBufferAvailability();
-		submitBufferForRendering();
-		waitForBufferAvailability();
-	}
-
 	void Renderer::drawIndexed(uint32_t count, PrimitiveType type) {
-		Renderer::submit([count, type] {
-			PROFILE_RENDER_BEGIN("Draw Indexed");
-			GL(glDrawElements((uint32_t)type, count, GL_UNSIGNED_INT, nullptr));
-			PROFILE_RENDER_END();
-		});
+		PROFILE_GPU_BEGIN("Draw Indexed");
+		GL(glDrawElements((uint32_t)type, count, GL_UNSIGNED_INT, nullptr));
+		PROFILE_GPU_END();
 	}
 }

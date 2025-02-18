@@ -67,14 +67,14 @@ namespace emerald {
 
 	bool mouseActiveInViewport = false;
 	void EmeraldEditorApplication::update(Timestep ts) {
-		PROFILE_LOGIC_BEGIN("Editor window update");
+		PROFILE_BEGIN("Editor window update");
 		updateTitlebar(getTime(), getUPS(), getFPS());
 		s_editorWindow->update(ts);
-		PROFILE_LOGIC_END();
+		PROFILE_END();
 
-		PROFILE_LOGIC_BEGIN("File Watcher process events");
+		PROFILE_BEGIN("File Watcher process events");
 		FileWatcher::processEvents();
-		PROFILE_LOGIC_END();
+		PROFILE_END();
 
 		//Undo redo
 		if (Keyboard::keyMod(KeyMod::CONTROL)) {
@@ -100,37 +100,33 @@ namespace emerald {
 		if (mouseActiveInViewport) s_editorCamera->update(ts);
 
 		if (viewportSize.x > 1 && viewportSize.y > 1) {
-			Renderer::submit([viewportSize] {
-				FrameBufferManager::onResize(viewportSize.x, viewportSize.y);
-			});
+			FrameBufferManager::onResize(viewportSize.x, viewportSize.y);
 		}
 
 		if (SceneManager::getActiveScene()) {
 			SceneManager::getActiveScene()->update(ts);
 
-			PROFILE_LOGIC_BEGIN("Pipeline render");
+			PROFILE_BEGIN("Pipeline render");
 			s_renderPipeline->render();
 			s_editorWindow->render();
 
-			PROFILE_LOGIC_END();
+			PROFILE_END();
 		}
 
-		Renderer::submit([ts, viewportSize] {
-			PROFILE_RENDER_BEGIN("ImGui start");
-			ImGuiManager::begin();
-			PROFILE_RENDER_END();
-			PROFILE_RENDER_BEGIN("ImGui render");
-			s_editorWindow->onImGuiRender();
-			s_renderPipeline->onImGuiRender();
-			EngineError::draw();
-			EngineLoading::draw();
-			PROFILE_RENDER_END();
+		PROFILE_GPU_BEGIN("ImGui start");
+		ImGuiManager::begin();
+		PROFILE_GPU_END();
+		PROFILE_GPU_BEGIN("ImGui render");
+		s_editorWindow->onImGuiRender();
+		s_renderPipeline->onImGuiRender();
+		EngineError::draw();
+		EngineLoading::draw();
+		PROFILE_GPU_END();
 
-			PROFILE_RENDER_BEGIN("ImGui end");
-			DragDrop::handleDragDropVisuals();
-			ImGuiManager::end();
-			PROFILE_RENDER_END();
-		});
+		PROFILE_GPU_BEGIN("ImGui end");
+		DragDrop::handleDragDropVisuals();
+		ImGuiManager::end();
+		PROFILE_GPU_END();
 	}
 
 	void EmeraldEditorApplication::fixedUpdate(Timestep ts) {

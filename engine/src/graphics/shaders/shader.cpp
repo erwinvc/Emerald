@@ -7,12 +7,10 @@
 
 namespace emerald {
 	Shader::Shader(const std::string& name, const std::string& filePath, bool hasGeometry, bool hasTessellation) : m_shaderProgram(nullptr), m_hasGeometry(hasGeometry), m_hasTessellation(hasTessellation), m_name(name), m_shaderPath(filePath) {
-		Renderer::submit([instance = Ref<Shader>(this)]() mutable {
-			instance->m_shaderProgram = instance->load();
-			if (!instance->m_shaderProgram) Log::fatal("[Shader] {} failed to compile", instance->m_name.c_str());
-			instance->gatherUniforms();
-			instance->m_loaded = true;
-		});
+		m_shaderProgram = load();
+		if (!m_shaderProgram) Log::fatal("[Shader] {} failed to compile", m_name.c_str());
+		gatherUniforms();
+		m_loaded = true;
 	}
 
 	Shader::~Shader() {
@@ -332,19 +330,17 @@ namespace emerald {
 	void Shader::reload() {
 		//Ref<Shader> instance = this;
 		//Renderer::submit([instance]() mutable {
-		//	ShaderProgram* program = instance->load();
+		//	ShaderProgram* program = load();
 		//	if (program) {
-		//		delete instance->m_shaderProgram;
-		//		instance->m_shaderProgram = program;
-		//		instance->m_uniformBuffer.reload(instance->m_shaderProgram);
+		//		delete m_shaderProgram;
+		//		m_shaderProgram = program;
+		//		m_uniformBuffer.reload(m_shaderProgram);
 		//	};
 		//});
 	}
 
 
 	void Shader::bind() {
-		Renderer::submit([instance = Ref<Shader>(this)] {
-			instance->m_shaderProgram->bind();
-		});
+		m_shaderProgram->bind();
 	}
 }

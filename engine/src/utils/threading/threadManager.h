@@ -13,8 +13,7 @@ namespace emerald {
 	};
 
 	enum class ThreadType {
-		LOGIC,
-		RENDER,
+		MAIN,
 		CONSOLE_OUTPUT,
 		FILEWATCHER,
 		JOBSYSTEM,

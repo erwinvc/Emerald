@@ -12,19 +12,13 @@
 #include "renderPass.h"
 #include "renderPipeline.h"
 #include "../../editor/src/core/editor.h"
-#include "engine/ecs/core/ECSManager.h"
 #include "../../editor/src/core/selection.h"
-#include "../../editor/src/ui/gizmos/gizmo.h"
 
 namespace emerald {
-	static Gizmo gizmo;
-
 	RenderPipeline::RenderPipeline() {
 		m_geometryShader = Ref<Shader>::create("Geometry", "res/shaders/geometry");
 		m_shadowShader = Ref<Shader>::create("Shadow", "res/shaders/shadow");
 		m_outlineShader = Ref<Shader>::create("Outline", "res/shaders/outline");
-
-		Renderer::flushRenderCommands();
 
 		FramebufferDesc mainfbDesc;
 		mainfbDesc.width = App->getWidth() / 8;
@@ -80,6 +74,7 @@ namespace emerald {
 		blurFbDesc.attachments = {
 			{"BlurColor", TextureFormat::RG32F}
 		};
+
 		blurFbDesc.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 		blurFbDesc.name = "BlurFB_Horizontal";
 
@@ -99,8 +94,8 @@ namespace emerald {
 
 		updateLightMatrices();
 
-		gizmo.initialize();
-		gizmo.setOperation(Gizmo::Operation::SCALE);
+		//m_gizmo.initialize();
+		//m_gizmo.setOperation(Gizmo::Operation::SCALE);
 	}
 
 	RenderPipeline::~RenderPipeline() {
@@ -182,19 +177,15 @@ namespace emerald {
 		SceneManager::getActiveScene()->updateAllTransforms();
 
 		{
-			Renderer::submit([] {
-				PROFILE_RENDER_BEGIN("ShadowPass");
-			});
+			PROFILE_GPU_BEGIN("ShadowPass");
 			Renderer::beginRenderPass(m_shadowPass);
 			m_shadowPass->clear();
 
-			Renderer::submit([] {
-				glEnable(GL_DEPTH_TEST);
-				glClear(GL_DEPTH_BUFFER_BIT);
-				glDisable(GL_CULL_FACE);
-				//glEnable(GL_CULL_FACE);
-				//glCullFace(GL_FRONT); // optional to reduce acne
-			});
+			glEnable(GL_DEPTH_TEST);
+			glClear(GL_DEPTH_BUFFER_BIT);
+			glDisable(GL_CULL_FACE);
+			//glEnable(GL_CULL_FACE);
+			//glCullFace(GL_FRONT); // optional to reduce acne
 
 			m_shadowMaterial->updateForRendering();
 
@@ -215,21 +206,17 @@ namespace emerald {
 			}
 
 			Renderer::endRenderPass();
-			Renderer::submit([] {
-				PROFILE_RENDER_END();
-			});
+			PROFILE_GPU_END();
 		}
 
-		Renderer::submit([] {PROFILE_RENDER_BEGIN("Pipeline"); });
+		PROFILE_GPU_BEGIN("Pipeline");
 		Renderer::beginRenderPass(m_mainPass);
 		m_mainPass->clear();
 
-		Renderer::submit([] {
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
-			glFrontFace(GL_CCW);
-			GL(glEnable(GL_DEPTH_TEST));
-		});
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+		GL(glEnable(GL_DEPTH_TEST));
 
 		//multithread this?
 		auto view = EntityComponentSystem::View<MeshRendererComponent, TransformComponent>();
@@ -257,16 +244,14 @@ namespace emerald {
 
 		//Outline
 		Renderer::beginRenderPass(m_outlinePass);
-		Renderer::submit([] {
-			glEnable(GL_STENCIL_TEST);
-			glStencilMask(0xFF);
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			//Disable color writes(optional)
-			//glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		});
+		glEnable(GL_STENCIL_TEST);
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//Disable color writes(optional)
+		//glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 		m_outlineMaterial->set("_ViewMatrix", Editor->getEditorCamera()->getViewMatrix());
 		m_outlineMaterial->set("_ProjectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
@@ -279,35 +264,31 @@ namespace emerald {
 				Ref<Model> model = meshRenderer->m_model.get();
 				if (!model) continue;
 				Ref<Mesh> submesh = model->getSubMesh(meshRenderer->m_submeshIndex);
-		
+
 				m_outlineMaterial->set("_ModelMatrix", transform->getGlobalTransform());
 				m_outlineMaterial->updateForRendering();
-		
+
 				submesh->bind();
 				Renderer::drawIndexed(submesh->getIBO()->getCount(), PrimitiveType::TRIANGLES);
 			}
 		}
 
 		// Then re-enable color writes so we can draw the outline color
-		Renderer::submit([] {
-			glDisable(GL_BLEND);
-			glDisable(GL_STENCIL_TEST);
-			//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		});
-		//
-		//// We can end or keep going, depending on how we want to do the outline
+		glDisable(GL_BLEND);
+		glDisable(GL_STENCIL_TEST);
+		//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	//
+	//// We can end or keep going, depending on how we want to do the outline
 
-		gizmo.updateGeometry();
-		gizmo.render(Editor->getEditorCamera()->getProjectionMatrix(), Editor->getEditorCamera()->getViewMatrix(), glm::mat4(1.0f));
+		//m_gizmo.updateGeometry();
+		//m_gizmo.render(Editor->getEditorCamera()->getProjectionMatrix(), Editor->getEditorCamera()->getViewMatrix(), glm::mat4(1.0f));
 
 		Renderer::endRenderPass();
-
-		Renderer::submit([] {PROFILE_RENDER_BEGIN("Blit"); });
+		PROFILE_GPU_BEGIN("Blit");
 		m_mainPass->descriptor().frameBuffer->blitColorOnly(m_resolveFramebuffer);
-		Renderer::submit([] {PROFILE_RENDER_END(); });
-
+		PROFILE_GPU_END();
 		FrameBufferManager::bindDefaultFBO();
-		Renderer::submit([] {PROFILE_RENDER_END(); });
+		PROFILE_GPU_END();
 	}
 
 	const Ref<Texture>& RenderPipeline::getFinalTexture() {

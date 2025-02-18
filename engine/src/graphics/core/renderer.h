@@ -16,6 +16,7 @@ namespace emerald {
 
 	class Renderer {
 	public:
+		/*
 		template<typename FuncT>
 		static void submit(FuncT&& func) {
 			s_renderSyncManager.submit(std::forward<FuncT>(func));
@@ -25,12 +26,11 @@ namespace emerald {
 		static void submitFromAnyThread(FuncT&& func) {
 			s_renderSyncManager.submitFromAnyThread(std::forward<FuncT>(func));
 		}
-
 		static void acquireRenderBuffer();
 		static void waitForBufferAvailability();
 		static void submitBufferForRendering();
 		static void flushRenderCommands();
-
+		*/
 		static void beginRenderPass(const Ref<RenderPass>& renderPass);
 		static void endRenderPass();
 

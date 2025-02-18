@@ -72,108 +72,65 @@ namespace emerald {
 		GL(glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
 		GLError::setGLDebugMessageCallback();
 
-		ThreadManager::registerCurrentThread(ThreadType::RENDER);
-
 		Metrics::initialize();
 		AssetRegistry::initialize();
 		JobSystem::initialize(4);
 
-		ThreadManager::createAndRegisterThread(ThreadType::LOGIC, ProfilerThreadType::LOGIC, ThreadPriority::NORMAL, "Logic", [this]() { initializeLogic(); });
+		//ThreadManager::createAndRegisterThread(ThreadType::LOGIC, ProfilerThreadType::LOGIC, ThreadPriority::NORMAL, "Logic", [this]() { initializeLogic(); });
+		ThreadManager::registerCurrentThread(ThreadType::MAIN);
 
-		renderLoop();
+		PROFILE_REGISTER_THREAD("Logic", ProfilerThreadType::LOGIC);
 
-		close();
+		FallbackTextures::initialize();
+
+		onInitialize();
+
+		//We want to render the first frame before showing the window
+		loop();
+
+		m_mainWindow->show();
+
+		while (g_running) {
+			loop();
+		}
+
+		FallbackTextures::shutdown();
+		AssetRegistry::clear();
+		//close();
 
 		Metrics::shutdown();
-		//JobSystem::shutdown();
 		ImGuiManager::shutdown();
 		FrameBufferManager::shutdown();
 
 		onShutdown();
 
 		m_mainWindow.reset();
-		glfwTerminate();
+
+		GLFW::terminate();
 	}
 
+	void Application::loop() {
+		PROFILE_FRAME();
 
-	void Application::renderLoop() {
-		PROFILE_REGISTER_RENDER_THREAD();
-
-		while (g_running) {
-			PROFILE_RENDER_FRAME();
-			PROFILE_OPENGL_FRAME();
-			if (m_mainWindow->shouldClose()) {
-				g_running = false;
-			}
-
-			PROFILE_RENDER_BEGIN("DPI check");
-			DPI::update();
-			PROFILE_RENDER_END();
-
-			PROFILE_RENDER_BEGIN("Process queue");
-			processQueue();
-			PROFILE_RENDER_END();
-
-			PROFILE_RENDER_BEGIN("Wait for render buffer");
-			Metrics::startTimer(Metric::RENDERWAIT);
-			Renderer::acquireRenderBuffer();
-			Metrics::endTimer(Metric::RENDERWAIT);
-			PROFILE_RENDER_END();
-
-			PROFILE_RENDER_BEGIN("Render");
-			Metrics::startTimer(Metric::RENDER);
-
-			PROFILE_RENDER_BEGIN("PollEvents");
-			m_mainWindow->pollEvents();
-			PROFILE_RENDER_END();
-
-			handleResize();
-
-			Metrics::startTimer(Metric::GPU);
-			PROFILE_RENDER_BEGIN("CommandBuffer");
-			Renderer::executeCommandBuffer();
-			PROFILE_RENDER_END();
-
-			PROFILE_RENDER_BEGIN("SwapBuffers");
-			m_mainWindow->swapBuffers();
-			Metrics::endTimer(Metric::GPU);
-			m_fpsCounter++;
-			PROFILE_RENDER_END();
-
-			Metrics::endTimer(Metric::RENDER);
-			PROFILE_RENDER_END();
+		if (m_mainWindow->shouldClose()) {
+			g_running = false;
 		}
-	}
 
-	void Application::initializeLogic() {
-		//PROFILE_REGISTER_LOGIC_THREAD("Logic");
+		PROFILE_BEGIN("DPI check");
+		DPI::update();
+		PROFILE_END();
 
-		Renderer::waitForBufferAvailability();
-		FallbackTextures::initialize();
+		PROFILE_BEGIN("Process queue");
+		processQueue();
+		PROFILE_END();
 
-		onInitialize();
-		Renderer::submitBufferForRendering();
+		PROFILE_BEGIN("PollEvents");
+		m_mainWindow->pollEvents();
+		PROFILE_END();
 
-		//We want to render the first frame before showing the window
-		logicLoop();
+		handleResize();
 
-		Renderer::submit([window = Ref<Window>(m_mainWindow)] { window->show(); });
-
-		do {
-			logicLoop();
-		} while (g_running);
-	}
-
-	void Application::logicLoop() {
-		PROFILE_LOGIC_FRAME();
-
-		PROFILE_LOGIC_BEGIN("Wait");
-		Metrics::startTimer(Metric::LOGICWAIT);
-		Renderer::waitForBufferAvailability();
-		Metrics::endTimer(Metric::LOGICWAIT);
-		PROFILE_LOGIC_END();
-
-		PROFILE_LOGIC_BEGIN("Logic");
+		PROFILE_BEGIN("Logic");
 		Metrics::startTimer(Metric::LOGIC);
 		float currentTime = (float)glfwGetTime();
 		float deltaTime = currentTime - m_lastFrameTime;
@@ -188,26 +145,26 @@ namespace emerald {
 			m_accumulatedTime -= m_fixedTimeStep;
 		}
 
-		PROFILE_LOGIC_BEGIN("Input");
+		PROFILE_BEGIN("Input");
 		Keyboard::update();
 		Mouse::update();
-		PROFILE_LOGIC_END();
+		PROFILE_END();
 
-		PROFILE_LOGIC_BEGIN("Process events");
+		PROFILE_BEGIN("Process events");
 		EventSystem::processEvents();
-		PROFILE_LOGIC_END();
+		PROFILE_END();
 
-		PROFILE_LOGIC_BEGIN("Process queue");
+		PROFILE_BEGIN("Process queue");
 		processQueueCPU();
-		PROFILE_LOGIC_END();
+		PROFILE_END();
 
-		PROFILE_LOGIC_BEGIN("Asset streaming");
+		PROFILE_BEGIN("Asset streaming");
 		AssetRegistry::update();
-		PROFILE_LOGIC_END();
+		PROFILE_END();
 
-		PROFILE_LOGIC_BEGIN("Update");
+		PROFILE_BEGIN("Update");
 		update(Timestep(deltaTime, m_totalFrameTime, m_frameCount));
-		PROFILE_LOGIC_END();
+		PROFILE_END();
 
 		m_lastFrameTime = currentTime;
 
@@ -219,11 +176,16 @@ namespace emerald {
 			m_upsfpsCounter = currentTime;
 		}
 
-		PROFILE_LOGIC_END();
+		PROFILE_END();
 		Metrics::endTimer(Metric::LOGIC);
-		PROFILE_LOGIC_BEGIN("Submit buffer");
-		Renderer::submitBufferForRendering();
-		PROFILE_LOGIC_END();
+		PROFILE_BEGIN("Submit buffer");
+
+		PROFILE_BEGIN("SwapBuffers");
+		m_mainWindow->swapBuffers();
+		PROFILE_END();
+		m_fpsCounter++;
+
+		PROFILE_END();
 	}
 
 	void Application::close() {

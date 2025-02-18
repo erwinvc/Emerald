@@ -60,9 +60,7 @@ namespace emerald {
 		void setFixedTimeStep(float timeStep) { m_fixedTimeStep = timeStep; }
 
 	private:
-		void initializeLogic();
-		void logicLoop();
-		void renderLoop();
+		void loop();
 
 	protected:
 		ApplicationSettings m_settings;

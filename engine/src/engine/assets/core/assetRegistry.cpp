@@ -230,8 +230,10 @@ namespace emerald {
 		std::lock_guard<std::mutex> lock(m_mutex);
 
 		m_assets.clear();
+		m_assetMetadata.clear();
 		m_uuidAssetMap.clear();
 		m_pathAssetMap.clear();
+		m_streamingQueue.clear();
 	}
 
 	void AssetRegistry::update() {

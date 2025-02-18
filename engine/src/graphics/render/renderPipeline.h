@@ -2,6 +2,7 @@
 #include "graphics/render/renderPass.h"
 #include "graphics/render/material.h"
 #include "graphics/textures/texture.h"
+#include "../../editor/src/ui/gizmos/gizmo.h"
 
 namespace emerald {
 	class Window;
@@ -25,6 +26,8 @@ namespace emerald {
 		Ref<Shader> m_outlineShader;
 		Ref<Material> m_outlineMaterial;
 		Ref<RenderPass> m_outlinePass;
+
+		//Gizmo m_gizmo;
 
 		glm::mat4 m_lightView;
 		glm::mat4 m_lightProjection;

@@ -5,14 +5,10 @@
 namespace emerald {
 	ShaderProgram::~ShaderProgram() {
 		for (uint32_t shader : m_attachedShaders) {
-			Renderer::submitFromAnyThread([s = shader]() mutable {
-				GL(glDeleteShader(s));
-			});
+			GL(glDeleteShader(shader));
 		}
 		m_attachedShaders.clear();
-		Renderer::submitFromAnyThread([handle = m_handle]() mutable {
-			GL(glDeleteProgram(handle));
-		});
+		GL(glDeleteProgram(m_handle));
 	}
 
 	void ShaderProgram::createProgram() {

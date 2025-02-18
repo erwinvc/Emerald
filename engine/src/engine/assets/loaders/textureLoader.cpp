@@ -89,7 +89,7 @@ namespace emerald {
 
 	Expected<Ref<Asset>> TextureLoader::onFinishLoad(){
 		Ref<Texture> texture = Ref<Texture>::create(m_desc, m_width, m_height, m_buffer.data(), m_buffer.size());
-		Renderer::submit([instance = Ref<Texture>(texture)] {instance->invalidate(); });
+		texture->invalidate();
 		return texture.as<Asset>();
 	}
 }

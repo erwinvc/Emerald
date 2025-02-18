@@ -1,11 +1,18 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "Profiler.h"
+#include "iconsFontAwesome4.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_internal.h"
-#include "iconsFontAwesome4.h"
-#include <Shlwapi.h>
+#include "Profiler.h"
 #include "utils/core/log.h"
+#include <Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
+
+/*
+ * This code is adapted from an ImGui-based C++ profiling library originally found on GitHub.
+ * Unfortunately, the author's name and the original repository URL are no longer available.
+ * All credit for the initial implementation goes to the unknown creator.
+ * If you are the author or know who they are, please contact me so I can update the attribution.
+ */
 
 namespace ImGuiProfiler {
 	struct StyleOptions {
@@ -94,7 +101,6 @@ namespace ImGuiProfiler {
 		return ImColor(HSVtoRGB(hashF, 0.5f, 0.5f));
 	}
 
-
 	static void DrawBar(uint32 id, float colorOffset, uint64 beginTicks, uint64 endTicks, uint32 depth, ImVec2& cursor, float timelineWidth, float TicksToPixels, float TicksToMs, float ticksInTimeline, ImRect timelineRect, uint64 beginAnchor, bool& anyHovered, const char* pName, bool* pOutHovered = nullptr) {
 		HUDContext& context = Context();
 		StyleOptions& style = context.Style;
@@ -120,7 +126,7 @@ namespace ImGuiProfiler {
 					textColor.Value.w *= 0.5f;
 				} else if (context.PauseThreshold && ms >= context.PauseThresholdTime) {
 					gCPUProfiler.SetPaused(true);
-					gGPUProfiler.SetPaused(true);
+					gOpenGLProfiler.SetPaused(true);
 				}
 
 				// Darken the bottom
@@ -260,7 +266,6 @@ namespace ImGuiProfiler {
 			// Add dark shade background for every even frame
 			int frameNr = 0;
 			URange cpuRange = gCPUProfiler.GetFrameRange();
-			URange cpuRange2 = gGPUProfiler.GetFrameRange();
 			for (uint32 i = cpuRange.Begin; i < cpuRange.End; ++i) {
 				Span<const CPUProfiler::EventData::Event> events = gCPUProfiler.GetEventsForThread(gCPUProfiler.GetThreads()[0], i);
 				if (events.size() > 0 && frameNr++ % 2 == 0) {
@@ -304,54 +309,6 @@ namespace ImGuiProfiler {
 				pDraw->AddText(trackTextCursor, ImColor(style.BGTextColor), pName);
 				return isOpen;
 			};
-
-			{
-				//CPU RENDERER
-				Span<const CPUProfiler::ThreadData> threads = gGPUProfiler.GetThreads();
-				for (uint32 threadIndex = 0; threadIndex < (uint32)threads.size(); ++threadIndex) {
-					// Add thread name for track
-					const CPUProfiler::ThreadData& thread = threads[threadIndex];
-					//const char* pHeaderText;
-					//ImFormatStringToTempBuffer(&pHeaderText, nullptr, "%s [%d]", thread.Name, thread.ThreadID);
-					bool isOpen = TrackHeader(thread.Name, ImGui::GetID(&thread));
-
-					uint32 maxDepth = isOpen ? style.MaxDepth : 1;
-					uint32 trackDepth = 1;
-					cursor.y += style.BarHeight;
-
-					// Add a bar in the right place for each event
-					/*
-						|[=============]			|
-						|	[======]				|
-					*/
-					for (uint32 frameIndex = cpuRange2.Begin; frameIndex < cpuRange2.End; ++frameIndex) {
-						Span<const CPUProfiler::EventData::Event> events = gGPUProfiler.GetEventsForThread(thread, frameIndex);
-						for (const CPUProfiler::EventData::Event& event : events) {
-							// Skip events above the max depth
-							if (event.Depth >= maxDepth)
-								continue;
-
-							trackDepth = ImMax(trackDepth, (uint32)event.Depth + 1);
-
-							bool hovered;
-							DrawBar(ImGui::GetID(&event), 0.33f, event.TicksBegin, event.TicksEnd, event.Depth, cursor, timelineWidth, TicksToPixels, TicksToMs, ticksInTimeline, timelineRect, beginAnchor, anyHovered, event.pName, &hovered);
-							if (hovered) {
-								if (ImGui::BeginTooltip()) {
-									ImGui::Text("%s | %.3f ms", event.pName, TicksToMs * (float)(event.TicksEnd - event.TicksBegin));
-									ImGui::Text("Frame %d", frameIndex);
-									if (event.pFilePath)
-										ImGui::Text("%s:%d", event.pFilePath, event.LineNumber);
-									ImGui::EndTooltip();
-								}
-							}
-						}
-					}
-
-					// Add vertical line to end track
-					cursor.y += trackDepth * style.BarHeight;
-					pDraw->AddLine(ImVec2(timelineRect.Min.x, cursor.y), ImVec2(timelineRect.Max.x, cursor.y), ImColor(style.BGTextColor));
-				}
-			}
 
 			{
 				// Draw line separating old GPU from *new* GPU
@@ -634,7 +591,6 @@ namespace ImGuiProfiler {
 		}
 
 		gCPUProfiler.SetPaused(context.IsPaused);
-		gGPUProfiler.SetPaused(context.IsPaused);
 		gOpenGLProfiler.SetPaused(context.IsPaused);
 
 		DrawProfilerTimeline(ImVec2(0, 0));

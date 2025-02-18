@@ -25,7 +25,6 @@ namespace emerald {
 		const TextureDesc& descriptor() const { return m_desc; }
 
 		void invalidate();
-		void submitInvalidate();
 
 		uint32_t handle() const { return m_handle; }
 
