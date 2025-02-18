@@ -1,20 +1,27 @@
 #include "eepch.h"
 #include "graphics/buffers/vertexArray.h"
-#include "graphics/buffers/vertexBuffer.h"
 #include "graphics/core/renderer.h"
 
 namespace emerald {
+	VertexArray::VertexArray(const std::string& name, VertexBufferLayout layout) : m_layout(layout), m_handle(0), m_validated(false) {
+		Renderer::submit([instance = Ref<VertexArray>(this), name]() mutable {
+			GL(glGenVertexArrays(1, &instance->m_handle));
+
+			GL(glBindVertexArray(instance->m_handle));
+			GL(glObjectLabel(GL_VERTEX_ARRAY, instance->m_handle, -1, name.c_str()));
+		});
+	}
+
 	VertexArray::VertexArray(VertexBufferLayout layout) : m_layout(layout), m_handle(0), m_validated(false) {
 		Renderer::submit([instance = Ref<VertexArray>(this)]() mutable {
 			GL(glGenVertexArrays(1, &instance->m_handle));
 
 			const std::string name = "VertexArrayObject";
-		//	GL(glObjectLabel(GL_VERTEX_ARRAY, instance->m_handle, static_cast<GLsizei>(label.size()), label.c_str()));
 			GL(glBindVertexArray(instance->m_handle));
-
 			GL(glObjectLabel(GL_VERTEX_ARRAY, instance->m_handle, -1, name.c_str()));
 		});
 	}
+
 	VertexArray::~VertexArray() {
 		Renderer::submitFromAnyThread([handle = m_handle]() mutable {
 			GL(glDeleteVertexArrays(1, &handle));

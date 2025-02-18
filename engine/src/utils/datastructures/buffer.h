@@ -2,12 +2,6 @@
 #include "core/common/stdIncl.h"
 
 namespace emerald {
-	enum BufferUsage {
-		STATIC_DRAW = 0x88E4,	//GL_STATIC_DRAW
-		DYNAMIC_DRAW = 0x88E8,	//GL_DYNAMIC_DRAW
-		STREAM_DRAW = 0x88E0	//GL_STREAM_DRAW 
-	};
-
 	template<typename T>
 	class Buffer {
 	private:

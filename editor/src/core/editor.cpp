@@ -110,6 +110,8 @@ namespace emerald {
 
 			PROFILE_LOGIC_BEGIN("Pipeline render");
 			s_renderPipeline->render();
+			s_editorWindow->render();
+
 			PROFILE_LOGIC_END();
 		}
 

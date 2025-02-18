@@ -18,6 +18,9 @@
 #include "core/editor.h"
 #include "core/projectManager.h"
 #include "utils/system/fileSystem.h"
+#include "graphics/core/renderer.h"
+#include "gizmos/gizmo.h"
+
 
 namespace emerald {
 	static bool s_TitleBarHovered = false;
@@ -282,6 +285,7 @@ namespace emerald {
 					SceneManager::getActiveScene()->save();
 			}
 		}
+
 		//if (Keyboard::keyDown(Key::N)) {
 		//	offset++;
 		//}
@@ -289,6 +293,9 @@ namespace emerald {
 		//	offset--;
 		//}
 		//Log::info("Offset: {}", offset);
+	}
+
+	void EditorWindow::render() {
 	}
 
 	void EditorWindow::onImGuiRender() {

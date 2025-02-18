@@ -20,6 +20,10 @@
 #include <fstream>
 #include <atomic>
 
+// OpenGL
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #pragma warning(push, 0)
 #include <json.h>
 #pragma warning(pop)

@@ -17,6 +17,7 @@ namespace emerald {
 		void drawEditor(ImVec2 pos, ImVec2 size, ImGuiID viewportID, float titlebarHeight);
 		void drawWindows();
 		void update(Timestep ts);
+		void render();
 		void fixedUpdate(Timestep ts);
 		void onImGuiRender();
 

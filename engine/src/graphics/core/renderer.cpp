@@ -10,7 +10,6 @@
 
 namespace emerald {
 	static Ref<RenderPass> s_activeRenderPass;
-	static RenderSyncManager s_renderSyncManager;
 
 	void Renderer::acquireRenderBuffer() {
 		ASSERT(ThreadManager::isThread(ThreadType::RENDER), "Renderer::acquireRenderBuffer should be called on the render thread");
@@ -46,14 +45,6 @@ namespace emerald {
 		waitForBufferAvailability();
 		submitBufferForRendering();
 		waitForBufferAvailability();
-	}
-
-	void Renderer::submit(RenderCommand command) {
-		s_renderSyncManager.submit(command);
-	}
-
-	void Renderer::submitFromAnyThread(RenderCommand command) {
-		s_renderSyncManager.submitFromAnyThread(command);
 	}
 
 	void Renderer::drawIndexed(uint32_t count, PrimitiveType type) {

@@ -1,5 +1,6 @@
 #pragma once
-#include "graphics/buffers/vertexBuffer.h"
+#include "graphics/buffers/vertexBufferLayout.h"
+#include "glBuffer.h"
 
 namespace emerald {
 	class VertexArray : public RefCounted {
@@ -11,6 +12,7 @@ namespace emerald {
 		std::vector<Ref<VertexBuffer>> m_buffers;
 
 	public:
+		VertexArray(const std::string& name, VertexBufferLayout layout);
 		VertexArray(VertexBufferLayout layout);
 		~VertexArray();
 

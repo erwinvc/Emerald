@@ -1,6 +1,5 @@
 #include "eepch.h"
 #include "camera.h"
-#include "core/application/application.h"
 #include "glm/gtx/quaternion.hpp"
 
 namespace emerald {

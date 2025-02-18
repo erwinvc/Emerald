@@ -1,7 +1,6 @@
 #pragma once
 #include "graphics/core/renderer.h"
 #include "shaderProgram.h"
-#include "glad/glad.h"
 
 namespace emerald {
 	enum class ShaderUniformType {
@@ -137,69 +136,22 @@ namespace emerald {
 			});
 		}
 
-		void setUniformInt(uint32_t location, const int32_t& value) {
-			GL(glUniform1iv(location, 1, (GLint*)&value));
-		}
-
-		void setUniformInt(uint32_t location, uint32_t count, const int32_t* value) {
-			GL(glUniform1iv(location, count, (GLint*)value));
-		}
-
-		void setUniformUInt(uint32_t location, const uint32_t& value) {
-			GL(glUniform1uiv(location, 1, (GLuint*)&value));
-		}
-
-		void setUniformUInt(uint32_t location, uint32_t count, const uint32_t* value) {
-			GL(glUniform1uiv(location, count, (GLuint*)value));
-		}
-
-		void setUniformFloat1(uint32_t location, const float& value) {
-			GL(glUniform1fv(location, 1, (GLfloat*)&value));
-		}
-
-		void setUniformFloat1(uint32_t location, uint32_t count, const float* value) {
-			GL(glUniform1fv(location, count, (GLfloat*)value));
-		}
-
-		void setUniformFloat2(uint32_t location, const glm::vec2& value) {
-			GL(glUniform2fv(location, 1, (GLfloat*)&value));
-		}
-
-		void setUniformFloat2(uint32_t location, uint32_t count, const glm::vec2* value) {
-			GL(glUniform2fv(location, count, (GLfloat*)value));
-		}
-
-		void setUniformFloat3(uint32_t location, const glm::vec3& value) {
-			GL(glUniform3fv(location, 1, (GLfloat*)&value));
-		}
-
-		void setUniformFloat3(uint32_t location, uint32_t count, const glm::vec3* value) {
-			GL(glUniform3fv(location, count, (GLfloat*)value));
-		}
-
-		void setUniformFloat4(uint32_t location, const glm::vec4& value) {
-			GL(glUniform4fv(location, 1, (GLfloat*)&value));
-		}
-
-		void setUniformFloat4(uint32_t location, uint32_t count, const glm::vec4* value) {
-			GL(glUniform4fv(location, count, (GLfloat*)value));
-		}
-
-		void setUniformMatrix3(uint32_t location, const glm::mat3& value) {
-			GL(glUniformMatrix3fv(location, 1, GL_FALSE, (GLfloat*)&value));
-		}
-
-		void setUniformMatrix3(uint32_t location, uint32_t count, const glm::mat3* value) {
-			GL(glUniformMatrix3fv(location, count, GL_FALSE, (GLfloat*)value));
-		}
-
-		void setUniformMatrix4(uint32_t location, const glm::mat4& value) {
-			GL(glUniformMatrix4fv(location, 1, GL_FALSE, (GLfloat*)&value));
-		}
-
-		void setUniformMatrix4(uint32_t location, uint32_t count, const glm::mat4* value) {
-			GL(glUniformMatrix4fv(location, count, GL_FALSE, (GLfloat*)value));
-		}
+		void setUniformInt(uint32_t location, const int32_t& value);
+		void setUniformInt(uint32_t location, uint32_t count, const int32_t* value);
+		void setUniformUInt(uint32_t location, const uint32_t& value);
+		void setUniformUInt(uint32_t location, uint32_t count, const uint32_t* value);
+		void setUniformFloat1(uint32_t location, const float& value);
+		void setUniformFloat1(uint32_t location, uint32_t count, const float* value);
+		void setUniformFloat2(uint32_t location, const glm::vec2& value);
+		void setUniformFloat2(uint32_t location, uint32_t count, const glm::vec2* value);
+		void setUniformFloat3(uint32_t location, const glm::vec3& value);
+		void setUniformFloat3(uint32_t location, uint32_t count, const glm::vec3* value);
+		void setUniformFloat4(uint32_t location, const glm::vec4& value);
+		void setUniformFloat4(uint32_t location, uint32_t count, const glm::vec4* value);
+		void setUniformMatrix3(uint32_t location, const glm::mat3& value);
+		void setUniformMatrix3(uint32_t location, uint32_t count, const glm::mat3* value);
+		void setUniformMatrix4(uint32_t location, const glm::mat4& value);
+		void setUniformMatrix4(uint32_t location, uint32_t count, const glm::mat4* value);
 
 		//void setUniformInt(uint32_t location, const int32_t& value);
 		//void setUniformInt(uint32_t location, uint32_t count, const int32_t* value);

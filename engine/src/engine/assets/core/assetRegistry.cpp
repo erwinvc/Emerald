@@ -149,7 +149,6 @@ namespace emerald {
 	}
 
 	void AssetRegistry::startLoading(AssetMetadata* metadata) {
-		m_streamingQueue.emplace_back(metadata, Ref<AssetLoader>());
 
 		Ref<AssetLoader> assetLoader = metadata->createAssetLoader();
 		if (!assetLoader) {
@@ -157,6 +156,7 @@ namespace emerald {
 			m_streamingState[metadata] = AssetStreamingState::CANNOTLOAD;
 			return;
 		}
+		m_streamingQueue.emplace_back(metadata, Ref<AssetLoader>());
 		StreamingTask& task = m_streamingQueue.back();
 		task.m_loader = assetLoader;
 

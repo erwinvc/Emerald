@@ -6,7 +6,6 @@
 #include "engine/input/keyboard.h"
 #include "engine/scene/sceneManager.h"
 #include "graphics/buffers/framebuffer.h"
-#include "graphics/buffers/indexBuffer.h"
 #include "graphics/core/renderer.h"
 #include "graphics/shaders/shader.h"
 #include "imguiProfiler/Profiler.h"
@@ -15,8 +14,11 @@
 #include "../../editor/src/core/editor.h"
 #include "engine/ecs/core/ECSManager.h"
 #include "../../editor/src/core/selection.h"
+#include "../../editor/src/ui/gizmos/gizmo.h"
 
 namespace emerald {
+	static Gizmo gizmo;
+
 	RenderPipeline::RenderPipeline() {
 		m_geometryShader = Ref<Shader>::create("Geometry", "res/shaders/geometry");
 		m_shadowShader = Ref<Shader>::create("Shadow", "res/shaders/shadow");
@@ -96,6 +98,9 @@ namespace emerald {
 		m_outlinePass = Ref<RenderPass>::create(outlinePassDesc);
 
 		updateLightMatrices();
+
+		gizmo.initialize();
+		gizmo.setOperation(Gizmo::Operation::SCALE);
 	}
 
 	RenderPipeline::~RenderPipeline() {
@@ -291,6 +296,10 @@ namespace emerald {
 		});
 		//
 		//// We can end or keep going, depending on how we want to do the outline
+
+		gizmo.updateGeometry();
+		gizmo.render(Editor->getEditorCamera()->getProjectionMatrix(), Editor->getEditorCamera()->getViewMatrix(), glm::mat4(1.0f));
+
 		Renderer::endRenderPass();
 
 		Renderer::submit([] {PROFILE_RENDER_BEGIN("Blit"); });

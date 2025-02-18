@@ -4,65 +4,42 @@
 #include "utils/threading/threadManager.h"
 
 namespace emerald {
-	static bool s_shutdown = false;
-	static std::vector<RenderCommand> quickBuffer;
-	static std::mutex quickMutex;
 	RenderSyncManager::~RenderSyncManager() {
-		s_shutdown = true;
+		m_shutdown = true;
 	}
 
 	void RenderSyncManager::acquireRenderBuffer() {
-		std::unique_lock<std::mutex> lock(bufferMutex);
+		std::unique_lock<std::mutex> lock(m_bufferMutex);
 
-		renderCv.wait(lock, [this] { return bufferReady; }); // Wait until there is a buffer ready for rendering
+		m_renderCv.wait(lock, [this] { return m_bufferReady; }); // Wait until there is a buffer ready for rendering
 
-		std::swap(frontBuffer, pendingBuffer); // Swap the front buffer with the pending buffer
-		bufferReady = false;
-		bufferAvailable = true;
+		std::swap(m_frontBuffer, m_pendingBuffer); // Swap the front buffer with the pending buffer
+		m_bufferReady = false;
+		m_bufferAvailable = true;
 
 		lock.unlock();
-		logicCv.notify_one();
-	}
-
-	void RenderSyncManager::submit(RenderCommand command) {
-		if (s_shutdown) return;
-		ASSERT(!ThreadManager::isThread(ThreadType::RENDER), "The render thread is not supposed to queue render commands");
-		backBuffer->emplace_back(command);
-	}
-
-	void RenderSyncManager::submitFromAnyThread(RenderCommand command) {
-		if (s_shutdown) return;
-
-		std::lock_guard<std::mutex> lock(quickMutex);
-		quickBuffer.emplace_back(command);
+		m_logicCv.notify_one();
 	}
 
 	void RenderSyncManager::executeRenderBuffer() {
-		for (const auto& cmd : *frontBuffer) {
-			if (cmd) cmd();
-		}
+		m_frontBuffer->execute();
 
-		frontBuffer->clear();
-
-		std::lock_guard<std::mutex> lock(quickMutex);
-		for (const auto& cmd : quickBuffer) {
-			if (cmd) cmd();
-		}
-		quickBuffer.clear();
+		std::lock_guard<std::mutex> lock(m_quickMutex);
+		m_quickBuffer.execute();
 	}
 
 	void RenderSyncManager::waitForBufferAvailability() {
-		bufferMutex.lock(); // Lock mutex to safely access shared buffers
-		logicCv.wait(lockGuard, [this] { return bufferAvailable; }); // Wait until a back buffer is available
+		m_bufferMutex.lock();
+		m_logicCv.wait(m_lockGuard, [this] { return m_bufferAvailable; });
 	}
 
 	void RenderSyncManager::submitBufferForRendering() {
-		pendingBuffer = backBuffer; // Swap the back buffer with the pending buffer
-		backBuffer = (backBuffer == &bufferA) ? ((frontBuffer == &bufferB) ? &bufferC : &bufferB) : &bufferA;
+		m_pendingBuffer = m_backBuffer; // Swap the back buffer with the pending buffer
+		m_backBuffer = (m_backBuffer == &m_bufferA) ? ((m_frontBuffer == &m_bufferB) ? &m_bufferC : &m_bufferB) : &m_bufferA;
 
-		bufferReady = true; // Mark buffer as ready for rendering and notify the render thread
-		bufferAvailable = false;
-		bufferMutex.unlock();
-		renderCv.notify_one();
+		m_bufferReady = true; // Mark buffer as ready for rendering and notify the render thread
+		m_bufferAvailable = false;
+		m_bufferMutex.unlock();
+		m_renderCv.notify_one();
 	}
 }

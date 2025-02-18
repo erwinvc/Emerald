@@ -7,9 +7,7 @@
 #include "assimp/mesh.h"
 #include "assimp/scene.h"
 #include "assimp/Importer.hpp"
-#include "graphics/buffers/vertexBuffer.h"
 #include "graphics/buffers/vertexArray.h"
-#include "graphics/buffers/indexBuffer.h"
 #include "utils/system/timer.h"
 #include "graphics/textures/texture.h"
 #include "textureLoader.h"
@@ -194,8 +192,8 @@ namespace emerald {
 
 		Ref<Model> model = Ref<Model>::create(m_modelName);
 		for (auto& mesh : m_preloadedMeshes) {
-			Ref<IndexBuffer> ibo = Ref<IndexBuffer>::create((byte*)mesh.m_indices.data(), (uint32_t)(mesh.m_indices.size() * sizeof(uint32_t)));
-			Ref<VertexBuffer> vbo = Ref<VertexBuffer>::create((byte*)mesh.m_vertices.data(), (uint32_t)(mesh.m_vertices.size() * sizeof(Vertex)));
+			Ref<IndexBuffer> ibo = Ref<IndexBuffer>::create((byte*)mesh.m_indices.data(), (uint32_t)(mesh.m_indices.size() * sizeof(uint32_t)), BufferUsage::STATIC);
+			Ref<VertexBuffer> vbo = Ref<VertexBuffer>::create((byte*)mesh.m_vertices.data(), (uint32_t)(mesh.m_vertices.size() * sizeof(Vertex)), BufferUsage::STATIC);
 			Ref<VertexArray> vao = Ref<VertexArray>::create(s_layout);
 			vao->addBuffer(vbo);
 			vao->validate();

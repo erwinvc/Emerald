@@ -1,6 +1,6 @@
 #pragma once
 #include "graphics/buffers/vertexArray.h"
-#include "graphics/buffers/indexBuffer.h"
+#include "graphics/buffers/glBuffer.h"
 #include "graphics/render/material.h"
 
 namespace emerald {

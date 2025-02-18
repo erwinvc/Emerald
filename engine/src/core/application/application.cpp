@@ -20,6 +20,7 @@
 #include "utils/threading/jobSystem.h"
 #include "utils/threading/threadManager.h"
 #include "utils/uuid/uuidGenerator.h"
+#include "utils/system/time.h"
 
 namespace emerald {
 	static std::atomic<bool> g_running = true;
@@ -158,9 +159,9 @@ namespace emerald {
 
 		Renderer::submit([window = Ref<Window>(m_mainWindow)] { window->show(); });
 
-		while (g_running) {
+		do {
 			logicLoop();
-		}
+		} while (g_running);
 	}
 
 	void Application::logicLoop() {
