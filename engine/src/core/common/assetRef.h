@@ -80,7 +80,7 @@ namespace emerald {
 		UUID getComponentID() const { return m_componentID; }
 		void setComponentID(const UUID& id) {
 			m_componentID = id;
-			m_cachedComponent = ECSManager::ECS().getComponentByID<T>(m_componentID);
+			m_cachedComponent = ECSManager::ECS().template getComponentByID<T>(m_componentID);
 		}
 
 	private:
