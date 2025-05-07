@@ -27,6 +27,7 @@ namespace emerald {
 		}
 
 		Ref<Mesh> getSubMesh(uint32_t index) {
+			if (index < 0 || index >= m_subMeshes.size()) return nullptr;
 			return m_subMeshes[index];
 		}
 
