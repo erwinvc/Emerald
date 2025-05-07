@@ -23,7 +23,7 @@ namespace emerald {
 		m_imGuiSelection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, int idx) {
 			auto& nodes = *(std::vector<SceneGraphComponent*>*)self->UserData;
 			return nodes[idx]->m_id;
-		};
+			};
 	}
 
 	struct TableHeader {
@@ -151,7 +151,7 @@ namespace emerald {
 			for (auto& child : node->m_children) {
 				_collectNodes(child);
 			}
-		};
+			};
 
 		_collectNodes(node);
 	}
@@ -180,12 +180,13 @@ namespace emerald {
 			ImGui::SetNextItemSelectionUserData(utils::getIndexInVector(m_nodes, node));
 		}
 
+		const char* name = isRootNode ? SceneManager::getActiveScene()->getName().c_str() : metadata ? metadata->getName().c_str() : "NULL";
+
 		if (isRootNode) {
 			//ImGui::Indent();
 			ImGui::PushStyleColor(ImGuiCol_Header, Color(0.07f, 0.07f, 0.07f, 1.0f));
 		}
-
-		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, metadata ? metadata->getName().c_str() : "NULL");
+		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, metadata ? name : "NULL");
 		const ImRect nodeRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 		ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
 
@@ -300,7 +301,7 @@ namespace emerald {
 		while (m_imGuiSelection.GetNextSelectedItem(&iterator, &id)) {
 			auto foundNode = std::find_if(m_nodes.begin(), m_nodes.end(), [id](SceneGraphComponent* n) {
 				return n->m_id == id;
-			});
+				});
 
 			if (foundNode != m_nodes.end()) {
 				selectedNodes.push_back(*foundNode);
@@ -309,7 +310,7 @@ namespace emerald {
 
 		std::sort(selectedNodes.begin(), selectedNodes.end(), [](SceneGraphComponent* a, SceneGraphComponent* b) {
 			return a->m_treeIndex < b->m_treeIndex;
-		});
+			});
 
 		return selectedNodes;
 	}
@@ -368,14 +369,14 @@ namespace emerald {
 								originalParent1->m_children.push_back(droppedNode1); //insert at the end if no siblings
 							}
 							droppedNode1->m_parent = originalParent1;
-						});
+							});
 
 						action->addDoAction([droppedNodeEntity = droppedNode->m_entity, nodeEntity = node->m_entity, insertBefore, beforeNodeEntity]() {
 							SceneGraphComponent* droppedNode1 = ECSManager::ECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
 							SceneGraphComponent* node1 = ECSManager::ECS().getComponent<SceneGraphComponent>(nodeEntity);
 							SceneGraphComponent* beforeNode1 = beforeNodeEntity.isValid() ? ECSManager::ECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
 							addNodeToParent(droppedNode1, node1, insertBefore, beforeNode1);
-						});
+							});
 
 						UndoRedo::commitAction(action);
 					}
