@@ -7,7 +7,6 @@ namespace emerald {
 	public:
 		TextureAsset() = default;
 
-		bool load() override { return true; }
 		bool reload() override {  return true; }
 	};
 }

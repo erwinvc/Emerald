@@ -75,7 +75,7 @@ namespace emerald {
 			return true;
 		}
 
-		void terminate() {
+		void shutdown() {
 			if (s_initialized) {
 				glfwTerminate();
 				s_initialized = false;

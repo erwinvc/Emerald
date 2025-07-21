@@ -3,6 +3,7 @@
 #include "utils/datastructures/asyncQueue.h"
 #include "utils/system/timestep.h"
 #include <string>
+#include "graphics/shaders/shaderRegistry.h"
 
 namespace emerald {
 	class Window;
@@ -21,7 +22,7 @@ namespace emerald {
 
 	class Application {
 	public:
-		Application(const ApplicationSettings& settings = { "Emerald", 1920, 1080 });
+		Application(const ApplicationSettings& settings, const Ref<Window>& mainWindow);
 		virtual ~Application();
 		void run();
 		void close();
@@ -64,6 +65,7 @@ namespace emerald {
 
 	protected:
 		ApplicationSettings m_settings;
+		InternalShaders m_internalShaders;
 		Ref<Window> m_mainWindow;
 		AsyncQueue<std::function<void()>> m_eventQueue;
 		AsyncQueue<std::function<void()>> m_eventQueueCPU;
@@ -81,5 +83,5 @@ namespace emerald {
 	};
 
 	inline Application* App;
-	Application* createApplication();
+	Application* createApplication(const Ref<Window>& mainWindow);
 }

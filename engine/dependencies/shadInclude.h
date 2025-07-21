@@ -55,59 +55,55 @@ MISCELLANEOUS
 class Shadinclude {
 public:
 	// Return the source code of the complete shader
-	static bool load(std::string path, std::string& fullSourceCode, std::string& logOutput, std::string includeIndentifier = "#include") {
-		includeIndentifier += ' ';
-		static bool isRecursiveCall = false;
-
-		std::ifstream file(path);
+	static bool load(const std::filesystem::path& filePath, std::string& fullSourceCode, std::string& logOutput, bool isRecursiveCall = false) {
+		std::ifstream file(filePath);
 
 		if (!file.is_open()) {
-			logOutput = path;
+			logOutput = filePath.string();
 			return false;
 		}
+
+		const std::string includeToken = "#include ";
 
 		std::string lineBuffer;
 		while (std::getline(file, lineBuffer)) {
 			// Look for the new shader include identifier
-			if (lineBuffer.find(includeIndentifier) != lineBuffer.npos) {
-				// Remove the include identifier, this will cause the path to remain
-				lineBuffer.erase(0, includeIndentifier.size());
+			std::size_t pos = lineBuffer.find(includeToken);
+			if (pos != std::string::npos) {
+				// Remove the "#include " part
+				lineBuffer.erase(pos, includeToken.size());
 
-				// The include path is relative to the current shader file path
-				std::string pathOfThisFile;
-				getFilePath(path, pathOfThisFile);
-				lineBuffer.insert(0, pathOfThisFile);
-				lineBuffer.erase(remove(lineBuffer.begin(), lineBuffer.end(), '\"'), lineBuffer.end());
-				// By using recursion, the new include file can be extracted
-				// and inserted at this location in the shader source code
-				isRecursiveCall = true;
-				std::string temp = "";
-				if (!load(lineBuffer, temp, logOutput)) {
+				// Remove any surrounding quotes
+				lineBuffer.erase(std::remove(lineBuffer.begin(),
+					lineBuffer.end(), '\"'),
+					lineBuffer.end());
+
+				// Construct the include path relative to the parent directory of filePath
+				std::filesystem::path includePath = filePath.parent_path() / lineBuffer;
+
+				// Recursively load the included file
+				std::string tempSource;
+				if (!load(includePath, tempSource, logOutput, true)) {
 					return false;
 				}
-				fullSourceCode += temp;
+				fullSourceCode += tempSource;
 				// Do not add this line to the shader source code, as the include
 				// path would generate a compilation issue in the final source code
 				continue;
+			} else {
+				// Normal line: just append to the source code
+				fullSourceCode += lineBuffer + '\n';
 			}
-
-			fullSourceCode += lineBuffer + '\n';
 		}
 
 		// Only add the null terminator at the end of the complete file,
 		// essentially skipping recursive function calls this way
-		if (!isRecursiveCall)
-			fullSourceCode += '\0';
+		if (!isRecursiveCall) {
+			fullSourceCode.push_back('\0');
+		}
 
 		file.close();
 
 		return true;
-	}
-
-private:
-	static void getFilePath(const std::string& fullPath, std::string& pathWithoutFileName) {
-		// Remove the file name and store the path to this folder
-		size_t found = fullPath.find_last_of("/\\");
-		pathWithoutFileName = fullPath.substr(0, found + 1);
 	}
 };

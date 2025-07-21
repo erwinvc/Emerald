@@ -17,7 +17,7 @@ struct has_getClassType<T, std::void_t<decltype(T::getStaticClassType())>> : std
 			Log::error("{}:{}", __FILE__, __LINE__); \
 			Log::error("Condition: {}", #x); \
 			Log::error(__VA_ARGS__); \
-			Log::forceEmptyQueue(); \
+			Log::shutdownAndFlush(); \
 			__debugbreak(); \
 }
 

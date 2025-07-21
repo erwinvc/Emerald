@@ -12,6 +12,6 @@ namespace emerald {
 
 		GLFWmonitor* getWindowMonitor(GLFWwindow* window);
 		bool initialize(const GLFWConfiguration& config);
-		void terminate();
+		void shutdown();
 	}
 }

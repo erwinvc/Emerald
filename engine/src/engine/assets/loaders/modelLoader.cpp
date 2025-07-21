@@ -155,7 +155,7 @@ namespace emerald {
 			aiString name;
 			aiMat->Get(AI_MATKEY_NAME, name);
 
-			Ref<Material> material = Ref<Material>::create(name.C_Str(), RenderPipeline::m_geometryShader);
+			Ref<Material> material = Ref<Material>::create(name.C_Str(), ShaderRegistry::getShader("geometry"));
 
 			m_materials.push_back(material);
 

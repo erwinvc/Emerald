@@ -1,3 +1,6 @@
+@program outline
+
+@vs
 #version 430 core
 
 layout(location = 0) in vec3 vsPos;
@@ -15,3 +18,15 @@ void main(){
 	pos += vsNormal * 0.15;
 	gl_Position = _ProjectionMatrix * _ViewMatrix * _ModelMatrix * vec4(pos, 1.0);
 }
+@end
+
+@fs
+#version 430 core
+
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = vec4(0.0, 1.0, 1.0, 0.5);
+}
+@end

@@ -26,8 +26,6 @@ namespace emerald {
 		~Window();
 
 		GLWindowCallbacks& getCallbacks() { return m_callbacks; }
-		void setWidth(uint32_t width) { m_width = width; }
-		void setHeight(uint32_t height) { m_height = height; }
 		uint32_t getWidth() const { return m_width; }
 		uint32_t getHeight() const { return m_height; }
 		float getAspect() const { return (float)(m_width) / m_height; }
@@ -36,6 +34,7 @@ namespace emerald {
 		void setVSync(bool toggle);
 		void setTitle(const std::string& title);
 		const std::string& getTitle() { return m_title; }
+
 
 		void swapBuffers();
 		void pollEvents();
@@ -52,6 +51,9 @@ namespace emerald {
 		void minimize();
 		void maximize();
 		void restore();
+
+		void setWidth(uint32_t width);
+		void setHeight(uint32_t height);
 		void setLimits(uint32_t minWidth, uint32_t minHeight, uint32_t maxWidth, uint32_t maxHeight);
 
 		//inline void setIcon(const Icon& icon) { GL(glfwSetWindowIcon(GetHandle(), 1, icon.GetImage())); }

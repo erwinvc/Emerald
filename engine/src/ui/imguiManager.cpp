@@ -205,12 +205,13 @@ namespace emerald {
 	}
 
 	void ImGuiManager::begin() {
-		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 	}
 	void ImGuiManager::end() {
 		ImGui::Render();
+		ImGui_ImplOpenGL3_NewFrame();
+
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		GLFWwindow* backup = glfwGetCurrentContext();

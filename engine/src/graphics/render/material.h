@@ -76,6 +76,7 @@ namespace emerald {
 	private:
 		std::string m_name;
 		Ref<Shader> m_shader;
+		uint32_t m_cachedShaderRevision = 0;
 		Buffer<byte> m_uniformStorageBuffer;
 		std::unordered_map<std::string, TextureBinding> m_textureBindings;
 	};

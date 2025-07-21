@@ -9,11 +9,10 @@ namespace emerald {
 		static void initialize();
 		static void shutdown();
 		static void processEvents();
-
+		static void processNotification(const FILE_NOTIFY_INFORMATION* info, const std::filesystem::path& basePath);
 	private:
 		static void onEditorProjectOpenedEvent(const EditorProjectOpenedEvent& e);
 		static void setDirectory(const std::filesystem::path dir);
-		static void processNotification(const FILE_NOTIFY_INFORMATION* info);
 		static void watchThread();
 	};
 }

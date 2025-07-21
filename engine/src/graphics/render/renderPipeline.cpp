@@ -13,12 +13,13 @@
 #include "renderPipeline.h"
 #include "../../editor/src/core/editor.h"
 #include "../../editor/src/core/selection.h"
+#include "../shaders/shaderRegistry.h"
 
 namespace emerald {
 	RenderPipeline::RenderPipeline() {
-		m_geometryShader = Ref<Shader>::create("Geometry", "res/shaders/geometry");
-		m_shadowShader = Ref<Shader>::create("Shadow", "res/shaders/shadow");
-		m_outlineShader = Ref<Shader>::create("Outline", "res/shaders/outline");
+		m_geometryShader = ShaderRegistry::getShader("Geometry");
+		m_shadowShader = ShaderRegistry::getShader("Shadow");
+		m_outlineShader = ShaderRegistry::getShader("Outline");
 
 		FramebufferDesc mainfbDesc;
 		mainfbDesc.width = App->getWidth() / 8;
@@ -94,8 +95,8 @@ namespace emerald {
 
 		updateLightMatrices();
 
-		//m_gizmo.initialize();
-		//m_gizmo.setOperation(Gizmo::Operation::SCALE);
+		m_gizmo.initialize();
+		m_gizmo.setOperation(Gizmo::Operation::SCALE);
 	}
 
 	RenderPipeline::~RenderPipeline() {
@@ -280,8 +281,8 @@ namespace emerald {
 	//
 	//// We can end or keep going, depending on how we want to do the outline
 
-		//m_gizmo.updateGeometry();
-		//m_gizmo.render(Editor->getEditorCamera()->getProjectionMatrix(), Editor->getEditorCamera()->getViewMatrix(), glm::mat4(1.0f));
+		m_gizmo.updateGeometry();
+		m_gizmo.render(Editor->getEditorCamera()->getProjectionMatrix(), Editor->getEditorCamera()->getViewMatrix(), glm::mat4(1.0f));
 
 		Renderer::endRenderPass();
 		PROFILE_GPU_BEGIN("Blit");

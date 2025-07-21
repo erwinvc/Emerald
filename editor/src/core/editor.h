@@ -22,7 +22,7 @@ namespace emerald {
 
 	class EmeraldEditorApplication : public Application {
 	public:
-		EmeraldEditorApplication();
+		EmeraldEditorApplication(const ApplicationSettings& settings, const Ref<Window>& mainWindow);
 
 		void onInitialize() override;
 		void onShutdown() override;

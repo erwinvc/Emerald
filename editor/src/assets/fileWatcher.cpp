@@ -9,6 +9,7 @@
 namespace emerald {
 	static constexpr uint32_t BUFFER_SIZE = 32768; // 32KB
 
+	// Dynamic directory
 	static std::filesystem::path m_currentDir;
 	static HANDLE m_directoryHandle{ INVALID_HANDLE_VALUE };
 	static std::atomic<bool> m_running{ true };
@@ -16,10 +17,15 @@ namespace emerald {
 	static HANDLE m_shutdownEvent;
 	static Buffer<byte> m_buffer;
 	static std::mutex m_eventQueueMutex;
-	static std::unordered_map<std::filesystem::path, std::chrono::system_clock::time_point> lastEventTimes_;
 	static AsyncQueue<FileChangedEvent> m_eventQueues[(uint32_t)FileChangedEventType::_COUNT]{};
 	static std::condition_variable m_handleCondition;
 	static std::mutex m_handleMutex;
+
+	// Static directory for editor
+	static std::filesystem::path m_staticDir;
+	static HANDLE m_staticDirectoryHandle{ INVALID_HANDLE_VALUE };
+	static UniqueRef<OVERLAPPED> m_staticOverlapped;
+	static Buffer<byte> m_staticBuffer;
 
 	void FileWatcher::initialize() {
 		m_buffer.reserve(BUFFER_SIZE);
@@ -29,6 +35,25 @@ namespace emerald {
 		m_overlapped->hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 		m_shutdownEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
+		m_staticDir = "I:/Development/C++/Emerald/editor/res/shaders";
+		m_staticBuffer.reserve(BUFFER_SIZE);
+		m_staticBuffer.zeroInitialize();
+		m_staticOverlapped = UniqueRef<OVERLAPPED>::create();
+		m_staticOverlapped->hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+
+		m_staticDirectoryHandle = CreateFileW(
+			m_staticDir.wstring().c_str(),
+			FILE_LIST_DIRECTORY,
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			nullptr,
+			OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+			nullptr
+		);
+		if (m_staticDirectoryHandle == INVALID_HANDLE_VALUE) {
+			Log::error("[FileWatcher] Failed to create handle for static dir: {}", m_staticDir.u8string());
+		}
+
 		ThreadManager::createAndRegisterThread(ThreadType::FILEWATCHER, ProfilerThreadType::IGNORED, ThreadPriority::NORMAL, "File watcher", watchThread);
 
 		EventSystem::subscribe<EditorProjectOpenedEvent>(onEditorProjectOpenedEvent);
@@ -37,9 +62,22 @@ namespace emerald {
 	void FileWatcher::shutdown() {
 		m_running = false;
 		SetEvent(m_shutdownEvent);
+
 		if (m_shutdownEvent != nullptr) {
 			CloseHandle(m_shutdownEvent);
+			m_shutdownEvent = nullptr;
 		}
+
+		if (m_staticDirectoryHandle != INVALID_HANDLE_VALUE) {
+			CloseHandle(m_staticDirectoryHandle);
+			m_staticDirectoryHandle = INVALID_HANDLE_VALUE;
+		}
+
+		if (m_directoryHandle != INVALID_HANDLE_VALUE) {
+			CloseHandle(m_directoryHandle);
+			m_directoryHandle = INVALID_HANDLE_VALUE;
+		}
+
 		m_handleCondition.notify_all();
 	}
 
@@ -81,6 +119,63 @@ namespace emerald {
 		m_handleCondition.notify_all();
 	}
 
+	static bool issueRead(HANDLE directoryHandle, Buffer<byte>& buffer, UniqueRef<OVERLAPPED>& overlapped) {
+		if (directoryHandle == INVALID_HANDLE_VALUE)
+			return false;
+
+		DWORD bytesReturned = 0;
+		BOOL success = ReadDirectoryChangesW(
+			directoryHandle,
+			buffer.data(),
+			static_cast<DWORD>(buffer.size()),
+			TRUE,
+			FILE_NOTIFY_CHANGE_FILE_NAME |
+			FILE_NOTIFY_CHANGE_DIR_NAME |
+			FILE_NOTIFY_CHANGE_ATTRIBUTES |
+			FILE_NOTIFY_CHANGE_SIZE |
+			FILE_NOTIFY_CHANGE_LAST_WRITE |
+			FILE_NOTIFY_CHANGE_CREATION,
+			&bytesReturned,
+			overlapped.raw(),
+			nullptr
+		);
+
+		if (!success && GetLastError() != ERROR_IO_PENDING) {
+			Log::error("[FileWatcher] Failed to read directory changes (handle={}): err={}",
+				(void*)directoryHandle, GetLastError());
+			return false;
+		}
+		return true;
+	}
+
+	static void handleDirectoryChange(HANDLE directoryHandle, const std::filesystem::path& basePath, Buffer<byte>& buffer, UniqueRef<OVERLAPPED>& overlapped) {
+		DWORD bytesReturned = 0;
+		if (!GetOverlappedResult(directoryHandle, overlapped.raw(), &bytesReturned, FALSE)) {
+			ResetEvent(overlapped->hEvent);
+			issueRead(directoryHandle, buffer, overlapped);
+			return;
+		}
+		if (bytesReturned == 0) {
+			ResetEvent(overlapped->hEvent);
+			issueRead(directoryHandle, buffer, overlapped);
+			return;
+		}
+		auto* info = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer.data());
+		while (info) {
+			Log::info("Got change for basePath: {}", basePath.string());
+			FileWatcher::processNotification(info, basePath);
+
+			if (info->NextEntryOffset == 0) {
+				break;
+			}
+			info = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(
+				reinterpret_cast<uint8_t*>(info) + info->NextEntryOffset
+				);
+		}
+		ResetEvent(overlapped->hEvent);
+		issueRead(directoryHandle, buffer, overlapped);
+	}
+
 	void FileWatcher::watchThread() {
 		while (m_running) {
 			{
@@ -90,58 +185,43 @@ namespace emerald {
 					return;
 				}
 			}
-			DWORD bytesReturned = 0;
-			auto success = ReadDirectoryChangesW(
-				m_directoryHandle,
-				m_buffer.data(),
-				static_cast<DWORD>(m_buffer.size()),
-				true,
-				FILE_NOTIFY_CHANGE_FILE_NAME |
-				FILE_NOTIFY_CHANGE_DIR_NAME |
-				FILE_NOTIFY_CHANGE_ATTRIBUTES |
-				FILE_NOTIFY_CHANGE_SIZE |
-				FILE_NOTIFY_CHANGE_LAST_WRITE |
-				FILE_NOTIFY_CHANGE_CREATION,
-				&bytesReturned,
-				m_overlapped.raw(),
-				nullptr
-			);
 
-			if (!success && GetLastError() != ERROR_IO_PENDING) {
-				Log::error("[FileWatcher] Failed to read directory changes: {}", GetLastError());
-				continue;
-			}
+			issueRead(m_directoryHandle, m_buffer, m_overlapped);
+			issueRead(m_staticDirectoryHandle, m_staticBuffer, m_staticOverlapped);
 
-			HANDLE handles[] = { m_overlapped->hEvent, m_shutdownEvent };
-			DWORD waitResult = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+			HANDLE handles[3] = {
+			m_overlapped->hEvent,
+			m_staticOverlapped->hEvent,
+			m_shutdownEvent
+			};
 
+			DWORD waitResult = WaitForMultipleObjects(3, handles, FALSE, INFINITE);
 			if (waitResult == WAIT_OBJECT_0) {
-				if (!GetOverlappedResult(m_directoryHandle, m_overlapped.raw(), &bytesReturned, FALSE)) {
-					continue;
-				}
-
-				if (bytesReturned == 0) {
-					continue;
-				}
-
-				auto* info = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(m_buffer.data());
-				while (info) {
-					processNotification(info);
-					if (info->NextEntryOffset == 0) break;
-					info = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(
-						reinterpret_cast<uint8_t*>(info) + info->NextEntryOffset
-						);
-				}
+				// Dynamic directory signaled
+				handleDirectoryChange(
+					m_directoryHandle,
+					m_currentDir,
+					m_buffer,
+					m_overlapped
+				);
 			} else if (waitResult == WAIT_OBJECT_0 + 1) {
+				// Static directory signaled
+				handleDirectoryChange(
+					m_staticDirectoryHandle,
+					m_staticDir,
+					m_staticBuffer,
+					m_staticOverlapped
+				);
+			} else if (waitResult == WAIT_OBJECT_0 + 2) {
 				// Shutdown event triggered
 				return;
 			}
 		}
 	}
 
-	void FileWatcher::processNotification(const FILE_NOTIFY_INFORMATION* info) {
+	void FileWatcher::processNotification(const FILE_NOTIFY_INFORMATION* info, const std::filesystem::path& basePath) {
 		std::wstring filename(info->FileName, info->FileNameLength / sizeof(WCHAR));
-		std::filesystem::path fullPath = m_currentDir / filename;
+		std::filesystem::path fullPath = basePath / filename;
 
 		auto now = std::chrono::system_clock::now();
 
@@ -162,8 +242,8 @@ namespace emerald {
 				return;
 		}
 
-		std::lock_guard queueLock(m_eventQueueMutex);
-		m_eventQueues[(uint32_t)eventType].emplace(FileChangedEvent{ eventType,fullPath,now, });
+		std::lock_guard<std::mutex> queueLock(m_eventQueueMutex);
+		m_eventQueues[(uint32_t)eventType].emplace(FileChangedEvent{ eventType,fullPath,now, basePath == m_staticDir });
 	}
 
 	void FileWatcher::processEvents() {
@@ -172,6 +252,7 @@ namespace emerald {
 			AsyncQueue<FileChangedEvent> events;
 			m_eventQueues[i].swap(events);
 
+			//events.removeDuplicates();
 			FileChangedEvent event;
 			while (!events.empty()) {
 				events.tryGet(event);

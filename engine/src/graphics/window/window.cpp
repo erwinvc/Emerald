@@ -28,6 +28,15 @@ namespace emerald {
 	void Window::maximize() { glfwMaximizeWindow(m_window); }
 	void Window::restore() { glfwRestoreWindow(m_window); }
 
+	void Window::setWidth(uint32_t width) {
+		m_width = width;
+		glfwSetWindowSize(m_window, m_width, m_height);
+	}
+	void Window::setHeight(uint32_t height) {
+		m_height = height;
+		glfwSetWindowSize(m_window, m_width, m_height);
+	}
+
 	void Window::setLimits(uint32_t minWidth, uint32_t minHeight, uint32_t maxWidth, uint32_t maxHeight) {
 		glfwSetWindowSizeLimits(handle(), minWidth, minHeight, maxWidth, maxHeight);
 	}

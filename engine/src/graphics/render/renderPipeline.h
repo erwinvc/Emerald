@@ -12,6 +12,8 @@ namespace emerald {
 
 	class RenderPipeline {
 	private:
+		Ref<Shader> m_geometryShader;
+
 		std::vector<RenderPass> m_renderpasses;
 		Ref<FrameBuffer> m_resolveFramebuffer;
 		Ref<RenderPass> m_mainPass;
@@ -27,7 +29,7 @@ namespace emerald {
 		Ref<Material> m_outlineMaterial;
 		Ref<RenderPass> m_outlinePass;
 
-		//Gizmo m_gizmo;
+		Gizmo m_gizmo;
 
 		glm::mat4 m_lightView;
 		glm::mat4 m_lightProjection;
@@ -46,6 +48,5 @@ namespace emerald {
 		void onImGuiRender();
 		void render();
 		const Ref<Texture>& getFinalTexture();
-		static inline Ref<Shader> m_geometryShader;
 	};
 }

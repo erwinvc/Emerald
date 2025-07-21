@@ -11,3 +11,4 @@ binaries/
 !premake5.exe
 imgui.ini
 *.log
+/resources/notOnGit

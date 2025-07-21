@@ -3,6 +3,7 @@
 #include "graphics/core/renderer.h"
 #include "graphics/buffers/vertexArray.h"
 #include "graphics/render/material.h"
+#include "graphics/shaders/shaderRegistry.h"
 
 namespace emerald {
 	static const VertexBufferLayout s_layout = {
@@ -10,18 +11,17 @@ namespace emerald {
 	{VertexAttributeType::FLOAT3, "vsColor", 0}
 	};
 
-	static Ref<VertexBuffer> vbo;
-	static Ref<VertexArray> vao;
 
 	void Gizmo::initialize() {
 		vbo = Ref<VertexBuffer>::create(BufferUsage::DYNAMIC);
 		vao = Ref<VertexArray>::create("DE TEST VAO!", s_layout);
 		vao->addBuffer(vbo);
 
-		shader = Ref<Shader>::create("Gizmo", "res/shaders/gizmo");
+		shader = ShaderRegistry::getShader("Gizmo");
 
 		material = Ref<Material>::create("Gizmo", shader);
 	}
+
 	void Gizmo::updateGeometry() {
 		vertices.clear();
 
@@ -90,7 +90,7 @@ namespace emerald {
 
 		// Draw lines
 		glDrawArrays(GL_LINES, 0, (uint32_t)vertices.size());
-		Log::info("Drawing gizmo with {} vertices", vertices.size());
+		//Log::info("Drawing gizmo with {} vertices", vertices.size());
 		// Draw arrow heads and other triangles
 		// You might want to keep track of where triangle vertices start in your vertex buffer
 		// glDrawArrays(GL_TRIANGLES, triangleStartIndex, triangleCount);

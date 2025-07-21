@@ -68,7 +68,7 @@ namespace emerald {
 
 		static void initialize(const char* title);
 		static void logMessage(Severity level, const std::string& message);
-		static void forceEmptyQueue();
+		static void shutdownAndFlush();
 		static void shutdown();
 
 		// TODO: This really needs a rewrite. Thread safety should not be handled by the caller.
@@ -94,7 +94,7 @@ namespace emerald {
 		template<typename... Args>
 		static void fatal(std::format_string<Args...> format, Args&&... args) {
 			logMessage(Severity::FATAL, std::format(format, std::forward<Args>(args)...));
-			Log::forceEmptyQueue();
+			Log::shutdownAndFlush();
 			__debugbreak();
 		}
 

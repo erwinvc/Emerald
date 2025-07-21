@@ -24,7 +24,7 @@ namespace emerald {
 
 		static void initialize();
 		static void parseCurrentProject();
-		static void processAssetFile(const std::filesystem::path& assetPath);
+		static AssetMetadata* processAssetFile(const std::filesystem::path& assetPath);
 		static void removeAsset(const std::filesystem::path& assetPath);
 		static void removeOrphanedMetaFile(const std::filesystem::path& path);
 		static void streamAsset(AssetMetadata* metadata);
@@ -48,7 +48,7 @@ namespace emerald {
 
 		private:
 			struct StreamingTask {
-				Context m_ctx;
+				JobContext m_ctx;
 				AssetMetadata* m_metadata;
 				Ref<AssetLoader> m_loader;
 				Expected<Empty> m_beginLoadResult;

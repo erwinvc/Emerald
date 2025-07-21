@@ -9,6 +9,7 @@
 #include "../metadata/sceneMetadata.h"
 #include "../../editor/src/core/projectManager.h"
 #include "utils/system/fileSystem.h"
+#include "core/common/engineLoading.h"
 
 namespace emerald {
 	void AssetRegistry::initialize() {
@@ -20,17 +21,35 @@ namespace emerald {
 	}
 
 	void AssetRegistry::parseCurrentProject() {
+		EngineLoading::startLoading("Processing assets directory");
 		clear();
+		std::vector<Ref<AssetLoader>> instantLoaders; //Some assets like Shaders should be loaded immediately
 		auto assetsPath = ProjectManager::getCurrentProject().getAssetsFolder();
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(assetsPath)) {
-			processAssetFile(entry.path());
+			AssetMetadata* assetMetadata = processAssetFile(entry.path());
+			if (assetMetadata && assetMetadata->getType() == AssetType::SHADER) {
+				instantLoaders.push_back(assetMetadata->createAssetLoader());
+			}
 		}
+
+		JobContext ctx;
+		std::vector<Expected<Empty>> results(instantLoaders.size());
+		JobSystem::execute(ctx, (uint32_t)instantLoaders.size(), 1, [&instantLoaders, &results](JobArgs args) {
+			results[args.m_jobIndex] = instantLoaders[args.m_jobIndex]->beginLoad();
+		});
+		ctx.wait();
+		for (int i = 0; i < instantLoaders.size(); i++) {
+			if (results[i].hasValue()) {
+				instantLoaders[i]->finishLoad();
+			}
+		}
+		EngineLoading::stopLoading();
 	}
 
-	void AssetRegistry::processAssetFile(const std::filesystem::path& path) {
+	AssetMetadata* AssetRegistry::processAssetFile(const std::filesystem::path& path) {
 		if (!std::filesystem::exists(path)) {
 			removeOrphanedMetaFile(path);
-			return;
+			return nullptr;
 		}
 
 		if (path.extension() == ".meta") {
@@ -53,7 +72,7 @@ namespace emerald {
 					}
 				}
 			}
-			return;
+			return nullptr;
 		}
 
 		AssetType type = m_assetTypeRegistry.getAssetType(path);
@@ -64,7 +83,7 @@ namespace emerald {
 		auto metadata = m_assetTypeRegistry.createMetadata(path, type);
 		if (!metadata) {
 			Log::fatal("[Assets] Failed to create metadata for asset: {}", path.u8string());
-			return;
+			return nullptr;
 		}
 
 		if (std::filesystem::exists(metaFilePath)) {
@@ -92,6 +111,7 @@ namespace emerald {
 
 		std::lock_guard<std::mutex> lock(m_mutex);
 		m_streamingState[rawPtr] = AssetStreamingState::NOTLOADED;
+		return rawPtr;
 	}
 
 	void AssetRegistry::removeAsset(const std::filesystem::path& path) {
@@ -271,6 +291,7 @@ namespace emerald {
 	}
 
 	void AssetRegistry::onFileChangedEvent(FileChangedEvent& e) {
+		if (e.isEngineAsset()) return;
 		switch (e.getType()) {
 			case FileChangedEventType::DELETED:
 				removeAsset(e.getPath());

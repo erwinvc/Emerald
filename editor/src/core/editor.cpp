@@ -36,7 +36,7 @@ namespace emerald {
 		}
 	}
 
-	EmeraldEditorApplication::EmeraldEditorApplication() {
+	EmeraldEditorApplication::EmeraldEditorApplication(const ApplicationSettings& settings, const Ref<Window>& mainWindow) : Application(settings, mainWindow) {
 		Editor = this;
 
 		PROFILE_INITIALIZE();
@@ -161,7 +161,7 @@ namespace emerald {
 		return s_editorCamera;
 	}
 
-	Application* createApplication() {
-		return new EmeraldEditorApplication();
+	Application* createApplication(const Ref<Window>& mainWindow) {
+		return new EmeraldEditorApplication({"Emerald Editor", 1920, 1080}, mainWindow);
 	}
 }

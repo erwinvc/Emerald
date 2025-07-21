@@ -4,67 +4,79 @@
 #include "utils/misc/glUtils.h"
 #include "utils/system/fileSystem.h"
 #include "graphics/core/renderer.h"
+#include "shaderRegistry.h"
 
 namespace emerald {
-	Shader::Shader(const std::string& name, const std::string& filePath, bool hasGeometry, bool hasTessellation) : m_shaderProgram(nullptr), m_hasGeometry(hasGeometry), m_hasTessellation(hasTessellation), m_name(name), m_shaderPath(filePath) {
+	Shader::Shader(const std::filesystem::path& filePath) : m_filePath(filePath), m_shaderProgram(nullptr), m_name(filePath.string()) {
 		m_shaderProgram = load();
-		if (!m_shaderProgram) Log::fatal("[Shader] {} failed to compile", m_name.c_str());
-		gatherUniforms();
-		m_loaded = true;
+		if (!m_shaderProgram) {
+			Log::error("[Shader] {} shader failed to compile", m_name.c_str());
+		} else {
+			gatherUniforms();
+			m_valid = true;
+		}
+		//ShaderRegistry::registerShader(WeakRef<Shader>(this));
 	}
 
 	Shader::~Shader() {
-		delete m_shaderProgram;
+		//ShaderRegistry::unregisterShader(this);
 	}
 
-	ShaderProgram* Shader::load() {
-		ShaderProgram* shaderProgram = new ShaderProgram();
+	UniqueRef<ShaderProgram> Shader::load() {
+		ParsedShader parsedShader;
+		try {
+			ShaderParser shaderParser;
+			parsedShader = shaderParser.parseFile(m_filePath);
+		} catch (std::exception ex) {
+			Log::warn("[Shader] Failed to parse shader file {} [{}]", m_filePath.string(), ex.what());
+			return nullptr;
+		}
+
+		m_name = parsedShader.programName;
+		UniqueRef<ShaderProgram> shaderProgram = UniqueRef<ShaderProgram>::create();
 		shaderProgram->createProgram();
 
 		bool failed = false;
 
-		std::string vertexFile = m_shaderPath + ".vert";
-		std::string fragFile = m_shaderPath + ".frag";
-		failed |= addShaderToProgram(shaderProgram, vertexFile, GL_VERTEX_SHADER);
-		failed |= addShaderToProgram(shaderProgram, fragFile, GL_FRAGMENT_SHADER);
-
-		if (m_hasGeometry) {
-			std::string geomFile = m_shaderPath + ".geom";
-			failed |= addShaderToProgram(shaderProgram, geomFile, GL_GEOMETRY_SHADER);
+		if (!parsedShader.vertexSource.empty()) {
+			failed |= addShaderToProgram(shaderProgram, parsedShader.vertexSource, GL_VERTEX_SHADER);
 		}
 
-		if (m_hasTessellation) {
-			std::string te = m_shaderPath + ".tese";
-			std::string tc = m_shaderPath + ".tesc";
-			failed |= addShaderToProgram(shaderProgram, te, GL_TESS_EVALUATION_SHADER);
-			failed |= addShaderToProgram(shaderProgram, tc, GL_TESS_CONTROL_SHADER);
+		if (!parsedShader.fragmentSource.empty()) {
+			failed |= addShaderToProgram(shaderProgram, parsedShader.fragmentSource, GL_FRAGMENT_SHADER);
 		}
 
+		if (!parsedShader.geometrySource.empty()) {
+			failed |= addShaderToProgram(shaderProgram, parsedShader.geometrySource, GL_GEOMETRY_SHADER);
+		}
+
+		if (!parsedShader.tessControlSource.empty()) {
+			failed |= addShaderToProgram(shaderProgram, parsedShader.tessControlSource, GL_TESS_CONTROL_SHADER);
+		}
+
+		if (!parsedShader.tessEvalSource.empty()) {
+			failed |= addShaderToProgram(shaderProgram, parsedShader.tessEvalSource, GL_TESS_EVALUATION_SHADER);
+		}
 
 		if (failed) {
-			delete shaderProgram;
-			shaderProgram = nullptr;
+			return nullptr;
 		} else {
 			shaderProgram->linkAndValidate();
 			shaderProgram->deleteAttachedShaders();
 		}
 
-		return shaderProgram;
+		return std::move(shaderProgram);
 	}
 
-	uint32_t Shader::loadShader(const std::string& path, uint32_t type) {
+	uint32_t Shader::loadShader(const std::string& source, uint32_t type) {
 		uint32_t shader = glCreateShader(type);
-		if (!FileSystem::doesFileExist(path)) Log::warn("[Shader] {} {} at {} does not exist", m_name.c_str(), GLUtils::shaderTypeToString(type), path.c_str());
-
-		std::string source;
 		std::string logOutput;
-		if (!Shadinclude::load(path, source, logOutput)) {
-			Log::warn("[Shader] Failed to load {} xshader {} at {} [{}]", m_name.c_str(), GLUtils::shaderTypeToString(type), path.c_str(), logOutput.c_str());
-			return 0xffffffff;
-		}
+		//if (!Shadinclude::load(filePath, source, logOutput)) {
+		//	Log::warn("[Shader] Failed to load {} xshader {} at {} [{}]", m_name.c_str(), GLUtils::shaderTypeToString(type), filePath.string(), logOutput.c_str());
+		//	return 0xffffffff;
+		//}
 
 		const char* sourceCC = source.c_str();
-
 		GL(glShaderSource(shader, 1, &sourceCC, nullptr));
 		GL(glCompileShader(shader));
 
@@ -75,14 +87,15 @@ namespace emerald {
 			GL(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length));
 			std::vector<char> error(length);
 			GL(glGetShaderInfoLog(shader, length, &length, &error[0]));
-			Log::warn("[Shader] Failed to compile {} {} shader with error: \n{}", m_name.c_str(), GLUtils::shaderTypeToString(type), &error[0]);
+			Log::warn("[Shader] Failed to compile {} {} shader\n{}", m_name.c_str(), GLUtils::shaderTypeToString(type), &error[0]);
 			return 0xffffffff;
+		} else {
+			Log::info("[Shader] Compiled {} {} shader", m_name.c_str(), GLUtils::shaderTypeToString(type));
 		}
-		Log::info("[Shader] Compiled {} {} shader", m_name.c_str(), GLUtils::shaderTypeToString(type));
 		return shader;
 	}
 
-	bool Shader::addShaderToProgram(ShaderProgram* program, const std::string& shader, uint32_t shaderType) {
+	bool Shader::addShaderToProgram(const UniqueRef<ShaderProgram>& program, const std::string& shader, uint32_t shaderType) {
 		uint32_t shaderHandle = loadShader(shader, shaderType);
 		if (shaderHandle == 0xffffffff) return true;
 		program->attachShader(shaderHandle);
@@ -90,6 +103,8 @@ namespace emerald {
 	}
 
 	void Shader::gatherUniforms() {
+		m_uniformBuffers.clear();
+
 		uint32_t handle = m_shaderProgram->handle();
 		int count;
 		GL(glGetProgramiv(handle, GL_ACTIVE_UNIFORMS, &count));
@@ -122,6 +137,18 @@ namespace emerald {
 			};
 			currentOffset += size * elementCount;
 		}
+	}
+
+	bool Shader::reload() {
+		bool success = false;
+		UniqueRef<ShaderProgram> program = load();
+		if (program) {
+			m_shaderProgram = std::move(program);
+			gatherUniforms();
+			m_revision++;
+			success = true;
+		};
+		return success;
 	}
 
 	ShaderUniform* Shader::getUniform(const std::string& name) {
@@ -195,150 +222,6 @@ namespace emerald {
 	void Shader::setUniformMatrix4(uint32_t location, uint32_t count, const glm::mat4* value) {
 		GL(glUniformMatrix4fv(location, count, GL_FALSE, (GLfloat*)value));
 	}
-
-	/*
-
-	void Shader::setUniformInt(uint32_t location, uint32_t count, const int32_t& value) {
-		Renderer::submit([=] {
-			GL(glUniform1iv(location, count, (GLint*)&value));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform1iv, location, count, (GLint*)value);
-	}
-
-	void Shader::setUniformInt(uint32_t location, uint32_t count, const std::vector<int32_t>& value) {
-		Renderer::submit([=] {
-			GL(glUniform1iv(location, count, (GLint*)value.data()));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform1iv, location, count, (GLint*)value);
-	}
-
-	void Shader::setUniformUInt(uint32_t location, uint32_t count, const uint32_t& value) {
-		Renderer::submit([=] {
-			GL(glUniform1uiv(location, count, (GLuint*)&value));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform1uiv, location, count, (GLuint*)value);
-	}
-
-	void Shader::setUniformUInt(uint32_t location, uint32_t count, const std::vector<uint32_t>& value) {
-		Renderer::submit([=] {
-			GL(glUniform1uiv(location, count, (GLuint*)value.data()));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform1uiv, location, count, (GLuint*)value);
-	}
-
-	void Shader::setUniformFloat1(uint32_t location, uint32_t count, const float& value) {
-		Renderer::submit([=] {
-			GL(glUniform1fv(location, count, (GLfloat*)&value));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform1fv, location, count, (GLfloat*)value);
-	}
-
-	void Shader::setUniformFloat1(uint32_t location, uint32_t count, const std::vector<float>& value) {
-		Renderer::submit([=] {
-			GL(glUniform1fv(location, count, (GLfloat*)value.data()));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform1fv, location, count, (GLfloat*)value);
-	}
-
-
-	void Shader::setUniformFloat2(uint32_t location, uint32_t count, const glm::vec2& value) {
-		Renderer::submit([=] {
-			GL(glUniform2fv(location, count, (GLfloat*)&value));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform2fv, location, count, (GLfloat*)value);
-	}
-
-	void Shader::setUniformFloat2(uint32_t location, uint32_t count, const std::vector<glm::vec2>& value) {
-		Renderer::submit([=] {
-			GL(glUniform2fv(location, count, (GLfloat*)value.data()));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform2fv, location, count, (GLfloat*)value);
-	}
-
-	void Shader::setUniformFloat3(uint32_t location, uint32_t count, const glm::vec3& value) {
-		Renderer::submit([=] {
-			GL(glUniform3fv(location, count, (GLfloat*)&value));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform3fv, location, count, (GLfloat*)value);
-	}
-
-	void Shader::setUniformFloat3(uint32_t location, uint32_t count, const std::vector<glm::vec3>& value) {
-		Renderer::submit([=] {
-			GL(glUniform3fv(location, count, (GLfloat*)value.data()));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform3fv, location, count, (GLfloat*)value);
-	}
-
-	void Shader::setUniformFloat4(uint32_t location, uint32_t count, const glm::vec4& value) {
-		Renderer::submit([=] {
-			GL(glUniform4fv(location, count, (GLfloat*)&value));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniform4fv, location, count, (GLfloat*)value);
-	}
-
-	void Shader::setUniformFloat4(uint32_t location, uint32_t count, const std::vector<glm::vec4>& value) {
-		Renderer::submit([=] {
-			GL(glUniform4fv(location, count, (GLfloat*)value.data()));
-		});
-	}
-
-	void Shader::setUniformMatrix3(uint32_t location, uint32_t count, const glm::mat3& value) {
-		Renderer::submit([=] {
-			GL(glUniformMatrix3fv(location, count, GL_FALSE, (GLfloat*)&value));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniformMatrix3fv, location, count, GL_FALSE, value);
-	}
-
-	void Shader::setUniformMatrix3(uint32_t location, uint32_t count, const std::vector<glm::mat3>& value) {
-		Renderer::submit([=] {
-			GL(glUniformMatrix3fv(location, count, GL_FALSE, (GLfloat*)value.data()));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniformMatrix3fv, location, count, GL_FALSE, value);
-	}
-
-	void Shader::setUniformMatrix4(uint32_t location, uint32_t count, const glm::mat4& value) {
-		Renderer::submit([=] {
-			GL(glUniformMatrix4fv(location, count, GL_FALSE, (GLfloat*)&value));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniformMatrix4fv, location, count, GL_FALSE, value);
-	}
-
-	void Shader::setUniformMatrix4(uint32_t location, uint32_t count, const std::vector<glm::mat4>& value) {
-		Renderer::submit([=] {
-			GL(glUniformMatrix4fv(location, count, GL_FALSE, (GLfloat*)value.data()));
-			//GL(func(location, count, args...));
-		});
-		//setUniform(glUniformMatrix4fv, location, count, GL_FALSE, value);
-	}
-
-	*/
-
-	void Shader::reload() {
-		//Ref<Shader> instance = this;
-		//Renderer::submit([instance]() mutable {
-		//	ShaderProgram* program = load();
-		//	if (program) {
-		//		delete m_shaderProgram;
-		//		m_shaderProgram = program;
-		//		m_uniformBuffer.reload(m_shaderProgram);
-		//	};
-		//});
-	}
-
 
 	void Shader::bind() {
 		m_shaderProgram->bind();

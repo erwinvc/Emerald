@@ -120,7 +120,7 @@ namespace emerald {
 		s_messageQueue.emplace(std::move(QueuedMessage(color, message, Debug::captureStackTrace(3, 64, false), level, std::chrono::system_clock::now())));
 	}
 
-	void Log::forceEmptyQueue() {
+	void Log::shutdownAndFlush() {
 		s_shutdown = true;
 
 		s_messageQueue.release();
@@ -136,7 +136,7 @@ namespace emerald {
 		Log::info("[Console] deallocating...");
 		if (s_logFile.is_open()) s_logFile.close();
 		if (!s_initialized) return;
-		forceEmptyQueue();
+		shutdownAndFlush();
 		PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
 	}
 

@@ -130,12 +130,13 @@ namespace emerald {
 		T* raw() { return m_reference; }
 		T* raw() const { return m_reference; }
 
-		//explicit Ref(const WeakRef<T>& weak) : m_reference(nullptr) {
-		//	if (!weak.expired()) {
-		//		m_reference = weak.m_reference;
-		//		incrementRef();
-		//	}
-		//}
+		explicit Ref(const WeakRef<T>& weak) : m_reference(nullptr), m_controlBlock(nullptr) {
+			if (!weak.expired()) {
+				m_reference = weak.m_reference;
+				m_controlBlock = weak.m_controlBlock;
+				incrementRef();
+			}
+		}
 
 		template<typename T2>
 		Ref<T2> as() const {
@@ -210,10 +211,12 @@ namespace emerald {
 
 		void decrementRef() {
 			if (m_controlBlock) {
-				if (--m_controlBlock->strongCount == 0) {
+				uint32_t newCount = m_controlBlock->strongCount.fetch_sub(1, std::memory_order_acq_rel);
+				if (newCount == 1) {
 					delete m_reference;
 					m_reference = nullptr;
-					if (m_controlBlock->weakCount == 0) {
+
+					if (m_controlBlock->weakCount.load(std::memory_order_acquire) == 0) {
 						delete m_controlBlock;
 						m_controlBlock = nullptr;
 					}
@@ -342,6 +345,9 @@ namespace emerald {
 	template<typename T>
 	class UniqueRef<T[]> {
 	public:
+		constexpr UniqueRef() noexcept : m_reference(nullptr) {}
+		explicit UniqueRef(T* ptr) noexcept : m_reference(ptr) {}
+
 		~UniqueRef() { reset(); }
 
 		T& operator[](std::size_t index) {
@@ -471,3 +477,10 @@ namespace emerald {
 		}
 	};
 }
+
+template <typename T>
+struct std::hash<emerald::Ref<T>> {
+	std::size_t operator()(const emerald::Ref<T>& ref) const {
+		return std::hash<T*>()(ref.raw());
+	}
+};

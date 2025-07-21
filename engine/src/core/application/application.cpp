@@ -21,13 +21,14 @@
 #include "utils/threading/threadManager.h"
 #include "utils/uuid/uuidGenerator.h"
 #include "utils/system/time.h"
+#include "graphics/shaders/shaderRegistry.h"
 
 namespace emerald {
-	static std::atomic<bool> g_running = true;
-	static ResizeData g_resizeData;
+	static std::atomic<bool> s_running = true;
+	static ResizeData s_resizeData;
+	static InternalShaders s_internalShaders;
 
-	Application::Application(const ApplicationSettings& settings)
-		: m_settings(settings) {
+	Application::Application(const ApplicationSettings& settings, const Ref<Window>& mainWindow) : m_settings(settings), m_mainWindow(mainWindow) {
 		App = this;
 	}
 
@@ -37,24 +38,18 @@ namespace emerald {
 
 	void Application::run() {
 		EventSystem::setGlobalCallback(&Application::onEvent, this);
-		GLFW::GLFWConfiguration config;
-		GLFW::initialize(config);
+
 
 		//tests::test();
 
-		m_mainWindow = Ref<Window>::create(m_settings.m_name, m_settings.m_width, m_settings.m_height);
-		m_mainWindow->makeContextCurrent();
-
-		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-			//LOG_ERROR("[GLAD] failed to initialize");
-			return;
-		}
+		m_mainWindow->setWidth(1920);
+		m_mainWindow->setHeight(1080);
 
 		icon::loadIcon(m_mainWindow->handle());
 
 		Mouse::initialize();
 
-		// #TODO: remove callbacks and move to 
+		// #TODO: remove callbacks and move to event system
 		m_mainWindow->getCallbacks().addOnResizeCallback(this, &Application::onResize);
 		m_mainWindow->getCallbacks().addOnKeyCallback(Keyboard::keyCallback);
 		//m_mainWindow->getCallbacks().addOnMouseButtonCallback(Mouse::mouseButtonCallback);
@@ -63,14 +58,12 @@ namespace emerald {
 		m_mainWindow->setVSync(false);
 		m_mainWindow->setLimits(200, 60, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
-		//LOG("[~cGPU~x] %-26s %s", "GPU~1", glGetString(GL_RENDERER));
-		//LOG("[~cGPU~x] %-26s %s", "OpenGL version~1", glGetString(GL_VERSION));
-
-		ImGuiManager::initialize(m_mainWindow);
 
 		GL(glEnable(GL_DEBUG_OUTPUT));
 		GL(glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
 		GLError::setGLDebugMessageCallback();
+
+		ImGuiManager::initialize(m_mainWindow);
 
 		Metrics::initialize();
 		AssetRegistry::initialize();
@@ -81,6 +74,7 @@ namespace emerald {
 
 		PROFILE_REGISTER_THREAD("Logic", ProfilerThreadType::LOGIC);
 
+		m_internalShaders.initialize();
 		FallbackTextures::initialize();
 
 		onInitialize();
@@ -90,7 +84,7 @@ namespace emerald {
 
 		m_mainWindow->show();
 
-		while (g_running) {
+		while (s_running) {
 			loop();
 		}
 
@@ -105,15 +99,13 @@ namespace emerald {
 		onShutdown();
 
 		m_mainWindow.reset();
-
-		GLFW::terminate();
 	}
 
 	void Application::loop() {
 		PROFILE_FRAME();
 
 		if (m_mainWindow->shouldClose()) {
-			g_running = false;
+			s_running = false;
 		}
 
 		PROFILE_BEGIN("DPI check");
@@ -193,23 +185,23 @@ namespace emerald {
 	}
 
 	void Application::handleResize() {
-		if (g_resizeData.m_shouldResize) {
+		if (s_resizeData.m_shouldResize) {
 			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-			GL(glViewport(0, 0, g_resizeData.m_width, g_resizeData.m_height));
-			EventSystem::dispatch<WindowResizeEvent>(g_resizeData.m_width, g_resizeData.m_height);
-			g_resizeData.m_shouldResize = false;
+			GL(glViewport(0, 0, s_resizeData.m_width, s_resizeData.m_height));
+			EventSystem::dispatch<WindowResizeEvent>(s_resizeData.m_width, s_resizeData.m_height);
+			s_resizeData.m_shouldResize = false;
 		}
 	}
 
 	void Application::onResize(uint32_t width, uint32_t height) {
 		m_mainWindow->setWidth(width);
 		m_mainWindow->setHeight(height);
-		if (g_resizeData.m_width == width && g_resizeData.m_height == height)
+		if (s_resizeData.m_width == width && s_resizeData.m_height == height)
 			return;
 
-		g_resizeData.m_width = width;
-		g_resizeData.m_height = height;
-		g_resizeData.m_shouldResize = true;
+		s_resizeData.m_width = width;
+		s_resizeData.m_height = height;
+		s_resizeData.m_shouldResize = true;
 	}
 
 	uint32_t Application::getWidth() const {

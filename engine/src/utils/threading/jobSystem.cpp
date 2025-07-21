@@ -139,7 +139,7 @@ namespace emerald {
 		return jobSystemState.m_threadCount;
 	}
 
-	void JobSystem::execute(Context& ctx, const std::function<void(JobArgs)>& function) {
+	void JobSystem::execute(JobContext& ctx, const std::function<void(JobArgs)>& function) {
 		ctx.counter.fetch_add(1);
 
 		Job job;
@@ -153,7 +153,7 @@ namespace emerald {
 		jobSystemState.m_wakeConditions[int(ctx.priority)].notify_one();
 	}
 
-	void JobSystem::execute(Context& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobArgs)>& function) {
+	void JobSystem::execute(JobContext& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobArgs)>& function) {
 		if (jobCount == 0 || groupSize == 0) {
 			return;
 		}
@@ -178,11 +178,11 @@ namespace emerald {
 		jobSystemState.m_wakeConditions[int(ctx.priority)].notify_all();
 	}
 
-	bool Context::isBusy() const {
+	bool JobContext::isBusy() const {
 		return counter.load() > 0;
 	}
 
-	void Context::wait() {
+	void JobContext::wait() {
 		if (isBusy()) {
 			jobSystemState.m_wakeConditions[int(priority)].notify_all();
 

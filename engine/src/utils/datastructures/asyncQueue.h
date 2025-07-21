@@ -2,6 +2,7 @@
 #include <mutex>
 #include <queue>
 #include <stdexcept>
+#include <unordered_set>
 
 namespace emerald {
 	// Thread-safe queue for asynchronous inter-thread communication.
@@ -144,6 +145,30 @@ namespace emerald {
 
 			return m_released;
 		}
+
+		void removeDuplicates() {
+			std::lock_guard<std::mutex> lock(m_mutex);
+
+			if (m_queue.empty()) {
+				return;
+			}
+
+			std::unordered_set<T> seen;
+			std::queue<T> newQueue;
+
+			while (!m_queue.empty()) {
+				T& front = m_queue.front();
+
+				auto [it, inserted] = seen.insert(front);
+				if (inserted) {
+					newQueue.push(std::move(front));
+				}
+				m_queue.pop();
+			}
+
+			m_queue.swap(newQueue);
+		}
+
 
 	private:
 		mutable std::mutex m_mutex;

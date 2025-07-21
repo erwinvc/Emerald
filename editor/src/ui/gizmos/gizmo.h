@@ -1,6 +1,8 @@
 #pragma once
 #include "graphics/shaders/shader.h"
 #include "graphics/render/material.h"
+#include "graphics/buffers/vertexArray.h"
+#include "graphics/buffers/glBuffer.h"
 //#include "graphics/render/material.h"
 
 namespace emerald {
@@ -37,6 +39,9 @@ namespace emerald {
 		unsigned int VAO, VBO;
 		Ref<Shader> shader;
 		Ref<Material> material;
+		Ref<VertexBuffer> vbo;
+		Ref<VertexArray> vao;
+
 	public:
 		void initialize();
 		void setOperation(Operation op) {

@@ -13,7 +13,7 @@ namespace emerald {
 		_COUNT
 	};
 
-	class Context
+	class JobContext
 	{
 	public:
 		bool isBusy() const;
@@ -34,7 +34,7 @@ namespace emerald {
 
 	struct Job {
 		std::function<void(JobArgs)> m_function = nullptr;
-		Context* m_ctx = nullptr;
+		JobContext* m_ctx = nullptr;
 		uint32_t m_groupID = ~0;
 		uint32_t m_groupJobOffset = ~0;
 		uint32_t m_groupJobEnd = ~0;
@@ -51,11 +51,11 @@ namespace emerald {
 		static void shutDown();
 		static uint32_t getThreadCount();
 
-		static void execute(Context& ctx, const std::function<void(JobArgs)>& function);
-		static void execute(Context& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobArgs)>& function);
+		static void execute(JobContext& ctx, const std::function<void(JobArgs)>& function);
+		static void execute(JobContext& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobArgs)>& function);
 
 	private:
 		static void work(uint32_t startingQueue, Priority priority);
-		friend class Context;
+		friend class JobContext;
 	};
 }

@@ -11,7 +11,9 @@ namespace emerald {
 	}
 
 	void Material::initializeBuffer() {
-		ASSERT(m_shader->isLoaded(), "Trying to create a material for a shader that is not yet loaded");
+		ASSERT(m_shader, "Shader is null");
+		ASSERT(m_shader->isValid(), "Trying to create a material for a shader that is not valid");
+
 		const auto& uniformBuffers = m_shader->getUniformBuffers();
 		uint32_t size = 0;
 
@@ -24,15 +26,19 @@ namespace emerald {
 	}
 
 	void Material::updateForRendering() {
+		if (m_cachedShaderRevision != m_shader->getRevision()) {
+			initializeBuffer();
+			m_cachedShaderRevision = m_shader->getRevision();
+		}
 		m_shader->bind();
 
-		int textureSlot = 0;
+			int textureSlot = 0;
 
-		for (const auto& [name, binding] : m_textureBindings) {
-			if (binding.texture) {
-				binding.texture->bind(binding.unit);
+			for (const auto& [name, binding] : m_textureBindings) {
+				if (binding.texture) {
+					binding.texture->bind(binding.unit);
+				}
 			}
-		}
 
 		PROFILE_BEGIN("Material update for rendering");
 		const auto& uniformBuffers = m_shader->getUniformBuffers();
