@@ -45,11 +45,11 @@ namespace emerald {
 		Component(UUID uuid) : m_uuid(uuid) {}
 		virtual ~Component() = default;
 
-		Entity m_entity = Entity();
 		virtual const ComponentTypeInfo& getComponentTypeInfo() = 0;
 		virtual nlohmann::json serialize() = 0;
 		virtual void deserialize(const nlohmann::json& j) = 0;
 
+		Entity getEntity() const { return m_entity; }
 		UUID getUUID() const { return m_uuid; }
 
 		template<typename T, size_t>
@@ -58,7 +58,8 @@ namespace emerald {
 		friend class EntityComponentSystem;
 		friend class InspectorPanel;
 
-	private:
+	protected:
+		Entity m_entity = Entity();
 		UUID m_uuid;
 	};
 }

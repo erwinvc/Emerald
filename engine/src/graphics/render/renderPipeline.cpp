@@ -175,9 +175,6 @@ namespace emerald {
 			m_mainPass->descriptor().frameBuffer->setMSAA(MSAA::X16);
 		}
 
-		Entity entity = SceneManager::getActiveScene()->getRootNode()->getEntity();
-		TransformComponent* t = ECSManager::ECS().getComponent<TransformComponent>(entity);
-		t->markDirty();
 		SceneManager::getActiveScene()->updateAllTransforms();
 
 		{

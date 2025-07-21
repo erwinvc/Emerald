@@ -42,7 +42,7 @@ namespace emerald {
 	void Scene::getActiveCamera() {}
 
 	void Scene::updateTransformsRecursively(SceneGraphComponent* node, const glm::mat4& parentTransform) {
-		TransformComponent* transform = ECSManager::ECS().getComponent<TransformComponent>(node->m_entity);
+		TransformComponent* transform = ECSManager::ECS().getComponent<TransformComponent>(node->getEntity());
 		if (!transform) return;
 		transform->updateGlobalTransform(parentTransform);
 
@@ -53,6 +53,7 @@ namespace emerald {
 	}
 
 	void Scene::updateAllTransforms() {
+		ECSManager::ECS().getComponent<TransformComponent>(getRootNode()->getEntity())->markDirty();
 		updateTransformsRecursively(getRootNode(), glm::mat4(1.0f));
 	}
 }
