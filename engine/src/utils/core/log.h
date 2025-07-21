@@ -2,6 +2,7 @@
 #include <format>
 #include <mutex>
 #include <vector>
+#include <chrono>
 
 namespace emerald {
 #define FOREGROUND_BLUE      0x0001 

@@ -15,6 +15,11 @@ namespace emerald {
 		RGBA16F,
 		RGBA32F,
 
+		R32UI,
+		RG32UI,
+		RGB32UI,
+		RGBA32UI,
+
 		SRGB,
 		SRGBA,
 

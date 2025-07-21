@@ -23,7 +23,7 @@ namespace emerald {
 		m_imGuiSelection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, int idx) {
 			auto& nodes = *(std::vector<SceneGraphComponent*>*)self->UserData;
 			return nodes[idx]->m_id;
-		};
+			};
 	}
 
 	struct TableHeader {
@@ -95,8 +95,8 @@ namespace emerald {
 			//auto action = UndoRedo::createAction<void>("Delete entities");
 			for (auto& node : selectedNodes) {
 				if (!node) continue;
-				if (node->m_entity != SceneManager::getActiveScene()->getRootNode()->m_entity) {
-					ECSManager::ECS().destroyEntity(node->m_entity);
+				if (node->getEntity() != SceneManager::getActiveScene()->getRootNode()->getEntity()) {
+					ECSManager::ECS().destroyEntity(node->getEntity());
 				}
 			}
 			// Capture the state of the entities before deleting them
@@ -151,7 +151,7 @@ namespace emerald {
 			for (auto& child : node->m_children) {
 				_collectNodes(child);
 			}
-		};
+			};
 
 		_collectNodes(node);
 	}
@@ -159,7 +159,7 @@ namespace emerald {
 	ImRect HierarchyTree::renderNode(SceneGraphComponent* node, const char* searchString, int depth) {
 		if (!node) return ImRect(ImVec4(0, 0, 0, 0));
 		bool isRootNode = depth == 0;
-		MetadataComponent* metadata = ECSManager::ECS().getComponent<MetadataComponent>(node->m_entity);
+		MetadataComponent* metadata = ECSManager::ECS().getComponent<MetadataComponent>(node->getEntity());
 
 		ImGuiTreeNodeFlags flags = prepareTreeNodeFlags(node, isRootNode);
 		ImGui::SetNextItemOpen(node->m_isOpenInHierarchy || isRootNode);
@@ -180,12 +180,13 @@ namespace emerald {
 			ImGui::SetNextItemSelectionUserData(utils::getIndexInVector(m_nodes, node));
 		}
 
+		const char* name = isRootNode ? SceneManager::getActiveScene()->getName().c_str() : metadata ? metadata->getName().c_str() : "NULL";
+
 		if (isRootNode) {
 			//ImGui::Indent();
 			ImGui::PushStyleColor(ImGuiCol_Header, Color(0.07f, 0.07f, 0.07f, 1.0f));
 		}
-
-		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, metadata ? metadata->getName().c_str() : "NULL");
+		node->m_isOpenInHierarchy = ImGui::TreeNodeEx(&node->m_id, flags, metadata ? name : "NULL");
 		const ImRect nodeRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 		ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
 
@@ -214,16 +215,16 @@ namespace emerald {
 			ImGui::TableNextColumn();
 			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
 			ImGuiManager::pushFont(ImGUIFont::AWESOME_R);
-			bool entityEnabled = ECSManager::ECS().isEntityEnabled(node->m_entity);
+			bool entityEnabled = ECSManager::ECS().isEntityEnabled(node->getEntity());
 			if (ImGui::ToggleButton("", &entityEnabled, ImVec2(0, ImGui::GetTextLineHeight() + 2), P_ICON_FA_EYE, P_ICON_FA_EYE_SLASH)) {
-				auto it = std::find(m_selectedEntities.begin(), m_selectedEntities.end(), node->m_entity);
+				auto it = std::find(m_selectedEntities.begin(), m_selectedEntities.end(), node->getEntity());
 				if (it != m_selectedEntities.end()) {
 					for (auto& selectedEntity : m_selectedEntities) {
 						SceneGraphComponent* sgc = ECSManager::ECS().getComponent<SceneGraphComponent>(selectedEntity);
 						sgc->setEnabledRecursive(entityEnabled);
 					}
 				} else {
-					SceneGraphComponent* sgc = ECSManager::ECS().getComponent<SceneGraphComponent>(node->m_entity);
+					SceneGraphComponent* sgc = ECSManager::ECS().getComponent<SceneGraphComponent>(node->getEntity());
 					sgc->setEnabledRecursive(entityEnabled);
 				}
 
@@ -300,7 +301,7 @@ namespace emerald {
 		while (m_imGuiSelection.GetNextSelectedItem(&iterator, &id)) {
 			auto foundNode = std::find_if(m_nodes.begin(), m_nodes.end(), [id](SceneGraphComponent* n) {
 				return n->m_id == id;
-			});
+				});
 
 			if (foundNode != m_nodes.end()) {
 				selectedNodes.push_back(*foundNode);
@@ -309,7 +310,7 @@ namespace emerald {
 
 		std::sort(selectedNodes.begin(), selectedNodes.end(), [](SceneGraphComponent* a, SceneGraphComponent* b) {
 			return a->m_treeIndex < b->m_treeIndex;
-		});
+			});
 
 		return selectedNodes;
 	}
@@ -321,7 +322,7 @@ namespace emerald {
 			std::string name;
 			ImVector<SceneGraphComponent*> selectedNodes = getSelectedNodes();
 			for (int i = 0; i < selectedNodes.size(); i++) {
-				auto* metadata = ECSManager::ECS().getComponent<MetadataComponent>(selectedNodes[i]->m_entity);
+				auto* metadata = ECSManager::ECS().getComponent<MetadataComponent>(selectedNodes[i]->getEntity());
 				name += metadata->getName();
 				if (i < selectedNodes.size() - 1) name += "\n";
 			}
@@ -350,9 +351,9 @@ namespace emerald {
 
 						addNodeToParent(droppedNode, node, insertBefore, beforeNode);
 
-						UUID beforeNodeEntity = beforeNode ? beforeNode->m_entity : Entity();
+						UUID beforeNodeEntity = beforeNode ? beforeNode->getEntity() : Entity();
 
-						action->addUndoAction([droppedNodeEntity = droppedNode->m_entity, originalParentEntity = originalParent->m_entity, originalPrevSibling, originalNextSibling]() {
+						action->addUndoAction([droppedNodeEntity = droppedNode->getEntity(), originalParentEntity = originalParent->getEntity(), originalPrevSibling, originalNextSibling]() {
 							SceneGraphComponent* droppedNode1 = ECSManager::ECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
 							SceneGraphComponent* originalParent1 = ECSManager::ECS().getComponent<SceneGraphComponent>(originalParentEntity);
 
@@ -368,14 +369,14 @@ namespace emerald {
 								originalParent1->m_children.push_back(droppedNode1); //insert at the end if no siblings
 							}
 							droppedNode1->m_parent = originalParent1;
-						});
+							});
 
-						action->addDoAction([droppedNodeEntity = droppedNode->m_entity, nodeEntity = node->m_entity, insertBefore, beforeNodeEntity]() {
+						action->addDoAction([droppedNodeEntity = droppedNode->getEntity(), nodeEntity = node->getEntity(), insertBefore, beforeNodeEntity]() {
 							SceneGraphComponent* droppedNode1 = ECSManager::ECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
 							SceneGraphComponent* node1 = ECSManager::ECS().getComponent<SceneGraphComponent>(nodeEntity);
 							SceneGraphComponent* beforeNode1 = beforeNodeEntity.isValid() ? ECSManager::ECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
 							addNodeToParent(droppedNode1, node1, insertBefore, beforeNode1);
-						});
+							});
 
 						UndoRedo::commitAction(action);
 					}
@@ -438,9 +439,9 @@ namespace emerald {
 		m_selectedEntities.clear();
 
 		for (auto& node : getSelectedNodes()) {
-			if (node->m_entity == SceneManager::getActiveScene()->getRootNode()->m_entity) continue;
-			m_selectedEntities.push_back(node->m_entity);
-			Selection::selectEntity(node->m_entity);
+			if (node->getEntity() == SceneManager::getActiveScene()->getRootNode()->getEntity()) continue;
+			m_selectedEntities.push_back(node->getEntity());
+			Selection::selectEntity(node->getEntity());
 		}
 	}
 }

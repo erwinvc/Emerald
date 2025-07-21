@@ -14,6 +14,7 @@
 #include "../../editor/src/core/editor.h"
 #include "../../editor/src/core/selection.h"
 #include "../shaders/shaderRegistry.h"
+#include "engine/ecs/components/sceneGraphComponent.h"
 
 namespace emerald {
 	RenderPipeline::RenderPipeline() {
@@ -197,7 +198,9 @@ namespace emerald {
 			for (auto [meshRenderer, transform] : view) {
 				Ref<Model> model = meshRenderer->m_model.get();
 				if (!model) continue;
+
 				Ref<Mesh> submesh = model->getSubMesh(meshRenderer->m_submeshIndex);
+				if (!submesh)continue;
 
 				glm::mat4 modelTransform = transform->getGlobalTransform();
 				m_shadowMaterial->set("_ModelMatrix", modelTransform);
@@ -224,7 +227,9 @@ namespace emerald {
 		for (auto [meshRenderer, transform] : view) {
 			Ref<Model> model = meshRenderer->m_model.get();
 			if (!model) continue;
+			
 			Ref<Mesh> submesh = model->getSubMesh(meshRenderer->m_submeshIndex);
+			if (!submesh) continue;
 
 			Ref<Material> mat = submesh->getMaterial();
 			mat->set("_ViewMatrix", Editor->getEditorCamera()->getViewMatrix());
@@ -264,7 +269,9 @@ namespace emerald {
 				TransformComponent* transform = selectedEntity.getComponent<TransformComponent>();
 				Ref<Model> model = meshRenderer->m_model.get();
 				if (!model) continue;
+
 				Ref<Mesh> submesh = model->getSubMesh(meshRenderer->m_submeshIndex);
+				if (!submesh) continue;
 
 				m_outlineMaterial->set("_ModelMatrix", transform->getGlobalTransform());
 				m_outlineMaterial->updateForRendering();

@@ -21,27 +21,28 @@ namespace emerald {
 
 		template <typename T>
 		void addComponent(const T& component) {
-			ECSManager::ECS().addComponent<T>(*this, component);
+			//ECSManager::ECS().addComponent<T>(*this, component);
+			ECSManager::ECS().template addComponent<T>(*this, component);
 		}
 
 		template <typename T>
 		void removeComponent() {
-			ECSManager::ECS().removeComponent<T>(*this);
+			ECSManager::ECS().template removeComponent<T>(*this);
 		}
 
 		template <typename T>
 		std::vector<T*> getComponents() {
-			return ECSManager::ECS().getComponents<T>(*this);
+			return ECSManager::ECS().template getComponents<T>(*this);
 		}
 
 		template <typename T>
 		T* getComponent() {
-			return ECSManager::ECS().getComponent<T>(*this);
+			return ECSManager::ECS().template getComponent<T>(*this);
 		}
 
 		template <typename T>
 		bool hasComponent() {
-			return ECSManager::ECS().hasComponent<T>(*this);
+			return ECSManager::ECS().template hasComponent<T>(*this);
 		}
 
 	private:

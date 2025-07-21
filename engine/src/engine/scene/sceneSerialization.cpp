@@ -132,7 +132,7 @@ namespace emerald {
 			auto loop = [](SceneGraphComponent* s, auto& loop, int depth) -> void {
 				auto a = s->getChildren();
 				for (auto& e : a) {
-					auto* z = ECSManager::ECS().getComponent<MetadataComponent>(e->m_entity);
+					auto* z = ECSManager::ECS().getComponent<MetadataComponent>(e->getEntity());
 					std::string indent(depth * 2, ' '); 
 					Log::info("{}{}", indent, z->getName().c_str());
 					loop(e, loop, depth++);

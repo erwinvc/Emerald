@@ -54,17 +54,23 @@ namespace emerald {
 			case TextureFormat::RGBA8:
 			case TextureFormat::SRGBA:		return 4;
 
-			// Half-float (16 bits = 2 bytes per channel)
+				// Half-float (16 bits = 2 bytes per channel)
 			case TextureFormat::RGBA16F:	return 8;    // 4 channels @ 16 bits each = 8 bytes
 			case TextureFormat::RG16F:		return 4;      // 2 channels @ 16 bits each = 4 bytes
 			case TextureFormat::RGB16F:		return 6;     // 3 channels @ 16 bits each = 6 bytes
 
-			// Full-float (32 bits = 4 bytes per channel)
+				// Full-float (32 bits = 4 bytes per channel)
 			case TextureFormat::RGBA32F:	return 16;   // 4 channels @ 32 bits each = 16 bytes
 			case TextureFormat::RG32F:		return 8;     // 2 channels @ 32 bits each = 8 bytes
 			case TextureFormat::RGB32F:		return 12;    // 3 channels @ 32 bits each = 12 bytes
 
-			// Depth / stencil
+				// Unsigned integer 
+			case TextureFormat::R32UI:      return 4;
+			case TextureFormat::RG32UI:     return 8;
+			case TextureFormat::RGB32UI:    return 12;
+			case TextureFormat::RGBA32UI:   return 16;
+
+				// Depth / stencil
 			case TextureFormat::DEPTH32F:	return 4;        // 32 bits for depth = 4 bytes
 			case TextureFormat::DEPTH24STENCIL8: return 4; // Typically 32 bits total = 4 bytes
 		}
@@ -76,8 +82,8 @@ namespace emerald {
 		switch (format) {
 			case TextureFormat::R:					return GL_RED;
 
-			case TextureFormat::RG16F:             
-			case TextureFormat::RG32F:  
+			case TextureFormat::RG16F:
+			case TextureFormat::RG32F:
 			case TextureFormat::RG:					return GL_RG;
 
 			case TextureFormat::RGB16F:
@@ -86,9 +92,14 @@ namespace emerald {
 			case TextureFormat::SRGB:				return GL_RGB;
 
 			case TextureFormat::RGBA16F:
-			case TextureFormat::RGBA32F:	
+			case TextureFormat::RGBA32F:
 			case TextureFormat::RGBA8:
 			case TextureFormat::SRGBA:				return GL_RGBA;
+
+			case TextureFormat::R32UI:				return GL_RED_INTEGER;
+			case TextureFormat::RG32UI:				return GL_RG_INTEGER;
+			case TextureFormat::RGB32UI:			return GL_RGB_INTEGER;
+			case TextureFormat::RGBA32UI:			return GL_RGBA_INTEGER;
 
 			case TextureFormat::DEPTH24STENCIL8:	return GL_DEPTH_STENCIL;
 			case TextureFormat::DEPTH32F:			return GL_DEPTH_COMPONENT;
@@ -109,6 +120,10 @@ namespace emerald {
 			case TextureFormat::RGB32F:			return GL_RGB32F;
 			case TextureFormat::RGBA16F:        return GL_RGBA16F;
 			case TextureFormat::RGBA32F:        return GL_RGBA32F;
+			case TextureFormat::R32UI:          return GL_R32UI;
+			case TextureFormat::RG32UI:         return GL_RG32UI;
+			case TextureFormat::RGB32UI:        return GL_RGB32UI;
+			case TextureFormat::RGBA32UI:        return GL_RGBA32UI;
 			case TextureFormat::SRGB:           return GL_SRGB8;
 			case TextureFormat::SRGBA:          return GL_SRGB8_ALPHA8;
 			case TextureFormat::DEPTH24STENCIL8:return GL_DEPTH24_STENCIL8;
@@ -135,7 +150,12 @@ namespace emerald {
 			case TextureFormat::RGB16F:
 			case TextureFormat::RGB32F:				return GL_FLOAT;
 
-				// Depth / stencil
+			case TextureFormat::R32UI:
+			case TextureFormat::RG32UI:
+			case TextureFormat::RGB32UI:		
+			case TextureFormat::RGBA32UI:			return GL_UNSIGNED_INT;
+
+			// Depth / stencil
 			case TextureFormat::DEPTH24STENCIL8:	return GL_UNSIGNED_INT_24_8;
 			case TextureFormat::DEPTH32F:			return GL_FLOAT;
 
@@ -153,6 +173,10 @@ namespace emerald {
 			case TextureFormat::RGBA8:
 			case TextureFormat::RGBA16F:
 			case TextureFormat::RGBA32F:
+			case TextureFormat::R32UI:
+			case TextureFormat::RG32UI:
+			case TextureFormat::RGB32UI:
+			case TextureFormat::RGBA32UI:
 			case TextureFormat::SRGB:
 			case TextureFormat::SRGBA:
 			case TextureFormat::RG16F:
@@ -182,9 +206,13 @@ namespace emerald {
 			case TextureFormat::RG32F:
 			case TextureFormat::RGB16F:
 			case TextureFormat::RGB32F:
+			case TextureFormat::R32UI:
+			case TextureFormat::RG32UI:
+			case TextureFormat::RGB32UI:
+			case TextureFormat::RGBA32UI:
 			case TextureFormat::NONE:				return true;
 
-				// Depth-based
+			// Depth-based
 			case TextureFormat::DEPTH32F:
 			case TextureFormat::DEPTH24STENCIL8:	return false;
 		}

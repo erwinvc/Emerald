@@ -24,6 +24,7 @@ namespace emerald {
 		virtual nlohmann::json serialize() override;
 		virtual void deserialize(const nlohmann::json& j) override;
 		//static TransformComponent* deserialize(const nlohmann::json& json, Entity entity);
+		void markDirty() { m_needsUpdate = true; }
 
 	private:
 		friend class TransformComponentInspector;
@@ -36,7 +37,5 @@ namespace emerald {
 		glm::vec3 m_position = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 m_rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 m_scale = glm::vec3(1.0f, 1.0f, 1.0f);
-
-		void markDirty() { m_needsUpdate = true; }
 	};
 }
