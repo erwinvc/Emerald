@@ -44,6 +44,8 @@ namespace emerald {
 		RenderPassDesc mainPassDesc;
 		mainPassDesc.frameBuffer = FrameBuffer::create(mainfbDesc);
 		mainPassDesc.shader = m_geometryShader;
+		mainPassDesc.clearMask.setFlags(ClearMaskFlags::COLOR, ClearMaskFlags::DEPTH);
+
 		m_mainPass = Ref<RenderPass>::create(mainPassDesc);
 
 		// Shadow
@@ -64,6 +66,7 @@ namespace emerald {
 		RenderPassDesc shadowPassDesc;
 		shadowPassDesc.frameBuffer = m_shadowFramebuffer;
 		shadowPassDesc.shader = m_shadowShader;
+		shadowPassDesc.clearMask.setFlags(ClearMaskFlags::COLOR, ClearMaskFlags::DEPTH, ClearMaskFlags::STENCIL);
 		m_shadowPass = Ref<RenderPass>::create(shadowPassDesc);
 
 		m_shadowMaterial = Ref<Material>::create("Shadow", m_shadowShader);
@@ -89,6 +92,8 @@ namespace emerald {
 
 		RenderPassDesc outlinePassDesc;
 		outlinePassDesc.frameBuffer = m_mainPass->descriptor().frameBuffer;
+		outlinePassDesc.clearMask.setFlags(ClearMaskFlags::COLOR, ClearMaskFlags::DEPTH, ClearMaskFlags::STENCIL);
+
 		// or a similar FB that shares the same depth-stencil
 		outlinePassDesc.shader = m_outlineShader; // a special outline shader if needed
 		m_outlineMaterial = Ref<Material>::create("Outline", m_outlineShader);
@@ -263,7 +268,7 @@ namespace emerald {
 		m_outlineMaterial->set("_ProjectionMatrix", Editor->getEditorCamera()->getProjectionMatrix());
 
 		// Draw all selected objects
-		for (auto selectedEntity : Selection::getSelectedEntities()) {
+		for (auto selectedEntity : Selection::get()) {
 			auto meshRenderers = selectedEntity.getComponents<MeshRendererComponent>();
 			for (auto* meshRenderer : meshRenderers) {
 				TransformComponent* transform = selectedEntity.getComponent<TransformComponent>();

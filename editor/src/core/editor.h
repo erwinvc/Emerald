@@ -35,6 +35,7 @@ namespace emerald {
 
 	private:
 
+		void handleMousePicking();
 		void onProjectOpened(EditorProjectOpenedEvent& e);
 	};
 

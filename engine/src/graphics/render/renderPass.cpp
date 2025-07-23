@@ -11,7 +11,7 @@ namespace emerald {
 	}
 
 	void RenderPass::clear() {
-		m_desc.frameBuffer->clear();
+		m_desc.frameBuffer->clear(m_desc.clearMask);
 	}
 
 	void RenderPass::bind() {

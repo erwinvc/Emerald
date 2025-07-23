@@ -14,7 +14,7 @@ namespace emerald {
 		float m_splitterWidth = 4.0f;
 		InspectorTree m_inspectorTree;
 
-		void drawInspectorHeader(Vector<Entity>& selectedEntities);
+		void drawInspectorHeader(const Vector<Entity>& selectedEntities);
 		void drawSplitter(uint32_t totalWidth);
 	};
 }

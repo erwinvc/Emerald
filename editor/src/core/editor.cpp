@@ -1,32 +1,38 @@
 #include "eepch.h"
+#include "assets/fileWatcher.h"
 #include "core/common/engineError.h"
 #include "core/common/engineLoading.h"
 #include "editor.h"
 #include "editor/events/editorProjectOpenedEvent.h"
 #include "engine/assets/core/assetRegistry.h"
+#include "engine/ecs/core/ECSManager.h"
 #include "engine/events/eventSystem.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/mouse.h"
 #include "engine/scene/sceneManager.h"
-#include "assets/fileWatcher.h"
+#include "engine/scene/sceneSerialization.h"
 #include "graphics/buffers/framebuffer.h"
 #include "graphics/core/camera.h"
-#include "graphics/core/renderer.h"
 #include "graphics/render/renderPipeline.h"
 #include "imguiProfiler/Profiler.h"
 #include "input/dragDrop.h"
-#include "project.h"
-#include "ui/editorWindow.h"
-#include "utils/undoRedo.h"
-#include "engine/ecs/core/ECSManager.h"
-#include "engine/scene/sceneSerialization.h"
 #include "projectManager.h"
+#include "selection.h"
+#include "ui/editorWindow.h"
+#include "utils/core/picking.h"
+#include "utils/undoRedo.h"
 
 namespace emerald {
 	static UniqueRef<EditorWindow> s_editorWindow;
 	static UniqueRef<RenderPipeline> s_renderPipeline;
+	static UniqueRef<Picking> s_picking;
 	static Ref<EditorCamera> s_editorCamera;
 
+	static glm::ivec2 s_lastMousePos = { -9999, -9999 };
+	static std::vector<Entity> s_pickingStack;
+	static size_t s_pickingClickIndex = 0;
+
+	static bool s_mouseActiveInViewport = false;
 	static float s_lastTitleUpdateTime = 0.0f;
 
 	void updateTitlebar(float time, uint32_t ups, uint32_t fps, bool force = false) {
@@ -50,7 +56,7 @@ namespace emerald {
 		s_editorWindow = UniqueRef<EditorWindow>::create();
 		s_renderPipeline = UniqueRef<RenderPipeline>::create();
 		s_editorCamera = Ref<EditorCamera>::create(70.0f, 0.05f, 500.0f);
-
+		s_picking = UniqueRef<Picking>::create();
 
 		ProjectManager::loadRecentProjects();
 		ProjectManager::openLastProject();
@@ -58,14 +64,39 @@ namespace emerald {
 		updateTitlebar(0, 0, 0, true);
 	}
 
+	// Manually resetting the static members for clean shutdown. This can be improved.
 	void EmeraldEditorApplication::onShutdown() {
 		FileWatcher::shutdown();
 		SceneManager::clearScenes();
 		s_editorWindow.reset();
 		s_renderPipeline.reset();
+		s_picking.reset();
 	}
 
-	bool mouseActiveInViewport = false;
+	void EmeraldEditorApplication::handleMousePicking() {
+		if (s_mouseActiveInViewport && Mouse::buttonJustUp(MouseButton::LEFT)) {
+			s_picking->requestRead(s_editorWindow->getMousePositionInViewport(), 5);
+		}
+		s_picking->render();
+		auto& hits = s_picking->flushResults();
+		if (!hits.empty()) {
+			glm::ivec2 clickPos = { hits.front().x, hits.front().y };
+
+			if (clickPos != s_lastMousePos) {
+				s_pickingStack.clear();
+				for (auto& r : hits) s_pickingStack.push_back(r.entity);
+				s_pickingClickIndex = 0;
+				s_lastMousePos = clickPos;
+			} else {
+				s_pickingClickIndex = (s_pickingClickIndex + 1) % s_pickingStack.size();
+			}
+
+			if (Keyboard::keyDown(Key::LEFT_CONTROL))
+				Selection::toggle(s_pickingStack[s_pickingClickIndex]);
+			else Selection::set(Vector<Entity>{ s_pickingStack[s_pickingClickIndex] });
+		}
+	}
+
 	void EmeraldEditorApplication::update(Timestep ts) {
 		PROFILE_BEGIN("Editor window update");
 		updateTitlebar(getTime(), getUPS(), getFPS());
@@ -88,17 +119,18 @@ namespace emerald {
 		glm::ivec2 viewportSize = s_editorWindow->getSceneViewportSize();
 		s_editorCamera->setViewportSize(viewportSize.x, viewportSize.y);
 
-		//Camera magic, this can probably be improved
+		// Camera magic, this can probably be improved
 		bool mouseDown = Mouse::buttonDown(MouseButton::LEFT) || Mouse::buttonDown(MouseButton::RIGHT);
-		if (s_editorWindow->isViewportFocused()) {
+		//if (s_editorWindow->isViewportFocused()) {
 			if (s_editorWindow->isMouseInViewport()) {
 				if (mouseDown) {
-					mouseActiveInViewport = true;
+					s_mouseActiveInViewport = true;
 				}
-			} else if (!mouseDown) mouseActiveInViewport = false;
-		} else mouseActiveInViewport = false;
-		if (mouseActiveInViewport) s_editorCamera->update(ts);
+			} else if (!mouseDown) s_mouseActiveInViewport = false;
+		//} else s_mouseActiveInViewport = false;
+		if (s_mouseActiveInViewport) s_editorCamera->update(ts);
 
+		// Handle viewport resize
 		if (viewportSize.x > 1 && viewportSize.y > 1) {
 			FrameBufferManager::onResize(viewportSize.x, viewportSize.y);
 		}
@@ -106,11 +138,13 @@ namespace emerald {
 		if (SceneManager::getActiveScene()) {
 			SceneManager::getActiveScene()->update(ts);
 
+			handleMousePicking();
+
 			PROFILE_BEGIN("Pipeline render");
 			s_renderPipeline->render();
-			s_editorWindow->render();
-
 			PROFILE_END();
+
+			s_editorWindow->render();
 		}
 
 		PROFILE_GPU_BEGIN("ImGui start");
@@ -162,6 +196,6 @@ namespace emerald {
 	}
 
 	Application* createApplication(const Ref<Window>& mainWindow) {
-		return new EmeraldEditorApplication({"Emerald Editor", 1920, 1080}, mainWindow);
+		return new EmeraldEditorApplication({ "Emerald Editor", 1920, 1080 }, mainWindow);
 	}
 }

@@ -69,6 +69,14 @@ namespace emerald {
 		T* data() {	return vec.data(); }
 		const T* data() const {	return vec.data(); }
 
+		// Equality
+		bool operator==(const Vector<T>& other) const {
+			return vec == other.vec;
+		}
+		bool operator!=(const Vector<T>& other) const {
+			return vec != other.vec;
+		}
+
 		// Iterator support
 		auto begin() { return vec.begin(); }
 		auto end() { return vec.end(); }

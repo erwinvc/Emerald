@@ -32,13 +32,13 @@ namespace emerald {
 		}
 		m_shader->bind();
 
-			int textureSlot = 0;
+		int textureSlot = 0;
 
-			for (const auto& [name, binding] : m_textureBindings) {
-				if (binding.texture) {
-					binding.texture->bind(binding.unit);
-				}
+		for (const auto& [name, binding] : m_textureBindings) {
+			if (binding.texture) {
+				binding.texture->bind(binding.unit);
 			}
+		}
 
 		PROFILE_BEGIN("Material update for rendering");
 		const auto& uniformBuffers = m_shader->getUniformBuffers();

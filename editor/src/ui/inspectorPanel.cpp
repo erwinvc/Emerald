@@ -40,7 +40,7 @@ namespace emerald {
 		ImGui::PopStyleVar();
 	}
 
-	void InspectorPanel::drawInspectorHeader(Vector<Entity>& selectedEntities) {
+	void InspectorPanel::drawInspectorHeader(const Vector<Entity>& selectedEntities) {
 		bool changed = false;
 		static const char* xyzSymbols[3] = { "X", "Y", "Z" };
 
@@ -60,7 +60,7 @@ namespace emerald {
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		if (ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoNav)) {
 			std::unordered_map<RTTIType, const ComponentTypeInfo*> componentInfo;
-			Vector<Entity> selectedEntities = Selection::getSelectedEntities();
+			Vector<Entity> selectedEntities = Selection::get();
 			std::unordered_set<RTTIType> commonComponents;
 
 			bool firstEntity = true;

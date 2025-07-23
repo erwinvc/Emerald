@@ -10,7 +10,7 @@ namespace emerald {
 	class MetadataComponent : public Component {
 		COMPONENT_DECL(MetadataComponent)
 	public:
-		enum MetadataFlags {
+		enum class MetadataFlags {
 			ENTITY_STATIC = BIT(0)
 		};
 
@@ -33,8 +33,8 @@ namespace emerald {
 		void setName(const std::string& name) { m_name = name.c_str(); }
 		void setName(const char* name) { m_name = name; }
 
-		void setStatic(bool isStatic) { m_flags.setFlag(ENTITY_STATIC, isStatic); }
-		bool isStatic() const { return m_flags.isFlagSet(ENTITY_STATIC); }
+		void setStatic(bool isStatic) { m_flags.setFlag(MetadataFlags::ENTITY_STATIC, isStatic); }
+		bool isStatic() const { return m_flags.isFlagSet(MetadataFlags::ENTITY_STATIC); }
 
 		const ComponentTypeInfo& getComponentTypeInfo() override { return s_componentTypeInfo; }
 

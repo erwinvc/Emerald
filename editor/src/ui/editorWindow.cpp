@@ -20,6 +20,7 @@
 #include "utils/system/fileSystem.h"
 #include "graphics/core/renderer.h"
 #include "gizmos/gizmo.h"
+#include "utils/core/picking.h"
 
 
 namespace emerald {
@@ -260,6 +261,11 @@ namespace emerald {
 		if (EditorWindows.demo) {
 			ImGui::ShowDemoWindow(&EditorWindows.demo);
 		}
+
+		//ImGui::Begin("Picking Buffer");
+		//ImTextureID tex = (ImTextureID)(uint64_t)Picking::getFBO()->getTextures()[1]->handle();
+		//ImGui::Image(tex, ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0)); // visualise ids
+		//ImGui::End();
 
 		static auto first_time = true;
 		if (first_time) {

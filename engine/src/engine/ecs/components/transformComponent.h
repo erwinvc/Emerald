@@ -14,6 +14,8 @@ namespace emerald {
 		const glm::vec3& getRotation() const { return m_rotation; }
 		const glm::vec3& getScale() const { return m_scale; }
 
+		glm::vec3 getGlobalPosition() const { return glm::vec3(m_globalTransform[3]); }
+
 		void updateLocalTransform();
 		void updateGlobalTransform(const glm::mat4& parentTransform);
 		const glm::mat4 getLocalTransform() const { return m_localTransform; }

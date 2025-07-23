@@ -4,6 +4,8 @@
 #include "core/application/application.h"
 #include "graphics/core/renderer.h"
 #include "utils/threading/threadManager.h"
+#include "utils/misc/flags.h"
+#include <graphics\misc\types.h>
 
 namespace emerald {
 	static const uint32_t drawBuffers[16] = {
@@ -26,12 +28,11 @@ namespace emerald {
 	};
 
 	FrameBuffer::FrameBuffer(FramebufferDesc desc) : m_desc(desc) {
-		uint32_t width = m_desc.width;
-		uint32_t height = m_desc.height;
-		if (width == 0) {
-			width = App->getWidth();
-			height = App->getHeight();
-		}
+		uint32_t width = m_desc.width ? m_desc.width : App->getWidth();
+		uint32_t height = m_desc.height ? m_desc.height : App->getHeight();
+
+		m_desc.width = width;
+		m_desc.height = height;
 
 		GL(glGenFramebuffers(1, &m_handle));
 		GL(glBindFramebuffer(GL_FRAMEBUFFER, m_handle));
@@ -53,7 +54,7 @@ namespace emerald {
 
 	void FrameBuffer::invalidateTextures() {
 		//ASSERT(ThreadManager::isThread(ThreadType::RENDER), "framebuffers should be invalidated on the render thread");
-		m_textures.clear();
+		m_attachments.clear();
 		m_depthTexture = nullptr;
 		for (auto& attachmentDesc : m_desc.attachments) {
 			TextureDesc desc;
@@ -69,7 +70,7 @@ namespace emerald {
 			texture->invalidate();
 
 			Log::info("Creating {} texture for framebuffer: {} at {}x{}", attachmentDesc.name, m_desc.name, m_desc.width, m_desc.height);
-			if (!GLUtils::isDepthFormat(attachmentDesc.format)) m_textures.emplace_back(texture);
+			if (!GLUtils::isDepthFormat(attachmentDesc.format)) m_attachments.emplace_back(texture);
 			else m_depthTexture = texture;
 		}
 	}
@@ -82,7 +83,7 @@ namespace emerald {
 #endif
 		m_colorAttachments = 0;
 		uint32_t attachmentIndex = 0;
-		for (auto& texture : m_textures) {
+		for (auto& texture : m_attachments) {
 			const TextureDesc& desc = texture->descriptor();
 			GLenum attachmentType = desc.textureFormatToAttachmentType(attachmentIndex);
 
@@ -127,7 +128,7 @@ namespace emerald {
 			attachTextures();
 		} else {
 			// If we don't use multisampling we can simply resize the textures
-			for (auto& texture : m_textures) {
+			for (auto& texture : m_attachments) {
 				texture->resize(m_desc.width, m_desc.height);
 			}
 
@@ -152,7 +153,7 @@ namespace emerald {
 		}
 	}
 
-	float FrameBuffer::fboScaleToFloat(FBOScale scale) const {
+	float FrameBuffer::fboScaleToFloat(FBOScale scale) {
 		switch (scale) {
 			case FBOScale::FULL: return 1.0f;
 			case FBOScale::HALF: return 0.5f;
@@ -193,12 +194,36 @@ namespace emerald {
 		GL(glBindFramebuffer(GL_FRAMEBUFFER, m_handle));
 		GL(glViewport(0, 0, m_desc.width, m_desc.height));
 	}
+
+	void FrameBuffer::bindRead(uint32_t colorAttachment) const {
+		GL(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_handle));
+		GL(glReadBuffer(GL_COLOR_ATTACHMENT0 + colorAttachment));
+	}
+
 	void FrameBuffer::unbind() const {
 		GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	}
-	void FrameBuffer::clear() const {
+
+	void FrameBuffer::clear(Flags<3> clearMask) const {
 		GLUtils::glClearColor(m_desc.clearColor);
 		GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+
+		//if (clearMask.isFlagSet(ClearMaskFlags::COLOR)) {
+		//	const auto& first = m_attachments[0]; 
+		//	if (first->descriptor().getDataType() == GL_UNSIGNED_INT) {
+		//		GLuint zero[4] = { 0,0,0,0 };
+		//		GL(glClearBufferuiv(GL_COLOR, 0, zero));
+		//	} else {
+		//		GLUtils::glClearColor(m_desc.clearColor);
+		//		GL(glClear(GL_COLOR_BUFFER_BIT));
+		//	}
+		//}
+		//
+		//if (clearMask.isFlagSet(ClearMaskFlags::DEPTH))
+		//	GL(glClear(GL_DEPTH_BUFFER_BIT));
+		//
+		//if (clearMask.isFlagSet(ClearMaskFlags::STENCIL))
+		//	GL(glClear(GL_STENCIL_BUFFER_BIT));
 	}
 
 	void FrameBuffer::clearDepthOnly() const {

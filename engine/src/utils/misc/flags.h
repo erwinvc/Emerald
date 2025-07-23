@@ -5,6 +5,7 @@ namespace emerald {
 	class Flags {
 	public:
 		Flags() { clearAllFlags(); }
+		Flags(size_t flags) : m_flags(flags) {}
 
 		void setFlag(size_t index) {
 			size_t idx = index / BitsPerWord;
@@ -41,6 +42,24 @@ namespace emerald {
 			size_t bit = index % BitsPerWord;
 			return (m_flags[idx] & (WordType(1) << bit)) != 0;
 		}
+
+		template <class E>
+		void setFlag(E e) { setFlag(toIndex(e)); }
+
+		template <class E>
+		void setFlag(E e, bool v) { setFlag(toIndex(e), v); }
+
+		template<class... E>
+		void setFlags(E... es) { (setFlag(toIndex(es)), ...); }
+
+		template <class E>
+		void clearFlag(E e) { clearFlag(toIndex(e)); }
+
+		template <class E>
+		void toggleFlag(E e) { toggleFlag(toIndex(e)); }
+
+		template <class E>
+		bool isFlagSet(E e) const { return isFlagSet(toIndex(e)); }
 
 		bool isAnyFlagSet(const Flags<N>& flags) const {
 			for (size_t i = 0; i < ArraySize; ++i) {
@@ -91,6 +110,18 @@ namespace emerald {
 		}
 
 	private:
+		template<class E>
+		static constexpr std::size_t toIndex(E e) noexcept {
+			static_assert(std::is_enum_v<E>);
+			using UT = std::underlying_type_t<E>;
+			UT value = static_cast<UT>(e);
+
+			// require exactly one bit set
+			assert(value && (value & (value - 1)) == 0 && "Enum is not a power-of-two mask");
+
+			return std::countr_zero(static_cast<std::make_unsigned_t<UT>>(value));
+		}
+
 		using WordType = uint32_t;
 		static constexpr size_t BitsPerWord = sizeof(WordType) * 8;
 		static constexpr size_t ArraySize = (N + BitsPerWord - 1) / BitsPerWord;

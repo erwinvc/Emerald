@@ -25,10 +25,17 @@ namespace emerald {
 
 			ImGui::Image((void*)(uint64_t)Editor->getFinalTexture()->handle(), avail, { 0, 1 }, { 1, 0 });
 
-			m_sceneViewportSize = glm::ivec2((uint32_t)avail.x, (uint32_t)avail.y);
-			m_mouseInViewport = ImGui::IsWindowHovered();
+			ImVec2 imageMin = ImGui::GetItemRectMin();
+			ImVec2 mouse = ImGui::GetMousePos();
+			ImVec2 local = mouse - imageMin;
 
+			m_sceneViewportSize = { (int)avail.x, (int)avail.y };
+			m_mouseInViewport = ImGui::IsItemHovered();
 			m_viewportFocused = ImGui::IsWindowFocused();
+
+			if (m_mouseInViewport)
+				m_mousePositionInViewport = { (int)local.x, (int)(m_sceneViewportSize.y - local.y) };
+
 
 			if (m_mouseInViewport) {
 				ImGui::SetNextFrameWantCaptureMouse(false);

@@ -137,7 +137,7 @@ namespace emerald {
 			if (len < max_size()) {
 				m_data[len] = c;
 				m_data[len + 1] = '\0';
-			} 
+			}
 		}
 
 		void pop_back() {
@@ -201,6 +201,11 @@ namespace emerald {
 			return npos;
 		}
 
+		constexpr std::string_view view() const noexcept {
+			return { m_data, size() };
+		}
+		operator std::string_view() const noexcept { return view(); }
+
 		// Constants
 		static constexpr size_type npos = static_cast<size_type>(-1);
 
@@ -237,7 +242,7 @@ namespace emerald {
 		char m_data[N];
 	};
 
-} 
+}
 
 template <std::size_t N>
 inline emerald::FixedString<N> operator+(const emerald::FixedString<N>& lhs, const emerald::FixedString<N>& rhs) {
@@ -265,3 +270,15 @@ template <std::size_t N>
 inline std::ostream& operator<<(std::ostream& os, const emerald::FixedString<N>& str) {
 	return os << str.c_str();
 }
+
+namespace std {
+	template <std::size_t N, class CharT>
+	struct formatter<emerald::FixedString<N>, CharT>
+		: formatter<std::basic_string_view<CharT>, CharT> {
+		template <class FormatCtx>
+		auto format(const emerald::FixedString<N>& str, FormatCtx& ctx) const {
+			using SV = std::basic_string_view<CharT>;
+			return formatter<SV, CharT>::format(SV(reinterpret_cast<const CharT*>(str.data()), str.size()), ctx);
+		}
+	};
+} // namespace std

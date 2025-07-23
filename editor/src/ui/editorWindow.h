@@ -22,6 +22,7 @@ namespace emerald {
 		void onImGuiRender();
 
 		glm::ivec2 getSceneViewportSize() const { return m_viewportPanel.getSceneViewportSize(); }
+		glm::ivec2 getMousePositionInViewport() const { return m_viewportPanel.getMousePositionInViewport(); }
 		bool isViewportFocused() const { return m_viewportPanel.isViewportFocused(); }
 		bool isMouseInViewport() const { return m_viewportPanel.isMouseInViewport(); }
 

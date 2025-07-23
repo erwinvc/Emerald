@@ -3,6 +3,7 @@
 #include "engine/ecs/core/entity.h"
 #include "engine/scene/scene.h"
 #include "ui/imguiManager.h"
+#include "utils/datastructures/vector.h"
 
 namespace emerald {
 	class HierarchyTree {
@@ -19,6 +20,9 @@ namespace emerald {
 		SceneGraphComponent* m_lastSelectedNode = nullptr;
 		ImGuiSelectionBasicStorage m_imGuiSelection;
 		std::vector<Entity> m_selectedEntities;
+
+		Vector<Entity> m_lastUISelection;  
+		bool m_updatingFromCore = false; 
 
 		void collectNodes(SceneGraphComponent* node);
 		ImRect renderNode(SceneGraphComponent* node, const char* searchString, int depth = 0);

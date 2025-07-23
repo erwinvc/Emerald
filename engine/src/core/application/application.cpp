@@ -37,6 +37,7 @@ namespace emerald {
 	}
 
 	void Application::run() {
+
 		EventSystem::setGlobalCallback(&Application::onEvent, this);
 
 

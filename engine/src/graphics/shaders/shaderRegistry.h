@@ -14,6 +14,7 @@ namespace emerald {
 			std::string name = StringUtils::toLower(shader.lock()->getName());
 			s_shadersMap[name] = shader;
 		}
+
 		static void unregisterShader(Shader* shader) {
 			auto it = s_shadersMap.find(shader->getName());
 			if (it != s_shadersMap.end()) {

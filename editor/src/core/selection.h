@@ -5,13 +5,15 @@
 namespace emerald {
 	class Selection {
 	public:
-		static Vector<Entity> getSelectedEntities();
-		static void selectEntity(Entity entity);
-		static void deselectEntity(Entity entity);
-		static void clearSelection();
+		static const Vector<Entity>& get();
+		static void set(const Vector<Entity>&);  
+		static void toggle(Entity);          
+		static bool contains(Entity);
+		static void clear();
 
 	private:
-		static inline std::mutex m_mutex;
-		static inline Vector<Entity> m_selectedEntities;
+		static void notify();
+		static inline Vector<Entity> m_selected;
+		static inline std::mutex     m_mutex;
 	};
 }

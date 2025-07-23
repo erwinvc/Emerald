@@ -34,13 +34,13 @@ namespace emerald {
 
 		// Copies the item into the queue
 		template <typename U>
-		void pushBack(const U& item) {
+		void push(const U& item) {
 			std::lock_guard<std::mutex> lock(m_mutex);
 
 			if (m_released) {
 				throw QueueShutdownException();
 			}
-			m_queue.push_back(item);
+			m_queue.push(item);
 			m_condVar.notify_one();
 		}
 
@@ -88,6 +88,11 @@ namespace emerald {
 			if (m_queue.empty()) return false;
 			obj = m_queue.front();
 			return true;
+		}
+
+		void pop() {
+			std::lock_guard<std::mutex> lock(m_mutex);
+			m_queue.pop();
 		}
 
 		bool waitForGet(T& obj) {

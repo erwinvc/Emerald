@@ -1,7 +1,6 @@
 #include "eepch.h"
 #include "hierarchyTree.h"
 #include "ui/imguiManager.h"
-#include "ui/iconsFontAwesome.h"
 #include "imguiProfiler/IconsFontAwesome4.h"
 #include "ui/iconsFontSegoeMDL2.h"
 #include "graphics/misc/DPI.h"
@@ -11,19 +10,34 @@
 #include "utils/misc/utils.h"
 #include "engine/scene/sceneManager.h"
 #include "utils/uuid/uuid.h"
-#include "core/project.h"
 #include "utils/undoRedo.h"
 #include "core/projectManager.h"
 #include "core/selection.h"
+#include "engine/events/eventSystem.h"
+#include "editor/events/selectionChangedEvent.h"
 
 namespace emerald {
 	HierarchyTree::HierarchyTree() {
+		EventSystem::subscribe<SelectionChangedEvent>([this](const SelectionChangedEvent& e) {
+			m_updatingFromCore = true;
+			m_imGuiSelection.Clear();
+			for (SceneGraphComponent* n : m_nodes) {
+				if (e.getSelection().contains(n->getEntity())) {
+					m_imGuiSelection.SetItemSelected(n->m_id, true);
+				}
+			}
+
+			m_lastUISelection = e.getSelection();
+
+			m_updatingFromCore = false;
+		});
+
 		m_imGuiSelection.PreserveOrder = false;
 		m_imGuiSelection.UserData = (void*)&m_nodes;
 		m_imGuiSelection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, int idx) {
 			auto& nodes = *(std::vector<SceneGraphComponent*>*)self->UserData;
 			return nodes[idx]->m_id;
-			};
+		};
 	}
 
 	struct TableHeader {
@@ -151,7 +165,7 @@ namespace emerald {
 			for (auto& child : node->m_children) {
 				_collectNodes(child);
 			}
-			};
+		};
 
 		_collectNodes(node);
 	}
@@ -301,7 +315,7 @@ namespace emerald {
 		while (m_imGuiSelection.GetNextSelectedItem(&iterator, &id)) {
 			auto foundNode = std::find_if(m_nodes.begin(), m_nodes.end(), [id](SceneGraphComponent* n) {
 				return n->m_id == id;
-				});
+			});
 
 			if (foundNode != m_nodes.end()) {
 				selectedNodes.push_back(*foundNode);
@@ -310,7 +324,7 @@ namespace emerald {
 
 		std::sort(selectedNodes.begin(), selectedNodes.end(), [](SceneGraphComponent* a, SceneGraphComponent* b) {
 			return a->m_treeIndex < b->m_treeIndex;
-			});
+		});
 
 		return selectedNodes;
 	}
@@ -369,14 +383,14 @@ namespace emerald {
 								originalParent1->m_children.push_back(droppedNode1); //insert at the end if no siblings
 							}
 							droppedNode1->m_parent = originalParent1;
-							});
+						});
 
 						action->addDoAction([droppedNodeEntity = droppedNode->getEntity(), nodeEntity = node->getEntity(), insertBefore, beforeNodeEntity]() {
 							SceneGraphComponent* droppedNode1 = ECSManager::ECS().getComponent<SceneGraphComponent>(droppedNodeEntity);
 							SceneGraphComponent* node1 = ECSManager::ECS().getComponent<SceneGraphComponent>(nodeEntity);
 							SceneGraphComponent* beforeNode1 = beforeNodeEntity.isValid() ? ECSManager::ECS().getComponent<SceneGraphComponent>(beforeNodeEntity) : nullptr;
 							addNodeToParent(droppedNode1, node1, insertBefore, beforeNode1);
-							});
+						});
 
 						UndoRedo::commitAction(action);
 					}
@@ -435,13 +449,20 @@ namespace emerald {
 	}
 
 	void HierarchyTree::updateSelectedEntities() {
-		Selection::clearSelection();
-		m_selectedEntities.clear();
+		if (m_updatingFromCore)   
+			return;
 
-		for (auto& node : getSelectedNodes()) {
-			if (node->getEntity() == SceneManager::getActiveScene()->getRootNode()->getEntity()) continue;
-			m_selectedEntities.push_back(node->getEntity());
-			Selection::selectEntity(node->getEntity());
+		Vector<Entity> uiSet;
+		for (SceneGraphComponent* n : getSelectedNodes())
+			if (n->getEntity() != SceneManager::getActiveScene()->getRootNode()->getEntity())
+				uiSet.pushBack(n->getEntity());
+
+		std::sort(uiSet.begin(), uiSet.end());
+		uiSet.erase(std::unique(uiSet.begin(), uiSet.end()), uiSet.end());
+
+		if (uiSet != m_lastUISelection) {
+			m_lastUISelection = uiSet;   
+			Selection::set(uiSet);  
 		}
 	}
 }

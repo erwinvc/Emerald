@@ -1,6 +1,7 @@
 #pragma once
 #include "utils/math/color.h"
 #include "graphics/textures/texture.h"
+#include "utils/misc/flags.h"
 
 namespace emerald {
 
@@ -30,8 +31,8 @@ namespace emerald {
 	class FrameBuffer : public RefCounted {
 	private:
 		Ref<Texture> m_depthTexture;
-		std::vector<Ref<Texture>> m_textures;
-		std::vector<std::string> m_textureNames;
+		std::vector<Ref<Texture>> m_attachments;
+		std::vector<std::string> m_attachmentNames;
 		uint32_t m_colorAttachments = 0;
 		uint32_t m_handle = 0;
 
@@ -40,7 +41,6 @@ namespace emerald {
 		bool checkStatus();
 		void invalidateTextures();
 		void attachTextures();
-		float fboScaleToFloat(FBOScale scale) const;
 
 		FramebufferDesc m_desc;
 
@@ -52,8 +52,9 @@ namespace emerald {
 		static Ref<FrameBuffer> create(FramebufferDesc desc);
 
 		void bind() const;
+		void bindRead(uint32_t colorAttachment = 0) const;
 		void unbind() const;
-		void clear() const;
+		void clear(Flags<3> clearMask) const;
 		void clearDepthOnly() const;
 		void clearColorOnly() const;
 		void clearStencilOnly() const;
@@ -73,9 +74,11 @@ namespace emerald {
 
 		uint32_t handle() const { return m_handle; }
 
-		std::vector<Ref<Texture>>& getTextures() { return m_textures; }
-		std::vector<std::string>& getTextureNames() { return m_textureNames; }
+		std::vector<Ref<Texture>>& getTextures() { return m_attachments; }
+		std::vector<std::string>& getTextureNames() { return m_attachmentNames; }
 		const Ref<Texture>& getDepthTexture() { return m_depthTexture; }
+
+		static float fboScaleToFloat(FBOScale scale);
 	};
 
 	namespace FrameBufferManager {

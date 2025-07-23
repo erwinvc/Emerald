@@ -68,6 +68,7 @@ namespace emerald {
 				case GL_FLOAT_VEC2: 		return ShaderUniformType::VEC2;
 				case GL_FLOAT_VEC3: 		return ShaderUniformType::VEC3;
 				case GL_FLOAT_VEC4: 		return ShaderUniformType::VEC4;
+				case GL_UNSIGNED_INT:		return ShaderUniformType::UINT;
 				case GL_INT: 				return ShaderUniformType::INT;
 				case GL_FLOAT_MAT4: 		return ShaderUniformType::MAT4;
 				case GL_SAMPLER_CUBE: 		return ShaderUniformType::INT;
@@ -84,6 +85,7 @@ namespace emerald {
 
 		uint32_t getUniformSize(ShaderUniformType type) {
 			switch (type) {
+				case ShaderUniformType::UINT:  return sizeof(unsigned int);
 				case ShaderUniformType::INT:   return sizeof(int);
 				case ShaderUniformType::FLOAT: return sizeof(float);
 				case ShaderUniformType::VEC2:  return sizeof(float) * 2;
